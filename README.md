@@ -13,6 +13,7 @@ git clone https://github.com/ariakerstein/axstack.git ~/.claude/skills/axstack
 # Or symlink specific skills
 ln -s ~/.claude/skills/axstack/interview-prep ~/.claude/skills/interview-prep
 ln -s ~/.claude/skills/axstack/auto-interview ~/.claude/skills/auto-interview
+ln -s ~/.claude/skills/axstack/linkedin-prep ~/.claude/skills/linkedin-prep
 ```
 
 Then add to your `~/.claude/settings.local.json`:
@@ -22,7 +23,8 @@ Then add to your `~/.claude/settings.local.json`:
   "permissions": {
     "allow": [
       "Skill(interview-prep)",
-      "Skill(auto-interview)"
+      "Skill(auto-interview)",
+      "Skill(linkedin-prep)"
     ]
   }
 }
@@ -105,6 +107,28 @@ node voice-interview.mjs --quick  # 5 questions
 | IC | 40% | 30% | 10% | 0% |
 | Manager | 30% | 25% | 15% | 15% |
 | Director+ | 20% | 20% | 25% | 25% |
+
+### `/linkedin-prep`
+
+Find warm intros to target companies by analyzing your LinkedIn connections.
+
+**Commands:**
+- `/linkedin-prep import [csv]` - Import your LinkedIn connections export
+- `/linkedin-prep intros [company]` - Find warm intros to a company
+- `/linkedin-prep search [query]` - Search by name, company, or title
+- `/linkedin-prep stats` - Network statistics
+
+**Setup:**
+1. Export your LinkedIn connections (Settings → Data Privacy → Get a copy of your data)
+2. Download and extract `Connections.csv`
+3. Import: `node linkedin-prep.mjs import ~/Downloads/Connections.csv`
+
+**Features:**
+- Find direct connections at target companies
+- Identify ex-employees who can make intros
+- Message templates for outreach
+- Network stats (top companies, titles, growth)
+- 100% ToS compliant (uses your own exported data)
 
 ## Frameworks
 

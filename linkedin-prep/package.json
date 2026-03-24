@@ -1,0 +1,19 @@
+{
+  "name": "linkedin-prep",
+  "version": "1.0.0",
+  "description": "Analyze LinkedIn connections for warm intros",
+  "main": "linkedin-prep.mjs",
+  "type": "module",
+  "scripts": {
+    "start": "node linkedin-prep.mjs",
+    "import": "node linkedin-prep.mjs import",
+    "search": "node linkedin-prep.mjs search",
+    "intros": "node linkedin-prep.mjs intros"
+  },
+  "dependencies": {
+    "csv-parse": "^5.5.0"
+  },
+  "bin": {
+    "linkedin-prep": "./linkedin-prep.mjs"
+  }
+}
