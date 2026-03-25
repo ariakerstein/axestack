@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
 
 const SYSTEM_PROMPT = `You are a pitch deck auditor. Analyze the deck content and score it against this framework:
 
@@ -73,10 +72,17 @@ export async function POST(request: NextRequest) {
     if (url && !content) {
       try {
         const response = await fetch(url)
+        if (!response.ok) {
+          return NextResponse.json(
+            { error: `Failed to fetch deck: HTTP ${response.status}` },
+            { status: 400 }
+          )
+        }
         deckContent = await response.text()
-      } catch {
+      } catch (fetchError) {
+        const msg = fetchError instanceof Error ? fetchError.message : 'Unknown'
         return NextResponse.json(
-          { error: 'Failed to fetch deck from URL' },
+          { error: `Failed to fetch deck from URL: ${msg}` },
           { status: 400 }
         )
       }
@@ -89,19 +95,36 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const client = new Anthropic({ apiKey })
-
-    const message = await client.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 4000,
-      messages: [
-        {
-          role: 'user',
-          content: `Audit this pitch deck and provide a detailed scorecard:\n\n${deckContent.slice(0, 50000)}`,
-        },
-      ],
-      system: SYSTEM_PROMPT,
+    // Call Anthropic API directly with fetch
+    const anthropicResponse = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        system: SYSTEM_PROMPT,
+        messages: [
+          {
+            role: 'user',
+            content: `Audit this pitch deck and provide a detailed scorecard:\n\n${deckContent.slice(0, 50000)}`,
+          },
+        ],
+      }),
     })
+
+    if (!anthropicResponse.ok) {
+      const errorData = await anthropicResponse.text()
+      return NextResponse.json(
+        { error: `Anthropic API error: ${anthropicResponse.status} - ${errorData}` },
+        { status: 500 }
+      )
+    }
+
+    const message = await anthropicResponse.json()
 
     const responseContent = message.content[0]
     if (responseContent.type !== 'text') {
@@ -119,8 +142,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result)
   } catch (error) {
     console.error('Audit error:', error)
+    const message = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: 'Failed to audit deck' },
+      { error: `Failed to audit deck: ${message}` },
       { status: 500 }
     )
   }

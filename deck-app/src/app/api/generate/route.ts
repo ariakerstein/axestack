@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
 
 const SYSTEM_PROMPT = `You are a pitch deck generator. Given answers to 6 discovery questions, generate a complete 10-slide HTML pitch deck using Tailwind CSS.
 
@@ -36,8 +35,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const client = new Anthropic({ apiKey })
-
     const userPrompt = `Generate a pitch deck based on these answers:
 
 1. What they do: ${answers.oneLiner}
@@ -49,17 +46,36 @@ export async function POST(request: NextRequest) {
 
 Generate the complete HTML deck now.`
 
-    const message = await client.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 8000,
-      messages: [
-        {
-          role: 'user',
-          content: userPrompt,
-        },
-      ],
-      system: SYSTEM_PROMPT,
+    // Call Anthropic API directly with fetch
+    const anthropicResponse = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 8000,
+        system: SYSTEM_PROMPT,
+        messages: [
+          {
+            role: 'user',
+            content: userPrompt,
+          },
+        ],
+      }),
     })
+
+    if (!anthropicResponse.ok) {
+      const errorData = await anthropicResponse.text()
+      return NextResponse.json(
+        { error: `Anthropic API error: ${anthropicResponse.status} - ${errorData}` },
+        { status: 500 }
+      )
+    }
+
+    const message = await anthropicResponse.json()
 
     const content = message.content[0]
     if (content.type !== 'text') {
@@ -79,8 +95,9 @@ Generate the complete HTML deck now.`
     })
   } catch (error) {
     console.error('Generation error:', error)
+    const message = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: 'Failed to generate deck' },
+      { error: `Failed to generate deck: ${message}` },
       { status: 500 }
     )
   }
