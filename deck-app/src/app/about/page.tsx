@@ -69,8 +69,13 @@ export default function AboutPage() {
           <h2 className="text-xl font-semibold text-white pt-4">Why I built this</h2>
 
           <p>
-            I've created 50+ pitch decks over my career — for my own startups, for friends raising,
-            and while advising early-stage founders. The same patterns kept emerging:
+            Fundraising and making multiple pitch deck updates is a real pain. I built this to
+            automate the process for myself after creating 50+ decks over my career — for my own
+            startups, for friends raising, and while advising early-stage founders.
+          </p>
+
+          <p>
+            The same patterns kept emerging:
           </p>
 
           <ul className="list-disc list-inside space-y-2 text-slate-400">
@@ -81,7 +86,11 @@ export default function AboutPage() {
           </ul>
 
           <p>
-            This tool codifies everything I've learned about what makes investors say yes.
+            I'm sharing this tool to hopefully help reduce the pain for others. It's been tested
+            with founders in my incubator, <a href="https://www.cancerhackerlab.com/" target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:underline">Cancer Hacker Lab</a>.
+          </p>
+
+          <p>
             The 6 questions aren't random — they're the forcing functions that separate
             fundable pitches from forgettable ones.
           </p>
@@ -106,12 +115,12 @@ export default function AboutPage() {
               LinkedIn
             </a>
             <a
-              href="https://twitter.com/ariakerstein"
+              href="https://x.com/aakerstein"
               target="_blank"
               rel="noopener noreferrer"
               className="text-teal-400 hover:underline"
             >
-              Twitter
+              X
             </a>
             <a
               href="https://github.com/ariakerstein"

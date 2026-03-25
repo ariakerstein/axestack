@@ -17,13 +17,21 @@ export default function Home() {
             Answer 6 questions. Get a 10-slide deck that follows the same framework
             used by YC, a16z, and Sequoia-backed founders.
           </p>
-          <Link
-            href="/create"
-            className="inline-block bg-teal-500 hover:bg-teal-600 text-white text-xl font-semibold px-8 py-4 rounded-lg transition-colors"
-          >
-            Create Your Deck — Free
-          </Link>
-          <p className="text-sm text-slate-500 mt-4">No signup required</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/create"
+              className="inline-block bg-teal-500 hover:bg-teal-600 text-white text-xl font-semibold px-8 py-4 rounded-lg transition-colors"
+            >
+              Create a Deck
+            </Link>
+            <Link
+              href="/audit"
+              className="inline-block border-2 border-teal-500 text-teal-400 hover:bg-teal-500/10 text-xl font-semibold px-8 py-4 rounded-lg transition-colors"
+            >
+              Audit Your Deck
+            </Link>
+          </div>
+          <p className="text-sm text-slate-500 mt-4">No signup required • Both free</p>
         </div>
       </section>
 
