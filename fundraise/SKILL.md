@@ -9,10 +9,21 @@ A pitch deck review skill that prioritizes **"do I believe this and want to inve
 
 ## Commands
 
-- `/fundraise review` - Full deck audit (premise → content → structure)
-- `/fundraise premise` - Just the believability check
+- `/fundraise review <deck>` - Full deck audit (premise → content → structure)
+- `/fundraise premise <deck>` - Just the believability check
 - `/fundraise objections` - Generate investor Q&A prep
 - `/fundraise sources` - Audit claim sources
+
+## Supported Formats
+
+| Format | How to Use |
+|--------|------------|
+| **URL** | `/fundraise review https://example.com/deck.html` |
+| **PDF** | `/fundraise review ~/Documents/deck.pdf` |
+| **Local HTML** | `/fundraise review ~/projects/pitch/deck.html` |
+| **Images** | `/fundraise review ~/Desktop/slide1.png` (one slide at a time) |
+
+Claude Code can read PDFs natively (extracts text + visuals per page).
 
 ---
 
