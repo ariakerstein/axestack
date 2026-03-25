@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Navis - Pitch Deck</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .slide { min-height: 100vh; scroll-snap-align: start; }
+    html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+  </style>
+</head>
+<body class="bg-slate-900 text-white">
+
+  <!-- Slide 1: Title -->
+  <section class="slide flex flex-col justify-center items-center p-16">
+    <h1 class="text-6xl font-bold mb-6">Navis</h1>
+    <p class="text-3xl text-slate-300 mb-8">Expert second opinions for cancer patients.</p>
+    <p class="text-2xl text-teal-400">24 hours. $99. Peace of mind.</p>
+  </section>
+
+  <!-- Slide 2: Problem -->
+  <section class="slide flex flex-col justify-center p-16 bg-slate-800">
+    <h2 class="text-5xl font-bold mb-12">The Problem</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+      <div>
+        <p class="text-7xl font-bold text-red-400">84%</p>
+        <p class="text-2xl text-slate-300 mt-4">of cancer patients never get a second opinion</p>
+      </div>
+      <div>
+        <p class="text-7xl font-bold text-red-400">2-3 weeks</p>
+        <p class="text-2xl text-slate-300 mt-4">average wait for academic medical center</p>
+      </div>
+      <div>
+        <p class="text-7xl font-bold text-red-400">$4,000</p>
+        <p class="text-2xl text-slate-300 mt-4">cost of premium second opinion services</p>
+      </div>
+    </div>
+    <p class="text-2xl text-slate-400 mt-12 text-center">1 in 3 second opinions result in a treatment change. Most patients never find out.</p>
+  </section>
+
+  <!-- Slide 3: Why Now -->
+  <section class="slide flex flex-col justify-center p-16">
+    <h2 class="text-5xl font-bold mb-12">Why Now</h2>
+    <div class="space-y-8 max-w-4xl">
+      <div class="flex items-start gap-6">
+        <span class="text-4xl">1</span>
+        <div>
+          <p class="text-3xl font-semibold">AI can now parse medical records</p>
+          <p class="text-xl text-slate-400 mt-2">What took oncologists hours now takes minutes</p>
+        </div>
+      </div>
+      <div class="flex items-start gap-6">
+        <span class="text-4xl">2</span>
+        <div>
+          <p class="text-3xl font-semibold">Patients expect on-demand everything</p>
+          <p class="text-xl text-slate-400 mt-2">Post-pandemic shift: telehealth is mainstream</p>
+        </div>
+      </div>
+      <div class="flex items-start gap-6">
+        <span class="text-4xl">3</span>
+        <div>
+          <p class="text-3xl font-semibold">$9B second opinion market, 18% CAGR</p>
+          <p class="text-xl text-slate-400 mt-2">Massive demand, no accessible solution</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 4: Solution -->
+  <section class="slide flex flex-col justify-center p-16 bg-slate-800">
+    <h2 class="text-5xl font-bold mb-12">The Solution</h2>
+    <p class="text-3xl text-slate-300 mb-12">Expert second opinions in 24 hours, not 2 weeks. $99, not $4,000.</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="bg-slate-700 p-8 rounded-xl">
+        <p class="text-5xl mb-4">1</p>
+        <p class="text-2xl font-semibold">Upload records</p>
+        <p class="text-lg text-slate-400 mt-2">AI extracts key findings automatically</p>
+      </div>
+      <div class="bg-slate-700 p-8 rounded-xl">
+        <p class="text-5xl mb-4">2</p>
+        <p class="text-2xl font-semibold">Get matched</p>
+        <p class="text-lg text-slate-400 mt-2">To relevant guidelines and clinical trials</p>
+      </div>
+      <div class="bg-slate-700 p-8 rounded-xl">
+        <p class="text-5xl mb-4">3</p>
+        <p class="text-2xl font-semibold">Receive guidance</p>
+        <p class="text-lg text-slate-400 mt-2">Clear next steps to discuss with your doctor</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 5: How It Works -->
+  <section class="slide flex flex-col justify-center p-16">
+    <h2 class="text-5xl font-bold mb-12">How It Works</h2>
+    <div class="max-w-4xl space-y-6">
+      <div class="flex items-center gap-6 bg-slate-800 p-6 rounded-xl">
+        <span class="text-teal-400 text-4xl font-bold">AI</span>
+        <p class="text-2xl">Parses medical records and extracts diagnosis, staging, biomarkers</p>
+      </div>
+      <div class="flex items-center gap-6 bg-slate-800 p-6 rounded-xl">
+        <span class="text-teal-400 text-4xl font-bold">NCCN</span>
+        <p class="text-2xl">Matches to National Comprehensive Cancer Network guidelines</p>
+      </div>
+      <div class="flex items-center gap-6 bg-slate-800 p-6 rounded-xl">
+        <span class="text-teal-400 text-4xl font-bold">NCI</span>
+        <p class="text-2xl">Surfaces relevant clinical trials from National Cancer Institute</p>
+      </div>
+      <div class="flex items-center gap-6 bg-slate-800 p-6 rounded-xl">
+        <span class="text-teal-400 text-4xl font-bold">You</span>
+        <p class="text-2xl">Get a clear action plan to take to your oncologist</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 6: Business Model -->
+  <section class="slide flex flex-col justify-center items-center p-16 bg-slate-800">
+    <h2 class="text-5xl font-bold mb-12">Business Model</h2>
+    <div class="text-center">
+      <p class="text-8xl font-bold text-teal-400">$99</p>
+      <p class="text-3xl text-slate-300 mt-4">per second opinion</p>
+    </div>
+    <div class="grid grid-cols-2 gap-12 mt-16 max-w-2xl">
+      <div class="text-center">
+        <p class="text-4xl font-bold">10x</p>
+        <p class="text-xl text-slate-400">cheaper than 2nd.MD</p>
+      </div>
+      <div class="text-center">
+        <p class="text-4xl font-bold">14x</p>
+        <p class="text-xl text-slate-400">faster than academic centers</p>
+      </div>
+    </div>
+    <p class="text-2xl text-slate-400 mt-12">Simple transaction. No enterprise sales cycle.</p>
+  </section>
+
+  <!-- Slide 7: Traction -->
+  <section class="slide flex flex-col justify-center p-16">
+    <h2 class="text-5xl font-bold mb-12">Traction</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+      <div>
+        <p class="text-7xl font-bold text-teal-400">~50</p>
+        <p class="text-2xl text-slate-300 mt-4">patients served</p>
+        <p class="text-lg text-slate-500">60% willingness to pay</p>
+      </div>
+      <div>
+        <p class="text-7xl font-bold text-teal-400">5</p>
+        <p class="text-2xl text-slate-300 mt-4">LOIs signed</p>
+        <p class="text-lg text-slate-500">from health systems</p>
+      </div>
+      <div>
+        <p class="text-7xl font-bold text-teal-400">3</p>
+        <p class="text-2xl text-slate-300 mt-4">pilots in progress</p>
+        <p class="text-lg text-slate-500">with cancer centers</p>
+      </div>
+    </div>
+    <div class="mt-12 bg-slate-800 p-8 rounded-xl max-w-3xl mx-auto">
+      <p class="text-2xl italic text-slate-300">"More valuable than any single provider I've had."</p>
+      <p class="text-lg text-slate-500 mt-4">— Jennifer, Breast Cancer Patient</p>
+    </div>
+  </section>
+
+  <!-- Slide 8: Competition -->
+  <section class="slide flex flex-col justify-center p-16 bg-slate-800">
+    <h2 class="text-5xl font-bold mb-12">Competition</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full max-w-4xl mx-auto text-left">
+        <thead>
+          <tr class="text-xl text-slate-400 border-b border-slate-600">
+            <th class="py-4"></th>
+            <th class="py-4">2nd.MD / AccessHope</th>
+            <th class="py-4">Academic Centers</th>
+            <th class="py-4 text-teal-400">Navis</th>
+          </tr>
+        </thead>
+        <tbody class="text-2xl">
+          <tr class="border-b border-slate-700">
+            <td class="py-4 text-slate-400">Price</td>
+            <td class="py-4">$3,000-$4,000</td>
+            <td class="py-4">Travel + time</td>
+            <td class="py-4 text-teal-400 font-semibold">$99</td>
+          </tr>
+          <tr class="border-b border-slate-700">
+            <td class="py-4 text-slate-400">Speed</td>
+            <td class="py-4">7-14 days</td>
+            <td class="py-4">2-3 weeks</td>
+            <td class="py-4 text-teal-400 font-semibold">24 hours</td>
+          </tr>
+          <tr class="border-b border-slate-700">
+            <td class="py-4 text-slate-400">Access</td>
+            <td class="py-4">Employer-only</td>
+            <td class="py-4">Travel required</td>
+            <td class="py-4 text-teal-400 font-semibold">Anyone, anywhere</td>
+          </tr>
+          <tr>
+            <td class="py-4 text-slate-400">Output</td>
+            <td class="py-4">Report</td>
+            <td class="py-4">Appointment</td>
+            <td class="py-4 text-teal-400 font-semibold">Action plan</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Slide 9: Team -->
+  <section class="slide flex flex-col justify-center p-16">
+    <h2 class="text-5xl font-bold mb-12">Team</h2>
+    <div class="max-w-3xl space-y-8">
+      <div class="bg-slate-800 p-8 rounded-xl">
+        <p class="text-3xl font-semibold mb-4">Domain Expertise</p>
+        <p class="text-2xl text-slate-300">Led the largest second opinion product in the US during the pandemic</p>
+      </div>
+      <div class="bg-slate-800 p-8 rounded-xl">
+        <p class="text-3xl font-semibold mb-4">Consumer Scale</p>
+        <p class="text-2xl text-slate-300">Shipped on Facebook Newsfeed — products reaching billions</p>
+      </div>
+      <div class="bg-slate-800 p-8 rounded-xl">
+        <p class="text-3xl font-semibold mb-4">Patient Insight</p>
+        <p class="text-2xl text-slate-300">Talked to hundreds of cancer patients and caregivers</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 10: Ask -->
+  <section class="slide flex flex-col justify-center items-center p-16 bg-slate-800">
+    <h2 class="text-5xl font-bold mb-12">The Ask</h2>
+    <p class="text-8xl font-bold text-teal-400 mb-8">$500K</p>
+    <p class="text-3xl text-slate-300 mb-12">Pre-seed round</p>
+    <div class="max-w-2xl">
+      <p class="text-2xl mb-6"><span class="text-teal-400 font-semibold">Milestone:</span> 1,000 paying patients</p>
+      <p class="text-2xl mb-6"><span class="text-teal-400 font-semibold">Proves:</span> Demand, unit economics, referral loop</p>
+      <p class="text-2xl"><span class="text-teal-400 font-semibold">Use of funds:</span></p>
+      <ul class="text-xl text-slate-400 mt-4 space-y-2">
+        <li>• Product development (AI + workflows)</li>
+        <li>• Patient acquisition (content + partnerships)</li>
+        <li>• Clinical validation (oncologist review)</li>
+      </ul>
+    </div>
+    <div class="mt-16">
+      <p class="text-2xl text-slate-400">Contact: founder@navis.health</p>
+    </div>
+  </section>
+
+</body>
+</html>
