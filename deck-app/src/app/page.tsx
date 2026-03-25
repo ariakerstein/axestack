@@ -157,7 +157,7 @@ export default function Home() {
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-sm text-slate-500 mb-4">BUILT BY</p>
           <div className="flex items-center justify-center gap-4 mb-4">
-            <img src="/ari.png" alt="Ari Akerstein" className="w-12 h-12 rounded-full object-cover" />
+            <img src="/ari.png" alt="Ari Akerstein" className="w-16 h-16 rounded-full object-cover shadow-lg" />
             <div className="text-left">
               <p className="font-semibold">Ari Akerstein</p>
               <p className="text-sm text-slate-400">Serial founder • Ex-Facebook PM • Cancer Hacker Lab</p>

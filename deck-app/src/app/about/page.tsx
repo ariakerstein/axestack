@@ -14,7 +14,7 @@ export default function AboutPage() {
           <img
             src="/ari.png"
             alt="Ari Akerstein"
-            className="w-32 h-32 rounded-full object-cover shadow-lg"
+            className="w-40 h-40 rounded-full object-cover shadow-lg border-2 border-teal-400/30"
           />
           <div>
             <h1 className="text-3xl font-bold">Ari Akerstein</h1>
