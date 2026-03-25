@@ -1,6 +1,6 @@
 # axstack
 
-Claude Code skills for interview prep, career development, and productivity.
+Claude Code skills for interview prep, fundraising, career development, and productivity.
 
 Inspired by [gstack](https://github.com/anthropics/gstack).
 
@@ -14,6 +14,7 @@ git clone https://github.com/ariakerstein/axstack.git ~/.claude/skills/axstack
 ln -s ~/.claude/skills/axstack/interview-prep ~/.claude/skills/interview-prep
 ln -s ~/.claude/skills/axstack/auto-interview ~/.claude/skills/auto-interview
 ln -s ~/.claude/skills/axstack/linkedin-prep ~/.claude/skills/linkedin-prep
+ln -s ~/.claude/skills/axstack/fundraise ~/.claude/skills/fundraise
 ```
 
 Then add to your `~/.claude/settings.local.json`:
@@ -24,7 +25,8 @@ Then add to your `~/.claude/settings.local.json`:
     "allow": [
       "Skill(interview-prep)",
       "Skill(auto-interview)",
-      "Skill(linkedin-prep)"
+      "Skill(linkedin-prep)",
+      "Skill(fundraise)"
     ]
   }
 }
@@ -129,6 +131,42 @@ Find warm intros to target companies by analyzing your LinkedIn connections.
 - Message templates for outreach
 - Network stats (top companies, titles, growth)
 - 100% ToS compliant (uses your own exported data)
+
+### `/fundraise`
+
+Pitch deck review for investor-readiness. Premise-first analysis with Kawasaki 10/20/30 as guardrails.
+
+**Commands:**
+- `/fundraise review` - Full deck audit (premise → content → structure)
+- `/fundraise premise` - Just the believability check
+- `/fundraise objections` - Generate investor Q&A prep
+- `/fundraise sources` - Audit claim sources
+
+**Scoring (30 pts):**
+
+| Phase | Points | Focus |
+|-------|--------|-------|
+| Premise & Conviction | 15 | Clarity, urgency, believability, upside, non-consensus |
+| Content & Proof | 10 | GTM, traction, business model, ask |
+| Structure & Design | 5 | Kawasaki, visual hierarchy |
+
+**Features:**
+- Vitamin vs. painkiller framework
+- Believability signals (strong vs weak)
+- GTM red flags
+- Conviction red flags
+- Traction rules by stage (pre-seed/seed/A)
+- Anti-patterns table
+- Investor Q&A checklist
+- Source quality tiers
+
+**Philosophy:**
+1. Premise before polish
+2. Kawasaki as heuristic, not law
+3. Investors bet on conviction
+4. Painkiller > vitamin
+5. GTM clarity is underrated
+6. Avoid AI slop
 
 ## Frameworks
 
