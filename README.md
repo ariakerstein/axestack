@@ -15,9 +15,10 @@ That's it. Skills are now available in Claude Code.
 
 **Usage:**
 ```
-/fundraise review https://example.com/deck.html
-/interview-prep scan
-/linkedin-prep stats
+/deck                    # Generate pitch deck from Q&A
+/fundraise review        # Audit existing deck
+/interview-prep scan     # Pre-interview review
+/linkedin-prep stats     # Network analysis
 ```
 
 ### Optional: Symlink individual skills
@@ -37,6 +38,7 @@ Add to `~/.claude/settings.local.json` to skip permission prompts:
 {
   "permissions": {
     "allow": [
+      "Skill(deck)",
       "Skill(fundraise)",
       "Skill(interview-prep)",
       "Skill(auto-interview)",
@@ -234,6 +236,48 @@ Pitch deck review for investor-readiness. Premise-first analysis with Kawasaki 1
 4. Painkiller > vitamin
 5. GTM clarity is underrated
 6. Avoid AI slop
+
+### `/deck`
+
+Generate investor-ready pitch decks from guided discovery. Outputs HTML + Tailwind.
+
+**Commands:**
+- `/deck` or `/deck new` - Start guided discovery flow
+- `/deck from <file>` - Generate from existing brief/notes
+- `/deck iterate` - Refine existing deck based on feedback
+- `/deck template` - Show blank template structure
+
+**Flow:**
+1. Answer 6 forcing questions (one at a time)
+2. Auto-generate 10-slide HTML + Tailwind deck
+3. Self-review against fundraise framework
+4. Get scorecard + top improvements
+
+**The 6 Questions:**
+
+| # | Question |
+|---|----------|
+| 1 | What do you do in one sentence? |
+| 2 | Who is desperate for this? (Name a real person/title) |
+| 3 | What are they doing today without you? |
+| 4 | What's your unfair advantage? |
+| 5 | How do you make money? (ONE model) |
+| 6 | How much are you raising, and what milestone does it unlock? |
+
+**Features:**
+- Pushback on vague answers ("enterprises" → "name one person")
+- Escape hatch if you want to move fast
+- 10-slide Kawasaki-compliant output
+- Auto-flags gaps from discovery
+- Integrates with `/fundraise review` for full audit
+
+**Workflow:**
+```
+/deck                    # Generate deck from Q&A
+/fundraise review        # Full audit
+/fundraise feedback add  # Log investor reactions
+/deck iterate            # Apply feedback
+```
 
 ## Frameworks
 
