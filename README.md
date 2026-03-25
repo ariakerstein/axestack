@@ -1,4 +1,4 @@
-# axstack
+# axestack
 
 Claude Code skills for interview prep, fundraising, career development, and productivity.
 
