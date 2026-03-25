@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 const QUESTIONS = [
   {
@@ -210,6 +211,13 @@ export default function Wizard() {
 
   return (
     <div className="min-h-screen flex flex-col p-8">
+      {/* Back to home */}
+      <div className="max-w-2xl mx-auto w-full mb-4">
+        <Link href="/" className="text-teal-400 hover:underline text-sm">
+          ← Back to home
+        </Link>
+      </div>
+
       {/* Progress */}
       <div className="max-w-2xl mx-auto w-full mb-8">
         <div className="flex justify-between text-sm text-slate-400 mb-2">
