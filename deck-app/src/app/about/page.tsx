@@ -14,7 +14,7 @@ export default function AboutPage() {
           <img
             src="/ari.png"
             alt="Ari Akerstein"
-            className="w-20 h-20 rounded-full object-cover"
+            className="w-32 h-32 rounded-full object-cover shadow-lg"
           />
           <div>
             <h1 className="text-3xl font-bold">Ari Akerstein</h1>
@@ -56,7 +56,11 @@ export default function AboutPage() {
             <div className="flex gap-4">
               <div className="w-2 h-2 bg-teal-400 rounded-full mt-2 flex-shrink-0"></div>
               <div>
-                <p className="font-semibold text-white">Cancer Hacker Lab</p>
+                <p className="font-semibold text-white">
+                  <a href="https://www.cancerhackerlab.com/" target="_blank" rel="noopener noreferrer" className="hover:text-teal-400 transition-colors">
+                    Cancer Hacker Lab ↗
+                  </a>
+                </p>
                 <p className="text-sm text-slate-400">Founder in healthcare accelerator focused on cancer innovation.</p>
               </div>
             </div>
