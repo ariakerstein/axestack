@@ -254,60 +254,43 @@ All statistics and claims should have verifiable sources. Run `/fundraise source
 
 ## Output Format
 
-When running `/fundraise review`, output:
+When running `/fundraise review`, output a scorecard table followed by details:
 
 ```
-## PREMISE CHECK (X/15)
+## SCORECARD
 
-### Clarity: X/3
-[Specific feedback]
-
-### Problem Urgency: X/3
-[Painkiller or vitamin? Evidence.]
-
-### Believability: X/3
-[Team + traction + insight assessment]
-
-### Upside: X/3
-[Venture-scale? Why or why not.]
-
-### Non-consensus: X/3
-[What's the contrarian bet? Is it clear?]
-
----
-
-## CONTENT CHECK (X/10)
-
-### GTM Clarity: X/3
-[How do they acquire customers? Red flags?]
-
-### Traction: X/3
-[Numbers with timeframes? Velocity?]
-
-### Business Model: X/2
-[Clear? Single model?]
-
-### The Ask: X/2
-[Specific? Use of funds clear?]
+| Category | Score | Notes |
+|----------|-------|-------|
+| **PREMISE (15)** | | |
+| Clarity | X/3 | [One-line assessment] |
+| Problem Urgency | X/3 | [Painkiller or vitamin?] |
+| Believability | X/3 | [Team + traction signal] |
+| Upside | X/3 | [Venture-scale?] |
+| Non-consensus | X/3 | [Contrarian bet clear?] |
+| **CONTENT (10)** | | |
+| GTM Clarity | X/3 | [How acquire customers?] |
+| Traction | X/3 | [Numbers + timeframes?] |
+| Business Model | X/2 | [Clear single model?] |
+| The Ask | X/2 | [Specific amount + use?] |
+| **STRUCTURE (5)** | | |
+| Kawasaki | X/3 | [Slides, fonts, density] |
+| Visual | X/2 | [Hierarchy, consistency] |
+| | | |
+| **TOTAL** | **X/30** | **[VERDICT]** |
 
 ---
-
-## STRUCTURE CHECK (X/5)
-
-### Kawasaki: X/3
-[Slide count, font sizes, density]
-
-### Visual: X/2
-[Hierarchy, consistency, broken elements]
-
----
-
-## TOTAL: X/30 — [VERDICT]
 
 ## TOP 3 FIXES
-1. [Most important fix]
-2. [Second priority]
-3. [Third priority]
+
+1. **[Category]**: [Specific, actionable fix]
+2. **[Category]**: [Specific, actionable fix]
+3. **[Category]**: [Specific, actionable fix]
+
+---
+
+## DETAILED NOTES
+
+[Expand on any scores that need explanation. Keep brief.]
 ```
 
 ---

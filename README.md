@@ -4,29 +4,43 @@ Claude Code skills for interview prep, fundraising, career development, and prod
 
 Inspired by [gstack](https://github.com/anthropics/gstack).
 
-## Installation
+## Quick Start
 
 ```bash
-# Clone to your Claude skills directory
+# One-line install
 git clone https://github.com/ariakerstein/axstack.git ~/.claude/skills/axstack
-
-# Or symlink specific skills
-ln -s ~/.claude/skills/axstack/interview-prep ~/.claude/skills/interview-prep
-ln -s ~/.claude/skills/axstack/auto-interview ~/.claude/skills/auto-interview
-ln -s ~/.claude/skills/axstack/linkedin-prep ~/.claude/skills/linkedin-prep
-ln -s ~/.claude/skills/axstack/fundraise ~/.claude/skills/fundraise
 ```
 
-Then add to your `~/.claude/settings.local.json`:
+That's it. Skills are now available in Claude Code.
+
+**Usage:**
+```
+/fundraise review https://example.com/deck.html
+/interview-prep scan
+/linkedin-prep stats
+```
+
+### Optional: Symlink individual skills
+
+If you only want specific skills:
+
+```bash
+ln -s ~/.claude/skills/axstack/fundraise ~/.claude/skills/fundraise
+ln -s ~/.claude/skills/axstack/interview-prep ~/.claude/skills/interview-prep
+```
+
+### Optional: Pre-approve permissions
+
+Add to `~/.claude/settings.local.json` to skip permission prompts:
 
 ```json
 {
   "permissions": {
     "allow": [
+      "Skill(fundraise)",
       "Skill(interview-prep)",
       "Skill(auto-interview)",
-      "Skill(linkedin-prep)",
-      "Skill(fundraise)"
+      "Skill(linkedin-prep)"
     ]
   }
 }
