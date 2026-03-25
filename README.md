@@ -150,8 +150,6 @@ Find warm intros to target companies by analyzing your LinkedIn connections.
 
 Pitch deck review for investor-readiness. Premise-first analysis with Kawasaki 10/20/30 as guardrails.
 
-![fundraise demo](assets/fundraise-demo.gif)
-
 **Commands:**
 - `/fundraise review` - Full deck audit (premise → content → structure)
 - `/fundraise premise` - Just the believability check
