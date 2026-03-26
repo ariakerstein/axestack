@@ -97,77 +97,95 @@ export default function Wizard() {
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
-    section { scroll-snap-align: start; min-height: 100vh; }
+    section { scroll-snap-align: start; min-height: 100vh; position: relative; }
     body { margin: 0; background: #f8fafc; }
+    .slide-label { position: absolute; top: 24px; left: 24px; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #64748b; }
+    .slide-number { position: absolute; bottom: 24px; right: 24px; font-size: 14px; color: #94a3b8; }
   </style>
 </head>
 <body class="text-gray-900">
   <!-- Slide 0: Title -->
   <section id="slide-0" class="flex flex-col items-center justify-center p-12 bg-white">
+    <span class="slide-label">Title</span>
     <h1 class="text-5xl font-bold text-gray-900 mb-6 text-center">${companyName}</h1>
-    <p class="text-2xl text-gray-600 text-center max-w-2xl">${oneLiner}</p>
+    <p class="text-2xl text-gray-600 text-center max-w-2xl">${answers.oneLiner ? oneLiner : '<span class="text-gray-400 italic">Your one-liner will appear here</span>'}</p>
+    <span class="slide-number">1</span>
   </section>
 
   <!-- Slide 1: Problem -->
   <section id="slide-1" class="flex flex-col items-center justify-center p-12 bg-gray-50">
-    <h2 class="text-4xl font-bold text-teal-600 mb-8">The Problem</h2>
-    <div class="max-w-2xl space-y-6">
-      <p class="text-2xl text-gray-700"><strong>Who:</strong> ${desperatePerson}</p>
-      <p class="text-2xl text-gray-700"><strong>Pain:</strong> ${currentSolution}</p>
+    <span class="slide-label">Problem</span>
+    <h2 class="text-4xl font-bold text-gray-900 mb-8">The Problem</h2>
+    <div class="max-w-2xl space-y-6 text-center">
+      ${answers.desperatePerson ? `<p class="text-2xl text-gray-700">${desperatePerson}</p>` : '<p class="text-xl text-gray-400 italic">Who is desperate for this solution?</p>'}
+      ${answers.currentSolution ? `<p class="text-xl text-gray-600 mt-4">${currentSolution}</p>` : '<p class="text-lg text-gray-400 italic mt-4">What painful workaround do they use today?</p>'}
     </div>
+    <span class="slide-number">2</span>
   </section>
 
   <!-- Slide 2: Why Now -->
   <section id="slide-2" class="flex flex-col items-center justify-center p-12 bg-white">
-    <h2 class="text-4xl font-bold text-teal-600 mb-8">Why Now</h2>
-    <p class="text-2xl text-gray-600 text-center max-w-2xl">Market timing and trends that make this the right moment...</p>
+    <span class="slide-label">Why Now</span>
+    <h2 class="text-4xl font-bold text-gray-900 mb-8">Why Now</h2>
+    <p class="text-xl text-gray-400 italic text-center max-w-2xl">AI will generate market timing insights based on your answers</p>
+    <span class="slide-number">3</span>
   </section>
 
   <!-- Slide 3: Solution -->
   <section id="slide-3" class="flex flex-col items-center justify-center p-12 bg-gray-50">
-    <h2 class="text-4xl font-bold text-teal-600 mb-8">The Solution</h2>
-    <p class="text-2xl text-gray-700 text-center max-w-2xl">${oneLiner}</p>
+    <span class="slide-label">Solution</span>
+    <h2 class="text-4xl font-bold text-gray-900 mb-8">The Solution</h2>
+    ${answers.oneLiner ? `<p class="text-2xl text-gray-700 text-center max-w-2xl">${oneLiner}</p>` : '<p class="text-xl text-gray-400 italic text-center max-w-2xl">Your solution statement will appear here</p>'}
+    <span class="slide-number">4</span>
   </section>
 
   <!-- Slide 4: How It Works -->
   <section id="slide-4" class="flex flex-col items-center justify-center p-12 bg-white">
-    <h2 class="text-4xl font-bold text-teal-600 mb-8">How It Works</h2>
-    <div class="flex gap-8">
-      <div class="text-center"><div class="text-4xl font-bold text-teal-600">1</div><p class="text-xl text-gray-600 mt-2">Step one</p></div>
-      <div class="text-center"><div class="text-4xl font-bold text-teal-600">2</div><p class="text-xl text-gray-600 mt-2">Step two</p></div>
-      <div class="text-center"><div class="text-4xl font-bold text-teal-600">3</div><p class="text-xl text-gray-600 mt-2">Step three</p></div>
-    </div>
+    <span class="slide-label">How It Works</span>
+    <h2 class="text-4xl font-bold text-gray-900 mb-8">How It Works</h2>
+    <p class="text-xl text-gray-400 italic text-center">AI will generate a 3-step process from your description</p>
+    <span class="slide-number">5</span>
   </section>
 
   <!-- Slide 5: Business Model -->
   <section id="slide-5" class="flex flex-col items-center justify-center p-12 bg-gray-50">
-    <h2 class="text-4xl font-bold text-teal-600 mb-8">Business Model</h2>
-    <p class="text-3xl text-gray-900 font-semibold">${businessModel}</p>
+    <span class="slide-label">Business Model</span>
+    <h2 class="text-4xl font-bold text-gray-900 mb-8">Business Model</h2>
+    ${answers.businessModel ? `<p class="text-3xl text-teal-600 font-semibold">${businessModel}</p>` : '<p class="text-xl text-gray-400 italic">Select your revenue model</p>'}
+    <span class="slide-number">6</span>
   </section>
 
   <!-- Slide 6: Traction -->
   <section id="slide-6" class="flex flex-col items-center justify-center p-12 bg-white">
-    <h2 class="text-4xl font-bold text-teal-600 mb-8">Traction</h2>
-    <p class="text-2xl text-gray-600 text-center">Metrics and milestones achieved so far...</p>
+    <span class="slide-label">Traction</span>
+    <h2 class="text-4xl font-bold text-gray-900 mb-8">Traction</h2>
+    <p class="text-xl text-gray-400 italic text-center">AI will prompt you for metrics in the editor</p>
+    <span class="slide-number">7</span>
   </section>
 
   <!-- Slide 7: Competition -->
   <section id="slide-7" class="flex flex-col items-center justify-center p-12 bg-gray-50">
-    <h2 class="text-4xl font-bold text-teal-600 mb-8">Competition</h2>
-    <p class="text-2xl text-gray-600 text-center">How you stack up against alternatives...</p>
+    <span class="slide-label">Competition</span>
+    <h2 class="text-4xl font-bold text-gray-900 mb-8">Competition</h2>
+    <p class="text-xl text-gray-400 italic text-center">AI will generate a comparison based on your space</p>
+    <span class="slide-number">8</span>
   </section>
 
   <!-- Slide 8: Team -->
   <section id="slide-8" class="flex flex-col items-center justify-center p-12 bg-white">
-    <h2 class="text-4xl font-bold text-teal-600 mb-8">Why Us</h2>
-    <p class="text-2xl text-gray-700 text-center max-w-2xl">${unfairAdvantage}</p>
+    <span class="slide-label">Team</span>
+    <h2 class="text-4xl font-bold text-gray-900 mb-8">Why Us</h2>
+    ${answers.unfairAdvantage ? `<p class="text-2xl text-gray-700 text-center max-w-2xl">${unfairAdvantage}</p>` : '<p class="text-xl text-gray-400 italic text-center max-w-2xl">Your unfair advantage will appear here</p>'}
+    <span class="slide-number">9</span>
   </section>
 
   <!-- Slide 9: The Ask -->
   <section id="slide-9" class="flex flex-col items-center justify-center p-12 bg-gray-50">
-    <h2 class="text-4xl font-bold text-teal-600 mb-8">The Ask</h2>
-    <p class="text-3xl text-gray-900 font-semibold mb-4">Raising ${raise}</p>
-    <p class="text-2xl text-gray-600">To achieve: ${milestone}</p>
+    <span class="slide-label">The Ask</span>
+    <h2 class="text-4xl font-bold text-gray-900 mb-8">The Ask</h2>
+    ${raiseAmount ? `<p class="text-3xl text-teal-600 font-semibold mb-4">Raising ${raise}</p>` : '<p class="text-xl text-gray-400 italic mb-4">How much are you raising?</p>'}
+    ${raiseMilestone ? `<p class="text-2xl text-gray-600">To achieve: ${milestone}</p>` : '<p class="text-lg text-gray-400 italic">What milestone does it unlock?</p>'}
+    <span class="slide-number">10</span>
   </section>
 </body>
 </html>`
