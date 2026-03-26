@@ -12,7 +12,7 @@ import {
   type PitchFeedback,
   getSessionId
 } from '@/lib/supabase'
-import { COLOR_SCHEMES, schemeToStyles, UNSPLASH_CATEGORIES, type ColorScheme } from '@/lib/themes'
+import { COLOR_SCHEMES, schemeToStyles, type ColorScheme } from '@/lib/themes'
 
 interface ChatMessage {
   role: 'user' | 'assistant'
@@ -21,15 +21,6 @@ interface ChatMessage {
 
 
 type Tab = 'design' | 'edit' | 'versions' | 'feedback'
-
-interface UnsplashImage {
-  id: string
-  url: string
-  thumb: string
-  alt: string
-  credit: { name: string; link: string } | null
-  downloadUrl: string | null
-}
 
 interface UploadedMedia {
   name: string
@@ -80,8 +71,6 @@ export default function EditorPage() {
   const [activeTab, setActiveTab] = useState<Tab>('design')
   const [newVersionName, setNewVersionName] = useState('')
   const [colorScheme, setColorScheme] = useState<ColorScheme>(COLOR_SCHEMES[0])
-  const [unsplashImages, setUnsplashImages] = useState<UnsplashImage[]>([])
-  const [isLoadingImages, setIsLoadingImages] = useState(false)
   const [uploadedMedia, setUploadedMedia] = useState<UploadedMedia[]>([])
   const [isUploading, setIsUploading] = useState(false)
   const [score, setScore] = useState<DeckScore | null>(null)
@@ -430,20 +419,6 @@ export default function EditorPage() {
 
   const currentDeck = savedDecks.find(d => d.id === currentDeckId)
   const totalSlides = slides.length || 10
-
-  // Fetch Unsplash images
-  const fetchImages = async (query: string) => {
-    setIsLoadingImages(true)
-    try {
-      const res = await fetch(`/api/unsplash?query=${encodeURIComponent(query)}&per_page=8`)
-      const data = await res.json()
-      setUnsplashImages(data.images || [])
-    } catch (e) {
-      console.error('Failed to fetch images:', e)
-    } finally {
-      setIsLoadingImages(false)
-    }
-  }
 
   // Upload media file
   const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -824,66 +799,12 @@ export default function EditorPage() {
                     </div>
                   </div>
 
-                  {/* Unsplash Images */}
-                  <div className="border-t border-slate-700 pt-4">
-                    <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
-                      Stock Images
-                    </h3>
-                    <div className="flex flex-wrap gap-1.5 mb-3">
-                      {UNSPLASH_CATEGORIES.map(cat => (
-                        <button
-                          key={cat.id}
-                          onClick={() => fetchImages(cat.query)}
-                          className="text-xs px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded-full transition-colors"
-                        >
-                          {cat.label}
-                        </button>
-                      ))}
-                    </div>
-
-                    {isLoadingImages && (
-                      <div className="text-center py-4 text-slate-500 text-sm">Loading images...</div>
-                    )}
-
-                    {unsplashImages.length > 0 && (
-                      <div className="grid grid-cols-2 gap-2">
-                        {unsplashImages.map(img => (
-                          <button
-                            key={img.id}
-                            onClick={() => insertImage(img.url)}
-                            className="relative group rounded-lg overflow-hidden aspect-video"
-                          >
-                            <img
-                              src={img.thumb}
-                              alt={img.alt}
-                              className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                              <span className="text-xs text-white font-medium">Insert</span>
-                            </div>
-                            {img.credit && (
-                              <span className="absolute bottom-0.5 right-1 text-[8px] text-white/70">
-                                {img.credit.name}
-                              </span>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-
-                    {!isLoadingImages && unsplashImages.length === 0 && (
-                      <div className="text-center py-4 text-slate-500 text-xs">
-                        Click a category to browse images
-                      </div>
-                    )}
-                  </div>
-
                   {/* Upload Media */}
                   <div className="border-t border-slate-700 pt-4">
                     <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
-                      Upload Media
+                      Your Images
                     </h3>
-                    <label className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-slate-600 rounded-lg cursor-pointer hover:border-teal-400 transition-colors">
+                    <label className="flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed border-slate-600 rounded-lg cursor-pointer hover:border-teal-400 hover:bg-slate-700/30 transition-all">
                       <input
                         type="file"
                         accept="image/*"
@@ -895,27 +816,28 @@ export default function EditorPage() {
                         <span className="text-sm text-slate-400">Uploading...</span>
                       ) : (
                         <>
-                          <span className="text-lg">📁</span>
-                          <span className="text-sm text-slate-400">Drop image or click</span>
+                          <span className="text-2xl">📷</span>
+                          <span className="text-sm text-slate-300">Upload logo, screenshot, or photo</span>
+                          <span className="text-xs text-slate-500">PNG, JPG up to 5MB</span>
                         </>
                       )}
                     </label>
 
                     {uploadedMedia.length > 0 && (
-                      <div className="grid grid-cols-3 gap-2 mt-3">
+                      <div className="grid grid-cols-3 gap-2 mt-4">
                         {uploadedMedia.map((media, i) => (
                           <button
                             key={i}
                             onClick={() => insertImage(media.url)}
-                            className="relative group rounded-lg overflow-hidden aspect-square"
+                            className="relative group rounded-lg overflow-hidden aspect-square border border-slate-600"
                           >
                             <img
                               src={media.url}
                               alt={media.name}
                               className="w-full h-full object-cover"
                             />
-                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                              <span className="text-xs text-white">Use</span>
+                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <span className="text-xs text-white font-medium">Add to slide</span>
                             </div>
                           </button>
                         ))}
