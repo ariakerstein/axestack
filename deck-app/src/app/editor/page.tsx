@@ -28,7 +28,8 @@ interface DeckVersion {
   feedback: InvestorFeedback[]
 }
 
-type Tab = 'edit' | 'sources' | 'versions' | 'feedback'
+type Tab = 'assist' | 'edit' | 'versions' | 'feedback'
+type AssistSection = 'fixes' | 'sources' | 'design'
 
 const LAYOUTS = [
   {
@@ -137,7 +138,8 @@ export default function EditorPage() {
   const [prompt, setPrompt] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [slides, setSlides] = useState<string[]>([])
-  const [activeTab, setActiveTab] = useState<Tab>('edit')
+  const [activeTab, setActiveTab] = useState<Tab>('assist')
+  const [assistSection, setAssistSection] = useState<AssistSection>('fixes')
   const [versions, setVersions] = useState<DeckVersion[]>([])
   const [currentVersionId, setCurrentVersionId] = useState<string | null>(null)
   const [newVersionName, setNewVersionName] = useState('')
@@ -507,13 +509,6 @@ export default function EditorPage() {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setPreviewTheme(previewTheme === 'light' ? 'dark' : 'light')}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm border border-slate-600 hover:border-slate-500"
-          >
-            {previewTheme === 'light' ? '☀️' : '🌙'}
-            <span className="text-slate-400">{previewTheme}</span>
-          </button>
-          <button
             onClick={handlePrintPDF}
             className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
           >
@@ -531,82 +526,34 @@ export default function EditorPage() {
         </div>
       </header>
 
-      {/* Score Banner - Prominent & Central */}
+      {/* Compact Score Banner */}
       {score && (
-        <div className={`bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 border-b border-slate-600 transition-all ${showScore ? 'py-4 px-6' : 'py-2 px-6'}`}>
-          <div className="max-w-4xl mx-auto">
-            <div className="flex items-center justify-center gap-6">
-              {/* Main Score */}
-              <button
-                onClick={() => setShowScore(!showScore)}
-                className="flex items-center gap-4"
-              >
-                <div className={`text-4xl font-bold ${score.total >= 20 ? 'text-green-400' : score.total >= 15 ? 'text-yellow-400' : 'text-orange-400'} ${showCelebration ? 'animate-bounce' : ''}`}>
-                  {score.total}
-                  <span className="text-lg text-slate-500">/27</span>
-                </div>
-
-                {/* Delta Badge */}
-                {scoreDelta !== null && scoreDelta !== 0 && (
-                  <span className={`text-sm font-semibold px-2 py-1 rounded ${scoreDelta > 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                    {scoreDelta > 0 ? '↑' : '↓'} {Math.abs(scoreDelta)}
-                  </span>
-                )}
-
-                {/* Celebration */}
-                {showCelebration && (
-                  <span className="text-2xl animate-pulse">🎉</span>
-                )}
-              </button>
-
-              {/* Score Progress Bar */}
-              {scoreHistory.length > 1 && (
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1 bg-slate-700/50 px-3 py-1.5 rounded-full">
-                    <span className="text-xs text-slate-400">Edits:</span>
-                    <div className="flex gap-0.5">
-                      {scoreHistory.slice(-6).map((h, i, arr) => {
-                        const prev = i > 0 ? arr[i - 1].score : h.score
-                        const isUp = h.score > prev
-                        const isDown = h.score < prev
-                        return (
-                          <div
-                            key={i}
-                            className={`w-2 h-2 rounded-full ${
-                              isUp ? 'bg-green-400' : isDown ? 'bg-red-400' : 'bg-slate-500'
-                            }`}
-                            title={`${h.score}/27`}
-                          />
-                        )
-                      })}
-                    </div>
-                    {Math.max(...scoreHistory.map(h => h.score)) === score.total && scoreHistory.length > 1 && (
-                      <span className="text-xs text-yellow-400 ml-1">⭐ Best!</span>
-                    )}
-                  </div>
-                </div>
+        <div className="bg-slate-800 border-b border-slate-700 py-2 px-6">
+          <div className="max-w-4xl mx-auto flex items-center justify-center gap-4">
+            <button
+              onClick={() => { setActiveTab('assist'); setAssistSection('fixes'); }}
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            >
+              <span className={`text-2xl font-bold ${score.total >= 20 ? 'text-green-400' : score.total >= 15 ? 'text-yellow-400' : 'text-orange-400'} ${showCelebration ? 'animate-bounce' : ''}`}>
+                {score.total}<span className="text-sm text-slate-500">/30</span>
+              </span>
+              {scoreDelta !== null && scoreDelta !== 0 && (
+                <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${scoreDelta > 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                  {scoreDelta > 0 ? '↑' : '↓'}{Math.abs(scoreDelta)}
+                </span>
               )}
-
-              {/* Re-score Button */}
-              <button
-                onClick={handleRescore}
-                disabled={isRescoring}
-                className="text-sm bg-slate-600 hover:bg-slate-500 disabled:bg-slate-700 px-4 py-2 rounded-lg transition-colors"
-              >
-                {isRescoring ? '...' : 'Re-score'}
-              </button>
-            </div>
-
-            {/* Gaps */}
-            {showScore && score.gaps.length > 0 && (
-              <div className="mt-3 flex flex-wrap justify-center gap-2">
-                {score.gaps.map((gap, i) => (
-                  <span key={i} className="text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-full">
-                    {gap}
-                  </span>
-                ))}
-              </div>
-            )}
+              {showCelebration && <span className="text-lg">🎉</span>}
+              {(score.gaps?.length ?? 0) > 0 && (
+                <span className="text-xs text-orange-400">{score.gaps.length} fixes</span>
+              )}
+            </button>
+            <button
+              onClick={handleRescore}
+              disabled={isRescoring}
+              className="text-xs bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 px-3 py-1.5 rounded transition-colors"
+            >
+              {isRescoring ? '...' : 'Re-score'}
+            </button>
           </div>
         </div>
       )}
@@ -655,34 +602,6 @@ export default function EditorPage() {
               ))}
             </div>
 
-            {/* Layout Picker - Pitch/Figma style */}
-            <div className="mt-4 pt-4 border-t border-slate-700">
-              <p className="text-xs text-slate-500 text-center mb-3">Slide layout:</p>
-              <div className="flex justify-center gap-2">
-                {LAYOUTS.map(layout => (
-                  <button
-                    key={layout.id}
-                    onClick={() => handleChangeLayout(layout.id)}
-                    disabled={isChangingLayout}
-                    className="group flex flex-col items-center gap-1.5 transition-all disabled:opacity-50"
-                    title={layout.label}
-                  >
-                    <div className="w-12 h-9 bg-slate-800 rounded border border-slate-600 group-hover:border-teal-400 group-hover:bg-slate-700 transition-all text-slate-400 group-hover:text-teal-400 overflow-hidden">
-                      {layout.preview}
-                    </div>
-                    <span className="text-[10px] text-slate-500 group-hover:text-slate-300 transition-colors">
-                      {layout.label}
-                    </span>
-                  </button>
-                ))}
-              </div>
-              {isChangingLayout && (
-                <div className="flex items-center justify-center gap-2 mt-3">
-                  <div className="w-3 h-3 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
-                  <span className="text-xs text-teal-400">Applying...</span>
-                </div>
-              )}
-            </div>
           </div>
         </div>
 
@@ -690,7 +609,7 @@ export default function EditorPage() {
         <div className="md:w-2/5 bg-slate-800 border-l border-slate-700 flex flex-col">
           {/* Tabs */}
           <div className="flex border-b border-slate-700">
-            {(['edit', 'sources', 'versions', 'feedback'] as Tab[]).map(tab => (
+            {(['assist', 'edit', 'versions', 'feedback'] as Tab[]).map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -700,10 +619,10 @@ export default function EditorPage() {
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                {tab}
-                {tab === 'sources' && sourceIssues.length > 0 && (
+                {tab === 'assist' ? 'AI Assist' : tab}
+                {tab === 'assist' && (sourceIssues.length > 0 || (score?.gaps?.length ?? 0) > 0) && (
                   <span className="ml-1 bg-orange-500 text-white text-xs px-1.5 rounded-full">
-                    {sourceIssues.length}
+                    {sourceIssues.length + (score?.gaps?.length ?? 0)}
                   </span>
                 )}
               </button>
@@ -766,54 +685,199 @@ export default function EditorPage() {
               </div>
             )}
 
-            {/* Sources Tab */}
-            {activeTab === 'sources' && (
-              <div className="p-4">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-sm font-semibold text-slate-300">Source Checker</h3>
-                  <button
-                    onClick={handleCheckSources}
-                    disabled={isCheckingSources}
-                    className="text-sm bg-teal-500 hover:bg-teal-600 disabled:bg-slate-600 px-4 py-2 rounded-lg"
-                  >
-                    {isCheckingSources ? 'Checking...' : 'Check Sources'}
-                  </button>
+            {/* AI Assist Tab */}
+            {activeTab === 'assist' && (
+              <div className="flex flex-col h-full">
+                {/* Section Tabs */}
+                <div className="flex border-b border-slate-700 bg-slate-800/50">
+                  {(['fixes', 'sources', 'design'] as AssistSection[]).map(section => (
+                    <button
+                      key={section}
+                      onClick={() => setAssistSection(section)}
+                      className={`flex-1 px-3 py-2 text-xs font-medium capitalize ${
+                        assistSection === section
+                          ? 'text-teal-400 bg-slate-700/50'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      {section}
+                      {section === 'fixes' && (score?.gaps?.length ?? 0) > 0 && (
+                        <span className="ml-1 bg-orange-500/80 text-white text-[10px] px-1 rounded-full">
+                          {score?.gaps?.length}
+                        </span>
+                      )}
+                      {section === 'sources' && sourceIssues.length > 0 && (
+                        <span className="ml-1 bg-orange-500/80 text-white text-[10px] px-1 rounded-full">
+                          {sourceIssues.length}
+                        </span>
+                      )}
+                    </button>
+                  ))}
                 </div>
 
-                <p className="text-xs text-slate-400 mb-4">
-                  Find claims that need citations and get source suggestions.
-                </p>
-
-                {sourceIssues.length === 0 && !isCheckingSources && (
-                  <div className="text-center py-8 text-slate-500 text-sm">
-                    Click "Check Sources" to scan your deck for claims that need citations.
-                  </div>
-                )}
-
-                {sourceIssues.length > 0 && (
-                  <div className="space-y-3">
-                    {sourceIssues.map((issue, i) => (
-                      <div key={i} className="bg-slate-700/50 rounded-lg p-3">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded">
-                            Slide {issue.slide}
-                          </span>
+                {/* Section Content */}
+                <div className="flex-1 overflow-y-auto p-4">
+                  {/* Fixes Section */}
+                  {assistSection === 'fixes' && (
+                    <div>
+                      {/* Score Summary */}
+                      {score && (
+                        <div className="mb-4 p-3 bg-slate-700/50 rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium">Score</span>
+                            <span className={`text-2xl font-bold ${score.total >= 20 ? 'text-green-400' : score.total >= 15 ? 'text-yellow-400' : 'text-orange-400'}`}>
+                              {score.total}/30
+                            </span>
+                          </div>
+                          <div className="w-full bg-slate-600 rounded-full h-2">
+                            <div
+                              className={`h-2 rounded-full ${score.total >= 20 ? 'bg-green-400' : score.total >= 15 ? 'bg-yellow-400' : 'bg-orange-400'}`}
+                              style={{ width: `${(score.total / 30) * 100}%` }}
+                            />
+                          </div>
                         </div>
-                        <p className="text-sm text-slate-300 mb-2">"{issue.claim}"</p>
-                        <p className="text-xs text-teal-400">💡 {issue.suggestion}</p>
+                      )}
+
+                      <h3 className="text-sm font-semibold text-slate-300 mb-3">Top Fixes</h3>
+                      {(!score?.gaps || score.gaps.length === 0) ? (
+                        <div className="text-center py-6 text-slate-500 text-sm">
+                          <p className="mb-2">No fixes identified yet.</p>
+                          <button
+                            onClick={handleRescore}
+                            disabled={isRescoring}
+                            className="text-teal-400 hover:underline"
+                          >
+                            {isRescoring ? 'Scoring...' : 'Run audit →'}
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {score.gaps.map((gap, i) => (
+                            <button
+                              key={i}
+                              onClick={() => {
+                                setPrompt(gap)
+                                setActiveTab('edit')
+                              }}
+                              className="w-full text-left p-3 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-sm text-slate-300 transition-colors group"
+                            >
+                              <span className="text-orange-400 mr-2">•</span>
+                              {gap}
+                              <span className="text-teal-400 opacity-0 group-hover:opacity-100 ml-2 text-xs">
+                                Fix →
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Sources Section */}
+                  {assistSection === 'sources' && (
+                    <div>
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-sm font-semibold text-slate-300">Source Checker</h3>
                         <button
-                          onClick={() => {
-                            setPrompt(`Add a citation for: "${issue.claim}" - use source: ${issue.suggestion}`)
-                            setActiveTab('edit')
-                          }}
-                          className="text-xs text-slate-400 hover:text-white mt-2"
+                          onClick={handleCheckSources}
+                          disabled={isCheckingSources}
+                          className="text-xs bg-teal-500 hover:bg-teal-600 disabled:bg-slate-600 px-3 py-1.5 rounded-lg"
                         >
-                          Fix this →
+                          {isCheckingSources ? 'Checking...' : 'Check'}
                         </button>
                       </div>
-                    ))}
-                  </div>
-                )}
+
+                      {sourceIssues.length === 0 && !isCheckingSources && (
+                        <div className="text-center py-6 text-slate-500 text-sm">
+                          <p>Scan your deck for claims that need citations.</p>
+                        </div>
+                      )}
+
+                      {sourceIssues.length > 0 && (
+                        <div className="space-y-3">
+                          {sourceIssues.map((issue, i) => (
+                            <div key={i} className="bg-slate-700/50 rounded-lg p-3">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded">
+                                  Slide {issue.slide}
+                                </span>
+                              </div>
+                              <p className="text-sm text-slate-300 mb-2">&quot;{issue.claim}&quot;</p>
+                              <p className="text-xs text-teal-400 mb-2">💡 {issue.suggestion}</p>
+                              <button
+                                onClick={() => {
+                                  setPrompt(`Add a citation for: "${issue.claim}" - use source: ${issue.suggestion}`)
+                                  setActiveTab('edit')
+                                }}
+                                className="text-xs text-slate-400 hover:text-white"
+                              >
+                                Fix this →
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Design Section */}
+                  {assistSection === 'design' && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-300 mb-3">
+                        Slide {currentSlide + 1} Layout
+                      </h3>
+                      <div className="grid grid-cols-3 gap-3">
+                        {LAYOUTS.map(layout => (
+                          <button
+                            key={layout.id}
+                            onClick={() => handleChangeLayout(layout.id)}
+                            disabled={isChangingLayout}
+                            className="group flex flex-col items-center gap-2 p-3 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-all disabled:opacity-50"
+                          >
+                            <div className="w-full h-12 bg-slate-800 rounded border border-slate-600 group-hover:border-teal-400 transition-all text-slate-400 group-hover:text-teal-400 overflow-hidden">
+                              {layout.preview}
+                            </div>
+                            <span className="text-xs text-slate-400 group-hover:text-slate-300">
+                              {layout.label}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                      {isChangingLayout && (
+                        <div className="flex items-center justify-center gap-2 mt-4">
+                          <div className="w-3 h-3 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
+                          <span className="text-xs text-teal-400">Applying layout...</span>
+                        </div>
+                      )}
+
+                      <div className="mt-6 pt-4 border-t border-slate-700">
+                        <h3 className="text-sm font-semibold text-slate-300 mb-3">Theme</h3>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setPreviewTheme('light')}
+                            className={`flex-1 py-2 rounded-lg text-sm transition-colors ${
+                              previewTheme === 'light'
+                                ? 'bg-white text-slate-900'
+                                : 'bg-slate-700 text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            ☀️ Light
+                          </button>
+                          <button
+                            onClick={() => setPreviewTheme('dark')}
+                            className={`flex-1 py-2 rounded-lg text-sm transition-colors ${
+                              previewTheme === 'dark'
+                                ? 'bg-slate-900 text-white border border-slate-600'
+                                : 'bg-slate-700 text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            🌙 Dark
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 

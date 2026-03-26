@@ -5,6 +5,20 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getShuffledQuotes } from '@/lib/quotes'
 
+const DECK_TYPES = [
+  { id: 'fundraising', label: 'Fundraising Deck', available: true },
+  { id: 'board', label: 'Board Update', available: false },
+  { id: 'sales', label: 'Sales / GTM Deck', available: false },
+  { id: 'product', label: 'Product Review', available: false },
+]
+
+const STAGES = [
+  { id: 'pre-seed', label: 'Pre-seed', description: 'Team + vision, early signal' },
+  { id: 'seed', label: 'Seed', description: 'PMF signal, GTM wedge' },
+  { id: 'series-a', label: 'Series A', description: 'Proven PMF, unit economics' },
+  { id: 'series-b', label: 'Series B+', description: 'Scale + expansion' },
+]
+
 const QUESTIONS = [
   {
     id: 'oneLiner',
@@ -79,21 +93,29 @@ const QUESTIONS = [
 
 export default function Wizard() {
   const router = useRouter()
-  const [step, setStep] = useState(0)
+  const [step, setStep] = useState(0) // 0 = deck type/stage, 1+ = questions
+  const [deckType, setDeckType] = useState('fundraising')
+  const [stage, setStage] = useState('')
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [raiseAmount, setRaiseAmount] = useState('')
   const [raiseMilestone, setRaiseMilestone] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState('')
 
-  const currentQuestion = QUESTIONS[step]
-  const isLastStep = step === QUESTIONS.length - 1
-  const currentAnswer = currentQuestion.type === 'raise'
-    ? (raiseAmount && raiseMilestone ? 'filled' : '')
-    : answers[currentQuestion.id] || ''
+  // Step 0 is deck type/stage selection, steps 1+ are questions
+  const questionIndex = step - 1
+  const currentQuestion = step > 0 ? QUESTIONS[questionIndex] : null
+  const isLastStep = step === QUESTIONS.length
+  const totalSteps = QUESTIONS.length + 1 // +1 for deck type/stage step
+
+  const currentAnswer = step === 0
+    ? (deckType && stage ? 'filled' : '')
+    : currentQuestion?.type === 'raise'
+      ? (raiseAmount && raiseMilestone ? 'filled' : '')
+      : answers[currentQuestion?.id || ''] || ''
 
   const handleNext = () => {
-    if (currentQuestion.type === 'raise') {
+    if (currentQuestion?.type === 'raise') {
       setAnswers({ ...answers, raiseAmount, raiseMilestone })
     }
 
@@ -116,13 +138,14 @@ export default function Wizard() {
       ...answers,
       raiseAmount,
       raiseMilestone,
+      stage, // Include stage for context-aware generation
     }
 
     try {
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answers: finalAnswers }),
+        body: JSON.stringify({ answers: finalAnswers, stage }),
       })
 
       if (!response.ok) {
@@ -141,6 +164,7 @@ export default function Wizard() {
   }
 
   const updateAnswer = (value: string) => {
+    if (!currentQuestion) return
     setAnswers({ ...answers, [currentQuestion.id]: value })
   }
 
@@ -172,7 +196,7 @@ export default function Wizard() {
   }
 
   const canProceed = !!currentAnswer
-  const progress = ((step + 1) / QUESTIONS.length) * 100
+  const progress = ((step + 1) / totalSteps) * 100
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -183,7 +207,7 @@ export default function Wizard() {
             ← Back to home
           </Link>
           <span className="text-sm text-slate-500">
-            Question {step + 1} of {QUESTIONS.length}
+            {step === 0 ? 'Getting started' : `Question ${step} of ${QUESTIONS.length}`}
           </span>
         </div>
       </header>
@@ -199,96 +223,159 @@ export default function Wizard() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center justify-center px-6 py-12">
         <div className="w-full max-w-xl">
-          {/* Question */}
-          <h1 className="text-3xl font-bold mb-3">{currentQuestion.question}</h1>
-          <p className="text-slate-400 mb-8">{currentQuestion.hint}</p>
-
-          {/* Input */}
-          {!currentQuestion.type && (
+          {/* Step 0: Deck Type + Stage Selection */}
+          {step === 0 && (
             <>
-              <input
-                type="text"
-                value={answers[currentQuestion.id] || ''}
-                onChange={(e) => updateAnswer(e.target.value)}
-                placeholder={currentQuestion.placeholder}
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-5 py-4 text-lg focus:outline-none focus:border-teal-400 transition-colors"
-                autoFocus
-              />
-              {currentQuestion.examples && (
-                <div className="mt-4 space-y-2">
-                  <p className="text-xs text-slate-500 uppercase tracking-wide">Examples</p>
-                  {currentQuestion.examples.map((ex, i) => (
+              <h1 className="text-3xl font-bold mb-3">What are you building?</h1>
+              <p className="text-slate-400 mb-8">Select your deck type and funding stage.</p>
+
+              {/* Deck Type */}
+              <div className="mb-8">
+                <p className="text-xs text-slate-500 uppercase tracking-wide mb-3">Deck Type</p>
+                <div className="grid grid-cols-2 gap-3">
+                  {DECK_TYPES.map((type) => (
                     <button
-                      key={i}
-                      onClick={() => updateAnswer(ex)}
-                      className="block w-full text-left text-sm text-slate-400 hover:text-teal-400 hover:bg-slate-800/50 px-3 py-2 rounded-lg transition-colors"
+                      key={type.id}
+                      onClick={() => type.available && setDeckType(type.id)}
+                      disabled={!type.available}
+                      className={`relative px-4 py-4 rounded-xl border text-left transition-colors ${
+                        !type.available
+                          ? 'border-slate-700 bg-slate-800/50 cursor-not-allowed'
+                          : deckType === type.id
+                            ? 'border-teal-400 bg-teal-400/10 text-white'
+                            : 'border-slate-700 bg-slate-800 hover:border-slate-600 text-slate-300'
+                      }`}
                     >
-                      "{ex}"
+                      <span className={!type.available ? 'text-slate-500' : ''}>{type.label}</span>
+                      {!type.available && (
+                        <span className="absolute top-2 right-2 text-xs bg-slate-700 text-slate-400 px-2 py-0.5 rounded-full">
+                          Soon
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Stage */}
+              <div>
+                <p className="text-xs text-slate-500 uppercase tracking-wide mb-3">Funding Stage</p>
+                <div className="space-y-3">
+                  {STAGES.map((s) => (
+                    <button
+                      key={s.id}
+                      onClick={() => setStage(s.id)}
+                      className={`w-full text-left px-5 py-4 rounded-xl border transition-colors ${
+                        stage === s.id
+                          ? 'border-teal-400 bg-teal-400/10 text-white'
+                          : 'border-slate-700 bg-slate-800 hover:border-slate-600 text-slate-300'
+                      }`}
+                    >
+                      <span className="font-medium">{s.label}</span>
+                      <span className="text-slate-400 ml-2">— {s.description}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Questions (Step 1+) */}
+          {step > 0 && currentQuestion && (
+            <>
+              <h1 className="text-3xl font-bold mb-3">{currentQuestion.question}</h1>
+              <p className="text-slate-400 mb-8">{currentQuestion.hint}</p>
+
+              {/* Text Input */}
+              {!currentQuestion.type && (
+                <>
+                  <input
+                    type="text"
+                    value={answers[currentQuestion.id] || ''}
+                    onChange={(e) => updateAnswer(e.target.value)}
+                    placeholder={currentQuestion.placeholder}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-5 py-4 text-lg focus:outline-none focus:border-teal-400 transition-colors"
+                    autoFocus
+                  />
+                  {currentQuestion.examples && (
+                    <div className="mt-4 space-y-2">
+                      <p className="text-xs text-slate-500 uppercase tracking-wide">Examples</p>
+                      {currentQuestion.examples.map((ex, i) => (
+                        <button
+                          key={i}
+                          onClick={() => updateAnswer(ex)}
+                          className="block w-full text-left text-sm text-slate-400 hover:text-teal-400 hover:bg-slate-800/50 px-3 py-2 rounded-lg transition-colors"
+                        >
+                          &quot;{ex}&quot;
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Select Input */}
+              {currentQuestion.type === 'select' && (
+                <div className="space-y-3">
+                  {currentQuestion.options?.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => updateAnswer(option.value)}
+                      className={`w-full text-left px-5 py-4 rounded-xl border text-lg transition-colors ${
+                        answers[currentQuestion.id] === option.value
+                          ? 'border-teal-400 bg-teal-400/10 text-white'
+                          : 'border-slate-700 bg-slate-800 hover:border-slate-600 text-slate-300'
+                      }`}
+                    >
+                      {option.label}
                     </button>
                   ))}
                 </div>
               )}
-            </>
-          )}
 
-          {currentQuestion.type === 'select' && (
-            <div className="space-y-3">
-              {currentQuestion.options?.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => updateAnswer(option.value)}
-                  className={`w-full text-left px-5 py-4 rounded-xl border text-lg transition-colors ${
-                    answers[currentQuestion.id] === option.value
-                      ? 'border-teal-400 bg-teal-400/10 text-white'
-                      : 'border-slate-700 bg-slate-800 hover:border-slate-600 text-slate-300'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {currentQuestion.type === 'raise' && (
-            <div className="space-y-4">
-              <input
-                type="text"
-                value={raiseAmount}
-                onChange={(e) => setRaiseAmount(e.target.value)}
-                placeholder="Amount (e.g., $500K)"
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-5 py-4 text-lg focus:outline-none focus:border-teal-400 transition-colors"
-                autoFocus
-              />
-              <input
-                type="text"
-                value={raiseMilestone}
-                onChange={(e) => setRaiseMilestone(e.target.value)}
-                placeholder="Milestone (e.g., 1,000 paying customers)"
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-5 py-4 text-lg focus:outline-none focus:border-teal-400 transition-colors"
-              />
-              {currentQuestion.examples && (
-                <div className="mt-2 space-y-2">
-                  <p className="text-xs text-slate-500 uppercase tracking-wide">Examples</p>
-                  {currentQuestion.examples.map((ex, i) => {
-                    const parts = ex.match(/^(\$[\d.]+[KMB]?)\s+to\s+(.+)$/i)
-                    return (
-                      <button
-                        key={i}
-                        onClick={() => {
-                          if (parts) {
-                            setRaiseAmount(parts[1])
-                            setRaiseMilestone(parts[2])
-                          }
-                        }}
-                        className="block w-full text-left text-sm text-slate-400 hover:text-teal-400 hover:bg-slate-800/50 px-3 py-2 rounded-lg transition-colors"
-                      >
-                        "{ex}"
-                      </button>
-                    )
-                  })}
+              {/* Raise Input */}
+              {currentQuestion.type === 'raise' && (
+                <div className="space-y-4">
+                  <input
+                    type="text"
+                    value={raiseAmount}
+                    onChange={(e) => setRaiseAmount(e.target.value)}
+                    placeholder="Amount (e.g., $500K)"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-5 py-4 text-lg focus:outline-none focus:border-teal-400 transition-colors"
+                    autoFocus
+                  />
+                  <input
+                    type="text"
+                    value={raiseMilestone}
+                    onChange={(e) => setRaiseMilestone(e.target.value)}
+                    placeholder="Milestone (e.g., 1,000 paying customers)"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-5 py-4 text-lg focus:outline-none focus:border-teal-400 transition-colors"
+                  />
+                  {currentQuestion.examples && (
+                    <div className="mt-2 space-y-2">
+                      <p className="text-xs text-slate-500 uppercase tracking-wide">Examples</p>
+                      {currentQuestion.examples.map((ex, i) => {
+                        const parts = ex.match(/^(\$[\d.]+[KMB]?)\s+to\s+(.+)$/i)
+                        return (
+                          <button
+                            key={i}
+                            onClick={() => {
+                              if (parts) {
+                                setRaiseAmount(parts[1])
+                                setRaiseMilestone(parts[2])
+                              }
+                            }}
+                            className="block w-full text-left text-sm text-slate-400 hover:text-teal-400 hover:bg-slate-800/50 px-3 py-2 rounded-lg transition-colors"
+                          >
+                            &quot;{ex}&quot;
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
+            </>
           )}
 
           {error && (
