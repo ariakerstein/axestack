@@ -132,6 +132,22 @@ export default function EditorPage() {
     URL.revokeObjectURL(url)
   }
 
+  const handlePrintPDF = () => {
+    // Open full deck in new window for printing
+    const printWindow = window.open('', '_blank')
+    if (!printWindow) return
+
+    printWindow.document.write(html)
+    printWindow.document.close()
+
+    // Wait for content to load, then trigger print
+    printWindow.onload = () => {
+      setTimeout(() => {
+        printWindow.print()
+      }, 500)
+    }
+  }
+
   const saveVersion = () => {
     const name = newVersionName.trim() || `Version ${versions.length + 1}`
     const newVersion: DeckVersion = {
@@ -262,10 +278,16 @@ export default function EditorPage() {
             <span className="text-slate-400">{previewTheme}</span>
           </button>
           <button
-            onClick={handleDownload}
+            onClick={handlePrintPDF}
             className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
           >
-            Download HTML
+            Export PDF
+          </button>
+          <button
+            onClick={handleDownload}
+            className="border border-slate-600 hover:border-slate-500 text-slate-300 px-4 py-2 rounded-lg text-sm font-medium"
+          >
+            HTML
           </button>
           <Link href="/create" className="text-slate-400 hover:text-white text-sm">
             Start Over
