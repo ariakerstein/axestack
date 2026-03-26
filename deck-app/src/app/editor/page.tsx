@@ -2,31 +2,21 @@
 
 import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
+import {
+  saveNewDeck,
+  updateDeck,
+  getDecks,
+  addFeedback as addFeedbackToDb,
+  getFeedbackForDeck,
+  type PitchDeck,
+  type PitchFeedback
+} from '@/lib/supabase'
 
 interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
 }
 
-interface InvestorFeedback {
-  id: string
-  investorName: string
-  feedback: string
-  believabilityScore: number
-  investorType: 'angel' | 'seed_vc' | 'series_a' | 'strategic'
-  domainExpertise: 'none' | 'adjacent' | 'deep'
-  checkSizeFit: 'too_small' | 'sweet_spot' | 'too_large'
-  meetingStage: 'cold' | 'warm_intro' | 'partner' | 'ic'
-  timestamp: number
-}
-
-interface DeckVersion {
-  id: string
-  html: string
-  timestamp: number
-  name: string
-  feedback: InvestorFeedback[]
-}
 
 type Tab = 'assist' | 'edit' | 'versions' | 'feedback'
 type AssistSection = 'fixes' | 'sources'
@@ -73,8 +63,6 @@ export default function EditorPage() {
   const [slides, setSlides] = useState<string[]>([])
   const [activeTab, setActiveTab] = useState<Tab>('assist')
   const [assistSection, setAssistSection] = useState<AssistSection>('fixes')
-  const [versions, setVersions] = useState<DeckVersion[]>([])
-  const [currentVersionId, setCurrentVersionId] = useState<string | null>(null)
   const [newVersionName, setNewVersionName] = useState('')
   const [previewTheme, setPreviewTheme] = useState<'light' | 'dark'>('light')
   const [score, setScore] = useState<DeckScore | null>(null)
@@ -87,6 +75,10 @@ export default function EditorPage() {
   const [isCheckingSources, setIsCheckingSources] = useState(false)
   const [isChangingLayout, setIsChangingLayout] = useState(false)
   const [stage, setStage] = useState<string>('')
+  const [currentDeckId, setCurrentDeckId] = useState<string | null>(null)
+  const [savedDecks, setSavedDecks] = useState<PitchDeck[]>([])
+  const [isSaving, setIsSaving] = useState(false)
+  const [dbFeedback, setDbFeedback] = useState<PitchFeedback[]>([])
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   // Feedback form state
@@ -128,10 +120,12 @@ export default function EditorPage() {
         }
       }
     }
-    const storedVersions = localStorage.getItem('deckVersions')
-    if (storedVersions) {
-      setVersions(JSON.parse(storedVersions))
+    // Load saved decks from Supabase
+    const loadSavedDecks = async () => {
+      const decks = await getDecks()
+      setSavedDecks(decks)
     }
+    loadSavedDecks()
   }, [])
 
   // Re-score the current deck with stage-aware scoring
@@ -239,13 +233,6 @@ export default function EditorPage() {
     }
   }
 
-  // Save versions to localStorage
-  useEffect(() => {
-    if (versions.length > 0) {
-      localStorage.setItem('deckVersions', JSON.stringify(versions))
-    }
-  }, [versions])
-
   // Parse slides from HTML
   useEffect(() => {
     if (!html) return
@@ -322,44 +309,94 @@ export default function EditorPage() {
     }
   }
 
-  const saveVersion = () => {
-    const name = newVersionName.trim() || `Version ${versions.length + 1}`
-    const newVersion: DeckVersion = {
-      id: Date.now().toString(),
-      html,
-      timestamp: Date.now(),
-      name,
-      feedback: [],
+  const saveVersion = async () => {
+    setIsSaving(true)
+    const name = newVersionName.trim() || `Version ${savedDecks.length + 1}`
+
+    try {
+      if (currentDeckId) {
+        // Update existing deck
+        const updated = await updateDeck(currentDeckId, {
+          name,
+          html,
+          score: score?.total,
+          scoreBreakdown: score?.breakdown,
+          slideScores: score?.slideScores,
+        })
+        if (updated) {
+          setSavedDecks(prev => prev.map(d => d.id === updated.id ? updated : d))
+        }
+      } else {
+        // Save new deck
+        const stored = localStorage.getItem('generatedDeck')
+        const wizardAnswers = stored ? JSON.parse(stored).answers : null
+
+        const saved = await saveNewDeck({
+          name,
+          html,
+          stage: stage || undefined,
+          score: score?.total,
+          scoreBreakdown: score?.breakdown,
+          slideScores: score?.slideScores,
+          wizardAnswers,
+        })
+        if (saved) {
+          setCurrentDeckId(saved.id)
+          setSavedDecks(prev => [saved, ...prev])
+        }
+      }
+      setNewVersionName('')
+    } catch (e) {
+      console.error('Failed to save:', e)
+    } finally {
+      setIsSaving(false)
     }
-    setVersions(prev => [newVersion, ...prev])
-    setCurrentVersionId(newVersion.id)
-    setNewVersionName('')
   }
 
-  const restoreVersion = (version: DeckVersion) => {
-    setHtml(version.html)
-    setCurrentVersionId(version.id)
-    // Preserve score when restoring
-    const stored = localStorage.getItem('generatedDeck')
-    const existingData = stored ? JSON.parse(stored) : {}
-    localStorage.setItem('generatedDeck', JSON.stringify({ ...existingData, html: version.html }))
+  const restoreVersion = (deck: PitchDeck) => {
+    setHtml(deck.html)
+    setCurrentDeckId(deck.id)
+    setStage(deck.stage || '')
+    if (deck.score) {
+      setScore({
+        total: deck.score,
+        breakdown: deck.score_breakdown || {},
+        gaps: [],
+        slideScores: (deck.slide_scores || []) as SlideScore[],
+      })
+    }
+    // Also update localStorage for consistency
+    localStorage.setItem('generatedDeck', JSON.stringify({
+      html: deck.html,
+      stage: deck.stage,
+      score: deck.score,
+    }))
+    // Load feedback for this deck
+    loadFeedback(deck.id)
     setActiveTab('edit')
   }
 
-  const addFeedback = () => {
-    if (!currentVersionId || !feedbackForm.investorName || !feedbackForm.feedback) return
+  const loadFeedback = async (deckId: string) => {
+    const feedback = await getFeedbackForDeck(deckId)
+    setDbFeedback(feedback)
+  }
 
-    const newFeedback: InvestorFeedback = {
-      id: Date.now().toString(),
-      ...feedbackForm,
-      timestamp: Date.now(),
+  const addFeedback = async () => {
+    if (!currentDeckId || !feedbackForm.investorName || !feedbackForm.feedback) return
+
+    const saved = await addFeedbackToDb(currentDeckId, {
+      investorName: feedbackForm.investorName,
+      feedback: feedbackForm.feedback,
+      believabilityScore: feedbackForm.believabilityScore,
+      investorType: feedbackForm.investorType,
+      domainExpertise: feedbackForm.domainExpertise,
+      checkSizeFit: feedbackForm.checkSizeFit,
+      meetingStage: feedbackForm.meetingStage,
+    })
+
+    if (saved) {
+      setDbFeedback(prev => [saved, ...prev])
     }
-
-    setVersions(prev => prev.map(v =>
-      v.id === currentVersionId
-        ? { ...v, feedback: [...v.feedback, newFeedback] }
-        : v
-    ))
 
     setFeedbackForm({
       investorName: '',
@@ -372,23 +409,8 @@ export default function EditorPage() {
     })
   }
 
-  const currentVersion = versions.find(v => v.id === currentVersionId)
+  const currentDeck = savedDecks.find(d => d.id === currentDeckId)
   const totalSlides = slides.length || 10
-
-  // Calculate weighted feedback score
-  const getWeightedScore = (feedback: InvestorFeedback[]) => {
-    if (feedback.length === 0) return null
-    const weights = feedback.map(f => {
-      let weight = f.believabilityScore
-      if (f.domainExpertise === 'deep') weight *= 1.5
-      if (f.domainExpertise === 'adjacent') weight *= 1.2
-      if (f.meetingStage === 'ic') weight *= 1.5
-      if (f.meetingStage === 'partner') weight *= 1.3
-      return weight
-    })
-    const totalWeight = weights.reduce((a, b) => a + b, 0)
-    return (totalWeight / feedback.length).toFixed(1)
-  }
 
   if (!html) {
     return (
@@ -442,8 +464,8 @@ export default function EditorPage() {
         <div className="flex items-center gap-4">
           <Link href="/" className="text-teal-400 hover:underline text-sm">← Home</Link>
           <h1 className="text-lg font-semibold">Prompt Deck</h1>
-          {currentVersion && (
-            <span className="text-sm text-slate-400">· {currentVersion.name}</span>
+          {currentDeck && (
+            <span className="text-sm text-slate-400">· {currentDeck.name}</span>
           )}
         </div>
         <div className="flex items-center gap-3">
@@ -906,46 +928,45 @@ export default function EditorPage() {
                     />
                     <button
                       onClick={saveVersion}
-                      className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                      disabled={isSaving}
+                      className="bg-teal-500 hover:bg-teal-600 disabled:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
                     >
-                      Save
+                      {isSaving ? 'Saving...' : currentDeckId ? 'Update' : 'Save'}
                     </button>
                   </div>
                 </div>
 
-                {/* Version History */}
-                <h3 className="text-sm font-semibold text-slate-300 mb-2">Version History</h3>
-                {versions.length === 0 ? (
-                  <p className="text-slate-500 text-sm">No versions saved yet</p>
+                {/* Saved Decks */}
+                <h3 className="text-sm font-semibold text-slate-300 mb-2">Saved Decks</h3>
+                {savedDecks.length === 0 ? (
+                  <p className="text-slate-500 text-sm">No decks saved yet</p>
                 ) : (
                   <div className="space-y-2">
-                    {versions.map(v => (
+                    {savedDecks.map(deck => (
                       <div
-                        key={v.id}
+                        key={deck.id}
                         className={`p-3 rounded-lg border ${
-                          v.id === currentVersionId
+                          deck.id === currentDeckId
                             ? 'border-teal-400 bg-teal-400/10'
                             : 'border-slate-600 bg-slate-700/50'
                         }`}
                       >
                         <div className="flex justify-between items-start mb-1">
-                          <span className="font-medium text-sm">{v.name}</span>
+                          <span className="font-medium text-sm">{deck.name}</span>
                           <span className="text-xs text-slate-400">
-                            {new Date(v.timestamp).toLocaleDateString()}
+                            {new Date(deck.updated_at).toLocaleDateString()}
                           </span>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-slate-400">
-                          <span>{v.feedback.length} feedback</span>
-                          {v.feedback.length > 0 && (
-                            <span>· Weighted: {getWeightedScore(v.feedback)}</span>
-                          )}
+                          {deck.score && <span>Score: {deck.score}/30</span>}
+                          {deck.stage && <span>· {deck.stage}</span>}
                         </div>
-                        {v.id !== currentVersionId && (
+                        {deck.id !== currentDeckId && (
                           <button
-                            onClick={() => restoreVersion(v)}
+                            onClick={() => restoreVersion(deck)}
                             className="mt-2 text-xs text-teal-400 hover:underline"
                           >
-                            Restore this version
+                            Load this deck
                           </button>
                         )}
                       </div>
@@ -953,25 +974,25 @@ export default function EditorPage() {
                   </div>
                 )}
 
-                {/* Deck Strength Trend */}
-                {versions.length > 1 && (
+                {/* Score Trend */}
+                {savedDecks.length > 1 && (
                   <div className="mt-6 pt-4 border-t border-slate-700">
-                    <h3 className="text-sm font-semibold text-slate-300 mb-2">Deck Strength Trend</h3>
+                    <h3 className="text-sm font-semibold text-slate-300 mb-2">Score Trend</h3>
                     <div className="flex items-end gap-1 h-16">
-                      {versions.slice().reverse().map((v, i) => {
-                        const score = getWeightedScore(v.feedback)
-                        const height = score ? (parseFloat(score) / 5) * 100 : 10
+                      {savedDecks.slice().reverse().map((deck) => {
+                        const deckScore = deck.score || 0
+                        const height = (deckScore / 30) * 100
                         return (
                           <div
-                            key={v.id}
-                            className="flex-1 bg-teal-500/50 rounded-t"
-                            style={{ height: `${height}%` }}
-                            title={`${v.name}: ${score || 'No feedback'}`}
+                            key={deck.id}
+                            className={`flex-1 rounded-t ${deckScore >= 20 ? 'bg-green-500/50' : deckScore >= 15 ? 'bg-yellow-500/50' : 'bg-orange-500/50'}`}
+                            style={{ height: `${Math.max(height, 5)}%` }}
+                            title={`${deck.name}: ${deckScore}/30`}
                           />
                         )
                       })}
                     </div>
-                    <p className="text-xs text-slate-500 mt-1">Weighted feedback score over time</p>
+                    <p className="text-xs text-slate-500 mt-1">Deck scores over time</p>
                   </div>
                 )}
               </div>
@@ -980,9 +1001,9 @@ export default function EditorPage() {
             {/* Feedback Tab */}
             {activeTab === 'feedback' && (
               <div className="p-4">
-                {!currentVersionId ? (
+                {!currentDeckId ? (
                   <div className="text-center py-8">
-                    <p className="text-slate-400 text-sm mb-4">Save a version first to add feedback</p>
+                    <p className="text-slate-400 text-sm mb-4">Save a deck first to add feedback</p>
                     <button
                       onClick={() => setActiveTab('versions')}
                       className="text-teal-400 text-sm hover:underline"
@@ -1077,28 +1098,28 @@ export default function EditorPage() {
                     </div>
 
                     {/* Existing Feedback */}
-                    {currentVersion && currentVersion.feedback.length > 0 && (
+                    {dbFeedback.length > 0 && (
                       <>
                         <h3 className="text-sm font-semibold text-slate-300 mb-2">
-                          Feedback for {currentVersion.name}
+                          Investor Feedback ({dbFeedback.length})
                         </h3>
                         <div className="space-y-3">
-                          {currentVersion.feedback.map(f => (
+                          {dbFeedback.map(f => (
                             <div key={f.id} className="p-3 bg-slate-700/50 rounded-lg">
                               <div className="flex justify-between items-start mb-1">
-                                <span className="font-medium text-sm">{f.investorName}</span>
-                                <span className="text-xs text-teal-400">{f.believabilityScore}/5</span>
+                                <span className="font-medium text-sm">{f.investor_name}</span>
+                                <span className="text-xs text-teal-400">{f.believability_score}/5</span>
                               </div>
                               <p className="text-sm text-slate-300 mb-2">{f.feedback}</p>
                               <div className="flex flex-wrap gap-1">
                                 <span className="text-xs bg-slate-600 px-2 py-0.5 rounded">
-                                  {f.investorType.replace('_', ' ')}
+                                  {f.investor_type?.replace('_', ' ')}
                                 </span>
                                 <span className="text-xs bg-slate-600 px-2 py-0.5 rounded">
-                                  {f.domainExpertise} exp
+                                  {f.domain_expertise} exp
                                 </span>
                                 <span className="text-xs bg-slate-600 px-2 py-0.5 rounded">
-                                  {f.meetingStage.replace('_', ' ')}
+                                  {f.meeting_stage?.replace('_', ' ')}
                                 </span>
                               </div>
                             </div>
