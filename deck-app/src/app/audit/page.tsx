@@ -156,9 +156,10 @@ export default function AuditPage() {
   }
 
   const processFile = async (file: File) => {
-    // Check file size client-side (4.5MB limit for Vercel)
-    if (file.size > 4.5 * 1024 * 1024) {
-      setError('File too large. Maximum size is 4.5MB. Try a smaller PDF or paste the content instead.')
+    // Check max size (20MB via blob storage)
+    const MAX_SIZE = 20 * 1024 * 1024
+    if (file.size > MAX_SIZE) {
+      setError('File too large. Maximum size is 20MB.')
       return
     }
 
@@ -172,31 +173,54 @@ export default function AuditPage() {
     setError('')
 
     try {
-      const formData = new FormData()
-      formData.append('file', file)
+      let parseResponse: Response
 
-      const response = await fetch('/api/parse-pdf', {
-        method: 'POST',
-        body: formData,
-      })
+      // For large files (> 4MB), upload to blob storage first
+      if (file.size > 4 * 1024 * 1024) {
+        // Step 1: Upload to Vercel Blob
+        const uploadFormData = new FormData()
+        uploadFormData.append('file', file)
 
-      if (!response.ok) {
-        // Handle non-JSON error responses
-        const contentType = response.headers.get('content-type')
+        const uploadResponse = await fetch('/api/upload-pdf', {
+          method: 'POST',
+          body: uploadFormData,
+        })
+
+        if (!uploadResponse.ok) {
+          const data = await uploadResponse.json()
+          throw new Error(data.error || 'Failed to upload PDF')
+        }
+
+        const { url } = await uploadResponse.json()
+
+        // Step 2: Parse from blob URL
+        parseResponse = await fetch('/api/parse-pdf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url }),
+        })
+      } else {
+        // For small files, direct upload (faster)
+        const formData = new FormData()
+        formData.append('file', file)
+
+        parseResponse = await fetch('/api/parse-pdf', {
+          method: 'POST',
+          body: formData,
+        })
+      }
+
+      if (!parseResponse.ok) {
+        const contentType = parseResponse.headers.get('content-type')
         if (contentType?.includes('application/json')) {
-          const data = await response.json()
+          const data = await parseResponse.json()
           throw new Error(data.error || 'Failed to parse PDF')
         } else {
-          // Server returned non-JSON (e.g., 413 Request Entity Too Large)
-          const text = await response.text()
-          if (response.status === 413 || text.includes('Request Entity Too Large')) {
-            throw new Error('File too large. Maximum size is 4.5MB.')
-          }
-          throw new Error(`Server error: ${response.status}`)
+          throw new Error(`Server error: ${parseResponse.status}`)
         }
       }
 
-      const data = await response.json()
+      const data = await parseResponse.json()
       if (!data.text || data.text.trim().length === 0) {
         throw new Error('Could not extract text from PDF. Try pasting the content instead.')
       }
