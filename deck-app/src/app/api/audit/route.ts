@@ -139,7 +139,11 @@ export async function POST(request: NextRequest) {
 
     const result = JSON.parse(jsonMatch[0])
 
-    return NextResponse.json(result)
+    // Return the deck content so client can edit it
+    return NextResponse.json({
+      ...result,
+      deckContent: deckContent.slice(0, 100000), // Limit size
+    })
   } catch (error) {
     console.error('Audit error:', error)
     const message = error instanceof Error ? error.message : 'Unknown error'

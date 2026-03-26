@@ -137,6 +137,12 @@ export default function AuditPage() {
     const file = e.target.files?.[0]
     if (!file) return
 
+    // Check file size client-side (4.5MB limit for Vercel)
+    if (file.size > 4.5 * 1024 * 1024) {
+      setError('File too large. Maximum size is 4.5MB. Try a smaller PDF or paste the content instead.')
+      return
+    }
+
     setIsUploading(true)
     setError('')
 
@@ -150,11 +156,25 @@ export default function AuditPage() {
       })
 
       if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Failed to parse PDF')
+        // Handle non-JSON error responses
+        const contentType = response.headers.get('content-type')
+        if (contentType?.includes('application/json')) {
+          const data = await response.json()
+          throw new Error(data.error || 'Failed to parse PDF')
+        } else {
+          // Server returned non-JSON (e.g., 413 Request Entity Too Large)
+          const text = await response.text()
+          if (response.status === 413 || text.includes('Request Entity Too Large')) {
+            throw new Error('File too large. Maximum size is 4.5MB.')
+          }
+          throw new Error(`Server error: ${response.status}`)
+        }
       }
 
       const data = await response.json()
+      if (!data.text || data.text.trim().length === 0) {
+        throw new Error('Could not extract text from PDF. Try pasting the content instead.')
+      }
       setDeckContent(data.text)
       setAuditedContent(data.text)
       // Auto-trigger audit
@@ -203,6 +223,10 @@ export default function AuditPage() {
 
       const data = await response.json()
       setResult(data)
+      // Save the content for editing (works for URL mode too now)
+      if (data.deckContent) {
+        setAuditedContent(data.deckContent)
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to audit deck'
       setError(message)

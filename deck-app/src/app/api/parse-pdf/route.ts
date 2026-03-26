@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+// Force Node.js runtime (not Edge) for pdf-parse compatibility
+export const runtime = 'nodejs'
+
+// For App Router, body size is configured via vercel.json or next.config.js
+// Maximum supported is ~4.5MB on Vercel free tier
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
@@ -24,9 +30,8 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    // Parse PDF
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const pdfParse = require('pdf-parse')
+    // Parse PDF - dynamic import for better compatibility
+    const pdfParse = (await import('pdf-parse')).default
     const data = await pdfParse(buffer)
 
     return NextResponse.json({
