@@ -1,6 +1,54 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const SYSTEM_PROMPT = `You are a pitch deck auditor. Analyze the deck content and score it against this framework:
+type Stage = 'pre-seed' | 'seed' | 'series-a' | 'series-b'
+
+const STAGE_CONTEXT: Record<Stage, string> = {
+  'pre-seed': `
+## STAGE CONTEXT: PRE-SEED
+At pre-seed, investors bet on TEAM + VISION + INSIGHT. Traction expectations are LOW.
+- Traction: Waitlist, LOIs, pilot commitments, or early user signal is sufficient. Don't penalize for lack of revenue.
+- Unit economics: Not expected yet. Don't penalize for missing LTV/CAC.
+- Team: This is THE deciding factor. Credentials, domain expertise, unique insight matter most.
+- Problem/Vision: Must be compelling and clearly articulated.
+- GTM: Can be directional ("we'll start with X"). Doesn't need to be proven yet.
+Score traction relative to stage - a waitlist of 500 people is impressive at pre-seed.`,
+
+  'seed': `
+## STAGE CONTEXT: SEED
+At seed, investors want EARLY PMF SIGNAL + GTM CLARITY + VELOCITY.
+- Traction: Must show momentum with timeframes. "1K users in 8 weeks" or "10 paying customers in 2 months."
+- Unit economics: Early signals helpful but not required. Know your CAC even if rough.
+- Team: Still important but traction can compensate for weaker credentials.
+- GTM: Must be specific. Name the channel, the wedge, the motion.
+- Revenue: Early revenue is a strong signal but not required.
+Score traction with appropriate seed expectations - $10K MRR is great, $0 with strong user growth is fine.`,
+
+  'series-a': `
+## STAGE CONTEXT: SERIES A
+At Series A, investors need PROVEN PMF + UNIT ECONOMICS + REPEATABLE GTM.
+- Traction: Must show real revenue or strong usage metrics with clear growth trajectory.
+- Unit economics: LTV/CAC should be known and defensible. Path to profitability matters.
+- Team: Execution track record matters. Have they hit milestones?
+- GTM: Must be proven and repeatable. "We know how to acquire customers profitably."
+- Revenue: Expected. $1M+ ARR is typical benchmark.
+Score with Series A expectations - vague GTM or missing unit economics are serious gaps.`,
+
+  'series-b': `
+## STAGE CONTEXT: SERIES B+
+At Series B+, investors want SCALE + EXPANSION + MARKET LEADERSHIP.
+- Traction: Strong revenue growth, clear market position, expansion metrics.
+- Unit economics: Must be proven and improving. Efficiency matters.
+- Team: Leadership team completeness, ability to scale org.
+- GTM: Multiple proven channels, international expansion potential.
+- Market: Category leadership or clear path to it.
+Score with growth-stage expectations - this is about scaling what works, not finding PMF.`
+}
+
+const getSystemPrompt = (stage?: Stage) => {
+  const stageContext = stage ? STAGE_CONTEXT[stage] : ''
+
+  return `You are a pitch deck auditor. Analyze the deck content and score it against this framework:
+${stageContext}
 
 ## SCORING RUBRIC (30 pts)
 
@@ -52,11 +100,13 @@ Output your analysis as JSON with this structure:
   "detailedNotes": "<2-3 paragraphs of specific feedback>"
 }
 
-Be direct and specific. No generic praise. Point out exactly what's weak and how to fix it.`
+Be direct and specific. No generic praise. Point out exactly what's weak and how to fix it.
+Score relative to the stage context above - what matters at pre-seed is different from Series A.`
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const { url, content } = await request.json()
+    const { url, content, stage } = await request.json()
 
     const apiKey = process.env.ANTHROPIC_API_KEY
     if (!apiKey) {
@@ -95,6 +145,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Get stage-aware system prompt
+    const systemPrompt = getSystemPrompt(stage as Stage | undefined)
+
     // Call Anthropic API directly with fetch
     const anthropicResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -106,11 +159,11 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4000,
-        system: SYSTEM_PROMPT,
+        system: systemPrompt,
         messages: [
           {
             role: 'user',
-            content: `Audit this pitch deck and provide a detailed scorecard:\n\n${deckContent.slice(0, 50000)}`,
+            content: `Audit this ${stage ? stage + ' ' : ''}pitch deck and provide a detailed scorecard:\n\n${deckContent.slice(0, 50000)}`,
           },
         ],
       }),

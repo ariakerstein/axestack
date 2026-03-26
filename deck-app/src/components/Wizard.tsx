@@ -154,7 +154,8 @@ export default function Wizard() {
       }
 
       const data = await response.json()
-      localStorage.setItem('generatedDeck', JSON.stringify(data))
+      // Save deck with stage for stage-aware re-scoring
+      localStorage.setItem('generatedDeck', JSON.stringify({ ...data, stage }))
       router.push('/editor')
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to generate deck'

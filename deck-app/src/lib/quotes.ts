@@ -75,6 +75,70 @@ export const LOADING_QUOTES = [
   { text: "This loading screen is brought to you by someone who should be working on product.", author: "The Developer" },
   { text: "Every second you wait here, an AI is getting slightly more powerful.", author: "Anthropic, Probably" },
   { text: "Making your pitch deck is like making sausage. Don't show them how.", author: "Kitchen Wisdom" },
+
+  // === BUSINESS CLASSICS ===
+  { text: "The best way to predict the future is to invent it.", author: "Alan Kay" },
+  { text: "Culture eats strategy for breakfast.", author: "Peter Drucker" },
+  { text: "What got you here won't get you there.", author: "Marshall Goldsmith" },
+  { text: "In the middle of difficulty lies opportunity.", author: "Albert Einstein" },
+  { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+  { text: "Vision without execution is hallucination.", author: "Thomas Edison" },
+  { text: "Price is what you pay. Value is what you get.", author: "Warren Buffett" },
+  { text: "If you think it's expensive to hire a professional, wait until you hire an amateur.", author: "Red Adair" },
+
+  // === FOUNDER MINDSET ===
+  { text: "You don't need to see the whole staircase, just take the first step.", author: "MLK, Applied to Startups" },
+  { text: "Be so good they can't ignore you.", author: "Steve Martin" },
+  { text: "Done is better than perfect.", author: "Sheryl Sandberg" },
+  { text: "Fall in love with the problem, not the solution.", author: "Uri Levine" },
+  { text: "If you want to go fast, go alone. If you want to go far, go together.", author: "African Proverb" },
+  { text: "Comparison is the thief of joy.", author: "Teddy Roosevelt, for Founders" },
+  { text: "The graveyard of startups is full of companies that ran out of money.", author: "Obvious But True" },
+  { text: "Great companies are built in downturns.", author: "Sequoia Capital" },
+
+  // === INVESTOR PERSPECTIVE ===
+  { text: "We look for a team that can tell us why we're wrong.", author: "a16z" },
+  { text: "Bet on the jockey, not the horse.", author: "Angel Investor Wisdom" },
+  { text: "Pattern matching is just a fancy word for bias.", author: "Self-Aware VC" },
+  { text: "The best founders tell us things we don't want to hear.", author: "First Round Capital" },
+  { text: "We pass on 99% of deals. Don't take it personally.", author: "Every VC" },
+  { text: "Conviction without evidence is founder DNA.", author: "Benchmark" },
+
+  // === STARTUP HUMOR (More) ===
+  { text: "Stealth mode: when your startup is so early even you don't know what it does.", author: "Honest Founders" },
+  { text: "Our AI uses machine learning. Translation: we have an if-else statement.", author: "Tech Honesty" },
+  { text: "We're disrupting the space. The space didn't ask to be disrupted.", author: "Industry Incumbent" },
+  { text: "Founder-market fit: you care about this problem because you caused it.", author: "Self-Aware Startup" },
+  { text: "Series A: the round where VCs realize your seed metrics were lies.", author: "Fundraising Truth" },
+  { text: "Our moat is execution. Translation: we have no moat.", author: "Pitch Decoder" },
+  { text: "We're pre-revenue by choice. That's our story and we're sticking to it.", author: "Spin Doctor" },
+
+  // === MODERN TECH ===
+  { text: "In God we trust. Everyone else, bring data.", author: "W. Edwards Deming" },
+  { text: "Move fast with stable infrastructure.", author: "Post-2015 Facebook" },
+  { text: "The best product wins. Eventually. Maybe. Sometimes.", author: "Realistic PM" },
+  { text: "Ship it and see what happens.", author: "Every PM at 4pm Friday" },
+  { text: "We don't have users, we have a waitlist. Same energy.", author: "Pre-Launch Startup" },
+
+  // === PITCH DECK SPECIFIC (More) ===
+  { text: "Your competition slide should include the companies that will eat you alive.", author: "Honest Advice" },
+  { text: "Team slide: where stock photos go to pretend they're advisory boards.", author: "Deck Reality" },
+  { text: "Financial projections are just optimism with a spreadsheet.", author: "CFO Truth" },
+  { text: "A hockey stick graph is just fiction written in Excel.", author: "Cynical Analyst" },
+  { text: "Demo day is just speed dating with more rejection.", author: "Accelerator Alum" },
+
+  // === RESILIENCE ===
+  { text: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
+  { text: "Fall down seven times, stand up eight.", author: "Japanese Proverb" },
+  { text: "Rock bottom became the solid foundation on which I rebuilt my life.", author: "J.K. Rowling" },
+  { text: "Every master was once a disaster.", author: "T. Harv Eker" },
+  { text: "Doubt kills more dreams than failure ever will.", author: "Suzy Kassem" },
+
+  // === META HUMOR ===
+  { text: "If you're reading this, you're probably staring at a loading screen.", author: "Self-Aware Quote" },
+  { text: "This quote exists to make you feel less alone in your fundraising journey.", author: "Solidarity" },
+  { text: "Fun fact: you've now spent longer reading quotes than writing your pitch.", author: "Time Management" },
+  { text: "The deck generator is working. Unlike your last co-founder.", author: "Dark Humor" },
 ]
 
 // Get a random quote

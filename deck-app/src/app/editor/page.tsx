@@ -153,6 +153,7 @@ export default function EditorPage() {
   const [sourceIssues, setSourceIssues] = useState<SourceIssue[]>([])
   const [isCheckingSources, setIsCheckingSources] = useState(false)
   const [isChangingLayout, setIsChangingLayout] = useState(false)
+  const [stage, setStage] = useState<string>('')
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   // Feedback form state
@@ -166,12 +167,16 @@ export default function EditorPage() {
     meetingStage: 'warm_intro' as const,
   })
 
-  // Load initial deck, score, and versions from localStorage
+  // Load initial deck, score, stage, and versions from localStorage
   useEffect(() => {
     const stored = localStorage.getItem('generatedDeck')
     if (stored) {
       const data = JSON.parse(stored)
       setHtml(data.html)
+      // Load stage for stage-aware re-scoring
+      if (data.stage) {
+        setStage(data.stage)
+      }
       if (data.score !== undefined) {
         const initialScore = {
           total: data.score,
@@ -196,7 +201,7 @@ export default function EditorPage() {
     }
   }, [])
 
-  // Re-score the current deck
+  // Re-score the current deck with stage-aware scoring
   const handleRescore = async () => {
     setIsRescoring(true)
     setScoreDelta(null)
@@ -206,7 +211,7 @@ export default function EditorPage() {
       const response = await fetch('/api/audit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: html }),
+        body: JSON.stringify({ content: html, stage }),
       })
       if (response.ok) {
         const data = await response.json()
