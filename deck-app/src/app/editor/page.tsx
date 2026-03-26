@@ -28,7 +28,21 @@ interface DeckVersion {
   feedback: InvestorFeedback[]
 }
 
-type Tab = 'edit' | 'versions' | 'feedback'
+type Tab = 'edit' | 'sources' | 'versions' | 'feedback'
+
+const LAYOUTS = [
+  { id: 'centered', label: 'Centered', icon: '⬜' },
+  { id: 'two-column', label: '2 Column', icon: '▥' },
+  { id: 'stats', label: 'Stats Grid', icon: '▦' },
+  { id: 'quote', label: 'Quote', icon: '❝' },
+  { id: 'comparison', label: 'Comparison', icon: '⚖️' },
+]
+
+interface SourceIssue {
+  slide: number
+  claim: string
+  suggestion: string
+}
 
 interface DeckScore {
   total: number
@@ -59,6 +73,9 @@ export default function EditorPage() {
   const [scoreHistory, setScoreHistory] = useState<ScoreHistory[]>([])
   const [scoreDelta, setScoreDelta] = useState<number | null>(null)
   const [showCelebration, setShowCelebration] = useState(false)
+  const [sourceIssues, setSourceIssues] = useState<SourceIssue[]>([])
+  const [isCheckingSources, setIsCheckingSources] = useState(false)
+  const [isChangingLayout, setIsChangingLayout] = useState(false)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   // Feedback form state
@@ -143,6 +160,63 @@ export default function EditorPage() {
       console.error('Failed to rescore:', e)
     } finally {
       setIsRescoring(false)
+    }
+  }
+
+  // Change slide layout
+  const handleChangeLayout = async (layoutId: string) => {
+    setIsChangingLayout(true)
+    const layoutPrompts: Record<string, string> = {
+      'centered': 'Reformat this slide with centered layout - headline centered, content centered below',
+      'two-column': 'Reformat this slide as a 2-column layout - key point on left, supporting details on right',
+      'stats': 'Reformat this slide as a stats grid - show 3-4 key metrics in a grid with large numbers',
+      'quote': 'Reformat this slide as a quote layout - large quote in the center with attribution',
+      'comparison': 'Reformat this slide as a comparison table - us vs competitors or before vs after',
+    }
+
+    try {
+      const response = await fetch('/api/edit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          html,
+          prompt: `For slide ${currentSlide + 1} only: ${layoutPrompts[layoutId]}. Keep all other slides unchanged.`
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setHtml(data.html)
+        localStorage.setItem('generatedDeck', JSON.stringify({ html: data.html }))
+        setChatHistory(prev => [...prev, { role: 'assistant', content: `✓ Changed to ${layoutId} layout` }])
+      }
+    } catch (e) {
+      console.error('Failed to change layout:', e)
+    } finally {
+      setIsChangingLayout(false)
+    }
+  }
+
+  // Check sources in deck
+  const handleCheckSources = async () => {
+    setIsCheckingSources(true)
+    setSourceIssues([])
+
+    try {
+      const response = await fetch('/api/check-sources', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ html }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setSourceIssues(data.issues || [])
+      }
+    } catch (e) {
+      console.error('Failed to check sources:', e)
+    } finally {
+      setIsCheckingSources(false)
     }
   }
 
@@ -476,6 +550,23 @@ export default function EditorPage() {
                 />
               ))}
             </div>
+
+            {/* Layout Picker */}
+            <div className="flex justify-center gap-2 mt-4 pt-3 border-t border-slate-700">
+              <span className="text-xs text-slate-500 mr-2">Layout:</span>
+              {LAYOUTS.map(layout => (
+                <button
+                  key={layout.id}
+                  onClick={() => handleChangeLayout(layout.id)}
+                  disabled={isChangingLayout}
+                  className="px-2 py-1 text-xs bg-slate-700 hover:bg-slate-600 rounded transition-colors disabled:opacity-50"
+                  title={layout.label}
+                >
+                  {layout.icon}
+                </button>
+              ))}
+              {isChangingLayout && <span className="text-xs text-slate-400 ml-2">Applying...</span>}
+            </div>
           </div>
         </div>
 
@@ -483,17 +574,22 @@ export default function EditorPage() {
         <div className="md:w-2/5 bg-slate-800 border-l border-slate-700 flex flex-col">
           {/* Tabs */}
           <div className="flex border-b border-slate-700">
-            {(['edit', 'versions', 'feedback'] as Tab[]).map(tab => (
+            {(['edit', 'sources', 'versions', 'feedback'] as Tab[]).map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`flex-1 px-4 py-3 text-sm font-medium capitalize ${
+                className={`flex-1 px-3 py-3 text-sm font-medium capitalize ${
                   activeTab === tab
                     ? 'text-teal-400 border-b-2 border-teal-400'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
                 {tab}
+                {tab === 'sources' && sourceIssues.length > 0 && (
+                  <span className="ml-1 bg-orange-500 text-white text-xs px-1.5 rounded-full">
+                    {sourceIssues.length}
+                  </span>
+                )}
               </button>
             ))}
           </div>
@@ -551,6 +647,57 @@ export default function EditorPage() {
                     </button>
                   </div>
                 </form>
+              </div>
+            )}
+
+            {/* Sources Tab */}
+            {activeTab === 'sources' && (
+              <div className="p-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-sm font-semibold text-slate-300">Source Checker</h3>
+                  <button
+                    onClick={handleCheckSources}
+                    disabled={isCheckingSources}
+                    className="text-sm bg-teal-500 hover:bg-teal-600 disabled:bg-slate-600 px-4 py-2 rounded-lg"
+                  >
+                    {isCheckingSources ? 'Checking...' : 'Check Sources'}
+                  </button>
+                </div>
+
+                <p className="text-xs text-slate-400 mb-4">
+                  Find claims that need citations and get source suggestions.
+                </p>
+
+                {sourceIssues.length === 0 && !isCheckingSources && (
+                  <div className="text-center py-8 text-slate-500 text-sm">
+                    Click "Check Sources" to scan your deck for claims that need citations.
+                  </div>
+                )}
+
+                {sourceIssues.length > 0 && (
+                  <div className="space-y-3">
+                    {sourceIssues.map((issue, i) => (
+                      <div key={i} className="bg-slate-700/50 rounded-lg p-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded">
+                            Slide {issue.slide}
+                          </span>
+                        </div>
+                        <p className="text-sm text-slate-300 mb-2">"{issue.claim}"</p>
+                        <p className="text-xs text-teal-400">💡 {issue.suggestion}</p>
+                        <button
+                          onClick={() => {
+                            setPrompt(`Add a citation for: "${issue.claim}" - use source: ${issue.suggestion}`)
+                            setActiveTab('edit')
+                          }}
+                          className="text-xs text-slate-400 hover:text-white mt-2"
+                        >
+                          Fix this →
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
