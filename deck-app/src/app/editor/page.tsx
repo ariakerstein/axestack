@@ -32,86 +32,11 @@ type Tab = 'assist' | 'edit' | 'versions' | 'feedback'
 type AssistSection = 'fixes' | 'sources'
 
 const LAYOUTS = [
-  {
-    id: 'centered',
-    label: 'Centered',
-    preview: (
-      <div className="w-full h-full flex flex-col items-center justify-center gap-0.5 p-1">
-        <div className="w-6 h-1 bg-current rounded-sm opacity-80" />
-        <div className="w-4 h-0.5 bg-current rounded-sm opacity-50" />
-        <div className="w-5 h-0.5 bg-current rounded-sm opacity-50" />
-      </div>
-    ),
-  },
-  {
-    id: 'two-column',
-    label: '2 Column',
-    preview: (
-      <div className="w-full h-full flex gap-1 p-1">
-        <div className="flex-1 flex flex-col gap-0.5">
-          <div className="w-full h-1 bg-current rounded-sm opacity-80" />
-          <div className="w-3/4 h-0.5 bg-current rounded-sm opacity-50" />
-        </div>
-        <div className="flex-1 flex flex-col gap-0.5">
-          <div className="w-full h-0.5 bg-current rounded-sm opacity-50" />
-          <div className="w-full h-0.5 bg-current rounded-sm opacity-50" />
-          <div className="w-3/4 h-0.5 bg-current rounded-sm opacity-50" />
-        </div>
-      </div>
-    ),
-  },
-  {
-    id: 'stats',
-    label: 'Stats',
-    preview: (
-      <div className="w-full h-full p-1">
-        <div className="w-4 h-0.5 bg-current rounded-sm opacity-80 mx-auto mb-1" />
-        <div className="grid grid-cols-3 gap-0.5">
-          <div className="flex flex-col items-center gap-px">
-            <div className="w-2 h-1.5 bg-current rounded-sm opacity-70" />
-            <div className="w-3 h-px bg-current opacity-40" />
-          </div>
-          <div className="flex flex-col items-center gap-px">
-            <div className="w-2 h-1.5 bg-current rounded-sm opacity-70" />
-            <div className="w-3 h-px bg-current opacity-40" />
-          </div>
-          <div className="flex flex-col items-center gap-px">
-            <div className="w-2 h-1.5 bg-current rounded-sm opacity-70" />
-            <div className="w-3 h-px bg-current opacity-40" />
-          </div>
-        </div>
-      </div>
-    ),
-  },
-  {
-    id: 'quote',
-    label: 'Quote',
-    preview: (
-      <div className="w-full h-full flex flex-col items-center justify-center p-1">
-        <div className="text-[6px] opacity-60 leading-none">&ldquo;</div>
-        <div className="w-5 h-0.5 bg-current rounded-sm opacity-60" />
-        <div className="w-4 h-0.5 bg-current rounded-sm opacity-60 mt-0.5" />
-        <div className="w-3 h-px bg-current rounded-sm opacity-40 mt-1" />
-      </div>
-    ),
-  },
-  {
-    id: 'comparison',
-    label: 'Compare',
-    preview: (
-      <div className="w-full h-full flex gap-1 p-1 items-center">
-        <div className="flex-1 flex flex-col items-center gap-0.5">
-          <div className="w-3 h-2 border border-current rounded-sm opacity-50" />
-          <div className="w-2 h-px bg-current opacity-40" />
-        </div>
-        <div className="text-[6px] opacity-40">vs</div>
-        <div className="flex-1 flex flex-col items-center gap-0.5">
-          <div className="w-3 h-2 bg-current rounded-sm opacity-70" />
-          <div className="w-2 h-px bg-current opacity-40" />
-        </div>
-      </div>
-    ),
-  },
+  { id: 'centered', label: 'Center', icon: '▣' },
+  { id: 'two-column', label: '2-Col', icon: '▥' },
+  { id: 'stats', label: 'Stats', icon: '▦' },
+  { id: 'quote', label: 'Quote', icon: '❝' },
+  { id: 'comparison', label: 'vs', icon: '⚖' },
 ]
 
 interface SourceIssue {
@@ -670,18 +595,17 @@ export default function EditorPage() {
                         </button>
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-1.5">
                       {LAYOUTS.map(layout => (
                         <button
                           key={layout.id}
                           onClick={() => handleChangeLayout(layout.id)}
                           disabled={isChangingLayout}
-                          className="group flex flex-col items-center gap-1 p-2 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-all disabled:opacity-50"
+                          title={layout.label}
+                          className="group px-3 py-2 bg-slate-700/50 hover:bg-teal-500/20 hover:border-teal-400 border border-slate-600 rounded-lg transition-all disabled:opacity-50 text-center"
                         >
-                          <div className="w-10 h-8 bg-slate-800 rounded border border-slate-600 group-hover:border-teal-400 transition-all text-slate-400 group-hover:text-teal-400 overflow-hidden">
-                            {layout.preview}
-                          </div>
-                          <span className="text-[10px] text-slate-500 group-hover:text-slate-300">
+                          <span className="text-lg">{layout.icon}</span>
+                          <span className="block text-[10px] text-slate-400 group-hover:text-teal-400 mt-0.5">
                             {layout.label}
                           </span>
                         </button>
