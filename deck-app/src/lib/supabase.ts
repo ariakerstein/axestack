@@ -22,6 +22,7 @@ export function getSessionId(): string {
 export interface PitchDeck {
   id: string
   session_id: string
+  user_id: string | null
   name: string
   html: string
   stage: string | null
@@ -55,6 +56,7 @@ export async function saveNewDeck(data: {
   scoreBreakdown?: Record<string, number>
   slideScores?: PitchDeck['slide_scores']
   wizardAnswers?: Record<string, string>
+  userId?: string | null
 }): Promise<PitchDeck | null> {
   const sessionId = getSessionId()
 
@@ -62,6 +64,7 @@ export async function saveNewDeck(data: {
     .from('promptdeck_versions')
     .insert({
       session_id: sessionId,
+      user_id: data.userId || null,
       name: data.name,
       html: data.html,
       stage: data.stage || null,
@@ -108,14 +111,25 @@ export async function updateDeck(id: string, data: Partial<{
   return deck
 }
 
-export async function getDecks(): Promise<PitchDeck[]> {
+export async function getDecks(userId?: string | null): Promise<PitchDeck[]> {
   const sessionId = getSessionId()
 
-  const { data, error } = await supabase
+  // If user is logged in, get their decks + any session decks
+  // If anonymous, just get session decks
+  let query = supabase
     .from('promptdeck_versions')
     .select('*')
-    .eq('session_id', sessionId)
     .order('updated_at', { ascending: false })
+
+  if (userId) {
+    // Get decks owned by user OR matching current session (for migration)
+    query = query.or(`user_id.eq.${userId},session_id.eq.${sessionId}`)
+  } else {
+    // Anonymous: only session decks
+    query = query.eq('session_id', sessionId)
+  }
+
+  const { data, error } = await query
 
   if (error) {
     console.error('Error fetching decks:', error)

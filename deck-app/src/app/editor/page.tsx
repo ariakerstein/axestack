@@ -13,6 +13,8 @@ import {
   getSessionId
 } from '@/lib/supabase'
 import { COLOR_SCHEMES, schemeToStyles, type ColorScheme } from '@/lib/themes'
+import { useAuth } from '@/lib/auth'
+import { AuthModal } from '@/components/AuthModal'
 
 interface ChatMessage {
   role: 'user' | 'assistant'
@@ -87,7 +89,9 @@ export default function EditorPage() {
   const [savedDecks, setSavedDecks] = useState<PitchDeck[]>([])
   const [isSaving, setIsSaving] = useState(false)
   const [dbFeedback, setDbFeedback] = useState<PitchFeedback[]>([])
+  const [showAuthModal, setShowAuthModal] = useState(false)
   const chatEndRef = useRef<HTMLDivElement>(null)
+  const { user, signOut, isAnonymous } = useAuth()
 
   // Feedback form state
   const [feedbackForm, setFeedbackForm] = useState({
@@ -130,11 +134,11 @@ export default function EditorPage() {
     }
     // Load saved decks from Supabase
     const loadSavedDecks = async () => {
-      const decks = await getDecks()
+      const decks = await getDecks(user?.id)
       setSavedDecks(decks)
     }
     loadSavedDecks()
-  }, [])
+  }, [user?.id])
 
   // Re-score the current deck with stage-aware scoring
   const handleRescore = async () => {
@@ -347,6 +351,7 @@ export default function EditorPage() {
           scoreBreakdown: score?.breakdown,
           slideScores: score?.slideScores,
           wizardAnswers,
+          userId: user?.id,
         })
         if (saved) {
           setCurrentDeckId(saved.id)
@@ -479,6 +484,8 @@ export default function EditorPage() {
   ` : html
 
   return (
+    <>
+    <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="bg-slate-800 border-b border-slate-700 px-6 py-3 flex items-center justify-between">
@@ -502,6 +509,29 @@ export default function EditorPage() {
           >
             HTML
           </button>
+
+          {/* Auth UI */}
+          {isAnonymous ? (
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className="text-teal-400 hover:text-teal-300 text-sm font-medium"
+            >
+              Sign in
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-teal-500 flex items-center justify-center text-white text-sm font-medium">
+                {user?.email?.[0].toUpperCase()}
+              </div>
+              <button
+                onClick={() => signOut()}
+                className="text-slate-400 hover:text-white text-xs"
+              >
+                Sign out
+              </button>
+            </div>
+          )}
+
           <Link href="/create" className="text-slate-400 hover:text-white text-sm">
             Start Over
           </Link>
@@ -1116,5 +1146,6 @@ export default function EditorPage() {
         </div>
       </div>
     </div>
+    </>
   )
 }
