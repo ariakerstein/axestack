@@ -384,29 +384,34 @@ export default function Wizard() {
           )}
 
           {/* Navigation */}
-          <div className="flex justify-between mt-10">
-            <button
-              onClick={handleBack}
-              disabled={step === 0}
-              className={`px-6 py-3 rounded-lg text-lg transition-colors ${
-                step === 0
-                  ? 'text-slate-600 cursor-not-allowed'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Back
-            </button>
-            <button
-              onClick={handleNext}
-              disabled={!canProceed}
-              className={`px-8 py-3 rounded-lg text-lg font-semibold transition-colors ${
-                canProceed
-                  ? 'bg-teal-500 hover:bg-teal-600 text-white'
-                  : 'bg-slate-700 text-slate-500 cursor-not-allowed'
-              }`}
-            >
-              {isLastStep ? 'Generate Deck' : 'Next'}
-            </button>
+          <div className="flex flex-col items-end mt-10">
+            <div className="flex justify-between w-full">
+              <button
+                onClick={handleBack}
+                disabled={step === 0}
+                className={`px-6 py-3 rounded-lg text-lg transition-colors ${
+                  step === 0
+                    ? 'text-slate-600 cursor-not-allowed'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Back
+              </button>
+              <button
+                onClick={handleNext}
+                disabled={!canProceed}
+                className={`px-8 py-3 rounded-lg text-lg font-semibold transition-colors ${
+                  canProceed
+                    ? 'bg-teal-500 hover:bg-teal-600 text-white'
+                    : 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                }`}
+              >
+                {isLastStep ? 'Generate Deck' : 'Next'}
+              </button>
+            </div>
+            {!canProceed && step === 0 && !stage && (
+              <p className="text-sm text-amber-400 mt-2">Select a funding stage to continue</p>
+            )}
           </div>
         </div>
       </main>
