@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const SYSTEM_PROMPT = `You are a pitch deck generator. Given answers to 6 discovery questions, generate a complete 10-slide HTML pitch deck using Tailwind CSS.
+const SYSTEM_PROMPT = `You are a pitch deck generator. Given answers to discovery questions, generate a complete 10-slide HTML pitch deck using Tailwind CSS.
 
 The deck must follow Kawasaki 10/20/30 rules:
 - Exactly 10 slides
@@ -31,6 +31,12 @@ CRITICAL DESIGN RULES (ADA compliance required):
 - Each slide is a full-screen section with scroll-snap
 - Use shadow-sm or subtle borders to separate slides
 
+COMPANY NAME BADGE (required on every slide):
+- Add a small company name badge in the top-left corner of EVERY slide
+- Style: <div class="absolute top-6 left-8 text-sm font-medium text-gray-500">{Company Name}</div>
+- This provides consistent branding across all slides
+- The badge should be subtle but visible
+
 Include Tailwind CDN in the HTML head.`
 
 export async function POST(request: NextRequest) {
@@ -47,6 +53,7 @@ export async function POST(request: NextRequest) {
 
     const userPrompt = `Generate a pitch deck based on these answers:
 
+Company Name: ${answers.companyName}
 1. What they do: ${answers.oneLiner}
 2. Who's desperate: ${answers.desperatePerson}
 3. Current solution: ${answers.currentSolution}
@@ -54,7 +61,7 @@ export async function POST(request: NextRequest) {
 5. Business model: ${answers.businessModel}
 6. Raising: ${answers.raiseAmount} to achieve: ${answers.raiseMilestone}
 
-Generate the complete HTML deck now.`
+Generate the complete HTML deck now. Remember to include "${answers.companyName}" in the top-left of every slide.`
 
     // Call Anthropic API directly with fetch
     const anthropicResponse = await fetch('https://api.anthropic.com/v1/messages', {

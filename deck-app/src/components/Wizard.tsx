@@ -21,6 +21,12 @@ const STAGES = [
 
 const QUESTIONS = [
   {
+    id: 'companyName',
+    question: 'What\'s your company name?',
+    placeholder: 'Acme Inc.',
+    hint: 'This appears in the top-left of every slide.',
+  },
+  {
     id: 'oneLiner',
     question: 'What do you do in one sentence?',
     placeholder: 'We help [X] do [Y] by [Z]',
