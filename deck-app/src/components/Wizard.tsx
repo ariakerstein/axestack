@@ -249,7 +249,7 @@ export default function Wizard() {
                     >
                       <span className={!type.available ? 'text-slate-500' : ''}>{type.label}</span>
                       {!type.available && (
-                        <span className="absolute top-2 right-2 text-xs bg-slate-700 text-slate-400 px-2 py-0.5 rounded-full">
+                        <span className="absolute top-2 right-2 text-xs bg-amber-500/20 text-amber-400 font-medium px-2 py-0.5 rounded-full">
                           Soon
                         </span>
                       )}
