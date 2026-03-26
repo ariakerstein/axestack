@@ -60,17 +60,21 @@ export default function AboutPage() {
             <p><span className="text-teal-400 font-semibold">Ripple and learn.</span> Modify, get signal from the world, ripple again with new knowledge. Momentum compounds.</p>
           </div>
 
-          <h2 className="text-xl font-semibold text-white pt-4">Why I built Prompt Deck</h2>
+          <h2 className="text-xl font-semibold text-white pt-4">Why Prompt Deck?</h2>
 
           <p>
-            After creating 50+ pitch decks over my career, the same patterns kept emerging:
-            founders burying the lede, vague answers, claiming "no competitors."
-            Decks that take weeks to make get torn apart in meeting one.
+            Building a pitch deck is harder than it looks. You're using two parts of your brain at once —
+            storytelling and visual design. There's a reason graphic novels have an author <em>and</em> an illustrator.
           </p>
 
           <p>
-            The 6 questions aren't random — they're forcing functions that separate fundable pitches
-            from forgettable ones. If your answer is vague, the tool pushes back. Better here than from an investor.
+            Working with founders at Cancer Hacker Lab, I kept seeing the same struggles: burying the lede,
+            vague answers, "we have no competitors." Weeks of work torn apart in meeting one.
+          </p>
+
+          <p>
+            Prompt Deck handles the design so you can focus on the story. Answer 6 questions, get a deck
+            that follows investor best practices, then iterate until it's pitch perfect.
           </p>
 
           <h2 className="text-xl font-semibold text-white pt-4">Connect</h2>
