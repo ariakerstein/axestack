@@ -31,11 +31,11 @@ interface DeckVersion {
 type Tab = 'edit' | 'sources' | 'versions' | 'feedback'
 
 const LAYOUTS = [
-  { id: 'centered', label: 'Centered', icon: '⬜' },
-  { id: 'two-column', label: '2 Column', icon: '▥' },
-  { id: 'stats', label: 'Stats Grid', icon: '▦' },
-  { id: 'quote', label: 'Quote', icon: '❝' },
-  { id: 'comparison', label: 'Comparison', icon: '⚖️' },
+  { id: 'centered', label: 'Centered' },
+  { id: 'two-column', label: '2 Column' },
+  { id: 'stats', label: 'Stats' },
+  { id: 'quote', label: 'Quote' },
+  { id: 'comparison', label: 'Compare' },
 ]
 
 interface SourceIssue {
@@ -563,33 +563,41 @@ export default function EditorPage() {
                 Next ▶
               </button>
             </div>
-            <div className="flex justify-center gap-2 mt-3">
+            {/* Slide Picker */}
+            <div className="flex flex-wrap justify-center gap-1.5 mt-3">
               {Array.from({ length: totalSlides }).map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setCurrentSlide(i)}
-                  className={`w-2 h-2 rounded-full transition-colors ${
-                    i === currentSlide ? 'bg-teal-400' : 'bg-slate-600 hover:bg-slate-500'
+                  className={`w-7 h-7 rounded text-xs font-medium transition-all ${
+                    i === currentSlide
+                      ? 'bg-teal-500 text-white ring-2 ring-teal-400 ring-offset-1 ring-offset-slate-900'
+                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white'
                   }`}
-                />
+                >
+                  {i + 1}
+                </button>
               ))}
             </div>
 
             {/* Layout Picker */}
-            <div className="flex justify-center gap-2 mt-4 pt-3 border-t border-slate-700">
-              <span className="text-xs text-slate-500 mr-2">Layout:</span>
-              {LAYOUTS.map(layout => (
-                <button
-                  key={layout.id}
-                  onClick={() => handleChangeLayout(layout.id)}
-                  disabled={isChangingLayout}
-                  className="px-2 py-1 text-xs bg-slate-700 hover:bg-slate-600 rounded transition-colors disabled:opacity-50"
-                  title={layout.label}
-                >
-                  {layout.icon}
-                </button>
-              ))}
-              {isChangingLayout && <span className="text-xs text-slate-400 ml-2">Applying...</span>}
+            <div className="mt-4 pt-3 border-t border-slate-700">
+              <p className="text-xs text-slate-500 text-center mb-2">Change slide layout:</p>
+              <div className="flex flex-wrap justify-center gap-1.5">
+                {LAYOUTS.map(layout => (
+                  <button
+                    key={layout.id}
+                    onClick={() => handleChangeLayout(layout.id)}
+                    disabled={isChangingLayout}
+                    className="px-2.5 py-1.5 text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white rounded transition-colors disabled:opacity-50"
+                  >
+                    {layout.label}
+                  </button>
+                ))}
+              </div>
+              {isChangingLayout && (
+                <p className="text-xs text-teal-400 text-center mt-2 animate-pulse">Applying layout...</p>
+              )}
             </div>
           </div>
         </div>

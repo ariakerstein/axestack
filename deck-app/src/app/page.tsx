@@ -7,7 +7,7 @@ export default function Home() {
       <section className="flex flex-col items-center justify-center px-8 pt-20 pb-16">
         <div className="text-center max-w-3xl">
           <p className="text-teal-400 text-sm font-medium uppercase tracking-wide mb-4">
-            From Cancer Hacker Lab
+            From CancerHacker Lab • Part of axestack
           </p>
           <h1 className="text-5xl md:text-6xl font-bold mb-6">
             Prompt Deck

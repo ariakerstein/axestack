@@ -4,6 +4,17 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
+const AUDIT_QUOTES = [
+  { text: "Your deck is being judged like you judge Tinder profiles. Harsh but fair.", author: "The Algorithm" },
+  { text: "Every investor says they want honesty. They do not want honesty.", author: "Bitter Experience" },
+  { text: "The slides are fine. The question is: can you survive the Q&A?", author: "Partner Meeting PTSD" },
+  { text: "A 30-point font forces you to shut up and get to the point.", author: "Guy Kawasaki" },
+  { text: "Your financial projections are fiction. Make them compelling fiction.", author: "Honest CFO" },
+  { text: "If your mom can't explain your deck, neither can a VC associate.", author: "Mom Test Extended" },
+  { text: "TAM SAM SOM: Three ways to say 'this market is huge trust me bro'.", author: "Cynical VC" },
+  { text: "VCs have 100 reasons to say no and only need one.", author: "The Math" },
+]
+
 interface CategoryDetails {
   key: string
   label: string
@@ -42,6 +53,16 @@ export default function AuditPage() {
   const [inputMode, setInputMode] = useState<'url' | 'paste' | 'upload' | 'saved'>('url')
   const [isUploading, setIsUploading] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
+  const [quoteIndex, setQuoteIndex] = useState(0)
+
+  // Rotate quotes while auditing
+  useEffect(() => {
+    if (!isAuditing) return
+    const interval = setInterval(() => {
+      setQuoteIndex((prev) => (prev + 1) % AUDIT_QUOTES.length)
+    }, 4000)
+    return () => clearInterval(interval)
+  }, [isAuditing])
 
   // Load saved decks from localStorage
   useEffect(() => {
@@ -318,11 +339,17 @@ export default function AuditPage() {
   }
 
   if (isAuditing) {
+    const quote = AUDIT_QUOTES[quoteIndex]
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-8">
         <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-teal-400 mb-8"></div>
         <h2 className="text-2xl font-semibold mb-4">Auditing your deck...</h2>
-        <p className="text-slate-400">Analyzing against investor framework</p>
+        <p className="text-slate-400 mb-12">Analyzing against investor framework</p>
+
+        <div className="max-w-lg text-center transition-opacity duration-500">
+          <p className="text-lg text-slate-300 italic mb-2">&ldquo;{quote.text}&rdquo;</p>
+          <p className="text-sm text-slate-500">— {quote.author}</p>
+        </div>
       </div>
     )
   }
