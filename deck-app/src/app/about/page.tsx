@@ -18,57 +18,47 @@ export default function AboutPage() {
           />
           <div>
             <h1 className="text-3xl font-bold">Ari Akerstein</h1>
-            <p className="text-slate-400">Founder • Ex-Facebook PM • Cancer survivor</p>
+            <p className="text-slate-400">Building for the AI-enabled patient</p>
           </div>
         </div>
 
         {/* Bio */}
         <div className="space-y-6 text-slate-300">
-          <p className="text-lg">
-            Product leader who's built things that reach billions of people. Now focused on
-            applying technology to healthcare — a space I care about personally.
-          </p>
-
-          <h2 className="text-xl font-semibold text-white pt-4">Background</h2>
-
-          <div className="space-y-4">
-            <div className="flex gap-4">
-              <div className="w-2 h-2 bg-teal-400 rounded-full mt-2 flex-shrink-0"></div>
-              <div>
-                <p className="font-semibold text-white">Facebook, Walmart Labs, J&J</p>
-                <p className="text-sm text-slate-400">Product leadership across consumer tech at scale.</p>
-              </div>
-            </div>
-            <div className="flex gap-4">
-              <div className="w-2 h-2 bg-teal-400 rounded-full mt-2 flex-shrink-0"></div>
-              <div>
-                <p className="font-semibold text-white">Grand Rounds / Included Health</p>
-                <p className="text-sm text-slate-400">Led virtual specialty care and second opinions during the pandemic.</p>
-              </div>
-            </div>
-            <div className="flex gap-4">
-              <div className="w-2 h-2 bg-teal-400 rounded-full mt-2 flex-shrink-0"></div>
-              <div>
-                <p className="font-semibold text-white">
-                  <a href="https://www.cancerhackerlab.com/" target="_blank" rel="noopener noreferrer" className="hover:text-teal-400 transition-colors">
-                    Cancer Hacker Lab ↗
-                  </a>
-                </p>
-                <p className="text-sm text-slate-400">Running a healthtech accelerator focused on cancer innovation.</p>
-              </div>
-            </div>
-            <div className="flex gap-4">
-              <div className="w-2 h-2 bg-teal-400 rounded-full mt-2 flex-shrink-0"></div>
-              <div>
-                <p className="font-semibold text-white">Inventor: CoreWheels</p>
-                <p className="text-sm text-slate-400">Created a fitness product (sold on Amazon) inspired by gymnastic strength training.</p>
-              </div>
-            </div>
+          {/* Current focus */}
+          <div className="bg-teal-500/10 border border-teal-500/30 p-4 rounded-xl">
+            <p className="font-semibold text-teal-400 mb-1">Currently building</p>
+            <p className="text-white">
+              <a href="https://navis.health" target="_blank" rel="noopener noreferrer" className="hover:text-teal-400 transition-colors">
+                Navis Health AI ↗
+              </a>
+              {' '}— AI-powered second opinions for cancer patients. Get NCI-level guidance in 24 hours, not 2 weeks.
+            </p>
           </div>
 
-          <p className="text-sm text-slate-500 italic">
-            Battled cancer in 2018 as a new dad. That experience shaped my focus on healthcare technology.
+          <p className="text-lg">
+            I run <a href="https://www.cancerhackerlab.com/" target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:underline">Cancer Hacker Lab</a>, a healthtech accelerator helping founders build products for patients.
+            This site exists to give those founders (and others) tools I wish I had — starting with pitch decks.
           </p>
+
+          <p>
+            I've spent 15 years building products at scale (Facebook, Walmart Labs, J&J) and in healthcare
+            (Grand Rounds, where I led second opinions during the pandemic). I studied molecular biology
+            before tech — that training shapes how I think about hard problems.
+          </p>
+
+          <p className="text-slate-400">
+            Battled cancer in 2018 as a new dad. That experience made healthcare personal, not just professional.
+          </p>
+
+          <h2 className="text-xl font-semibold text-white pt-4">The thread</h2>
+
+          <div className="space-y-3 text-sm text-slate-400">
+            <p><span className="text-white">MS Molecular Biology</span> — SFSU/UCSF. Lab research before deciding academia wasn't my path.</p>
+            <p><span className="text-white">Invented CoreWheels</span> — Fitness product on Amazon, inspired by gymnastic strength training.</p>
+            <p><span className="text-white">Big tech product leadership</span> — Facebook, Walmart Labs, J&J. Built things that reached billions.</p>
+            <p><span className="text-white">Healthcare product</span> — Grand Rounds/Included Health. Led virtual specialty care and second opinions.</p>
+            <p><span className="text-white">Now: Cancer Hacker Lab + Navis</span> — Running the accelerator. Building Navis. Making tools for founders.</p>
+          </div>
 
           <h2 className="text-xl font-semibold text-white pt-4">Things I believe</h2>
 
