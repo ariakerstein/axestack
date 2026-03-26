@@ -25,7 +25,9 @@ export default function AboutPage() {
         {/* Bio */}
         <div className="space-y-6 text-slate-300">
           <p className="text-lg">
-            I'm building <a href="https://navis.health" target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:underline">Navis Health AI</a> for the era of the AI-enabled patient. AI-powered second opinions for cancer patients, delivering NCI-level guidance in 24 hours instead of 2 weeks.
+            I've spent 15 years building products at scale (Facebook, Walmart Labs, J&J) and in healthcare
+            (Grand Rounds, where I led second opinions during the pandemic). I studied molecular biology
+            before tech. That training shapes how I think about hard problems.
           </p>
 
           <p>
@@ -34,13 +36,11 @@ export default function AboutPage() {
           </p>
 
           <p>
-            I've spent 15 years building products at scale (Facebook, Walmart Labs, J&J) and in healthcare
-            (Grand Rounds, where I led second opinions during the pandemic). I studied molecular biology
-            before tech. That training shapes how I think about hard problems.
+            My other focus is <a href="https://navis.health" target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:underline">Navis Health</a>: AI-native second opinions for cancer patients. NCI-level guidance in minutes instead of weeks, at a fraction of the cost.
           </p>
 
           <p className="text-slate-400">
-            Battled cancer in 2018 as a new dad. That experience made healthcare personal, not just professional.
+            Battled cancer in 2018 as a new dad. That made healthcare personal, not just professional.
           </p>
 
           <h2 className="text-xl font-semibold text-white pt-4">Things I believe</h2>
