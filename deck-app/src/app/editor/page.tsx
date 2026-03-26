@@ -31,11 +31,86 @@ interface DeckVersion {
 type Tab = 'edit' | 'sources' | 'versions' | 'feedback'
 
 const LAYOUTS = [
-  { id: 'centered', label: 'Centered' },
-  { id: 'two-column', label: '2 Column' },
-  { id: 'stats', label: 'Stats' },
-  { id: 'quote', label: 'Quote' },
-  { id: 'comparison', label: 'Compare' },
+  {
+    id: 'centered',
+    label: 'Centered',
+    preview: (
+      <div className="w-full h-full flex flex-col items-center justify-center gap-0.5 p-1">
+        <div className="w-6 h-1 bg-current rounded-sm opacity-80" />
+        <div className="w-4 h-0.5 bg-current rounded-sm opacity-50" />
+        <div className="w-5 h-0.5 bg-current rounded-sm opacity-50" />
+      </div>
+    ),
+  },
+  {
+    id: 'two-column',
+    label: '2 Column',
+    preview: (
+      <div className="w-full h-full flex gap-1 p-1">
+        <div className="flex-1 flex flex-col gap-0.5">
+          <div className="w-full h-1 bg-current rounded-sm opacity-80" />
+          <div className="w-3/4 h-0.5 bg-current rounded-sm opacity-50" />
+        </div>
+        <div className="flex-1 flex flex-col gap-0.5">
+          <div className="w-full h-0.5 bg-current rounded-sm opacity-50" />
+          <div className="w-full h-0.5 bg-current rounded-sm opacity-50" />
+          <div className="w-3/4 h-0.5 bg-current rounded-sm opacity-50" />
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: 'stats',
+    label: 'Stats',
+    preview: (
+      <div className="w-full h-full p-1">
+        <div className="w-4 h-0.5 bg-current rounded-sm opacity-80 mx-auto mb-1" />
+        <div className="grid grid-cols-3 gap-0.5">
+          <div className="flex flex-col items-center gap-px">
+            <div className="w-2 h-1.5 bg-current rounded-sm opacity-70" />
+            <div className="w-3 h-px bg-current opacity-40" />
+          </div>
+          <div className="flex flex-col items-center gap-px">
+            <div className="w-2 h-1.5 bg-current rounded-sm opacity-70" />
+            <div className="w-3 h-px bg-current opacity-40" />
+          </div>
+          <div className="flex flex-col items-center gap-px">
+            <div className="w-2 h-1.5 bg-current rounded-sm opacity-70" />
+            <div className="w-3 h-px bg-current opacity-40" />
+          </div>
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: 'quote',
+    label: 'Quote',
+    preview: (
+      <div className="w-full h-full flex flex-col items-center justify-center p-1">
+        <div className="text-[6px] opacity-60 leading-none">&ldquo;</div>
+        <div className="w-5 h-0.5 bg-current rounded-sm opacity-60" />
+        <div className="w-4 h-0.5 bg-current rounded-sm opacity-60 mt-0.5" />
+        <div className="w-3 h-px bg-current rounded-sm opacity-40 mt-1" />
+      </div>
+    ),
+  },
+  {
+    id: 'comparison',
+    label: 'Compare',
+    preview: (
+      <div className="w-full h-full flex gap-1 p-1 items-center">
+        <div className="flex-1 flex flex-col items-center gap-0.5">
+          <div className="w-3 h-2 border border-current rounded-sm opacity-50" />
+          <div className="w-2 h-px bg-current opacity-40" />
+        </div>
+        <div className="text-[6px] opacity-40">vs</div>
+        <div className="flex-1 flex flex-col items-center gap-0.5">
+          <div className="w-3 h-2 bg-current rounded-sm opacity-70" />
+          <div className="w-2 h-px bg-current opacity-40" />
+        </div>
+      </div>
+    ),
+  },
 ]
 
 interface SourceIssue {
@@ -580,23 +655,32 @@ export default function EditorPage() {
               ))}
             </div>
 
-            {/* Layout Picker */}
-            <div className="mt-4 pt-3 border-t border-slate-700">
-              <p className="text-xs text-slate-500 text-center mb-2">Change slide layout:</p>
-              <div className="flex flex-wrap justify-center gap-1.5">
+            {/* Layout Picker - Pitch/Figma style */}
+            <div className="mt-4 pt-4 border-t border-slate-700">
+              <p className="text-xs text-slate-500 text-center mb-3">Slide layout:</p>
+              <div className="flex justify-center gap-2">
                 {LAYOUTS.map(layout => (
                   <button
                     key={layout.id}
                     onClick={() => handleChangeLayout(layout.id)}
                     disabled={isChangingLayout}
-                    className="px-2.5 py-1.5 text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white rounded transition-colors disabled:opacity-50"
+                    className="group flex flex-col items-center gap-1.5 transition-all disabled:opacity-50"
+                    title={layout.label}
                   >
-                    {layout.label}
+                    <div className="w-12 h-9 bg-slate-800 rounded border border-slate-600 group-hover:border-teal-400 group-hover:bg-slate-700 transition-all text-slate-400 group-hover:text-teal-400 overflow-hidden">
+                      {layout.preview}
+                    </div>
+                    <span className="text-[10px] text-slate-500 group-hover:text-slate-300 transition-colors">
+                      {layout.label}
+                    </span>
                   </button>
                 ))}
               </div>
               {isChangingLayout && (
-                <p className="text-xs text-teal-400 text-center mt-2 animate-pulse">Applying layout...</p>
+                <div className="flex items-center justify-center gap-2 mt-3">
+                  <div className="w-3 h-3 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
+                  <span className="text-xs text-teal-400">Applying...</span>
+                </div>
               )}
             </div>
           </div>
