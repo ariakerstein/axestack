@@ -12,28 +12,27 @@ export default function Home() {
           <h1 className="text-5xl md:text-6xl font-bold mb-6">
             Prompt Deck
           </h1>
-          <p className="text-2xl text-slate-300 mb-4">
+          <p className="text-2xl text-slate-300 mb-8">
             Generate. Edit. Iterate.<span className="text-teal-400"> Fast.</span>
           </p>
-          <p className="text-xl text-slate-400 mb-8">
-            Answer 6 questions. Get a 10-slide deck. Then refine it with natural language prompts
-            until it's investor-ready.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
             <Link
               href="/create"
-              className="inline-block bg-teal-500 hover:bg-teal-600 text-white text-xl font-semibold px-8 py-4 rounded-lg transition-colors"
+              className="inline-block bg-teal-500 hover:bg-teal-600 text-white text-2xl font-bold px-10 py-5 rounded-xl shadow-lg shadow-teal-500/25 transition-all hover:shadow-teal-500/40 hover:scale-105"
             >
               Create a Deck
             </Link>
             <Link
               href="/audit"
-              className="inline-block border-2 border-teal-500 text-teal-400 hover:bg-teal-500/10 text-xl font-semibold px-8 py-4 rounded-lg transition-colors"
+              className="inline-block border-2 border-teal-500 text-teal-400 hover:bg-teal-500/10 text-2xl font-bold px-10 py-5 rounded-xl transition-all hover:scale-105"
             >
               Audit Your Deck
             </Link>
           </div>
-          <p className="text-sm text-slate-500 mt-4">No signup required • Both free</p>
+          <p className="text-lg text-slate-400 mb-4">
+            Answer 6 questions. Get a 10-slide deck. Refine with natural language until investor-ready.
+          </p>
+          <p className="text-sm text-slate-500">No signup required • Both free</p>
         </div>
       </section>
 
@@ -54,7 +53,7 @@ export default function Home() {
               <p className="text-sm text-slate-400">Raised by CHL portfolio</p>
             </div>
           </div>
-          <p className="text-center text-sm text-slate-500">
+          <p className="text-center text-base font-medium text-slate-300">
             Used by founders and builders at Google, Facebook, Included Health, MIT, Stanford
           </p>
         </div>

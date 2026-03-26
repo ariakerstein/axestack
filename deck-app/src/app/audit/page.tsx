@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
 interface CategoryDetails {
@@ -16,10 +16,18 @@ interface ChatMessage {
   content: string
 }
 
+interface SavedDeck {
+  id: string
+  name: string
+  html: string
+  timestamp: number
+}
+
 export default function AuditPage() {
   const [deckUrl, setDeckUrl] = useState('')
   const [deckContent, setDeckContent] = useState('')
   const [isAuditing, setIsAuditing] = useState(false)
+  const [savedDecks, setSavedDecks] = useState<SavedDeck[]>([])
   const [result, setResult] = useState<{
     score: number
     scoreBreakdown: Record<string, { score: number; max: number; note: string }>
@@ -28,7 +36,82 @@ export default function AuditPage() {
     detailedNotes: string
   } | null>(null)
   const [error, setError] = useState('')
-  const [inputMode, setInputMode] = useState<'url' | 'paste'>('url')
+  const [inputMode, setInputMode] = useState<'url' | 'paste' | 'saved'>('url')
+
+  // Load saved decks from localStorage
+  useEffect(() => {
+    const loadSavedDecks = () => {
+      const decks: SavedDeck[] = []
+
+      // Load current deck
+      const currentDeck = localStorage.getItem('generatedDeck')
+      if (currentDeck) {
+        try {
+          const data = JSON.parse(currentDeck)
+          if (data.html) {
+            decks.push({
+              id: 'current',
+              name: 'Current Deck',
+              html: data.html,
+              timestamp: Date.now()
+            })
+          }
+        } catch { /* ignore */ }
+      }
+
+      // Load saved versions
+      const versions = localStorage.getItem('deckVersions')
+      if (versions) {
+        try {
+          const parsed = JSON.parse(versions)
+          parsed.forEach((v: { id: string; name: string; html: string; timestamp: number }) => {
+            decks.push({
+              id: v.id,
+              name: v.name,
+              html: v.html,
+              timestamp: v.timestamp
+            })
+          })
+        } catch { /* ignore */ }
+      }
+
+      setSavedDecks(decks)
+    }
+
+    loadSavedDecks()
+  }, [])
+
+  const auditSavedDeck = (deck: SavedDeck) => {
+    setDeckContent(deck.html)
+    handleAuditWithContent(deck.html)
+  }
+
+  const handleAuditWithContent = async (content: string) => {
+    setIsAuditing(true)
+    setError('')
+    setResult(null)
+
+    try {
+      const response = await fetch('/api/audit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to audit deck')
+      }
+
+      const data = await response.json()
+      setResult(data)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to audit deck'
+      setError(message)
+    } finally {
+      setIsAuditing(false)
+    }
+  }
 
   // Side panel state
   const [selectedCategory, setSelectedCategory] = useState<CategoryDetails | null>(null)
@@ -169,6 +252,16 @@ export default function AuditPage() {
               >
                 Paste Content
               </button>
+              <button
+                onClick={() => setInputMode('saved')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  inputMode === 'saved'
+                    ? 'bg-teal-500 text-white'
+                    : 'bg-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                Saved Decks {savedDecks.length > 0 && <span className="ml-1 bg-teal-600 text-white text-xs px-1.5 rounded-full">{savedDecks.length}</span>}
+              </button>
             </div>
 
             {/* URL input */}
@@ -203,19 +296,62 @@ export default function AuditPage() {
               </div>
             )}
 
+            {/* Saved decks */}
+            {inputMode === 'saved' && (
+              <div className="mb-6">
+                {savedDecks.length === 0 ? (
+                  <div className="text-center py-12 bg-slate-800 rounded-xl">
+                    <p className="text-slate-400 mb-4">No saved decks found</p>
+                    <Link href="/create" className="text-teal-400 hover:underline">
+                      Create a deck first →
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-sm text-slate-400 mb-4">
+                      Click any deck to audit it
+                    </p>
+                    {savedDecks.map((deck) => (
+                      <button
+                        key={deck.id}
+                        onClick={() => auditSavedDeck(deck)}
+                        className="w-full text-left p-4 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-teal-500 rounded-xl transition-all group"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-semibold text-white group-hover:text-teal-400 transition-colors">
+                              {deck.name}
+                            </p>
+                            <p className="text-sm text-slate-400">
+                              {deck.id === 'current' ? 'Your working deck' : `Saved ${new Date(deck.timestamp).toLocaleDateString()}`}
+                            </p>
+                          </div>
+                          <span className="text-teal-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                            Audit →
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             {error && <p className="text-red-400 mb-4">{error}</p>}
 
-            <button
-              onClick={handleAudit}
-              disabled={!deckUrl && !deckContent}
-              className={`w-full py-4 rounded-lg font-semibold text-lg transition-colors ${
-                deckUrl || deckContent
-                  ? 'bg-teal-500 hover:bg-teal-600 text-white'
-                  : 'bg-slate-700 text-slate-500 cursor-not-allowed'
-              }`}
-            >
-              Audit My Deck
-            </button>
+            {inputMode !== 'saved' && (
+              <button
+                onClick={handleAudit}
+                disabled={!deckUrl && !deckContent}
+                className={`w-full py-4 rounded-lg font-semibold text-lg transition-colors ${
+                  deckUrl || deckContent
+                    ? 'bg-teal-500 hover:bg-teal-600 text-white'
+                    : 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                }`}
+              >
+                Audit My Deck
+              </button>
+            )}
 
             {/* What we check */}
             <div className="mt-12 pt-8 border-t border-slate-800">

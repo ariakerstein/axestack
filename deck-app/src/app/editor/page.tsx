@@ -129,7 +129,7 @@ export default function EditorPage() {
       const response = await fetch('/api/audit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ html }),
+        body: JSON.stringify({ content: html }),
       })
       if (response.ok) {
         const data = await response.json()
@@ -187,7 +187,10 @@ export default function EditorPage() {
       if (response.ok) {
         const data = await response.json()
         setHtml(data.html)
-        localStorage.setItem('generatedDeck', JSON.stringify({ html: data.html }))
+        // Preserve score when saving
+        const stored = localStorage.getItem('generatedDeck')
+        const existingData = stored ? JSON.parse(stored) : {}
+        localStorage.setItem('generatedDeck', JSON.stringify({ ...existingData, html: data.html }))
         setChatHistory(prev => [...prev, { role: 'assistant', content: `✓ Changed to ${layoutId} layout` }])
       }
     } catch (e) {
@@ -266,7 +269,10 @@ export default function EditorPage() {
       const data = await response.json()
       setHtml(data.html)
       setChatHistory(prev => [...prev, { role: 'assistant', content: '✓ Updated deck' }])
-      localStorage.setItem('generatedDeck', JSON.stringify({ html: data.html }))
+      // Preserve score when saving
+      const stored = localStorage.getItem('generatedDeck')
+      const existingData = stored ? JSON.parse(stored) : {}
+      localStorage.setItem('generatedDeck', JSON.stringify({ ...existingData, html: data.html }))
     } catch {
       setChatHistory(prev => [...prev, { role: 'assistant', content: '✗ Error updating deck. Try again.' }])
     } finally {
@@ -317,7 +323,10 @@ export default function EditorPage() {
   const restoreVersion = (version: DeckVersion) => {
     setHtml(version.html)
     setCurrentVersionId(version.id)
-    localStorage.setItem('generatedDeck', JSON.stringify({ html: version.html }))
+    // Preserve score when restoring
+    const stored = localStorage.getItem('generatedDeck')
+    const existingData = stored ? JSON.parse(stored) : {}
+    localStorage.setItem('generatedDeck', JSON.stringify({ ...existingData, html: version.html }))
     setActiveTab('edit')
   }
 
