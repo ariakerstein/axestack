@@ -50,16 +50,7 @@ export default function AboutPage() {
             Battled cancer in 2018 as a new dad. That experience made healthcare personal, not just professional.
           </p>
 
-          <h2 className="text-xl font-semibold text-white pt-4">The thread</h2>
-
-          <div className="space-y-3 text-sm text-slate-400">
-            <p><span className="text-white">MS Molecular Biology</span> — SFSU/UCSF. Lab research before deciding academia wasn't my path.</p>
-            <p><span className="text-white">Invented CoreWheels</span> — Fitness product on Amazon, inspired by gymnastic strength training.</p>
-            <p><span className="text-white">Big tech product leadership</span> — Facebook, Walmart Labs, J&J. Built things that reached billions.</p>
-            <p><span className="text-white">Healthcare product</span> — Grand Rounds/Included Health. Led virtual specialty care and second opinions.</p>
-            <p><span className="text-white">Now: Cancer Hacker Lab + Navis</span> — Running the accelerator. Building Navis. Making tools for founders.</p>
-          </div>
-
+          
           <h2 className="text-xl font-semibold text-white pt-4">Things I believe</h2>
 
           <div className="bg-slate-800 p-6 rounded-xl space-y-4">
