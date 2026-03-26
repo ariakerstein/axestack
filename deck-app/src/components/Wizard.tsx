@@ -1,23 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-
-const LOADING_QUOTES = [
-  { text: "Starting a company is like eating glass and staring into the abyss of death.", author: "Elon Musk" },
-  { text: "If you're not embarrassed by the first version, you launched too late.", author: "Reid Hoffman" },
-  { text: "The best pitch decks are written while crying into cold coffee at 2am.", author: "Every Founder Ever" },
-  { text: "Move fast and break things. Except your pitch deck. Don't break that.", author: "Modified Zuck" },
-  { text: "In the startup world, 'we're pre-revenue' is Latin for 'we have no money'.", author: "Startup Wisdom" },
-  { text: "A good deck is like a miniskirt: short enough to be interesting, long enough to cover the essentials.", author: "Allegedly Churchill" },
-  { text: "Your projections are wrong. But at least make them confidently wrong.", author: "Every VC" },
-  { text: "Behind every successful pitch is 99 that got ghosted.", author: "The Math" },
-  { text: "Investors say 'interesting' when they mean 'I'm going to pass but politely'.", author: "Decoded VC-Speak" },
-  { text: "The first rule of Pitch Club: always be fundraising. The second rule: pretend you're not.", author: "Fight Club for Founders" },
-  { text: "Your TAM slide is a lie and everyone knows it. Make it a beautiful lie.", author: "Honest Advisors" },
-  { text: "No plan survives first contact with a partner meeting.", author: "Startup von Moltke" },
-]
+import { getShuffledQuotes } from '@/lib/quotes'
 
 const QUESTIONS = [
   {
@@ -159,17 +145,18 @@ export default function Wizard() {
   }
 
   const [quoteIndex, setQuoteIndex] = useState(0)
+  const quotes = useMemo(() => getShuffledQuotes(), [])
 
   useEffect(() => {
     if (!isGenerating) return
     const interval = setInterval(() => {
-      setQuoteIndex((prev) => (prev + 1) % LOADING_QUOTES.length)
+      setQuoteIndex((prev) => (prev + 1) % quotes.length)
     }, 4000)
     return () => clearInterval(interval)
-  }, [isGenerating])
+  }, [isGenerating, quotes.length])
 
   if (isGenerating) {
-    const quote = LOADING_QUOTES[quoteIndex]
+    const quote = quotes[quoteIndex]
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-8">
         <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-teal-400 mb-8"></div>
