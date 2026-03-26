@@ -9,25 +9,45 @@ const QUESTIONS = [
     id: 'oneLiner',
     question: 'What do you do in one sentence?',
     placeholder: 'We help [X] do [Y] by [Z]',
-    hint: 'Be specific. "We help cancer patients get second opinions in 24 hours for $99"',
+    hint: 'Be specific about who, what, and how.',
+    examples: [
+      'We help cancer patients get second opinions in 24 hours for $99',
+      'We help SMBs automate invoicing and get paid 2x faster',
+      'We help remote teams run async standups that actually get read',
+    ],
   },
   {
     id: 'desperatePerson',
     question: 'Who is desperate for this?',
-    placeholder: 'e.g., Mike, a son coordinating his mom\'s cancer care from 500 miles away',
-    hint: 'Name a specific person, not a category like "enterprises"',
+    placeholder: 'A specific person with a specific problem...',
+    hint: 'Name a real person, not a category like "enterprises" or "millennials".',
+    examples: [
+      'Mike, a son coordinating his mom\'s cancer care from 500 miles away',
+      'Sarah, an ops manager drowning in spreadsheets tracking 50 vendors',
+      'Dev teams shipping daily who can\'t wait for 30-min sync meetings',
+    ],
   },
   {
     id: 'currentSolution',
     question: 'What are they doing today without you?',
-    placeholder: 'How do they currently solve this problem? What\'s painful about it?',
-    hint: 'This reveals if you\'re a painkiller or vitamin',
+    placeholder: 'The painful workaround they currently use...',
+    hint: 'This reveals if you\'re a painkiller or vitamin.',
+    examples: [
+      'Waiting 2-3 weeks and paying $3,000 for academic second opinions',
+      'Copy-pasting between 4 different tools and praying nothing breaks',
+      'Hiring expensive consultants for one-time projects',
+    ],
   },
   {
     id: 'unfairAdvantage',
     question: 'What\'s your unfair advantage?',
-    placeholder: 'Domain expertise, traction, unique insight, credentials...',
-    hint: 'Why will YOU win? Ex-Google? Built this before? 1000 users already?',
+    placeholder: 'Why you specifically will win...',
+    hint: 'Credentials, traction, unique insight, or domain expertise.',
+    examples: [
+      'Ex-Stripe payments team, built fraud detection serving $10B/year',
+      '500 users on waitlist, 40% weekly active before any marketing',
+      '15 years in healthcare, led second opinions at Grand Rounds',
+    ],
   },
   {
     id: 'businessModel',
@@ -46,8 +66,13 @@ const QUESTIONS = [
     id: 'raise',
     question: 'How much are you raising, and what milestone does it unlock?',
     placeholder: '',
-    hint: 'Format: "$500K to get 1,000 paying customers"',
+    hint: 'Be specific about both the amount and what it proves.',
     type: 'raise',
+    examples: [
+      '$500K to reach 1,000 paying customers and prove unit economics',
+      '$1.5M to hit $100K MRR and expand to 3 new verticals',
+      '$250K to launch MVP and get first 10 enterprise pilots',
+    ],
   },
 ]
 
@@ -162,14 +187,30 @@ export default function Wizard() {
 
           {/* Input */}
           {!currentQuestion.type && (
-            <input
-              type="text"
-              value={answers[currentQuestion.id] || ''}
-              onChange={(e) => updateAnswer(e.target.value)}
-              placeholder={currentQuestion.placeholder}
-              className="w-full bg-slate-800 border border-slate-700 rounded-xl px-5 py-4 text-lg focus:outline-none focus:border-teal-400 transition-colors"
-              autoFocus
-            />
+            <>
+              <input
+                type="text"
+                value={answers[currentQuestion.id] || ''}
+                onChange={(e) => updateAnswer(e.target.value)}
+                placeholder={currentQuestion.placeholder}
+                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-5 py-4 text-lg focus:outline-none focus:border-teal-400 transition-colors"
+                autoFocus
+              />
+              {currentQuestion.examples && (
+                <div className="mt-4 space-y-2">
+                  <p className="text-xs text-slate-500 uppercase tracking-wide">Examples</p>
+                  {currentQuestion.examples.map((ex, i) => (
+                    <button
+                      key={i}
+                      onClick={() => updateAnswer(ex)}
+                      className="block w-full text-left text-sm text-slate-400 hover:text-teal-400 hover:bg-slate-800/50 px-3 py-2 rounded-lg transition-colors"
+                    >
+                      "{ex}"
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
           )}
 
           {currentQuestion.type === 'select' && (
@@ -207,6 +248,28 @@ export default function Wizard() {
                 placeholder="Milestone (e.g., 1,000 paying customers)"
                 className="w-full bg-slate-800 border border-slate-700 rounded-xl px-5 py-4 text-lg focus:outline-none focus:border-teal-400 transition-colors"
               />
+              {currentQuestion.examples && (
+                <div className="mt-2 space-y-2">
+                  <p className="text-xs text-slate-500 uppercase tracking-wide">Examples</p>
+                  {currentQuestion.examples.map((ex, i) => {
+                    const parts = ex.match(/^(\$[\d.]+[KMB]?)\s+to\s+(.+)$/i)
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => {
+                          if (parts) {
+                            setRaiseAmount(parts[1])
+                            setRaiseMilestone(parts[2])
+                          }
+                        }}
+                        className="block w-full text-left text-sm text-slate-400 hover:text-teal-400 hover:bg-slate-800/50 px-3 py-2 rounded-lg transition-colors"
+                      >
+                        "{ex}"
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           )}
 
