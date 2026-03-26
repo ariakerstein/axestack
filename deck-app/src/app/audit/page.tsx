@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 interface CategoryDetails {
@@ -24,8 +25,10 @@ interface SavedDeck {
 }
 
 export default function AuditPage() {
+  const router = useRouter()
   const [deckUrl, setDeckUrl] = useState('')
   const [deckContent, setDeckContent] = useState('')
+  const [auditedContent, setAuditedContent] = useState('')
   const [isAuditing, setIsAuditing] = useState(false)
   const [savedDecks, setSavedDecks] = useState<SavedDeck[]>([])
   const [result, setResult] = useState<{
@@ -90,6 +93,7 @@ export default function AuditPage() {
     setIsAuditing(true)
     setError('')
     setResult(null)
+    setAuditedContent(content)
 
     try {
       const response = await fetch('/api/audit', {
@@ -113,6 +117,21 @@ export default function AuditPage() {
     }
   }
 
+  const openInEditor = () => {
+    if (!auditedContent) return
+    // Save to localStorage and navigate to editor
+    const existingData = localStorage.getItem('generatedDeck')
+    const parsed = existingData ? JSON.parse(existingData) : {}
+    localStorage.setItem('generatedDeck', JSON.stringify({
+      ...parsed,
+      html: auditedContent,
+      score: result?.score,
+      scoreBreakdown: result?.scoreBreakdown,
+      gaps: result?.topFixes,
+    }))
+    router.push('/editor')
+  }
+
   // Side panel state
   const [selectedCategory, setSelectedCategory] = useState<CategoryDetails | null>(null)
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
@@ -128,6 +147,10 @@ export default function AuditPage() {
     setIsAuditing(true)
     setError('')
     setResult(null)
+    // Save content for potential editing later
+    if (deckContent) {
+      setAuditedContent(deckContent)
+    }
 
     try {
       const response = await fetch('/api/audit', {
@@ -444,19 +467,29 @@ export default function AuditPage() {
             )}
 
             {/* Actions */}
-            <div className="flex gap-4">
-              <button
-                onClick={() => setResult(null)}
-                className="flex-1 border border-slate-600 hover:border-slate-500 py-3 rounded-lg transition-colors"
-              >
-                Audit Another Deck
-              </button>
-              <Link
-                href="/create"
-                className="flex-1 bg-teal-500 hover:bg-teal-600 text-white text-center py-3 rounded-lg transition-colors"
-              >
-                Create a New Deck
-              </Link>
+            <div className="flex flex-col gap-3">
+              {auditedContent && (
+                <button
+                  onClick={openInEditor}
+                  className="w-full bg-teal-500 hover:bg-teal-600 text-white py-4 rounded-lg font-semibold text-lg transition-colors"
+                >
+                  Edit This Deck →
+                </button>
+              )}
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setResult(null)}
+                  className="flex-1 border border-slate-600 hover:border-slate-500 py-3 rounded-lg transition-colors"
+                >
+                  Audit Another Deck
+                </button>
+                <Link
+                  href="/create"
+                  className="flex-1 border border-slate-600 hover:border-slate-500 text-center py-3 rounded-lg transition-colors"
+                >
+                  Create New Deck
+                </Link>
+              </div>
             </div>
           </div>
         )}
