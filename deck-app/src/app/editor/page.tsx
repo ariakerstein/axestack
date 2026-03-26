@@ -29,7 +29,7 @@ interface DeckVersion {
 }
 
 type Tab = 'assist' | 'edit' | 'versions' | 'feedback'
-type AssistSection = 'fixes' | 'sources' | 'design'
+type AssistSection = 'fixes' | 'sources'
 
 const LAYOUTS = [
   {
@@ -636,11 +636,96 @@ export default function EditorPage() {
 
           {/* Tab Content */}
           <div className="flex-1 overflow-y-auto">
-            {/* Edit Tab */}
+            {/* Edit Tab - now includes layout picker and score breakdown */}
             {activeTab === 'edit' && (
               <div className="flex flex-col h-full">
-                <div className="flex-1 p-4 space-y-3 overflow-y-auto">
-                  {chatHistory.length === 0 && (
+                <div className="flex-1 p-4 space-y-4 overflow-y-auto">
+                  {/* Slide Layout + Theme */}
+                  <div className="pb-3 border-b border-slate-700">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                        Slide {currentSlide + 1} Layout
+                      </h3>
+                      {/* Theme Toggle */}
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => setPreviewTheme('light')}
+                          className={`px-2 py-1 rounded text-xs transition-colors ${
+                            previewTheme === 'light'
+                              ? 'bg-white text-slate-900'
+                              : 'bg-slate-700 text-slate-400 hover:text-white'
+                          }`}
+                        >
+                          ☀️
+                        </button>
+                        <button
+                          onClick={() => setPreviewTheme('dark')}
+                          className={`px-2 py-1 rounded text-xs transition-colors ${
+                            previewTheme === 'dark'
+                              ? 'bg-slate-900 text-white border border-slate-600'
+                              : 'bg-slate-700 text-slate-400 hover:text-white'
+                          }`}
+                        >
+                          🌙
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      {LAYOUTS.map(layout => (
+                        <button
+                          key={layout.id}
+                          onClick={() => handleChangeLayout(layout.id)}
+                          disabled={isChangingLayout}
+                          className="group flex flex-col items-center gap-1 p-2 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-all disabled:opacity-50"
+                        >
+                          <div className="w-10 h-8 bg-slate-800 rounded border border-slate-600 group-hover:border-teal-400 transition-all text-slate-400 group-hover:text-teal-400 overflow-hidden">
+                            {layout.preview}
+                          </div>
+                          <span className="text-[10px] text-slate-500 group-hover:text-slate-300">
+                            {layout.label}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                    {isChangingLayout && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <div className="w-3 h-3 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
+                        <span className="text-xs text-teal-400">Applying...</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Score + Fixes */}
+                  {score && (score.gaps?.length ?? 0) > 0 && (
+                    <div className="pb-3 border-b border-slate-700">
+                      <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+                        Fixes ({score.gaps.length})
+                      </h3>
+                      <div className="space-y-1.5">
+                        {score.gaps.slice(0, 3).map((gap, i) => (
+                          <button
+                            key={i}
+                            onClick={() => setPrompt(gap)}
+                            className="w-full text-left px-2 py-1.5 bg-slate-700/50 hover:bg-slate-700 rounded text-xs text-slate-300 transition-colors"
+                          >
+                            <span className="text-orange-400 mr-1.5">•</span>
+                            {gap.length > 60 ? gap.slice(0, 60) + '...' : gap}
+                          </button>
+                        ))}
+                        {(score.gaps?.length ?? 0) > 3 && (
+                          <button
+                            onClick={() => { setActiveTab('assist'); setAssistSection('fixes'); }}
+                            className="text-xs text-teal-400 hover:underline"
+                          >
+                            +{(score.gaps?.length ?? 0) - 3} more →
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Chat History */}
+                  {chatHistory.length === 0 ? (
                     <div className="text-slate-500 text-sm">
                       <p className="mb-2">Try prompts like:</p>
                       <ul className="space-y-1 text-slate-400">
@@ -649,18 +734,21 @@ export default function EditorPage() {
                         <li>• "Strengthen the team credentials"</li>
                       </ul>
                     </div>
+                  ) : (
+                    <>
+                      {chatHistory.map((msg, i) => (
+                        <div
+                          key={i}
+                          className={`text-sm ${
+                            msg.role === 'user' ? 'text-slate-300' : msg.content.startsWith('✓') ? 'text-green-400' : 'text-red-400'
+                          }`}
+                        >
+                          {msg.role === 'user' && <span className="text-slate-500">You: </span>}
+                          {msg.content}
+                        </div>
+                      ))}
+                    </>
                   )}
-                  {chatHistory.map((msg, i) => (
-                    <div
-                      key={i}
-                      className={`text-sm ${
-                        msg.role === 'user' ? 'text-slate-300' : msg.content.startsWith('✓') ? 'text-green-400' : 'text-red-400'
-                      }`}
-                    >
-                      {msg.role === 'user' && <span className="text-slate-500">You: </span>}
-                      {msg.content}
-                    </div>
-                  ))}
                   {isLoading && (
                     <div className="text-slate-400 text-sm flex items-center gap-2">
                       <span className="animate-spin">⏳</span> Updating deck...
@@ -690,12 +778,12 @@ export default function EditorPage() {
               </div>
             )}
 
-            {/* AI Assist Tab */}
+            {/* AI Assist Tab - Full Fixes + Sources */}
             {activeTab === 'assist' && (
               <div className="flex flex-col h-full">
                 {/* Section Tabs */}
                 <div className="flex border-b border-slate-700 bg-slate-800/50">
-                  {(['fixes', 'sources', 'design'] as AssistSection[]).map(section => (
+                  {(['fixes', 'sources'] as AssistSection[]).map(section => (
                     <button
                       key={section}
                       onClick={() => setAssistSection(section)}
@@ -825,63 +913,6 @@ export default function EditorPage() {
                     </div>
                   )}
 
-                  {/* Design Section */}
-                  {assistSection === 'design' && (
-                    <div>
-                      <h3 className="text-sm font-semibold text-slate-300 mb-3">
-                        Slide {currentSlide + 1} Layout
-                      </h3>
-                      <div className="grid grid-cols-3 gap-3">
-                        {LAYOUTS.map(layout => (
-                          <button
-                            key={layout.id}
-                            onClick={() => handleChangeLayout(layout.id)}
-                            disabled={isChangingLayout}
-                            className="group flex flex-col items-center gap-2 p-3 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-all disabled:opacity-50"
-                          >
-                            <div className="w-full h-12 bg-slate-800 rounded border border-slate-600 group-hover:border-teal-400 transition-all text-slate-400 group-hover:text-teal-400 overflow-hidden">
-                              {layout.preview}
-                            </div>
-                            <span className="text-xs text-slate-400 group-hover:text-slate-300">
-                              {layout.label}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                      {isChangingLayout && (
-                        <div className="flex items-center justify-center gap-2 mt-4">
-                          <div className="w-3 h-3 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
-                          <span className="text-xs text-teal-400">Applying layout...</span>
-                        </div>
-                      )}
-
-                      <div className="mt-6 pt-4 border-t border-slate-700">
-                        <h3 className="text-sm font-semibold text-slate-300 mb-3">Theme</h3>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => setPreviewTheme('light')}
-                            className={`flex-1 py-2 rounded-lg text-sm transition-colors ${
-                              previewTheme === 'light'
-                                ? 'bg-white text-slate-900'
-                                : 'bg-slate-700 text-slate-400 hover:text-white'
-                            }`}
-                          >
-                            ☀️ Light
-                          </button>
-                          <button
-                            onClick={() => setPreviewTheme('dark')}
-                            className={`flex-1 py-2 rounded-lg text-sm transition-colors ${
-                              previewTheme === 'dark'
-                                ? 'bg-slate-900 text-white border border-slate-600'
-                                : 'bg-slate-700 text-slate-400 hover:text-white'
-                            }`}
-                          >
-                            🌙 Dark
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             )}
