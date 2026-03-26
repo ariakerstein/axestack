@@ -18,15 +18,15 @@ export default function AboutPage() {
           />
           <div>
             <h1 className="text-3xl font-bold">Ari Akerstein</h1>
-            <p className="text-slate-400">Serial founder • Ex-Facebook PM</p>
+            <p className="text-slate-400">Founder • Ex-Facebook PM • Cancer survivor</p>
           </div>
         </div>
 
         {/* Bio */}
         <div className="space-y-6 text-slate-300">
           <p className="text-lg">
-            I've spent 15 years building products that reach millions of people — first at Facebook,
-            then as a founder multiple times over.
+            Product leader who's built things that reach billions of people. Now focused on
+            applying technology to healthcare — a space I care about personally.
           </p>
 
           <h2 className="text-xl font-semibold text-white pt-4">Background</h2>
@@ -35,22 +35,15 @@ export default function AboutPage() {
             <div className="flex gap-4">
               <div className="w-2 h-2 bg-teal-400 rounded-full mt-2 flex-shrink-0"></div>
               <div>
-                <p className="font-semibold text-white">Facebook (Meta)</p>
-                <p className="text-sm text-slate-400">Product Manager, News Feed. Shipped features to 2B+ users.</p>
+                <p className="font-semibold text-white">Facebook, Walmart Labs, J&J</p>
+                <p className="text-sm text-slate-400">Product leadership across consumer tech at scale.</p>
               </div>
             </div>
             <div className="flex gap-4">
               <div className="w-2 h-2 bg-teal-400 rounded-full mt-2 flex-shrink-0"></div>
               <div>
-                <p className="font-semibold text-white">Grand Rounds (acquired)</p>
-                <p className="text-sm text-slate-400">Led the largest second opinion product in the US during the pandemic.</p>
-              </div>
-            </div>
-            <div className="flex gap-4">
-              <div className="w-2 h-2 bg-teal-400 rounded-full mt-2 flex-shrink-0"></div>
-              <div>
-                <p className="font-semibold text-white">Multiple startups</p>
-                <p className="text-sm text-slate-400">Founded and built companies in healthcare, consumer, and developer tools.</p>
+                <p className="font-semibold text-white">Grand Rounds / Included Health</p>
+                <p className="text-sm text-slate-400">Led virtual specialty care and second opinions during the pandemic.</p>
               </div>
             </div>
             <div className="flex gap-4">
@@ -61,75 +54,51 @@ export default function AboutPage() {
                     Cancer Hacker Lab ↗
                   </a>
                 </p>
-                <p className="text-sm text-slate-400">Founder in healthcare accelerator focused on cancer innovation.</p>
+                <p className="text-sm text-slate-400">Running a healthtech accelerator focused on cancer innovation.</p>
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <div className="w-2 h-2 bg-teal-400 rounded-full mt-2 flex-shrink-0"></div>
+              <div>
+                <p className="font-semibold text-white">Inventor: CoreWheels</p>
+                <p className="text-sm text-slate-400">Created a fitness product (sold on Amazon) inspired by gymnastic strength training.</p>
               </div>
             </div>
           </div>
 
-          <h2 className="text-xl font-semibold text-white pt-4">Why I built this</h2>
-
-          <p>
-            Fundraising and making multiple pitch deck updates is a real pain. I built this to
-            automate the process for myself after creating 50+ decks over my career — for my own
-            startups, for friends raising, and while advising early-stage founders.
+          <p className="text-sm text-slate-500 italic">
+            Battled cancer in 2018 as a new dad. That experience shaped my focus on healthcare technology.
           </p>
 
-          <p>
-            The same patterns kept emerging:
-          </p>
+          <h2 className="text-xl font-semibold text-white pt-4">Things I believe</h2>
 
-          <ul className="list-disc list-inside space-y-2 text-slate-400">
-            <li>Founders burying the lede with feature lists instead of problems</li>
-            <li>Vague answers like "enterprises" instead of specific customers</li>
-            <li>"We have no competitors" (instant credibility killer)</li>
-            <li>Decks that take weeks to make, then get torn apart in the first meeting</li>
-          </ul>
-
-          <p>
-            I'm sharing this tool to hopefully help reduce the pain for others. It's been tested
-            with founders in my incubator, <a href="https://www.cancerhackerlab.com/" target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:underline">Cancer Hacker Lab</a>.
-          </p>
-
-          <p>
-            The 6 questions aren't random — they're the forcing functions that separate
-            fundable pitches from forgettable ones.
-          </p>
-
-          <h2 className="text-xl font-semibold text-white pt-4">The philosophy</h2>
-
-          <div className="bg-slate-800 p-6 rounded-xl space-y-3">
-            <p><span className="text-teal-400 font-semibold">Premise before polish.</span> A beautiful deck with a weak premise loses. An ugly deck with a killer insight wins.</p>
-            <p><span className="text-teal-400 font-semibold">Specificity over generality.</span> "Mike, a caregiver in Ohio" beats "healthcare customers."</p>
-            <p><span className="text-teal-400 font-semibold">Pushback is caring.</span> If your answer is vague, the tool will tell you. Better to hear it here than from an investor.</p>
+          <div className="bg-slate-800 p-6 rounded-xl space-y-4">
+            <p><span className="text-teal-400 font-semibold">Speed matters.</span> Artificial deadlines cut extraneous nonsense. Bumping against reality is the best corrective to self-delusion. Do it often.</p>
+            <p><span className="text-teal-400 font-semibold">Earn your dopamine.</span> Push for breakthroughs and hard work. The things that matter most come from immersion.</p>
+            <p><span className="text-teal-400 font-semibold">Rebel against bloat.</span> You can tell when software was built by committee. Empower small teams to do great work.</p>
+            <p><span className="text-teal-400 font-semibold">Ripple and learn.</span> Modify, get signal from the world, ripple again with new knowledge. Momentum compounds.</p>
           </div>
+
+          <h2 className="text-xl font-semibold text-white pt-4">Why I built Prompt Deck</h2>
+
+          <p>
+            After creating 50+ pitch decks over my career, the same patterns kept emerging:
+            founders burying the lede, vague answers, claiming "no competitors."
+            Decks that take weeks to make get torn apart in meeting one.
+          </p>
+
+          <p>
+            The 6 questions aren't random — they're forcing functions that separate fundable pitches
+            from forgettable ones. If your answer is vague, the tool pushes back. Better here than from an investor.
+          </p>
 
           <h2 className="text-xl font-semibold text-white pt-4">Connect</h2>
 
           <div className="flex gap-4">
-            <a
-              href="https://linkedin.com/in/ariakerstein"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-teal-400 hover:underline"
-            >
-              LinkedIn
-            </a>
-            <a
-              href="https://x.com/aakerstein"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-teal-400 hover:underline"
-            >
-              X
-            </a>
-            <a
-              href="https://github.com/ariakerstein"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-teal-400 hover:underline"
-            >
-              GitHub
-            </a>
+            <a href="https://linkedin.com/in/ariakerstein" target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:underline">LinkedIn</a>
+            <a href="https://x.com/aakerstein" target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:underline">X</a>
+            <a href="https://github.com/ariakerstein" target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:underline">GitHub</a>
+            <a href="https://www.seeingpatients.com/" target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:underline">Blog</a>
           </div>
         </div>
 
