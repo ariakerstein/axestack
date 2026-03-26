@@ -11,9 +11,9 @@ const QUESTIONS = [
     placeholder: 'We help [X] do [Y] by [Z]',
     hint: 'Be specific about who, what, and how.',
     examples: [
-      'We help cancer patients get second opinions in 24 hours for $99',
+      'We let anyone rent out their spare room to travelers worldwide',
       'We help SMBs automate invoicing and get paid 2x faster',
-      'We help remote teams run async standups that actually get read',
+      'We connect people with their college friends online',
     ],
   },
   {
@@ -22,8 +22,8 @@ const QUESTIONS = [
     placeholder: 'A specific person with a specific problem...',
     hint: 'Name a real person, not a category like "enterprises" or "millennials".',
     examples: [
-      'Mike, a son coordinating his mom\'s cancer care from 500 miles away',
-      'Sarah, an ops manager drowning in spreadsheets tracking 50 vendors',
+      'Sarah, a host in SF who needs $500/month to cover rent',
+      'Marcus, an ops manager drowning in spreadsheets tracking 50 vendors',
       'Dev teams shipping daily who can\'t wait for 30-min sync meetings',
     ],
   },
@@ -33,9 +33,9 @@ const QUESTIONS = [
     placeholder: 'The painful workaround they currently use...',
     hint: 'This reveals if you\'re a painkiller or vitamin.',
     examples: [
-      'Waiting 2-3 weeks and paying $3,000 for academic second opinions',
+      'Posting on Craigslist and hoping they don\'t get scammed',
       'Copy-pasting between 4 different tools and praying nothing breaks',
-      'Hiring expensive consultants for one-time projects',
+      'Sending group emails that nobody reads or replies to',
     ],
   },
   {
@@ -45,8 +45,8 @@ const QUESTIONS = [
     hint: 'Credentials, traction, unique insight, or domain expertise.',
     examples: [
       'Ex-Stripe payments team, built fraud detection serving $10B/year',
-      '500 users on waitlist, 40% weekly active before any marketing',
-      '15 years in healthcare, led second opinions at Grand Rounds',
+      '10K users on waitlist, 40% weekly active before any marketing',
+      'Former Airbnb growth lead, scaled from 1M to 100M users',
     ],
   },
   {
