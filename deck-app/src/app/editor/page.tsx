@@ -8,6 +8,28 @@ interface ChatMessage {
   content: string
 }
 
+interface InvestorFeedback {
+  id: string
+  investorName: string
+  feedback: string
+  believabilityScore: number
+  investorType: 'angel' | 'seed_vc' | 'series_a' | 'strategic'
+  domainExpertise: 'none' | 'adjacent' | 'deep'
+  checkSizeFit: 'too_small' | 'sweet_spot' | 'too_large'
+  meetingStage: 'cold' | 'warm_intro' | 'partner' | 'ic'
+  timestamp: number
+}
+
+interface DeckVersion {
+  id: string
+  html: string
+  timestamp: number
+  name: string
+  feedback: InvestorFeedback[]
+}
+
+type Tab = 'edit' | 'versions' | 'feedback'
+
 export default function EditorPage() {
   const [html, setHtml] = useState<string>('')
   const [currentSlide, setCurrentSlide] = useState(0)
@@ -15,28 +37,52 @@ export default function EditorPage() {
   const [prompt, setPrompt] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [slides, setSlides] = useState<string[]>([])
+  const [activeTab, setActiveTab] = useState<Tab>('edit')
+  const [versions, setVersions] = useState<DeckVersion[]>([])
+  const [currentVersionId, setCurrentVersionId] = useState<string | null>(null)
+  const [newVersionName, setNewVersionName] = useState('')
   const chatEndRef = useRef<HTMLDivElement>(null)
 
-  // Load initial deck from localStorage
+  // Feedback form state
+  const [feedbackForm, setFeedbackForm] = useState({
+    investorName: '',
+    feedback: '',
+    believabilityScore: 3,
+    investorType: 'seed_vc' as const,
+    domainExpertise: 'adjacent' as const,
+    checkSizeFit: 'sweet_spot' as const,
+    meetingStage: 'warm_intro' as const,
+  })
+
+  // Load initial deck and versions from localStorage
   useEffect(() => {
     const stored = localStorage.getItem('generatedDeck')
     if (stored) {
       const data = JSON.parse(stored)
       setHtml(data.html)
     }
+    const storedVersions = localStorage.getItem('deckVersions')
+    if (storedVersions) {
+      setVersions(JSON.parse(storedVersions))
+    }
   }, [])
+
+  // Save versions to localStorage
+  useEffect(() => {
+    if (versions.length > 0) {
+      localStorage.setItem('deckVersions', JSON.stringify(versions))
+    }
+  }, [versions])
 
   // Parse slides from HTML
   useEffect(() => {
     if (!html) return
-    // Look for sections with slide class or section elements
     const parser = new DOMParser()
     const doc = parser.parseFromString(html, 'text/html')
     const sections = doc.querySelectorAll('section')
     if (sections.length > 0) {
       setSlides(Array.from(sections).map(s => s.outerHTML))
     } else {
-      // Fallback: treat whole doc as one slide
       setSlides([html])
     }
   }, [html])
@@ -62,17 +108,13 @@ export default function EditorPage() {
         body: JSON.stringify({ html, prompt: userMessage }),
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to edit deck')
-      }
+      if (!response.ok) throw new Error('Failed to edit deck')
 
       const data = await response.json()
       setHtml(data.html)
       setChatHistory(prev => [...prev, { role: 'assistant', content: '✓ Updated deck' }])
-
-      // Save to localStorage
       localStorage.setItem('generatedDeck', JSON.stringify({ html: data.html }))
-    } catch (error) {
+    } catch {
       setChatHistory(prev => [...prev, { role: 'assistant', content: '✗ Error updating deck. Try again.' }])
     } finally {
       setIsLoading(false)
@@ -89,7 +131,70 @@ export default function EditorPage() {
     URL.revokeObjectURL(url)
   }
 
+  const saveVersion = () => {
+    const name = newVersionName.trim() || `Version ${versions.length + 1}`
+    const newVersion: DeckVersion = {
+      id: Date.now().toString(),
+      html,
+      timestamp: Date.now(),
+      name,
+      feedback: [],
+    }
+    setVersions(prev => [newVersion, ...prev])
+    setCurrentVersionId(newVersion.id)
+    setNewVersionName('')
+  }
+
+  const restoreVersion = (version: DeckVersion) => {
+    setHtml(version.html)
+    setCurrentVersionId(version.id)
+    localStorage.setItem('generatedDeck', JSON.stringify({ html: version.html }))
+    setActiveTab('edit')
+  }
+
+  const addFeedback = () => {
+    if (!currentVersionId || !feedbackForm.investorName || !feedbackForm.feedback) return
+
+    const newFeedback: InvestorFeedback = {
+      id: Date.now().toString(),
+      ...feedbackForm,
+      timestamp: Date.now(),
+    }
+
+    setVersions(prev => prev.map(v =>
+      v.id === currentVersionId
+        ? { ...v, feedback: [...v.feedback, newFeedback] }
+        : v
+    ))
+
+    setFeedbackForm({
+      investorName: '',
+      feedback: '',
+      believabilityScore: 3,
+      investorType: 'seed_vc',
+      domainExpertise: 'adjacent',
+      checkSizeFit: 'sweet_spot',
+      meetingStage: 'warm_intro',
+    })
+  }
+
+  const currentVersion = versions.find(v => v.id === currentVersionId)
   const totalSlides = slides.length || 10
+
+  // Calculate weighted feedback score
+  const getWeightedScore = (feedback: InvestorFeedback[]) => {
+    if (feedback.length === 0) return null
+    const weights = feedback.map(f => {
+      let weight = f.believabilityScore
+      if (f.domainExpertise === 'deep') weight *= 1.5
+      if (f.domainExpertise === 'adjacent') weight *= 1.2
+      if (f.meetingStage === 'ic') weight *= 1.5
+      if (f.meetingStage === 'partner') weight *= 1.3
+      return weight
+    })
+    const totalWeight = weights.reduce((a, b) => a + b, 0)
+    return (totalWeight / feedback.length).toFixed(1)
+  }
 
   if (!html) {
     return (
@@ -103,7 +208,6 @@ export default function EditorPage() {
     )
   }
 
-  // Build single-slide HTML for preview
   const slideHtml = slides[currentSlide] ? `
     <!DOCTYPE html>
     <html>
@@ -125,6 +229,9 @@ export default function EditorPage() {
         <div className="flex items-center gap-4">
           <Link href="/" className="text-teal-400 hover:underline text-sm">← Home</Link>
           <h1 className="text-lg font-semibold">Prompt Deck</h1>
+          {currentVersion && (
+            <span className="text-sm text-slate-400">· {currentVersion.name}</span>
+          )}
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -133,10 +240,7 @@ export default function EditorPage() {
           >
             Download HTML
           </button>
-          <Link
-            href="/create"
-            className="text-slate-400 hover:text-white text-sm"
-          >
+          <Link href="/create" className="text-slate-400 hover:text-white text-sm">
             Start Over
           </Link>
         </div>
@@ -146,13 +250,8 @@ export default function EditorPage() {
       <div className="flex-1 flex flex-col md:flex-row">
         {/* Left: Slide Preview */}
         <div className="flex-1 md:w-3/5 flex flex-col bg-slate-900">
-          {/* Slide Display */}
           <div className="flex-1 relative">
-            <iframe
-              srcDoc={slideHtml}
-              className="w-full h-full border-0"
-              title="Slide Preview"
-            />
+            <iframe srcDoc={slideHtml} className="w-full h-full border-0" title="Slide Preview" />
           </div>
 
           {/* Slide Navigation */}
@@ -165,11 +264,7 @@ export default function EditorPage() {
               >
                 ◀ Prev
               </button>
-
-              <span className="text-slate-400 text-sm">
-                {currentSlide + 1} / {totalSlides}
-              </span>
-
+              <span className="text-slate-400 text-sm">{currentSlide + 1} / {totalSlides}</span>
               <button
                 onClick={() => setCurrentSlide(Math.min(totalSlides - 1, currentSlide + 1))}
                 disabled={currentSlide === totalSlides - 1}
@@ -178,8 +273,6 @@ export default function EditorPage() {
                 Next ▶
               </button>
             </div>
-
-            {/* Dots */}
             <div className="flex justify-center gap-2 mt-3">
               {Array.from({ length: totalSlides }).map((_, i) => (
                 <button
@@ -194,70 +287,302 @@ export default function EditorPage() {
           </div>
         </div>
 
-        {/* Right: Chat Panel */}
+        {/* Right: Sidebar with Tabs */}
         <div className="md:w-2/5 bg-slate-800 border-l border-slate-700 flex flex-col">
-          {/* Chat Header */}
-          <div className="px-6 py-4 border-b border-slate-700">
-            <h2 className="font-semibold">Edit Your Deck</h2>
-            <p className="text-sm text-slate-400">Type what you want to change</p>
-          </div>
-
-          {/* Chat History */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {chatHistory.length === 0 && (
-              <div className="text-slate-500 text-sm">
-                <p className="mb-2">Try prompts like:</p>
-                <ul className="space-y-1 text-slate-400">
-                  <li>• "Make the problem slide more urgent"</li>
-                  <li>• "Add competitor pricing comparison"</li>
-                  <li>• "Strengthen the team credentials"</li>
-                  <li>• "Make the ask more specific"</li>
-                </ul>
-              </div>
-            )}
-            {chatHistory.map((msg, i) => (
-              <div
-                key={i}
-                className={`text-sm ${
-                  msg.role === 'user'
-                    ? 'text-slate-300'
-                    : msg.content.startsWith('✓')
-                    ? 'text-green-400'
-                    : 'text-red-400'
+          {/* Tabs */}
+          <div className="flex border-b border-slate-700">
+            {(['edit', 'versions', 'feedback'] as Tab[]).map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`flex-1 px-4 py-3 text-sm font-medium capitalize ${
+                  activeTab === tab
+                    ? 'text-teal-400 border-b-2 border-teal-400'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
-                {msg.role === 'user' && <span className="text-slate-500">You: </span>}
-                {msg.content}
-              </div>
+                {tab}
+              </button>
             ))}
-            {isLoading && (
-              <div className="text-slate-400 text-sm flex items-center gap-2">
-                <span className="animate-spin">⏳</span> Updating deck...
-              </div>
-            )}
-            <div ref={chatEndRef} />
           </div>
 
-          {/* Chat Input */}
-          <form onSubmit={handleSubmit} className="p-4 border-t border-slate-700">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="What would you like to change?"
-                disabled={isLoading}
-                className="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-teal-400 disabled:opacity-50"
-              />
-              <button
-                type="submit"
-                disabled={!prompt.trim() || isLoading}
-                className="bg-teal-500 hover:bg-teal-600 disabled:bg-slate-600 disabled:cursor-not-allowed text-white px-4 py-3 rounded-lg text-sm font-medium"
-              >
-                →
-              </button>
-            </div>
-          </form>
+          {/* Tab Content */}
+          <div className="flex-1 overflow-y-auto">
+            {/* Edit Tab */}
+            {activeTab === 'edit' && (
+              <div className="flex flex-col h-full">
+                <div className="flex-1 p-4 space-y-3 overflow-y-auto">
+                  {chatHistory.length === 0 && (
+                    <div className="text-slate-500 text-sm">
+                      <p className="mb-2">Try prompts like:</p>
+                      <ul className="space-y-1 text-slate-400">
+                        <li>• "Make the problem slide more urgent"</li>
+                        <li>• "Add competitor pricing comparison"</li>
+                        <li>• "Strengthen the team credentials"</li>
+                      </ul>
+                    </div>
+                  )}
+                  {chatHistory.map((msg, i) => (
+                    <div
+                      key={i}
+                      className={`text-sm ${
+                        msg.role === 'user' ? 'text-slate-300' : msg.content.startsWith('✓') ? 'text-green-400' : 'text-red-400'
+                      }`}
+                    >
+                      {msg.role === 'user' && <span className="text-slate-500">You: </span>}
+                      {msg.content}
+                    </div>
+                  ))}
+                  {isLoading && (
+                    <div className="text-slate-400 text-sm flex items-center gap-2">
+                      <span className="animate-spin">⏳</span> Updating deck...
+                    </div>
+                  )}
+                  <div ref={chatEndRef} />
+                </div>
+                <form onSubmit={handleSubmit} className="p-4 border-t border-slate-700">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={prompt}
+                      onChange={(e) => setPrompt(e.target.value)}
+                      placeholder="What would you like to change?"
+                      disabled={isLoading}
+                      className="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-teal-400"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!prompt.trim() || isLoading}
+                      className="bg-teal-500 hover:bg-teal-600 disabled:bg-slate-600 text-white px-4 py-3 rounded-lg text-sm font-medium"
+                    >
+                      →
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* Versions Tab */}
+            {activeTab === 'versions' && (
+              <div className="p-4">
+                {/* Save New Version */}
+                <div className="mb-6">
+                  <h3 className="text-sm font-semibold text-slate-300 mb-2">Save Current Version</h3>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newVersionName}
+                      onChange={(e) => setNewVersionName(e.target.value)}
+                      placeholder="Version name (optional)"
+                      className="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
+                    />
+                    <button
+                      onClick={saveVersion}
+                      className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+
+                {/* Version History */}
+                <h3 className="text-sm font-semibold text-slate-300 mb-2">Version History</h3>
+                {versions.length === 0 ? (
+                  <p className="text-slate-500 text-sm">No versions saved yet</p>
+                ) : (
+                  <div className="space-y-2">
+                    {versions.map(v => (
+                      <div
+                        key={v.id}
+                        className={`p-3 rounded-lg border ${
+                          v.id === currentVersionId
+                            ? 'border-teal-400 bg-teal-400/10'
+                            : 'border-slate-600 bg-slate-700/50'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start mb-1">
+                          <span className="font-medium text-sm">{v.name}</span>
+                          <span className="text-xs text-slate-400">
+                            {new Date(v.timestamp).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-slate-400">
+                          <span>{v.feedback.length} feedback</span>
+                          {v.feedback.length > 0 && (
+                            <span>· Weighted: {getWeightedScore(v.feedback)}</span>
+                          )}
+                        </div>
+                        {v.id !== currentVersionId && (
+                          <button
+                            onClick={() => restoreVersion(v)}
+                            className="mt-2 text-xs text-teal-400 hover:underline"
+                          >
+                            Restore this version
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Deck Strength Trend */}
+                {versions.length > 1 && (
+                  <div className="mt-6 pt-4 border-t border-slate-700">
+                    <h3 className="text-sm font-semibold text-slate-300 mb-2">Deck Strength Trend</h3>
+                    <div className="flex items-end gap-1 h-16">
+                      {versions.slice().reverse().map((v, i) => {
+                        const score = getWeightedScore(v.feedback)
+                        const height = score ? (parseFloat(score) / 5) * 100 : 10
+                        return (
+                          <div
+                            key={v.id}
+                            className="flex-1 bg-teal-500/50 rounded-t"
+                            style={{ height: `${height}%` }}
+                            title={`${v.name}: ${score || 'No feedback'}`}
+                          />
+                        )
+                      })}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">Weighted feedback score over time</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Feedback Tab */}
+            {activeTab === 'feedback' && (
+              <div className="p-4">
+                {!currentVersionId ? (
+                  <div className="text-center py-8">
+                    <p className="text-slate-400 text-sm mb-4">Save a version first to add feedback</p>
+                    <button
+                      onClick={() => setActiveTab('versions')}
+                      className="text-teal-400 text-sm hover:underline"
+                    >
+                      Go to Versions →
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    {/* Add Feedback Form */}
+                    <h3 className="text-sm font-semibold text-slate-300 mb-3">Add Investor Feedback</h3>
+                    <div className="space-y-3 mb-6">
+                      <input
+                        type="text"
+                        value={feedbackForm.investorName}
+                        onChange={(e) => setFeedbackForm(f => ({ ...f, investorName: e.target.value }))}
+                        placeholder="Investor name"
+                        className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
+                      />
+                      <textarea
+                        value={feedbackForm.feedback}
+                        onChange={(e) => setFeedbackForm(f => ({ ...f, feedback: e.target.value }))}
+                        placeholder="What did they say?"
+                        rows={3}
+                        className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 resize-none"
+                      />
+
+                      {/* Believability Score */}
+                      <div>
+                        <label className="text-xs text-slate-400 block mb-1">
+                          Believability Score: {feedbackForm.believabilityScore}/5
+                        </label>
+                        <input
+                          type="range"
+                          min="1"
+                          max="5"
+                          value={feedbackForm.believabilityScore}
+                          onChange={(e) => setFeedbackForm(f => ({ ...f, believabilityScore: parseInt(e.target.value) }))}
+                          className="w-full"
+                        />
+                      </div>
+
+                      {/* Structured Tags */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <select
+                          value={feedbackForm.investorType}
+                          onChange={(e) => setFeedbackForm(f => ({ ...f, investorType: e.target.value as typeof feedbackForm.investorType }))}
+                          className="bg-slate-900 border border-slate-600 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-teal-400"
+                        >
+                          <option value="angel">Angel</option>
+                          <option value="seed_vc">Seed VC</option>
+                          <option value="series_a">Series A+</option>
+                          <option value="strategic">Strategic</option>
+                        </select>
+                        <select
+                          value={feedbackForm.domainExpertise}
+                          onChange={(e) => setFeedbackForm(f => ({ ...f, domainExpertise: e.target.value as typeof feedbackForm.domainExpertise }))}
+                          className="bg-slate-900 border border-slate-600 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-teal-400"
+                        >
+                          <option value="none">No domain exp</option>
+                          <option value="adjacent">Adjacent</option>
+                          <option value="deep">Deep expertise</option>
+                        </select>
+                        <select
+                          value={feedbackForm.checkSizeFit}
+                          onChange={(e) => setFeedbackForm(f => ({ ...f, checkSizeFit: e.target.value as typeof feedbackForm.checkSizeFit }))}
+                          className="bg-slate-900 border border-slate-600 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-teal-400"
+                        >
+                          <option value="too_small">Check too small</option>
+                          <option value="sweet_spot">Sweet spot</option>
+                          <option value="too_large">Check too large</option>
+                        </select>
+                        <select
+                          value={feedbackForm.meetingStage}
+                          onChange={(e) => setFeedbackForm(f => ({ ...f, meetingStage: e.target.value as typeof feedbackForm.meetingStage }))}
+                          className="bg-slate-900 border border-slate-600 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-teal-400"
+                        >
+                          <option value="cold">Cold outreach</option>
+                          <option value="warm_intro">Warm intro</option>
+                          <option value="partner">Partner meeting</option>
+                          <option value="ic">IC / Decision</option>
+                        </select>
+                      </div>
+
+                      <button
+                        onClick={addFeedback}
+                        disabled={!feedbackForm.investorName || !feedbackForm.feedback}
+                        className="w-full bg-teal-500 hover:bg-teal-600 disabled:bg-slate-600 text-white py-2 rounded-lg text-sm font-medium"
+                      >
+                        Add Feedback
+                      </button>
+                    </div>
+
+                    {/* Existing Feedback */}
+                    {currentVersion && currentVersion.feedback.length > 0 && (
+                      <>
+                        <h3 className="text-sm font-semibold text-slate-300 mb-2">
+                          Feedback for {currentVersion.name}
+                        </h3>
+                        <div className="space-y-3">
+                          {currentVersion.feedback.map(f => (
+                            <div key={f.id} className="p-3 bg-slate-700/50 rounded-lg">
+                              <div className="flex justify-between items-start mb-1">
+                                <span className="font-medium text-sm">{f.investorName}</span>
+                                <span className="text-xs text-teal-400">{f.believabilityScore}/5</span>
+                              </div>
+                              <p className="text-sm text-slate-300 mb-2">{f.feedback}</p>
+                              <div className="flex flex-wrap gap-1">
+                                <span className="text-xs bg-slate-600 px-2 py-0.5 rounded">
+                                  {f.investorType.replace('_', ' ')}
+                                </span>
+                                <span className="text-xs bg-slate-600 px-2 py-0.5 rounded">
+                                  {f.domainExpertise} exp
+                                </span>
+                                <span className="text-xs bg-slate-600 px-2 py-0.5 rounded">
+                                  {f.meetingStage.replace('_', ' ')}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
