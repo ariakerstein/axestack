@@ -83,22 +83,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signInWithEmail = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    return { error: error?.message || null }
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      if (error) {
+        console.error('Sign in error:', error)
+        return { error: error.message }
+      }
+      if (!data.user) {
+        return { error: 'Sign in failed - no user returned' }
+      }
+      return { error: null }
+    } catch (e) {
+      console.error('Sign in exception:', e)
+      return { error: 'Sign in failed - please try again' }
+    }
   }
 
   const signUpWithEmail = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/editor`,
-      },
-    })
-    return { error: error?.message || null }
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/editor`,
+        },
+      })
+      if (error) {
+        console.error('Sign up error:', error)
+        return { error: error.message }
+      }
+      // If identities array is empty, user already exists
+      if (data.user && data.user.identities?.length === 0) {
+        return { error: 'An account with this email already exists. Please sign in.' }
+      }
+      return { error: null }
+    } catch (e) {
+      console.error('Sign up exception:', e)
+      return { error: 'Sign up failed - please try again' }
+    }
   }
 
   const signOut = async () => {
