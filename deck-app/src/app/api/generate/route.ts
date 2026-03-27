@@ -136,7 +136,6 @@ If content doesn't fit these limits, simplify — never cram.
 <section class="slide slide-dark">
   <div class="slide-header">
     <span class="text-sm text-[var(--deck-muted)] uppercase tracking-widest">{Section}</span>
-    <span class="text-sm text-[var(--deck-muted)]">{Company}</span>
   </div>
   <div class="max-w-5xl w-full">
     <h2 class="text-5xl font-bold text-[var(--deck-text)] mb-10 text-center">{Headline}</h2>
@@ -269,10 +268,6 @@ Use this exact structure:
       position: absolute;
       top: 2rem;
       left: 2rem;
-      right: 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
     }
     .slide-number {
       position: absolute;
@@ -343,7 +338,7 @@ Company Name: ${answers.companyName}
 Theme: ${selectedTheme.name} (${selectedTheme.description})
 
 Generate the complete HTML deck now. Remember:
-- Include "${answers.companyName}" in the slide-header of every slide (except cover)
+- Include section label (PROBLEM, SOLUTION, etc.) in slide-header top left
 - Include slide numbers on every slide
 - Alternate dark/light slides for visual rhythm
 - Use the exact CSS variables provided
