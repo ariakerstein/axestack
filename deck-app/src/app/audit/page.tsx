@@ -758,6 +758,150 @@ export default function AuditPage() {
                 </div>
               </div>
             )}
+              </>
+            )}
+
+            {/* Sources Tab */}
+            {activeTab === 'sources' && (
+              <div>
+                <h2 className="text-xl font-semibold mb-4">Source Audit</h2>
+                <p className="text-slate-400 mb-6">Claims that need citations for credibility.</p>
+
+                {isLoadingSources ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-teal-400"></div>
+                    <span className="ml-3 text-slate-400">Analyzing sources...</span>
+                  </div>
+                ) : sourceIssues.length === 0 ? (
+                  <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-6 text-center">
+                    <p className="text-green-400 font-medium">No unsourced claims found!</p>
+                    <p className="text-slate-400 text-sm mt-1">Your deck appears to have proper citations.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {sourceIssues.map((issue, i) => (
+                      <div key={i} className="bg-slate-800 rounded-xl p-4 border-l-4 border-orange-500">
+                        <div className="flex items-start gap-3">
+                          <span className="bg-slate-700 text-slate-300 text-xs px-2 py-1 rounded">
+                            Slide {issue.slide}
+                          </span>
+                          <div className="flex-1">
+                            <p className="text-white font-medium mb-2">&ldquo;{issue.claim}&rdquo;</p>
+                            <p className="text-slate-400 text-sm">
+                              <span className="text-teal-400">Suggested source:</span> {issue.suggestion}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Objections Tab */}
+            {activeTab === 'objections' && (
+              <div>
+                <h2 className="text-xl font-semibold mb-4">Investor Q&A Prep</h2>
+                <p className="text-slate-400 mb-6">Likely objections and how to handle them.</p>
+
+                {isLoadingObjections ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-teal-400"></div>
+                    <span className="ml-3 text-slate-400">Generating objections prep...</span>
+                  </div>
+                ) : !objectionsData ? (
+                  <div className="text-center py-12 text-slate-400">
+                    Failed to load objections. Try refreshing.
+                  </div>
+                ) : (
+                  <div className="space-y-8">
+                    {/* Why Now */}
+                    {objectionsData.whyNow && (
+                      <div className="bg-teal-500/10 border border-teal-500/30 rounded-xl p-6">
+                        <h3 className="text-teal-400 font-semibold mb-2">Your &ldquo;Why Now?&rdquo; Answer</h3>
+                        <p className="text-slate-300">{objectionsData.whyNow}</p>
+                      </div>
+                    )}
+
+                    {/* Tier 1 */}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3 text-red-400">Tier 1: Expect Every Pitch</h3>
+                      <div className="space-y-3">
+                        {objectionsData.tier1?.map((obj, i) => (
+                          <div key={i} className="bg-slate-800 rounded-xl p-4">
+                            <p className="font-medium text-white mb-2">&ldquo;{obj.objection}&rdquo;</p>
+                            <p className="text-xs text-slate-500 mb-2">Why they ask: {obj.whyTheyAsk}</p>
+                            <p className="text-slate-300 text-sm bg-slate-700/50 p-3 rounded-lg">
+                              <span className="text-teal-400 font-medium">Answer:</span> {obj.suggestedAnswer}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Tier 2 */}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3 text-yellow-400">Tier 2: Likely Follow-Ups</h3>
+                      <div className="space-y-3">
+                        {objectionsData.tier2?.map((obj, i) => (
+                          <div key={i} className="bg-slate-800 rounded-xl p-4">
+                            <p className="font-medium text-white mb-2">&ldquo;{obj.objection}&rdquo;</p>
+                            <p className="text-xs text-slate-500 mb-2">Why they ask: {obj.whyTheyAsk}</p>
+                            <p className="text-slate-300 text-sm bg-slate-700/50 p-3 rounded-lg">
+                              <span className="text-teal-400 font-medium">Answer:</span> {obj.suggestedAnswer}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Tier 3 */}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3 text-orange-400">Tier 3: Harder Questions</h3>
+                      <div className="space-y-3">
+                        {objectionsData.tier3?.map((obj, i) => (
+                          <div key={i} className="bg-slate-800 rounded-xl p-4">
+                            <p className="font-medium text-white mb-2">&ldquo;{obj.objection}&rdquo;</p>
+                            <p className="text-xs text-slate-500 mb-2">Why they ask: {obj.whyTheyAsk}</p>
+                            <p className="text-slate-300 text-sm bg-slate-700/50 p-3 rounded-lg">
+                              <span className="text-teal-400 font-medium">Answer:</span> {obj.suggestedAnswer}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Red Flags */}
+                    {objectionsData.redFlags && objectionsData.redFlags.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3 text-red-500">Red Flags to Avoid</h3>
+                        <div className="bg-red-500/10 border border-red-500/30 rounded-xl overflow-hidden">
+                          <table className="w-full">
+                            <thead>
+                              <tr className="border-b border-red-500/30">
+                                <th className="text-left py-3 px-4 text-red-400 font-medium">Don&apos;t Say</th>
+                                <th className="text-left py-3 px-4 text-red-400 font-medium">Why It Hurts</th>
+                                <th className="text-left py-3 px-4 text-teal-400 font-medium">Say Instead</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {objectionsData.redFlags.map((flag, i) => (
+                                <tr key={i} className="border-b border-red-500/20 last:border-0">
+                                  <td className="py-3 px-4 text-slate-300">{flag.dontSay}</td>
+                                  <td className="py-3 px-4 text-slate-400 text-sm">{flag.whyItHurts}</td>
+                                  <td className="py-3 px-4 text-slate-300">{flag.sayInstead}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Actions */}
             <div className="flex flex-col gap-3">
