@@ -19,6 +19,32 @@ interface ChatMessage {
   content: string
 }
 
+interface SourceIssue {
+  slide: number
+  claim: string
+  suggestion: string
+}
+
+interface Objection {
+  objection: string
+  whyTheyAsk: string
+  suggestedAnswer: string
+}
+
+interface RedFlag {
+  dontSay: string
+  whyItHurts: string
+  sayInstead: string
+}
+
+interface ObjectionsData {
+  tier1: Objection[]
+  tier2: Objection[]
+  tier3: Objection[]
+  whyNow: string
+  redFlags: RedFlag[]
+}
+
 interface SavedDeck {
   id: string
   name: string
@@ -251,6 +277,13 @@ export default function AuditPage() {
   const [chatInput, setChatInput] = useState('')
   const [isChatting, setIsChatting] = useState(false)
 
+  // Sources and Objections state
+  const [activeTab, setActiveTab] = useState<'scorecard' | 'sources' | 'objections'>('scorecard')
+  const [sourceIssues, setSourceIssues] = useState<SourceIssue[]>([])
+  const [isLoadingSources, setIsLoadingSources] = useState(false)
+  const [objectionsData, setObjectionsData] = useState<ObjectionsData | null>(null)
+  const [isLoadingObjections, setIsLoadingObjections] = useState(false)
+
   const handleAudit = async () => {
     if (!deckUrl && !deckContent) {
       setError('Please provide a deck URL or paste your deck content')
@@ -341,6 +374,46 @@ export default function AuditPage() {
       setChatMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, something went wrong. Try again.' }])
     } finally {
       setIsChatting(false)
+    }
+  }
+
+  const handleLoadSources = async () => {
+    if (!auditedContent || isLoadingSources) return
+    setIsLoadingSources(true)
+    try {
+      const response = await fetch('/api/check-sources', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ html: auditedContent }),
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setSourceIssues(data.issues || [])
+      }
+    } catch (err) {
+      console.error('Failed to load sources:', err)
+    } finally {
+      setIsLoadingSources(false)
+    }
+  }
+
+  const handleLoadObjections = async () => {
+    if (!auditedContent || isLoadingObjections) return
+    setIsLoadingObjections(true)
+    try {
+      const response = await fetch('/api/objections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: auditedContent }),
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setObjectionsData(data)
+      }
+    } catch (err) {
+      console.error('Failed to load objections:', err)
+    } finally {
+      setIsLoadingObjections(false)
     }
   }
 
@@ -583,6 +656,53 @@ export default function AuditPage() {
               </p>
             </div>
 
+            {/* Tabs */}
+            <div className="flex gap-2 border-b border-slate-700 pb-2">
+              <button
+                onClick={() => setActiveTab('scorecard')}
+                className={`px-4 py-2 rounded-t-lg font-medium transition-colors ${
+                  activeTab === 'scorecard'
+                    ? 'bg-slate-800 text-teal-400 border-b-2 border-teal-400'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Scorecard
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('sources')
+                  if (sourceIssues.length === 0 && !isLoadingSources) {
+                    handleLoadSources()
+                  }
+                }}
+                className={`px-4 py-2 rounded-t-lg font-medium transition-colors ${
+                  activeTab === 'sources'
+                    ? 'bg-slate-800 text-teal-400 border-b-2 border-teal-400'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Sources {sourceIssues.length > 0 && <span className="ml-1 bg-orange-500 text-white text-xs px-1.5 rounded-full">{sourceIssues.length}</span>}
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('objections')
+                  if (!objectionsData && !isLoadingObjections) {
+                    handleLoadObjections()
+                  }
+                }}
+                className={`px-4 py-2 rounded-t-lg font-medium transition-colors ${
+                  activeTab === 'objections'
+                    ? 'bg-slate-800 text-teal-400 border-b-2 border-teal-400'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Objections Prep
+              </button>
+            </div>
+
+            {/* Tab Content */}
+            {activeTab === 'scorecard' && (
+              <>
             {/* Score breakdown */}
             <div>
               <h2 className="text-xl font-semibold mb-4">Scorecard</h2>

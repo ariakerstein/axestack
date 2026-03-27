@@ -90,6 +90,7 @@ export default function EditorPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [dbFeedback, setDbFeedback] = useState<PitchFeedback[]>([])
   const [showAuthModal, setShowAuthModal] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const chatEndRef = useRef<HTMLDivElement>(null)
   const { user, signOut, isAnonymous } = useAuth()
 
@@ -573,7 +574,16 @@ export default function EditorPage() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col md:flex-row">
         {/* Left: Slide Preview */}
-        <div className="flex-1 md:w-3/5 flex flex-col" style={{ backgroundColor: colorScheme.colors.bg }}>
+        <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'md:mr-12' : ''}`} style={{ backgroundColor: colorScheme.colors.bg }}>
+          {/* Collapse toggle button - fixed position */}
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-slate-700 hover:bg-slate-600 text-slate-300 w-6 h-16 items-center justify-center rounded-l-lg border-l border-y border-slate-600 transition-colors"
+            style={{ right: sidebarCollapsed ? 0 : 320 }}
+            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {sidebarCollapsed ? '◀' : '▶'}
+          </button>
           <div className="flex-1 relative">
             <iframe srcDoc={slideHtml} className="w-full h-full border-0" title="Slide Preview" />
           </div>
@@ -658,10 +668,10 @@ export default function EditorPage() {
         </div>
 
         {/* Right: Sidebar with Tabs */}
-        <div className="md:w-2/5 bg-slate-800 border-l border-slate-700 flex flex-col">
+        <div className={`w-80 bg-slate-800 border-l border-slate-700 flex flex-col flex-shrink-0 transition-all duration-300 ${sidebarCollapsed ? 'hidden md:hidden' : 'md:flex'}`}>
           {/* Tabs */}
           <div className="flex border-b border-slate-700">
-            {(['design', 'edit', 'versions', 'feedback'] as Tab[]).map(tab => (
+            {(['design', 'edit'] as Tab[]).map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -679,6 +689,26 @@ export default function EditorPage() {
                 )}
               </button>
             ))}
+            {/* More dropdown for versions/feedback */}
+            <div className="relative group">
+              <button className="px-3 py-3 text-sm font-medium text-slate-400 hover:text-white">
+                •••
+              </button>
+              <div className="absolute right-0 top-full bg-slate-700 border border-slate-600 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                <button
+                  onClick={() => setActiveTab('versions')}
+                  className={`block w-full text-left px-4 py-2 text-sm hover:bg-slate-600 ${activeTab === 'versions' ? 'text-teal-400' : 'text-slate-300'}`}
+                >
+                  Versions
+                </button>
+                <button
+                  onClick={() => setActiveTab('feedback')}
+                  className={`block w-full text-left px-4 py-2 text-sm hover:bg-slate-600 ${activeTab === 'feedback' ? 'text-teal-400' : 'text-slate-300'}`}
+                >
+                  Feedback
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Tab Content */}
@@ -808,20 +838,20 @@ export default function EditorPage() {
                     <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
                       Color Scheme
                     </h3>
-                    <div className="grid grid-cols-4 gap-2">
-                      {COLOR_SCHEMES.map(scheme => (
+                    <div className="grid grid-cols-2 gap-2">
+                      {COLOR_SCHEMES.slice(0, 6).map(scheme => (
                         <button
                           key={scheme.id}
                           onClick={() => setColorScheme(scheme)}
-                          className={`relative rounded-lg overflow-hidden h-12 transition-all ${
+                          className={`relative rounded-lg overflow-hidden h-10 transition-all ${
                             colorScheme.id === scheme.id
-                              ? 'ring-2 ring-teal-400 ring-offset-2 ring-offset-slate-800'
+                              ? 'ring-2 ring-teal-400 ring-offset-1 ring-offset-slate-800'
                               : 'hover:scale-105'
                           }`}
                           title={scheme.name}
                         >
                           <div className={`w-full h-full bg-gradient-to-br ${scheme.preview}`} />
-                          <span className="absolute bottom-0.5 left-0 right-0 text-[9px] text-center text-white drop-shadow-lg">
+                          <span className="absolute bottom-0 left-0 right-0 text-[9px] text-center text-white drop-shadow-lg bg-black/30 py-0.5">
                             {scheme.name}
                           </span>
                         </button>
@@ -854,7 +884,7 @@ export default function EditorPage() {
                     </label>
 
                     {uploadedMedia.length > 0 && (
-                      <div className="grid grid-cols-3 gap-2 mt-4">
+                      <div className="grid grid-cols-2 gap-2 mt-4">
                         {uploadedMedia.map((media, i) => (
                           <button
                             key={i}
