@@ -19,6 +19,13 @@ const STAGES = [
   { id: 'series-b', label: 'Series B+', description: 'Scale + expansion' },
 ]
 
+const THEMES = [
+  { id: 'dark-modern', label: 'Dark Modern', description: 'Vibrant accents, alternating rhythm', preview: 'bg-slate-900' },
+  { id: 'light-clean', label: 'Light Clean', description: 'All-white, formal', preview: 'bg-white border border-slate-200' },
+  { id: 'warm-editorial', label: 'Warm Editorial', description: 'Warm tones, storytelling', preview: 'bg-amber-50' },
+  { id: 'bold-dark', label: 'Bold Dark', description: 'High contrast, punchy', preview: 'bg-black' },
+]
+
 const QUESTIONS = [
   {
     id: 'companyName',
@@ -102,6 +109,7 @@ export default function Wizard() {
   const [step, setStep] = useState(0) // 0 = deck type/stage, 1+ = questions
   const [deckType, setDeckType] = useState('fundraising')
   const [stage, setStage] = useState('')
+  const [theme, setTheme] = useState('dark-modern')
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [raiseAmount, setRaiseAmount] = useState('')
   const [raiseMilestone, setRaiseMilestone] = useState('')
@@ -151,7 +159,7 @@ export default function Wizard() {
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answers: finalAnswers, stage }),
+        body: JSON.stringify({ answers: finalAnswers, stage, theme }),
       })
 
       if (!response.ok) {
@@ -160,8 +168,8 @@ export default function Wizard() {
       }
 
       const data = await response.json()
-      // Save deck with stage for stage-aware re-scoring
-      localStorage.setItem('generatedDeck', JSON.stringify({ ...data, stage }))
+      // Save deck with stage and theme for context-aware features
+      localStorage.setItem('generatedDeck', JSON.stringify({ ...data, stage, theme }))
       router.push('/editor')
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to generate deck'
@@ -265,7 +273,7 @@ export default function Wizard() {
               </div>
 
               {/* Stage */}
-              <div>
+              <div className="mb-8">
                 <p className="text-xs text-slate-500 uppercase tracking-wide mb-3">Funding Stage</p>
                 <div className="space-y-3">
                   {STAGES.map((s) => (
@@ -280,6 +288,34 @@ export default function Wizard() {
                     >
                       <span className="font-medium">{s.label}</span>
                       <span className="text-slate-400 ml-2">— {s.description}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Theme */}
+              <div>
+                <p className="text-xs text-slate-500 uppercase tracking-wide mb-3">Visual Theme</p>
+                <div className="grid grid-cols-2 gap-3">
+                  {THEMES.map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() => setTheme(t.id)}
+                      className={`relative px-4 py-4 rounded-xl border text-left transition-colors ${
+                        theme === t.id
+                          ? 'border-teal-400 bg-teal-400/10'
+                          : 'border-slate-700 bg-slate-800 hover:border-slate-600'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-lg ${t.preview}`} />
+                        <div>
+                          <span className={`font-medium ${theme === t.id ? 'text-white' : 'text-slate-300'}`}>
+                            {t.label}
+                          </span>
+                          <p className="text-xs text-slate-500 mt-0.5">{t.description}</p>
+                        </div>
+                      </div>
                     </button>
                   ))}
                 </div>
