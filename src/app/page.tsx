@@ -16,7 +16,7 @@ export default function Home() {
           </h1>
 
           <p className="text-2xl md:text-3xl text-slate-300 mb-4 font-light">
-            Your AI patient navigation system.
+            Tools for the AI-enabled patient.
           </p>
 
           <p className="text-lg text-slate-500 mb-10 max-w-xl mx-auto">
