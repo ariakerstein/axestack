@@ -215,7 +215,13 @@ function HomeContent() {
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500">
                   opencancer
                 </span>
-                <span className="text-slate-400">.ai</span>
+                <span className="text-slate-400">.a</span>
+                <span className="relative inline-block">
+                  <span className="text-slate-400">ı</span>
+                  <span className="absolute -top-[0.12em] left-1/2 -translate-x-1/2 scale-50 origin-center">
+                    <AtomIcon />
+                  </span>
+                </span>
               </h1>
 
               {/* Role badge */}
@@ -247,7 +253,14 @@ function HomeContent() {
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500">
                   opencancer
                 </span>
-                <span className="text-slate-400">.ai</span>
+                <span className="text-slate-400">.a</span>
+                <span className="relative inline-block">
+                  {/* Dotless i (ı) with atom as the dot */}
+                  <span className="text-slate-400">ı</span>
+                  <span className="absolute -top-[0.12em] left-1/2 -translate-x-1/2 scale-50 origin-center">
+                    <AtomIcon />
+                  </span>
+                </span>
               </h1>
 
               <p className="text-2xl text-slate-600 mb-4 font-light">
