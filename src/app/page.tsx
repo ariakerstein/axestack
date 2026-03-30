@@ -135,6 +135,7 @@ function HomeContent() {
   const [showSuccess, setShowSuccess] = useState(false)
   const [mode, setMode] = useState<'wizard' | 'explore'>('wizard')
   const [wizardStep, setWizardStep] = useState<number>(1)
+  const [showAllTools, setShowAllTools] = useState(false)
 
   // Wizard form state
   const [wizardRole, setWizardRole] = useState<'patient' | 'caregiver' | null>(null)
@@ -499,115 +500,124 @@ function HomeContent() {
       {/* Patient Tools Grid - shows when mode is 'explore' or user has profile */}
       <section className={`py-16 px-8 bg-slate-50 ${!profile && mode === 'wizard' ? 'hidden' : ''}`}>
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-center mb-8 text-slate-900">Patient Tools</h2>
+          <h2 className="text-2xl font-bold text-center mb-2 text-slate-900">Patient Tools</h2>
+          <p className="text-slate-500 text-center mb-8 text-sm">AI-powered navigation for your cancer journey</p>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {/* AI Second Opinion */}
-            <a href="https://navis.health" target="_blank" rel="noopener noreferrer" className="group bg-gradient-to-br from-violet-50 to-white border border-violet-200 rounded-lg p-4 hover:border-violet-400 hover:shadow-md transition-all">
-              <div className="flex items-center gap-2 mb-1">
-                <Dna className="w-5 h-5 text-violet-500" />
-                <h3 className="font-semibold text-slate-900 group-hover:text-violet-600">AI Second Opinion</h3>
+          {/* Core Tools - Always visible */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+            {/* AI Second Opinion - Featured */}
+            <a href="https://navis.health" target="_blank" rel="noopener noreferrer" className="group bg-gradient-to-br from-violet-100 to-fuchsia-50 border-2 border-violet-300 rounded-xl p-5 hover:border-violet-500 hover:shadow-lg transition-all">
+              <div className="flex items-center gap-2 mb-2">
+                <Dna className="w-6 h-6 text-violet-600" />
+                <h3 className="font-bold text-slate-900 group-hover:text-violet-700">AI Second Opinion</h3>
               </div>
-              <p className="text-slate-600 text-xs">Full case review. NCI-level guidance in minutes.</p>
+              <p className="text-slate-600 text-sm">Full case review. NCI-level guidance in minutes.</p>
             </a>
 
-            <Link href="/cancer-checklist" className="group bg-white border border-violet-200 rounded-lg p-4 hover:border-violet-400 hover:shadow-md transition-all">
-              <div className="flex items-center gap-2 mb-1">
-                <CheckCircle className="w-5 h-5 text-violet-500" />
-                <h3 className="font-semibold text-slate-900 group-hover:text-violet-600">Cancer Checklist</h3>
+            <Link href="/cancer-checklist" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-violet-400 hover:shadow-md transition-all">
+              <div className="flex items-center gap-2 mb-2">
+                <CheckCircle className="w-6 h-6 text-violet-500" />
+                <h3 className="font-bold text-slate-900 group-hover:text-violet-600">Cancer Checklist</h3>
                 <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">NCCN</span>
               </div>
-              <p className="text-slate-600 text-xs">Test recommendations + questions for your oncologist.</p>
+              <p className="text-slate-600 text-sm">Test recommendations + questions for your oncologist.</p>
             </Link>
 
-            <Link href="/records" className="group bg-white border border-emerald-200 rounded-lg p-4 hover:border-emerald-400 hover:shadow-md transition-all">
-              <div className="flex items-center gap-2 mb-1">
-                <FolderClosed className="w-5 h-5 text-emerald-500" />
-                <h3 className="font-semibold text-slate-900 group-hover:text-emerald-600">Records Vault</h3>
+            <Link href="/records" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-emerald-400 hover:shadow-md transition-all">
+              <div className="flex items-center gap-2 mb-2">
+                <FolderClosed className="w-6 h-6 text-emerald-500" />
+                <h3 className="font-bold text-slate-900 group-hover:text-emerald-600">Records Vault</h3>
               </div>
-              <p className="text-slate-600 text-xs">Collect, store, and translate your medical records.</p>
+              <p className="text-slate-600 text-sm">Collect, store, and translate your medical records.</p>
             </Link>
 
-            <Link href="/ask" className="group bg-white border border-fuchsia-200 rounded-lg p-4 hover:border-fuchsia-400 hover:shadow-md transition-all">
-              <div className="flex items-center gap-2 mb-1">
+            <Link href="/ask" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-fuchsia-400 hover:shadow-md transition-all">
+              <div className="flex items-center gap-2 mb-2">
                 <AtomIcon />
-                <h3 className="font-semibold text-slate-900 group-hover:text-fuchsia-600">Ask AI</h3>
+                <h3 className="font-bold text-slate-900 group-hover:text-fuchsia-600">Ask AI</h3>
               </div>
-              <p className="text-slate-600 text-xs">Chat with NCCN-trained AI. Get answers to your questions.</p>
+              <p className="text-slate-600 text-sm">Chat with NCCN-trained AI about your cancer.</p>
             </Link>
 
-            {/* Find Oncologist */}
-            <a href="https://axestack.com/oncologists" className="group bg-white border border-teal-200 rounded-lg p-4 hover:border-teal-400 hover:shadow-md transition-all">
-              <div className="flex items-center gap-2 mb-1">
-                <Stethoscope className="w-5 h-5 text-teal-500" />
-                <h3 className="font-semibold text-slate-900 group-hover:text-teal-600">Find Oncologist</h3>
+            <Link href="/trials" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-400 hover:shadow-md transition-all">
+              <div className="flex items-center gap-2 mb-2">
+                <Microscope className="w-6 h-6 text-blue-500" />
+                <h3 className="font-bold text-slate-900 group-hover:text-blue-600">Clinical Trials</h3>
               </div>
-              <p className="text-slate-600 text-xs">Find specialists by cancer type, location, insurance.</p>
-            </a>
-
-            {/* Clinical Trials */}
-            <Link href="/trials" className="group bg-white border border-blue-200 rounded-lg p-4 hover:border-blue-400 hover:shadow-md transition-all">
-              <div className="flex items-center gap-2 mb-1">
-                <Microscope className="w-5 h-5 text-blue-500" />
-                <h3 className="font-semibold text-slate-900 group-hover:text-blue-600">Clinical Trials</h3>
-              </div>
-              <p className="text-slate-600 text-xs">Find trials matched to your cancer and location.</p>
+              <p className="text-slate-600 text-sm">Find trials matched to your cancer and location.</p>
             </Link>
 
-            {/* Research Library */}
-            <a href="https://axestack.com/research" className="group bg-white border border-cyan-200 rounded-lg p-4 hover:border-cyan-400 hover:shadow-md transition-all">
-              <div className="flex items-center gap-2 mb-1">
-                <BookOpen className="w-5 h-5 text-cyan-500" />
-                <h3 className="font-semibold text-slate-900 group-hover:text-cyan-600">Research Library</h3>
+            <Link href="/coverage" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-emerald-400 hover:shadow-md transition-all">
+              <div className="flex items-center gap-2 mb-2">
+                <DollarSign className="w-6 h-6 text-emerald-500" />
+                <h3 className="font-bold text-slate-900 group-hover:text-emerald-600">Financial Coverage</h3>
               </div>
-              <p className="text-slate-600 text-xs">Search 200M+ papers. AI summaries help you triage fast.</p>
-            </a>
-
-            {/* Precision Testing */}
-            <a href="https://axestack.com/tests" className="group bg-white border border-orange-200 rounded-lg p-4 hover:border-orange-400 hover:shadow-md transition-all">
-              <div className="flex items-center gap-2 mb-1">
-                <FlaskConical className="w-5 h-5 text-orange-500" />
-                <h3 className="font-semibold text-slate-900 group-hover:text-orange-600">Precision Testing</h3>
-              </div>
-              <p className="text-slate-600 text-xs">MRD, genomic tests, and monitoring options.</p>
-            </a>
-
-            {/* Expert Consult */}
-            <a href="https://axestack.com/experts" className="group bg-white border border-amber-200 rounded-lg p-4 hover:border-amber-400 hover:shadow-md transition-all">
-              <div className="flex items-center gap-2 mb-1">
-                <UserRound className="w-5 h-5 text-amber-500" />
-                <h3 className="font-semibold text-slate-900 group-hover:text-amber-600">Expert Consult</h3>
-              </div>
-              <p className="text-slate-600 text-xs">Personalized guidance from oncology specialists.</p>
-            </a>
-
-            {/* Financial Coverage */}
-            <Link href="/coverage" className="group bg-gradient-to-br from-emerald-50 to-white border border-emerald-200 rounded-lg p-4 hover:border-emerald-400 hover:shadow-md transition-all">
-              <div className="flex items-center gap-2 mb-1">
-                <DollarSign className="w-5 h-5 text-emerald-500" />
-                <h3 className="font-semibold text-slate-900 group-hover:text-emerald-600">Financial Coverage</h3>
-              </div>
-              <p className="text-slate-600 text-xs">Medicare coverage + assistance programs for your cancer.</p>
+              <p className="text-slate-600 text-sm">Medicare coverage + assistance programs.</p>
             </Link>
-
-            {/* CareCircle */}
-            <Link href="/hub" className="group bg-white border border-rose-200 rounded-lg p-4 hover:border-rose-400 hover:shadow-md transition-all">
-              <div className="flex items-center gap-2 mb-1">
-                <Heart className="w-5 h-5 text-rose-500" />
-                <h3 className="font-semibold text-slate-900 group-hover:text-rose-600">CareCircle</h3>
-              </div>
-              <p className="text-slate-600 text-xs">One link to keep loved ones updated.</p>
-            </Link>
-
-            {/* Cancer Patient Lab - Community */}
-            <a href="https://community.cancerpatientlab.org/" target="_blank" rel="noopener noreferrer" className="group bg-white border border-pink-200 rounded-lg p-4 hover:border-pink-400 hover:shadow-md transition-all">
-              <div className="flex items-center gap-2 mb-1">
-                <Users className="w-5 h-5 text-pink-500" />
-                <h3 className="font-semibold text-slate-900 group-hover:text-pink-600">Community</h3>
-              </div>
-              <p className="text-slate-600 text-xs">Connect with patients and caregivers.</p>
-            </a>
           </div>
+
+          {/* More Tools - Expandable */}
+          <div className="text-center">
+            <button
+              onClick={() => setShowAllTools(!showAllTools)}
+              className="text-sm text-violet-600 hover:text-violet-700 font-medium inline-flex items-center gap-1"
+            >
+              {showAllTools ? 'Show less' : 'More tools'}
+              <span className={`transition-transform ${showAllTools ? 'rotate-180' : ''}`}>↓</span>
+            </button>
+          </div>
+
+          {showAllTools && (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4 pt-4 border-t border-slate-200">
+              <a href="https://axestack.com/oncologists" className="group bg-white border border-slate-200 rounded-lg p-4 hover:border-teal-400 hover:shadow-md transition-all">
+                <div className="flex items-center gap-2 mb-1">
+                  <Stethoscope className="w-5 h-5 text-teal-500" />
+                  <h3 className="font-semibold text-slate-900 group-hover:text-teal-600">Find Oncologist</h3>
+                </div>
+                <p className="text-slate-600 text-xs">Find specialists by cancer type, location, insurance.</p>
+              </a>
+
+              <a href="https://axestack.com/research" className="group bg-white border border-slate-200 rounded-lg p-4 hover:border-cyan-400 hover:shadow-md transition-all">
+                <div className="flex items-center gap-2 mb-1">
+                  <BookOpen className="w-5 h-5 text-cyan-500" />
+                  <h3 className="font-semibold text-slate-900 group-hover:text-cyan-600">Research Library</h3>
+                </div>
+                <p className="text-slate-600 text-xs">Search 200M+ papers with AI summaries.</p>
+              </a>
+
+              <a href="https://axestack.com/tests" className="group bg-white border border-slate-200 rounded-lg p-4 hover:border-orange-400 hover:shadow-md transition-all">
+                <div className="flex items-center gap-2 mb-1">
+                  <FlaskConical className="w-5 h-5 text-orange-500" />
+                  <h3 className="font-semibold text-slate-900 group-hover:text-orange-600">Precision Testing</h3>
+                </div>
+                <p className="text-slate-600 text-xs">MRD, genomic tests, and monitoring options.</p>
+              </a>
+
+              <a href="https://axestack.com/experts" className="group bg-white border border-slate-200 rounded-lg p-4 hover:border-amber-400 hover:shadow-md transition-all">
+                <div className="flex items-center gap-2 mb-1">
+                  <UserRound className="w-5 h-5 text-amber-500" />
+                  <h3 className="font-semibold text-slate-900 group-hover:text-amber-600">Expert Consult</h3>
+                </div>
+                <p className="text-slate-600 text-xs">Personalized guidance from oncology specialists.</p>
+              </a>
+
+              <Link href="/hub" className="group bg-white border border-slate-200 rounded-lg p-4 hover:border-rose-400 hover:shadow-md transition-all">
+                <div className="flex items-center gap-2 mb-1">
+                  <Heart className="w-5 h-5 text-rose-500" />
+                  <h3 className="font-semibold text-slate-900 group-hover:text-rose-600">CareCircle</h3>
+                </div>
+                <p className="text-slate-600 text-xs">One link to keep loved ones updated.</p>
+              </Link>
+
+              <a href="https://community.cancerpatientlab.org/" target="_blank" rel="noopener noreferrer" className="group bg-white border border-slate-200 rounded-lg p-4 hover:border-pink-400 hover:shadow-md transition-all">
+                <div className="flex items-center gap-2 mb-1">
+                  <Users className="w-5 h-5 text-pink-500" />
+                  <h3 className="font-semibold text-slate-900 group-hover:text-pink-600">Community</h3>
+                </div>
+                <p className="text-slate-600 text-xs">Connect with patients and caregivers.</p>
+              </a>
+            </div>
+          )}
         </div>
       </section>
 

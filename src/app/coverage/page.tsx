@@ -15,11 +15,16 @@ import { CANCER_TYPES } from '@/lib/cancer-data'
 
 type Step = 'cancer' | 'insurance' | 'results'
 
+// Common cancer types to show first
+const COMMON_CANCERS = ['breast', 'lung', 'prostate', 'colorectal', 'melanoma', 'lymphoma']
+
 export default function CoveragePage() {
   const [step, setStep] = useState<Step>('cancer')
   const [cancerType, setCancerType] = useState('')
   const [insuranceType, setInsuranceType] = useState('')
   const [showMedicareDetails, setShowMedicareDetails] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showAllCancers, setShowAllCancers] = useState(false)
 
   // Load profile if exists
   useEffect(() => {
@@ -113,21 +118,66 @@ export default function CoveragePage() {
               <label className="block text-sm font-medium text-slate-700 mb-3">
                 What type of cancer?
               </label>
-              <div className="grid grid-cols-2 gap-2">
-                {Object.entries(CANCER_TYPES).map(([key, label]) => (
-                  <button
-                    key={key}
-                    onClick={() => handleCancerSelect(key)}
-                    className={`text-left px-4 py-3 rounded-lg border transition-all ${
-                      cancerType === key
-                        ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                        : 'border-slate-200 bg-white hover:border-emerald-300 text-slate-700'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
+
+              {/* Search input */}
+              <div className="relative mb-4">
+                <input
+                  type="text"
+                  placeholder="Search cancer types..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value)
+                    if (e.target.value) setShowAllCancers(true)
+                  }}
+                  className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                />
               </div>
+
+              {/* Cancer type buttons */}
+              <div className="grid grid-cols-2 gap-2">
+                {(() => {
+                  const allCancers = Object.entries(CANCER_TYPES)
+                  const filtered = searchQuery
+                    ? allCancers.filter(([, label]) =>
+                        label.toLowerCase().includes(searchQuery.toLowerCase())
+                      )
+                    : showAllCancers
+                      ? allCancers
+                      : allCancers.filter(([key]) => COMMON_CANCERS.includes(key))
+
+                  return filtered.map(([key, label]) => (
+                    <button
+                      key={key}
+                      onClick={() => handleCancerSelect(key)}
+                      className={`text-left px-4 py-3 rounded-lg border transition-all ${
+                        cancerType === key
+                          ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                          : 'border-slate-200 bg-white hover:border-emerald-300 text-slate-700'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))
+                })()}
+              </div>
+
+              {/* Show all toggle */}
+              {!searchQuery && !showAllCancers && (
+                <button
+                  onClick={() => setShowAllCancers(true)}
+                  className="w-full mt-3 text-sm text-emerald-600 hover:text-emerald-700 font-medium"
+                >
+                  Show all cancer types ({Object.keys(CANCER_TYPES).length - COMMON_CANCERS.length} more)
+                </button>
+              )}
+              {!searchQuery && showAllCancers && (
+                <button
+                  onClick={() => setShowAllCancers(false)}
+                  className="w-full mt-3 text-sm text-slate-500 hover:text-slate-700"
+                >
+                  Show fewer
+                </button>
+              )}
             </div>
           </div>
         )}
