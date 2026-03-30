@@ -522,9 +522,9 @@ function HomeContent() {
             <a href="https://navis.health" target="_blank" rel="noopener noreferrer" className="group bg-gradient-to-br from-violet-100 to-fuchsia-50 border-2 border-violet-300 rounded-xl p-5 hover:border-violet-500 hover:shadow-lg transition-all">
               <div className="flex items-center gap-2 mb-2">
                 <Dna className="w-6 h-6 text-violet-600" />
-                <h3 className="font-bold text-slate-900 group-hover:text-violet-700">AI Second Opinion</h3>
+                <h3 className="font-bold text-slate-900 group-hover:text-violet-700">AI Case Review</h3>
               </div>
-              <p className="text-slate-600 text-sm">Full case review. NCI-level guidance in minutes.</p>
+              <p className="text-slate-600 text-sm">Upload your records. Get a complete second opinion.</p>
             </a>
 
             <Link href="/cancer-checklist" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-violet-400 hover:shadow-md transition-all">
@@ -549,7 +549,7 @@ function HomeContent() {
                 <AtomIcon />
                 <h3 className="font-bold text-slate-900 group-hover:text-fuchsia-600">Ask AI</h3>
               </div>
-              <p className="text-slate-600 text-sm">Chat with NCCN-trained AI about your cancer.</p>
+              <p className="text-slate-600 text-sm">Quick questions about treatments, tests, or side effects.</p>
             </Link>
 
             <Link href="/trials" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-400 hover:shadow-md transition-all">
@@ -565,7 +565,7 @@ function HomeContent() {
                 <DollarSign className="w-6 h-6 text-emerald-500" />
                 <h3 className="font-bold text-slate-900 group-hover:text-emerald-600">Financial Coverage</h3>
               </div>
-              <p className="text-slate-600 text-sm">Medicare coverage + assistance programs.</p>
+              <p className="text-slate-600 text-sm">Insurance coverage + financial assistance programs.</p>
             </Link>
           </div>
 
@@ -606,12 +606,13 @@ function HomeContent() {
                 <p className="text-slate-600 text-xs">MRD, genomic tests, and monitoring options.</p>
               </a>
 
-              <a href="https://axestack.com/experts" className="group bg-white border border-slate-200 rounded-lg p-4 hover:border-amber-400 hover:shadow-md transition-all">
+              <a href="https://navis.health" target="_blank" rel="noopener noreferrer" className="group bg-white border border-slate-200 rounded-lg p-4 hover:border-amber-400 hover:shadow-md transition-all">
                 <div className="flex items-center gap-2 mb-1">
                   <UserRound className="w-5 h-5 text-amber-500" />
                   <h3 className="font-semibold text-slate-900 group-hover:text-amber-600">Expert Consult</h3>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">PREMIUM</span>
                 </div>
-                <p className="text-slate-600 text-xs">Personalized guidance from oncology specialists.</p>
+                <p className="text-slate-600 text-xs">1:1 video with oncology specialists for complex cases.</p>
               </a>
 
               <Link href="/hub" className="group bg-white border border-slate-200 rounded-lg p-4 hover:border-rose-400 hover:shadow-md transition-all">
@@ -619,7 +620,7 @@ function HomeContent() {
                   <Heart className="w-5 h-5 text-rose-500" />
                   <h3 className="font-semibold text-slate-900 group-hover:text-rose-600">CareCircle</h3>
                 </div>
-                <p className="text-slate-600 text-xs">One link to keep loved ones updated.</p>
+                <p className="text-slate-600 text-xs">Stop repeating yourself. Update everyone at once.</p>
               </Link>
 
               <a href="https://community.cancerpatientlab.org/" target="_blank" rel="noopener noreferrer" className="group bg-white border border-slate-200 rounded-lg p-4 hover:border-pink-400 hover:shadow-md transition-all">
