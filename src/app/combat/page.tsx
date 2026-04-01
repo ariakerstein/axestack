@@ -418,69 +418,62 @@ export default function CombatPage() {
           </div>
         ) : (
           /* Has records - show combat interface */
-          <div className="space-y-8">
-            {/* Hero Section - Bold & Dynamic */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8 pb-6">
-              {/* Background decoration */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-500/20 to-transparent rounded-full blur-3xl" />
-              <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-br from-purple-500/20 to-transparent rounded-full blur-3xl" />
+          <div className="space-y-6">
+            {/* Hero Section - Matches opencancer.ai brand */}
+            <div className="text-center">
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-orange-100 text-orange-700 rounded-full text-sm font-medium mb-4">
+                <Swords className="w-4 h-4" />
+                Adversarial AI Analysis
+              </div>
 
-              <div className="relative">
-                {/* Badge */}
-                <div className="flex justify-center mb-4">
-                  <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full">
-                    <Swords className="w-4 h-4 text-orange-400" />
-                    <span className="text-sm font-medium text-white/90">Adversarial AI Analysis</span>
-                  </div>
-                </div>
+              {/* Title */}
+              <h1 className="text-3xl font-bold text-slate-900 mb-2">
+                Cancer<span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500">Combat</span>
+              </h1>
+              <p className="text-slate-600 max-w-lg mx-auto">
+                Three AI perspectives debate your case so you see all options, not just one answer.
+              </p>
 
-                {/* Title */}
-                <h1 className="text-4xl font-bold text-center text-white mb-3">
-                  Cancer<span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-400">Combat</span>
-                </h1>
-                <p className="text-center text-slate-300 max-w-md mx-auto text-sm">
-                  Three AI perspectives debate your case so you see all options, not just one answer.
-                </p>
-
-                {/* AI Trio Animation */}
-                <div className="mt-6">
-                  <AITrioAnimation isActive={generating} />
-                </div>
-
-                {/* Records pill */}
-                <div className="flex justify-center mt-4">
-                  <div className="inline-flex items-center gap-3 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/10">
-                    <FileText className="w-4 h-4 text-violet-400" />
-                    <span className="text-sm text-white/80">
-                      {records.length} record{records.length !== 1 ? 's' : ''} • {records[0]?.result?.cancer_specific?.cancer_type || 'Ready to analyze'}
-                    </span>
-                    <Link href="/records" className="text-xs text-violet-400 hover:text-violet-300 font-medium">
-                      Edit
-                    </Link>
-                  </div>
-                </div>
+              {/* AI Trio Animation */}
+              <div className="mt-6">
+                <AITrioAnimation isActive={generating} />
               </div>
             </div>
 
-            {/* Phase Buttons - Above Double Diamond, More Appealing CTAs */}
+            {/* Records Summary - Light background */}
+            <div className="bg-violet-50 border border-violet-200 rounded-xl p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-violet-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-slate-900">{records.length} record{records.length !== 1 ? 's' : ''} loaded</p>
+                    <p className="text-sm text-slate-500">
+                      {records[0]?.result?.cancer_specific?.cancer_type || 'Ready to analyze'}
+                    </p>
+                  </div>
+                </div>
+                <Link href="/records" className="text-sm text-violet-600 hover:text-violet-700 font-medium">
+                  Edit
+                </Link>
+              </div>
+            </div>
+
+            {/* Phase Buttons - Brand-consistent violet/orange gradients */}
             {!currentResult && !generating && (
               <div className="grid grid-cols-2 gap-4">
                 <button
                   onClick={() => runCombat('diagnosis')}
-                  className="group relative p-6 bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-blue-400 rounded-2xl text-left transition-all shadow-sm hover:shadow-lg"
+                  className="group p-6 bg-gradient-to-br from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 rounded-2xl text-left transition-all shadow-lg shadow-violet-500/25 hover:shadow-xl text-white"
                 >
-                  <div className="absolute top-4 right-4 w-12 h-12 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity blur-xl" />
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-lg shadow-blue-500/25">
-                      <Target className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
-                      <Play className="w-3 h-3" />
-                      Start Here
-                    </div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Target className="w-8 h-8 text-violet-200" />
+                    <span className="text-xs font-semibold bg-white/20 px-2 py-0.5 rounded-full">Start Here</span>
                   </div>
-                  <h3 className="font-bold text-lg text-slate-900 mb-1">Diagnosis Debate</h3>
-                  <p className="text-sm text-slate-600">
+                  <h3 className="font-bold text-lg mb-1">Diagnosis Debate</h3>
+                  <p className="text-sm text-violet-100">
                     Validate your diagnosis from 3 perspectives
                   </p>
                 </button>
@@ -488,30 +481,16 @@ export default function CombatPage() {
                 <button
                   onClick={() => runCombat('treatment')}
                   disabled={!diagnosisResult}
-                  className={`group relative p-6 rounded-2xl text-left transition-all ${
+                  className={`group p-6 rounded-2xl text-left transition-all ${
                     diagnosisResult
-                      ? 'bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-orange-400 shadow-sm hover:shadow-lg'
-                      : 'bg-slate-50 border-2 border-dashed border-slate-200 cursor-not-allowed'
+                      ? 'bg-gradient-to-br from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 shadow-lg shadow-orange-500/25 hover:shadow-xl text-white'
+                      : 'bg-slate-100 border-2 border-dashed border-slate-200 cursor-not-allowed'
                   }`}
                 >
-                  {diagnosisResult && (
-                    <div className="absolute top-4 right-4 w-12 h-12 bg-gradient-to-br from-orange-400/20 to-red-400/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity blur-xl" />
-                  )}
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                      diagnosisResult
-                        ? 'bg-gradient-to-br from-orange-500 to-red-500 shadow-lg shadow-orange-500/25'
-                        : 'bg-slate-200'
-                    }`}>
-                      <Sparkles className={`w-6 h-6 ${diagnosisResult ? 'text-white' : 'text-slate-400'}`} />
-                    </div>
-                    {!diagnosisResult && (
-                      <span className="text-xs text-slate-400 font-medium">Complete diagnosis first</span>
-                    )}
-                  </div>
-                  <h3 className={`font-bold text-lg mb-1 ${diagnosisResult ? 'text-slate-900' : 'text-slate-400'}`}>Treatment Debate</h3>
-                  <p className={`text-sm ${diagnosisResult ? 'text-slate-600' : 'text-slate-400'}`}>
-                    Explore all treatment options
+                  <Sparkles className={`w-8 h-8 mb-3 ${diagnosisResult ? 'text-orange-200' : 'text-slate-300'}`} />
+                  <h3 className={`font-bold text-lg mb-1 ${diagnosisResult ? 'text-white' : 'text-slate-400'}`}>Treatment Debate</h3>
+                  <p className={`text-sm ${diagnosisResult ? 'text-orange-100' : 'text-slate-400'}`}>
+                    {diagnosisResult ? 'Explore all treatment options' : 'Complete diagnosis first'}
                   </p>
                 </button>
               </div>
