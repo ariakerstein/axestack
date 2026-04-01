@@ -5,7 +5,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { useAuth } from '@/lib/auth'
-import { saveProfile } from '@/lib/supabase'
+import { saveProfile, supabase } from '@/lib/supabase'
 import {
   Check, Dna, CheckCircle, Stethoscope,
   Microscope, BookOpen, FlaskConical, FolderClosed, UserRound,
@@ -202,6 +202,7 @@ function HomeContent() {
   const [wizardEmail, setWizardEmail] = useState('')
   const [wizardCancerType, setWizardCancerType] = useState('')
   const [wizardSaving, setWizardSaving] = useState(false)
+  const [wizardEmailSent, setWizardEmailSent] = useState(false)
 
   // Load profile - prefer Supabase for authenticated users
   useEffect(() => {
@@ -425,14 +426,14 @@ function HomeContent() {
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => setShowWizardModal(false)}
+            onClick={() => { setShowWizardModal(false); setWizardEmailSent(false); }}
           />
 
           {/* Modal */}
           <div className="relative w-full max-w-xl mx-4 mb-0 sm:mb-0 bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom duration-300">
             {/* Close button */}
             <button
-              onClick={() => setShowWizardModal(false)}
+              onClick={() => { setShowWizardModal(false); setWizardEmailSent(false); }}
               className="absolute top-4 right-4 z-10 text-slate-400 hover:text-slate-600 p-1"
             >
               <span className="sr-only">Close</span>
@@ -582,8 +583,41 @@ function HomeContent() {
                 </div>
               )}
 
+              {/* Email Sent Confirmation */}
+              {wizardEmailSent && (
+                <div className="text-center py-4">
+                  <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Check className="w-8 h-8 text-emerald-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">Check your email!</h3>
+                  <p className="text-slate-600 mb-4">
+                    We sent a sign-in link to <span className="font-semibold text-violet-600">{wizardEmail}</span>
+                  </p>
+                  <p className="text-sm text-slate-500 mb-6">
+                    Click the link to sign in and start using your personalized cancer toolkit.
+                  </p>
+
+                  {/* Continue without signing in option */}
+                  <div className="border-t border-slate-200 pt-4">
+                    <button
+                      onClick={() => {
+                        setShowWizardModal(false)
+                        setWizardEmailSent(false)
+                        router.push('/records')
+                      }}
+                      className="text-sm text-slate-500 hover:text-violet-600 underline"
+                    >
+                      Continue without signing in →
+                    </button>
+                    <p className="text-xs text-slate-400 mt-2">
+                      You can sign in later to sync your data
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Step 3: Cancer Type & Save */}
-              {wizardStep === 3 && (
+              {wizardStep === 3 && !wizardEmailSent && (
                 <div>
                   <button onClick={() => setWizardStep(2)} className="text-slate-400 hover:text-slate-600 text-sm mb-4 flex items-center gap-1">
                     ← Back
@@ -620,60 +654,68 @@ function HomeContent() {
 
                     <button
                       onClick={async () => {
-                        if (!wizardCancerType) return
+                        if (!wizardCancerType || !wizardEmail.trim()) return
                         setWizardSaving(true)
+
                         const newProfile: PatientProfile = {
                           role: wizardRole!,
                           name: wizardName.trim(),
                           email: wizardEmail.trim(),
                           cancerType: wizardCancerType,
                         }
+
                         // Save to localStorage for offline access
                         localStorage.setItem('patient-profile', JSON.stringify(newProfile))
                         setProfile(newProfile)
 
-                        // Save to Supabase (non-blocking - don't let it hang the UI)
-                        if (wizardEmail.trim()) {
-                          saveProfile({
+                        // Save to Supabase profile table
+                        await saveProfile({
+                          email: wizardEmail.trim(),
+                          name: wizardName.trim(),
+                          role: wizardRole!,
+                          cancerType: wizardCancerType,
+                        }).catch(err => console.warn('Profile sync failed:', err))
+
+                        // Send magic link to create account + sign in
+                        const { error: authError } = await supabase.auth.signInWithOtp({
+                          email: wizardEmail.trim(),
+                          options: {
+                            emailRedirectTo: `${window.location.origin}/records`,
+                          },
+                        })
+
+                        if (authError) {
+                          console.error('Auth error:', authError)
+                          // Still redirect even if auth fails - they can sign in later
+                          setWizardSaving(false)
+                          setShowWizardModal(false)
+                          router.push('/records')
+                          return
+                        }
+
+                        // Show email sent confirmation
+                        setWizardSaving(false)
+                        setWizardEmailSent(true)
+
+                        // Send welcome email (non-blocking)
+                        fetch('/api/email/welcome', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
                             email: wizardEmail.trim(),
                             name: wizardName.trim(),
-                            role: wizardRole!,
                             cancerType: wizardCancerType,
-                          }).catch(err => console.warn('Profile sync failed:', err))
-                        }
-
-                        // Refresh auth context if logged in (non-blocking)
-                        if (user) {
-                          refreshProfile().catch(err => console.warn('Profile refresh failed:', err))
-                        }
-
-                        setShowWizardModal(false)
-                        setWizardSaving(false)
-
-                        // Send welcome email if email provided (non-blocking)
-                        if (wizardEmail.trim()) {
-                          fetch('/api/email/welcome', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                              email: wizardEmail.trim(),
-                              name: wizardName.trim(),
-                              cancerType: wizardCancerType,
-                              role: wizardRole,
-                            }),
-                          }).catch(err => console.warn('Welcome email failed:', err))
-                        }
-
-                        // Redirect to Records to start AI Case Review
-                        router.push('/records')
+                            role: wizardRole,
+                          }),
+                        }).catch(err => console.warn('Welcome email failed:', err))
                       }}
-                      disabled={!wizardCancerType || wizardSaving}
+                      disabled={!wizardCancerType || !wizardEmail.trim() || wizardSaving}
                       className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl transition-all shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 flex items-center justify-center gap-2"
                     >
                       {wizardSaving ? (
                         <>
                           <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          Setting up your toolkit...
+                          Creating your account...
                         </>
                       ) : (
                         <>
@@ -684,7 +726,7 @@ function HomeContent() {
 
                     {/* What happens next */}
                     <div className="text-center text-xs text-slate-400">
-                      You'll be taken to upload your first record for AI analysis
+                      We'll email you a sign-in link to secure your account
                     </div>
                   </div>
                 </div>
