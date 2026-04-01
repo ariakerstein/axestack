@@ -100,11 +100,18 @@ export async function GET(request: Request) {
       .gte('created_at', startDate.toISOString())
 
     const profileCreations = profiles?.length || 0
-    const totalProfiles = await supabase
-      .from('profiles')
-      .select('id', { count: 'exact', head: true })
+    if (profilesError) {
+      console.error('Error fetching profiles in period:', profilesError)
+    }
 
-    const totalProfileCount = totalProfiles.count || 0
+    const { count: totalProfileCount, error: totalProfilesError } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+
+    if (totalProfilesError) {
+      console.error('Error fetching total profiles count:', totalProfilesError)
+    }
+    console.log('Profile stats:', { profileCreations, totalProfileCount })
 
     // Get Combat analyses stats from combat_analyses table
     const { data: combatAnalyses, error: combatError } = await supabase
@@ -197,7 +204,7 @@ export async function GET(request: Request) {
         checklistViews,
         trialsSearches,
         profileCreations,
-        totalProfiles: totalProfileCount,
+        totalProfiles: totalProfileCount || 0,
         // Records engagement (among active uploaders only)
         avgRecordsPerUser: parseFloat(avgRecordsPerUser),     // logged-in users only
         avgRecordsPerSession: parseFloat(avgRecordsPerSession), // all uploaders (incl anonymous)
