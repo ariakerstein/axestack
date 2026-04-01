@@ -2,17 +2,28 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { User, Session } from '@supabase/supabase-js'
-import { supabase, getSessionId } from './supabase'
+import { supabase, getSessionId, saveProfile, getProfileByEmail, OpenCancerProfile } from './supabase'
+
+// Profile structure matching localStorage format
+interface LocalProfile {
+  name: string
+  role: 'patient' | 'caregiver'
+  cancerType: string
+  stage?: string
+  location?: string
+}
 
 interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
+  profile: OpenCancerProfile | null
   signInWithGoogle: () => Promise<void>
   signInWithEmail: (email: string, password: string) => Promise<{ error: string | null }>
   signUpWithEmail: (email: string, password: string) => Promise<{ error: string | null }>
   signOut: () => Promise<void>
   isAnonymous: boolean
+  refreshProfile: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -20,19 +31,71 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
+  const [profile, setProfile] = useState<OpenCancerProfile | null>(null)
   const [loading, setLoading] = useState(true)
+
+  // Load profile from Supabase for authenticated user
+  const loadProfile = async (email: string) => {
+    const supabaseProfile = await getProfileByEmail(email)
+    setProfile(supabaseProfile)
+    return supabaseProfile
+  }
+
+  // Sync localStorage profile to Supabase
+  const syncProfileToSupabase = async (email: string) => {
+    const localData = localStorage.getItem('patient-profile')
+    if (!localData) return null
+
+    try {
+      const local: LocalProfile = JSON.parse(localData)
+
+      // Save to Supabase (this will update if exists, create if not)
+      const savedProfile = await saveProfile({
+        email,
+        name: local.name,
+        role: local.role,
+        cancerType: local.cancerType,
+        stage: local.stage,
+        location: local.location,
+      })
+
+      if (savedProfile) {
+        setProfile(savedProfile)
+        return savedProfile
+      }
+    } catch (e) {
+      console.error('Error syncing profile:', e)
+    }
+    return null
+  }
+
+  // Refresh profile from Supabase
+  const refreshProfile = async () => {
+    if (user?.email) {
+      await loadProfile(user.email)
+    }
+  }
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
-      setLoading(false)
 
-      // Migrate anonymous decks to user on login
+      // Load profile and migrate data for logged in users
       if (session?.user) {
         migrateSessionDecks(session.user.id)
+
+        // First try to load existing Supabase profile
+        const existingProfile = await loadProfile(session.user.email!)
+
+        // If no Supabase profile exists, sync from localStorage
+        if (!existingProfile) {
+          await syncProfileToSupabase(session.user.email!)
+        }
       }
+
+      setLoading(false)
     })
 
     // Listen for auth changes
@@ -41,9 +104,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session)
         setUser(session?.user ?? null)
 
-        // Migrate decks when user signs in
+        // On sign in, migrate data and sync profile
         if (event === 'SIGNED_IN' && session?.user) {
           await migrateSessionDecks(session.user.id)
+
+          // Sync localStorage profile to Supabase
+          const existingProfile = await loadProfile(session.user.email!)
+          if (!existingProfile) {
+            await syncProfileToSupabase(session.user.email!)
+          }
+        }
+
+        // On sign out, clear profile
+        if (event === 'SIGNED_OUT') {
+          setProfile(null)
         }
       }
     )
@@ -76,7 +150,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/editor`,
+        redirectTo: `${window.location.origin}/records`,
       },
     })
     if (error) console.error('Google sign in error:', error)
@@ -108,7 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/editor`,
+          emailRedirectTo: `${window.location.origin}/records`,
         },
       })
       if (error) {
@@ -136,11 +210,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         session,
         loading,
+        profile,
         signInWithGoogle,
         signInWithEmail,
         signUpWithEmail,
         signOut,
         isAnonymous: !user,
+        refreshProfile,
       }}
     >
       {children}

@@ -3,12 +3,15 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAnalytics } from '@/hooks/useAnalytics'
 
 export default function HubPage() {
   const router = useRouter()
   const [step, setStep] = useState<'intro' | 'create'>('intro')
   const [patientName, setPatientName] = useState('')
   const [creating, setCreating] = useState(false)
+
+  const { trackEvent } = useAnalytics()
 
   const handleCreate = async () => {
     if (!patientName.trim()) return
@@ -36,6 +39,12 @@ export default function HubPage() {
     const existingHubs = JSON.parse(localStorage.getItem('careCircleHubs') || '[]')
     existingHubs.push(hub)
     localStorage.setItem('careCircleHubs', JSON.stringify(existingHubs))
+
+    // Track hub creation
+    trackEvent('hub_created', {
+      hub_slug: slug,
+      total_hubs: existingHubs.length,
+    })
 
     // Navigate to the new hub
     router.push(`/hub/${slug}`)
@@ -224,16 +233,6 @@ export default function HubPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 py-8 px-8 bg-white">
-        <div className="max-w-4xl mx-auto flex justify-between items-center text-sm text-slate-500">
-          <Link href="/" className="hover:text-slate-900 transition-colors">← Patient Tools</Link>
-          <div className="flex gap-6">
-            <Link href="/cancer-checklist" className="hover:text-slate-900 transition-colors">Checklist</Link>
-            <Link href="/about" className="hover:text-slate-900 transition-colors">About</Link>
-          </div>
-        </div>
-      </footer>
     </main>
   )
 }

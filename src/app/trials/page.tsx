@@ -3,6 +3,10 @@
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { CANCER_TYPES } from '@/lib/cancer-data'
+import { useAnalytics } from '@/hooks/useAnalytics'
+import { ShareButton } from '@/components/ShareButton'
+import { useAuth } from '@/lib/auth'
+import { X, ExternalLink, MapPin, Building2, FlaskConical, CheckCircle2 } from 'lucide-react'
 
 interface PatientProfile {
   cancerType: string
@@ -25,20 +29,36 @@ interface Trial {
 }
 
 export default function TrialsPage() {
+  const { user, profile: authProfile, loading: authLoading } = useAuth()
   const [profile, setProfile] = useState<PatientProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [trials, setTrials] = useState<Trial[]>([])
   const [searching, setSearching] = useState(false)
   const [searched, setSearched] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [selectedTrial, setSelectedTrial] = useState<Trial | null>(null)
+
+  const { trackEvent } = useAnalytics()
 
   useEffect(() => {
-    const saved = localStorage.getItem('patient-profile')
-    if (saved) {
-      setProfile(JSON.parse(saved))
+    if (authLoading) return
+
+    // Use Supabase profile for authenticated users
+    if (user && authProfile) {
+      setProfile({
+        cancerType: authProfile.cancer_type,
+        stage: authProfile.stage || undefined,
+        location: authProfile.location || undefined,
+      })
+    } else {
+      // Fall back to localStorage for anonymous users
+      const saved = localStorage.getItem('patient-profile')
+      if (saved) {
+        setProfile(JSON.parse(saved))
+      }
     }
     setLoading(false)
-  }, [])
+  }, [user, authProfile, authLoading])
 
   const searchTrials = async () => {
     if (!profile) return
@@ -65,6 +85,14 @@ export default function TrialsPage() {
       const data = await response.json()
       setTrials(data.trials || [])
       setSearched(true)
+
+      // Track trial search
+      trackEvent('trial_search', {
+        cancer_type: profile.cancerType,
+        stage: profile.stage || null,
+        location: profile.location || null,
+        results_count: data.trials?.length || 0,
+      })
     } catch (err) {
       console.error('Trial search error:', err)
       setError('Unable to search trials. Please try again.')
@@ -88,18 +116,42 @@ export default function TrialsPage() {
 
   return (
     <main className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="border-b border-slate-200 bg-white sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="text-slate-500 hover:text-slate-900 text-sm flex items-center gap-1">
-            ← Home
+      {/* Header - consistent with Navbar pattern */}
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+          {/* Left side - brand */}
+          <Link href="/" className="flex items-center gap-1.5">
+            <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">
+              opencancer
+            </span>
+            <span className="text-lg font-bold text-slate-400">.ai</span>
           </Link>
-          <Link href="/" className="flex items-center gap-2">
-            <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">opencancer.ai</span>
-            <span className="text-slate-400 text-sm">/</span>
-            <span className="font-medium text-slate-700">Trials</span>
-          </Link>
-          <div className="w-20" />
+
+          {/* Center - nav links (hidden on mobile) */}
+          <nav className="hidden sm:flex items-center gap-4 text-sm">
+            <Link href="/records" className="text-slate-600 hover:text-violet-600 transition-colors">
+              Records
+            </Link>
+            <Link href="/ask" className="text-slate-600 hover:text-violet-600 transition-colors">
+              Ask AI
+            </Link>
+            <span className="text-violet-600 font-medium">Trials</span>
+          </nav>
+
+          {/* Right side */}
+          <div className="flex items-center gap-3">
+            {profile && (
+              <span className="hidden sm:inline text-xs bg-violet-100 text-violet-700 px-2 py-1 rounded-full">
+                {CANCER_TYPES[profile.cancerType] || profile.cancerType}
+              </span>
+            )}
+            <ShareButton
+              tool="trials"
+              title="Share Clinical Trials"
+              description="Help others find clinical trials"
+              variant="icon"
+            />
+          </div>
         </div>
       </header>
 
@@ -227,14 +279,12 @@ export default function TrialsPage() {
                         <span>•</span>
                         <span>{trial.location}</span>
                       </div>
-                      <a
-                        href={`https://clinicaltrials.gov/study/${trial.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        onClick={() => setSelectedTrial(trial)}
                         className="text-xs text-blue-600 hover:text-blue-800 font-medium"
                       >
                         View Details →
-                      </a>
+                      </button>
                     </div>
 
                     {trial.matchReasons && trial.matchReasons.length > 0 && (
@@ -268,6 +318,138 @@ export default function TrialsPage() {
           </div>
         )}
       </div>
+
+      {/* Trial Details Modal */}
+      {selectedTrial && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedTrial(null)}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-slate-100 flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <h2 className="text-lg font-bold text-slate-900 leading-tight">
+                  {selectedTrial.title}
+                </h2>
+                <p className="text-sm text-slate-500 mt-1">
+                  {selectedTrial.id} • {selectedTrial.sponsor}
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedTrial(null)}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {/* Status & Phase */}
+              <div className="flex flex-wrap gap-2">
+                <span className={`text-sm px-3 py-1 rounded-full font-medium ${
+                  selectedTrial.status === 'RECRUITING'
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-slate-100 text-slate-600'
+                }`}>
+                  {selectedTrial.status}
+                </span>
+                {selectedTrial.phase && (
+                  <span className="text-sm px-3 py-1 rounded-full bg-blue-100 text-blue-700">
+                    <FlaskConical className="w-3.5 h-3.5 inline mr-1" />
+                    {selectedTrial.phase}
+                  </span>
+                )}
+                {selectedTrial.matchScore >= 70 && (
+                  <span className="text-sm px-3 py-1 rounded-full bg-violet-100 text-violet-700">
+                    {selectedTrial.matchScore}% match
+                  </span>
+                )}
+              </div>
+
+              {/* Location */}
+              {selectedTrial.location && (
+                <div className="flex items-start gap-3">
+                  <MapPin className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-slate-700">Location</p>
+                    <p className="text-sm text-slate-600">{selectedTrial.location}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Sponsor */}
+              {selectedTrial.sponsor && (
+                <div className="flex items-start gap-3">
+                  <Building2 className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-slate-700">Sponsor</p>
+                    <p className="text-sm text-slate-600">{selectedTrial.sponsor}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Description */}
+              <div>
+                <p className="text-sm font-medium text-slate-700 mb-2">About This Trial</p>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  {selectedTrial.description}
+                </p>
+              </div>
+
+              {/* Match Reasons */}
+              {selectedTrial.matchReasons && selectedTrial.matchReasons.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium text-slate-700 mb-2">Why This Matches You</p>
+                  <div className="space-y-2">
+                    {selectedTrial.matchReasons.map((reason, idx) => (
+                      <div key={idx} className="flex items-center gap-2 text-sm text-slate-600">
+                        <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        {reason}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Eligibility */}
+              {selectedTrial.eligibility && selectedTrial.eligibility.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium text-slate-700 mb-2">Eligibility Criteria</p>
+                  <ul className="space-y-1">
+                    {selectedTrial.eligibility.map((criteria, idx) => (
+                      <li key={idx} className="text-sm text-slate-600 flex items-start gap-2">
+                        <span className="text-slate-400">•</span>
+                        {criteria}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between gap-4">
+              <p className="text-xs text-slate-500">
+                Data from ClinicalTrials.gov
+              </p>
+              <a
+                href={`https://clinicaltrials.gov/study/${selectedTrial.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                View Official Listing
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }

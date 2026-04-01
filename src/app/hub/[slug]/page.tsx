@@ -301,13 +301,6 @@ export default function HubViewPage() {
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 py-8 px-8 bg-white mt-12">
-        <div className="max-w-2xl mx-auto flex justify-between items-center text-sm text-slate-500">
-          <Link href="/" className="hover:text-slate-900 transition-colors">← Home</Link>
-          <a href="https://axestack.com" className="hover:text-slate-900 transition-colors">axestack</a>
-        </div>
-      </footer>
     </main>
   )
 }

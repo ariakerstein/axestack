@@ -2,11 +2,14 @@
 
 import Link from 'next/link'
 import { useState, useEffect, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { useAnalytics } from '@/hooks/useAnalytics'
+import { useAuth } from '@/lib/auth'
+import { saveProfile } from '@/lib/supabase'
 import {
-  Check, Sparkles, Dna, CheckCircle, ClipboardList, Stethoscope,
+  Check, Dna, CheckCircle, Stethoscope,
   Microscope, BookOpen, FlaskConical, FolderClosed, UserRound,
-  Heart, Users, Ribbon, Notebook, PenLine, Compass, DollarSign
+  Heart, Users, Ribbon, DollarSign, Code, Share2, Copy
 } from 'lucide-react'
 
 // Cancer types for profile display
@@ -69,10 +72,62 @@ function AtomIcon() {
   )
 }
 
+// Rotating cancer demos with medical jargon → plain English
+const CANCER_DEMOS = [
+  {
+    type: 'breast cancer',
+    jargon: 'Invasive ductal carcinoma, pT2N1M0, ER+/PR+/HER2-, Ki-67 18%, margins negative...',
+    plain: 'Stage IIA breast cancer that responds well to hormone therapy. Margins clear. Good prognosis.'
+  },
+  {
+    type: 'lung cancer',
+    jargon: 'NSCLC adenocarcinoma, EGFR exon 19 deletion positive, PD-L1 80%, cT2aN2M0...',
+    plain: 'Stage IIIA lung cancer with a targetable mutation. Eligible for targeted therapy pills.'
+  },
+  {
+    type: 'lymphoma',
+    jargon: 'Follicular lymphoma grade 2, stage III, FLIPI score 3, CD20+, BCL2+...',
+    plain: 'Slow-growing lymphoma. Often watchful waiting. Highly treatable when needed.'
+  },
+  {
+    type: 'colorectal cancer',
+    jargon: 'Moderately differentiated adenocarcinoma, pT3N1bM0, MSI-high, KRAS wild-type...',
+    plain: 'Stage III colon cancer. Good candidate for immunotherapy. Surgery was successful.'
+  },
+  {
+    type: 'prostate cancer',
+    jargon: 'Gleason 7 (3+4), PSA 8.2, pT2cN0M0, perineural invasion present...',
+    plain: 'Intermediate-risk prostate cancer. Confined to prostate. Multiple treatment options.'
+  },
+  {
+    type: 'melanoma',
+    jargon: 'BRAF V600E mutant melanoma, Breslow 2.1mm, Clark level IV, SLN positive...',
+    plain: 'Stage III melanoma with targetable mutation. Eligible for targeted + immunotherapy.'
+  },
+]
+
+function useRotatingDemo() {
+  const [index, setIndex] = useState(0)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % CANCER_DEMOS.length)
+    }, 4000)
+    return () => clearInterval(interval)
+  }, [])
+
+  return CANCER_DEMOS[index]
+}
+
 // Testimonials data
 const TESTIMONIALS = [
   {
-    quote: "These tools found a clinical trial my oncologist hadn't mentioned. I enrolled 2 years ago and I'm still here.",
+    quote: "I uploaded my own case of advanced prostate cancer. The AI analysis was 100% spot-on, even for experimental therapies. This surpasses other AI tools I've tested. I will continue to use and recommend it.",
+    name: "Dr. Paul V., MD",
+    context: "Prostate Cancer Patient",
+  },
+  {
+    quote: "The clinical trials search found options my oncologist hadn't mentioned. Now I have a conversation starter for my next appointment.",
     name: "Michael T.",
     context: "Stage IV Colorectal",
   },
@@ -130,33 +185,53 @@ const FALLBACK_EVENTS: UpcomingEvent[] = [
 
 function HomeContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
+  const { user, profile: authProfile, loading: authLoading, refreshProfile } = useAuth()
+  useAnalytics() // Track page views
+  const currentDemo = useRotatingDemo() // Rotating cancer examples
   const [events, setEvents] = useState<UpcomingEvent[]>(FALLBACK_EVENTS)
   const [profile, setProfile] = useState<PatientProfile | null>(null)
   const [showSuccess, setShowSuccess] = useState(false)
-  const [mode, setMode] = useState<'wizard' | 'explore'>('wizard')
   const [wizardStep, setWizardStep] = useState<number>(1)
   const [showAllTools, setShowAllTools] = useState(false)
+  const [showWizardModal, setShowWizardModal] = useState(false)
 
   // Wizard form state
   const [wizardRole, setWizardRole] = useState<'patient' | 'caregiver' | null>(null)
   const [wizardName, setWizardName] = useState('')
   const [wizardEmail, setWizardEmail] = useState('')
   const [wizardCancerType, setWizardCancerType] = useState('')
-  const [wizardStage, setWizardStage] = useState('')
   const [wizardSaving, setWizardSaving] = useState(false)
 
-  // Load profile and check for success message
+  // Load profile - prefer Supabase for authenticated users
   useEffect(() => {
-    const saved = localStorage.getItem('patient-profile')
-    if (saved) {
-      setProfile(JSON.parse(saved))
+    if (authLoading) return
+
+    // Use Supabase profile for authenticated users
+    if (user && authProfile) {
+      setProfile({
+        role: authProfile.role,
+        name: authProfile.name,
+        email: authProfile.email,
+        cancerType: authProfile.cancer_type,
+        stage: authProfile.stage || undefined,
+        location: authProfile.location || undefined,
+      })
+    } else {
+      // Fall back to localStorage for anonymous users
+      const saved = localStorage.getItem('patient-profile')
+      if (saved) {
+        setProfile(JSON.parse(saved))
+      }
     }
+
+    // Check for success message
     if (searchParams.get('profile') === 'saved') {
       setShowSuccess(true)
       window.history.replaceState({}, '', '/')
       setTimeout(() => setShowSuccess(false), 4000)
     }
-  }, [searchParams])
+  }, [user, authProfile, authLoading, searchParams])
 
   // Fetch events from Circle API
   useEffect(() => {
@@ -201,7 +276,7 @@ function HomeContent() {
       )}
 
       {/* Hero */}
-      <section className="relative flex flex-col items-center justify-center px-8 pt-24 pb-16 overflow-hidden">
+      <section className="relative flex flex-col items-center justify-center px-8 pt-16 pb-8 overflow-hidden">
         {/* Background grid */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-violet-400/20 rounded-full blur-3xl" />
@@ -224,28 +299,32 @@ function HomeContent() {
                 </span>
               </h1>
 
-              {/* Role badge */}
-              <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium mb-4 ${
-                profile.role === 'caregiver'
-                  ? 'bg-purple-100 text-purple-700'
-                  : 'bg-violet-100 text-violet-700'
-              }`}>
-                <span className="flex items-center gap-1.5">
-                  {profile.role === 'caregiver' ? <><Heart className="w-4 h-4" /> Caregiver</> : <><Ribbon className="w-4 h-4" /> Patient</>}
-                </span>
-              </span>
-
-              <p className="text-2xl md:text-3xl font-semibold text-slate-700 mb-2">
+              <p className="text-2xl md:text-3xl font-semibold text-slate-700 mb-3">
                 Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">{profile.name.split(' ')[0]}</span>
               </p>
-              <p className="text-lg text-slate-600 mb-3">
-                {CANCER_TYPES[profile.cancerType] || profile.cancerType}
-                {profile.stage && ` • Stage ${profile.stage}`}
-              </p>
-              <Link href="/profile" className="inline-flex items-center gap-2 text-sm bg-white border border-violet-200 text-violet-600 hover:bg-violet-50 px-4 py-2 rounded-lg transition-colors">
-                <span>Edit {profile.name.split(' ')[0]}'s profile</span>
-                <span>→</span>
-              </Link>
+
+              {/* Personalization row - all in one clean line */}
+              <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${
+                  profile.role === 'caregiver'
+                    ? 'bg-purple-100 text-purple-700'
+                    : 'bg-violet-100 text-violet-700'
+                }`}>
+                  {profile.role === 'caregiver' ? <><Heart className="w-3.5 h-3.5" /> Caregiver</> : <><Ribbon className="w-3.5 h-3.5" /> Patient</>}
+                </span>
+                <span className="text-slate-300">·</span>
+                <span className="text-slate-700 font-medium">{CANCER_TYPES[profile.cancerType] || profile.cancerType}</span>
+                {profile.stage && (
+                  <>
+                    <span className="text-slate-300">·</span>
+                    <span className="text-slate-600">Stage {profile.stage}</span>
+                  </>
+                )}
+                <span className="text-slate-300">·</span>
+                <Link href="/profile" className="text-violet-600 hover:text-violet-700 text-sm font-medium">
+                  Edit
+                </Link>
+              </div>
             </>
           ) : (
             <>
@@ -271,269 +350,403 @@ function HomeContent() {
                 In 2018, I was diagnosed with cancer as a new dad. The medical system gave me data. What I needed was clarity. These tools exist because patients deserve better. Navigate your cancer with clarity.
               </p>
 
-              {/* Dual-path entry */}
-              <div className="grid sm:grid-cols-2 gap-4 max-w-xl mx-auto">
-                <button
-                  onClick={() => { setMode('wizard'); setWizardStep(1); setWizardRole(null); }}
-                  className={`group rounded-2xl p-5 text-left transition-all ${
-                    mode === 'wizard'
-                      ? 'bg-gradient-to-br from-violet-50 to-fuchsia-50 border-2 border-violet-400 shadow-lg'
-                      : 'bg-white border-2 border-slate-200 hover:border-violet-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="flex-shrink-0">
-                      <AtomIcon />
-                    </div>
-                    <span className={`font-semibold ${mode === 'wizard' ? 'text-violet-700' : 'text-slate-900'}`}>Help me get started</span>
-                  </div>
-                  <p className="text-slate-500 text-sm">AI-powered personalized recommendations</p>
-                </button>
-
-                <button
-                  onClick={() => setMode('explore')}
-                  className={`group rounded-2xl p-5 text-left transition-all ${
-                    mode === 'explore'
-                      ? 'bg-white border-2 border-slate-400 shadow-lg'
-                      : 'bg-white border-2 border-slate-200 hover:border-slate-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <Compass className="w-6 h-6 text-slate-500" />
-                    <span className={`font-semibold ${mode === 'explore' ? 'text-slate-900' : 'text-slate-700'}`}>I'll explore on my own</span>
-                  </div>
-                  <p className="text-slate-500 text-sm">Browse all tools and resources</p>
-                </button>
-              </div>
             </>
           )}
         </div>
       </section>
 
-      {/* Wizard Section - shows when mode is 'wizard' and no profile */}
-      {!profile && mode === 'wizard' && (
-        <section className="px-8 pb-8 max-w-xl mx-auto">
-          <div className="bg-gradient-to-br from-violet-50 to-fuchsia-50 border border-violet-200 rounded-2xl p-6">
-            {/* Progress indicator */}
-            <div className="flex items-center gap-2 mb-6">
-              {[1, 2, 3, 4].map((step) => (
-                <div key={step} className="flex items-center">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                    wizardStep >= step
-                      ? 'bg-violet-600 text-white'
-                      : 'bg-slate-200 text-slate-500'
-                  }`}>
-                    {step}
-                  </div>
-                  {step < 4 && (
-                    <div className={`w-8 h-0.5 ${wizardStep > step ? 'bg-violet-600' : 'bg-slate-200'}`} />
-                  )}
+      {/* Value Demo - Clean and focused */}
+      {!profile && (
+        <section className="px-8 pb-10 -mt-2">
+          <div className="max-w-2xl mx-auto">
+            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+              {/* Cancer type indicator */}
+              <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500 px-4 py-2 flex items-center justify-center gap-2">
+                <span className="text-white/80 text-xs font-medium">Now showing:</span>
+                <span
+                  key={currentDemo.type}
+                  className="text-white font-semibold text-sm capitalize animate-pulse"
+                  style={{ animation: 'fadeInUp 0.5s ease-out' }}
+                >
+                  {currentDemo.type}
+                </span>
+              </div>
+              {/* Before/After */}
+              <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-200">
+                {/* Before */}
+                <div className="p-5 bg-slate-50 relative overflow-hidden">
+                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Your records say</p>
+                  <p
+                    key={`jargon-${currentDemo.type}`}
+                    className="text-sm text-slate-500 font-mono leading-relaxed transition-opacity duration-500"
+                    style={{ animation: 'fadeIn 0.5s ease-out' }}
+                  >
+                    "{currentDemo.jargon}"
+                  </p>
                 </div>
-              ))}
+                {/* After */}
+                <div className="p-5 relative overflow-hidden">
+                  <p className="text-xs font-medium text-violet-600 uppercase tracking-wider mb-2">We translate to</p>
+                  <p
+                    key={`plain-${currentDemo.type}`}
+                    className="text-sm text-slate-700 leading-relaxed transition-opacity duration-500"
+                    style={{ animation: 'fadeIn 0.5s ease-out' }}
+                  >
+                    {currentDemo.plain}
+                  </p>
+                </div>
+              </div>
+              {/* CTA + Social proof */}
+              <div className="border-t border-slate-100 p-4 bg-gradient-to-r from-violet-50/50 to-transparent">
+                <div className="flex items-center justify-between gap-4">
+                  <Link href="/about" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                    <img src="/ari.png" alt="Ari" className="w-8 h-8 rounded-full object-cover" />
+                    <p className="text-xs text-slate-500"><span className="font-medium text-slate-700">Built by a cancer survivor</span></p>
+                  </Link>
+                  <button
+                    onClick={() => { setShowWizardModal(true); setWizardStep(1); setWizardRole(null); }}
+                    className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold text-sm px-5 py-2.5 rounded-lg transition-all shadow-lg shadow-orange-500/25 hover:shadow-xl"
+                  >
+                    Get Started Free →
+                  </button>
+                </div>
+                <p className="text-xs text-slate-500 mt-2 text-center">
+                  Works for 200+ cancer types
+                </p>
+              </div>
             </div>
-
-            {/* Step 1: Role */}
-            {wizardStep === 1 && (
-              <div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-4">Are you a patient or caregiver?</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => { setWizardRole('patient'); setWizardStep(2); }}
-                    className="bg-white border border-slate-200 rounded-xl p-4 hover:border-violet-400 hover:shadow-md transition-all text-left"
-                  >
-                    <Ribbon className="w-8 h-8 text-violet-500 mb-2" />
-                    <span className="font-medium text-slate-900 block">I'm a patient</span>
-                    <span className="text-sm text-slate-500">Navigating my own diagnosis</span>
-                  </button>
-                  <button
-                    onClick={() => { setWizardRole('caregiver'); setWizardStep(2); }}
-                    className="bg-white border border-slate-200 rounded-xl p-4 hover:border-violet-400 hover:shadow-md transition-all text-left"
-                  >
-                    <Heart className="w-8 h-8 text-pink-500 mb-2" />
-                    <span className="font-medium text-slate-900 block">I'm a caregiver</span>
-                    <span className="text-sm text-slate-500">Supporting a loved one</span>
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Step 2: Name & Email */}
-            {wizardStep === 2 && (
-              <div>
-                <button onClick={() => setWizardStep(1)} className="text-slate-400 hover:text-slate-600 text-sm mb-4 flex items-center gap-1">
-                  ← Back
-                </button>
-                <h3 className="text-lg font-semibold text-slate-900 mb-4">
-                  {wizardRole === 'caregiver' ? "Tell us about you and who you're caring for" : "Tell us about yourself"}
-                </h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      {wizardRole === 'caregiver' ? "Patient's name" : "Your name"}
-                    </label>
-                    <input
-                      type="text"
-                      value={wizardName}
-                      onChange={(e) => setWizardName(e.target.value)}
-                      placeholder="First name"
-                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Your email</label>
-                    <input
-                      type="email"
-                      value={wizardEmail}
-                      onChange={(e) => setWizardEmail(e.target.value)}
-                      placeholder="you@example.com"
-                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-                    />
-                  </div>
-                  <button
-                    onClick={() => wizardName.trim() && setWizardStep(3)}
-                    disabled={!wizardName.trim()}
-                    className="w-full bg-violet-600 hover:bg-violet-700 disabled:bg-slate-300 text-white font-medium py-3 rounded-lg transition-colors"
-                  >
-                    Continue
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Step 3: Cancer Type */}
-            {wizardStep === 3 && (
-              <div>
-                <button onClick={() => setWizardStep(2)} className="text-slate-400 hover:text-slate-600 text-sm mb-4 flex items-center gap-1">
-                  ← Back
-                </button>
-                <h3 className="text-lg font-semibold text-slate-900 mb-4">What type of cancer?</h3>
-                <div className="space-y-4">
-                  <select
-                    value={wizardCancerType}
-                    onChange={(e) => setWizardCancerType(e.target.value)}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-                  >
-                    <option value="">Select cancer type...</option>
-                    {Object.entries(CANCER_TYPES).map(([key, label]) => (
-                      <option key={key} value={key}>{label}</option>
-                    ))}
-                  </select>
-                  <button
-                    onClick={() => wizardCancerType && setWizardStep(4)}
-                    disabled={!wizardCancerType}
-                    className="w-full bg-violet-600 hover:bg-violet-700 disabled:bg-slate-300 text-white font-medium py-3 rounded-lg transition-colors"
-                  >
-                    Continue
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Step 4: Stage (optional) & Save */}
-            {wizardStep === 4 && (
-              <div>
-                <button onClick={() => setWizardStep(3)} className="text-slate-400 hover:text-slate-600 text-sm mb-4 flex items-center gap-1">
-                  ← Back
-                </button>
-                <h3 className="text-lg font-semibold text-slate-900 mb-4">Almost done!</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Stage (optional)</label>
-                    <select
-                      value={wizardStage}
-                      onChange={(e) => setWizardStage(e.target.value)}
-                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-                    >
-                      <option value="">Select stage...</option>
-                      <option value="0">Stage 0</option>
-                      <option value="I">Stage I</option>
-                      <option value="II">Stage II</option>
-                      <option value="III">Stage III</option>
-                      <option value="IV">Stage IV</option>
-                      <option value="unknown">Unknown / Not staged</option>
-                    </select>
-                  </div>
-
-                  {/* Summary */}
-                  <div className="bg-white rounded-lg p-4 border border-slate-200">
-                    <p className="text-sm text-slate-500 mb-2">Profile summary:</p>
-                    <p className="font-medium text-slate-900">{wizardName}</p>
-                    <p className="text-slate-600 text-sm">
-                      {CANCER_TYPES[wizardCancerType]}
-                      {wizardStage && ` • Stage ${wizardStage}`}
-                    </p>
-                    <p className="text-slate-500 text-xs mt-1">{wizardRole === 'caregiver' ? 'Caregiver' : 'Patient'}</p>
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      setWizardSaving(true)
-                      const newProfile: PatientProfile = {
-                        role: wizardRole!,
-                        name: wizardName.trim(),
-                        email: wizardEmail.trim(),
-                        cancerType: wizardCancerType,
-                        stage: wizardStage || undefined,
-                      }
-                      localStorage.setItem('patient-profile', JSON.stringify(newProfile))
-                      setProfile(newProfile)
-                      setShowSuccess(true)
-                      setTimeout(() => setShowSuccess(false), 4000)
-                      setWizardSaving(false)
-                    }}
-                    disabled={wizardSaving}
-                    className="w-full bg-violet-600 hover:bg-violet-700 disabled:bg-slate-400 text-white font-medium py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
-                  >
-                    {wizardSaving ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Check className="w-5 h-5" />
-                        Save & Get Started
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Skip option */}
-            <p className="text-sm text-slate-500 mt-4 text-center">
-              <button onClick={() => setMode('explore')} className="text-violet-600 hover:text-violet-700 font-medium">
-                Skip for now →
-              </button>
-            </p>
           </div>
         </section>
       )}
 
-      {/* Patient Tools Grid - shows when mode is 'explore' or user has profile */}
-      <section className={`py-16 px-8 bg-slate-50 ${!profile && mode === 'wizard' ? 'hidden' : ''}`}>
+      {/* Wizard Modal */}
+      {showWizardModal && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setShowWizardModal(false)}
+          />
+
+          {/* Modal */}
+          <div className="relative w-full max-w-xl mx-4 mb-0 sm:mb-0 bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom duration-300">
+            {/* Close button */}
+            <button
+              onClick={() => setShowWizardModal(false)}
+              className="absolute top-4 right-4 z-10 text-slate-400 hover:text-slate-600 p-1"
+            >
+              <span className="sr-only">Close</span>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Header with value prop - always visible */}
+            <div className="bg-gradient-to-r from-violet-600 to-fuchsia-600 px-6 py-5 text-white text-center">
+              <p className="text-violet-200 text-sm font-medium mb-1">⚡ Takes 60 seconds</p>
+              <h2 className="text-xl font-bold">Get Your Personalized Cancer Toolkit</h2>
+              <p className="text-violet-100 text-sm mt-1">AI-powered insights tailored to your diagnosis</p>
+            </div>
+
+            <div className="p-6 sm:p-8">
+              {/* Progress indicator */}
+              <div className="flex items-center justify-center gap-2 mb-6">
+                {[1, 2, 3].map((step) => (
+                  <div key={step} className="flex items-center">
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
+                      wizardStep >= step
+                        ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/30'
+                        : 'bg-slate-100 text-slate-400'
+                    }`}>
+                      {wizardStep > step ? <Check className="w-5 h-5" /> : step}
+                    </div>
+                    {step < 3 && (
+                      <div className={`w-12 h-1 rounded ${wizardStep > step ? 'bg-violet-600' : 'bg-slate-200'}`} />
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Step 1: Role */}
+              {wizardStep === 1 && (
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2 text-center">Who are you?</h3>
+                  <p className="text-slate-500 text-sm text-center mb-6">We'll personalize your experience</p>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <button
+                      onClick={() => { setWizardRole('patient'); setWizardStep(2); }}
+                      className="group bg-gradient-to-br from-violet-50 to-white border-2 border-slate-200 rounded-2xl p-6 hover:border-violet-400 hover:shadow-xl hover:scale-[1.02] transition-all text-center"
+                    >
+                      <div className="w-16 h-16 bg-violet-100 group-hover:bg-violet-200 rounded-2xl flex items-center justify-center mx-auto mb-3 transition-colors">
+                        <Ribbon className="w-9 h-9 text-violet-600" />
+                      </div>
+                      <span className="font-bold text-slate-900 text-lg block">I'm a Patient</span>
+                      <span className="text-sm text-slate-500 mt-1 block">Navigating my own diagnosis</span>
+                    </button>
+                    <button
+                      onClick={() => { setWizardRole('caregiver'); setWizardStep(2); }}
+                      className="group bg-gradient-to-br from-pink-50 to-white border-2 border-slate-200 rounded-2xl p-6 hover:border-pink-400 hover:shadow-xl hover:scale-[1.02] transition-all text-center"
+                    >
+                      <div className="w-16 h-16 bg-pink-100 group-hover:bg-pink-200 rounded-2xl flex items-center justify-center mx-auto mb-3 transition-colors">
+                        <Heart className="w-9 h-9 text-pink-600" />
+                      </div>
+                      <span className="font-bold text-slate-900 text-lg block">I'm a Caregiver</span>
+                      <span className="text-sm text-slate-500 mt-1 block">Supporting a loved one</span>
+                    </button>
+                  </div>
+
+                  {/* What you'll unlock */}
+                  <div className="mt-8 pt-6 border-t border-slate-100">
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3 text-center">What you'll unlock</p>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="text-center">
+                        <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center mx-auto mb-1.5">
+                          <Dna className="w-5 h-5 text-emerald-600" />
+                        </div>
+                        <p className="text-xs font-medium text-slate-700">AI Case Review</p>
+                      </div>
+                      <div className="text-center">
+                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-1.5">
+                          <CheckCircle className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <p className="text-xs font-medium text-slate-700">Care Checklist</p>
+                      </div>
+                      <div className="text-center">
+                        <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-1.5">
+                          <Microscope className="w-5 h-5 text-orange-600" />
+                        </div>
+                        <p className="text-xs font-medium text-slate-700">Clinical Trials</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Social proof */}
+                  <div className="mt-6 flex items-center justify-center gap-2 text-sm text-slate-500">
+                    <div className="flex -space-x-2">
+                      <div className="w-6 h-6 rounded-full bg-violet-200 ring-2 ring-white" />
+                      <div className="w-6 h-6 rounded-full bg-pink-200 ring-2 ring-white" />
+                      <div className="w-6 h-6 rounded-full bg-blue-200 ring-2 ring-white" />
+                    </div>
+                    <span>Join <span className="font-semibold text-slate-700">2,400+</span> patients & caregivers</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 2: Name & Email */}
+              {wizardStep === 2 && (
+                <div>
+                  <button onClick={() => setWizardStep(1)} className="text-slate-400 hover:text-slate-600 text-sm mb-4 flex items-center gap-1">
+                    ← Back
+                  </button>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">
+                    {wizardRole === 'caregiver' ? "Tell us about your loved one" : "Tell us about yourself"}
+                  </h3>
+                  <p className="text-slate-500 text-sm mb-6">So we can personalize your tools</p>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                        {wizardRole === 'caregiver' ? "Patient's first name" : "Your first name"}
+                      </label>
+                      <input
+                        type="text"
+                        value={wizardName}
+                        onChange={(e) => setWizardName(e.target.value)}
+                        placeholder="First name"
+                        autoFocus
+                        className="w-full px-4 py-3.5 bg-slate-50 text-slate-900 placeholder:text-slate-400 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent focus:bg-white transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">Your email <span className="text-slate-400 font-normal">(for your toolkit)</span></label>
+                      <input
+                        type="email"
+                        value={wizardEmail}
+                        onChange={(e) => setWizardEmail(e.target.value)}
+                        placeholder="you@example.com"
+                        className="w-full px-4 py-3.5 bg-slate-50 text-slate-900 placeholder:text-slate-400 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent focus:bg-white transition-colors"
+                      />
+                    </div>
+                    <button
+                      onClick={() => wizardName.trim() && setWizardStep(3)}
+                      disabled={!wizardName.trim()}
+                      className="w-full bg-violet-600 hover:bg-violet-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold py-3.5 rounded-xl transition-colors shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40"
+                    >
+                      Continue →
+                    </button>
+                    {/* Privacy notice */}
+                    <p className="text-xs text-slate-400 text-center">
+                      🔒 Your data stays on your device. Never shared or sold.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3: Cancer Type & Save */}
+              {wizardStep === 3 && (
+                <div>
+                  <button onClick={() => setWizardStep(2)} className="text-slate-400 hover:text-slate-600 text-sm mb-4 flex items-center gap-1">
+                    ← Back
+                  </button>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">What type of cancer?</h3>
+                  <p className="text-slate-500 text-sm mb-6">We'll customize your NCCN guidelines & resources</p>
+                  <div className="space-y-4">
+                    <select
+                      value={wizardCancerType}
+                      onChange={(e) => setWizardCancerType(e.target.value)}
+                      className="w-full px-4 py-3.5 bg-slate-50 text-slate-900 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent focus:bg-white transition-colors"
+                    >
+                      <option value="">Select cancer type...</option>
+                      {Object.entries(CANCER_TYPES).map(([key, label]) => (
+                        <option key={key} value={key}>{label}</option>
+                      ))}
+                    </select>
+
+                    {/* Summary */}
+                    {wizardCancerType && (
+                      <div className="bg-gradient-to-br from-violet-50 to-fuchsia-50 rounded-xl p-4 border border-violet-100">
+                        <p className="text-xs font-semibold text-violet-600 uppercase tracking-wide mb-2">Your Profile</p>
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
+                            {wizardRole === 'caregiver' ? <Heart className="w-6 h-6 text-pink-500" /> : <Ribbon className="w-6 h-6 text-violet-500" />}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-slate-900">{wizardName}</p>
+                            <p className="text-slate-600 text-sm">{CANCER_TYPES[wizardCancerType]}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <button
+                      onClick={async () => {
+                        if (!wizardCancerType) return
+                        setWizardSaving(true)
+                        const newProfile: PatientProfile = {
+                          role: wizardRole!,
+                          name: wizardName.trim(),
+                          email: wizardEmail.trim(),
+                          cancerType: wizardCancerType,
+                        }
+                        // Save to localStorage for offline access
+                        localStorage.setItem('patient-profile', JSON.stringify(newProfile))
+                        setProfile(newProfile)
+
+                        // Save to Supabase (non-blocking - don't let it hang the UI)
+                        if (wizardEmail.trim()) {
+                          saveProfile({
+                            email: wizardEmail.trim(),
+                            name: wizardName.trim(),
+                            role: wizardRole!,
+                            cancerType: wizardCancerType,
+                          }).catch(err => console.warn('Profile sync failed:', err))
+                        }
+
+                        // Refresh auth context if logged in (non-blocking)
+                        if (user) {
+                          refreshProfile().catch(err => console.warn('Profile refresh failed:', err))
+                        }
+
+                        setShowWizardModal(false)
+                        setWizardSaving(false)
+
+                        // Send welcome email if email provided (non-blocking)
+                        if (wizardEmail.trim()) {
+                          fetch('/api/email/welcome', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              email: wizardEmail.trim(),
+                              name: wizardName.trim(),
+                              cancerType: wizardCancerType,
+                              role: wizardRole,
+                            }),
+                          }).catch(err => console.warn('Welcome email failed:', err))
+                        }
+
+                        // Redirect to Records to start AI Case Review
+                        router.push('/records')
+                      }}
+                      disabled={!wizardCancerType || wizardSaving}
+                      className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl transition-all shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 flex items-center justify-center gap-2"
+                    >
+                      {wizardSaving ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Setting up your toolkit...
+                        </>
+                      ) : (
+                        <>
+                          🚀 Launch My Toolkit
+                        </>
+                      )}
+                    </button>
+
+                    {/* What happens next */}
+                    <div className="text-center text-xs text-slate-400">
+                      You'll be taken to upload your first record for AI analysis
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Patient Tools Grid */}
+      <section className="py-10 px-8 bg-slate-50">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-center mb-2 text-slate-900">Patient Tools</h2>
-          <p className="text-slate-500 text-center mb-8 text-sm">AI-powered navigation for your cancer journey</p>
+          {profile ? (
+            <>
+              <h2 className="text-2xl font-bold text-center mb-2 text-slate-900">
+                Recommended for You
+              </h2>
+              <p className="text-slate-500 text-center mb-6 text-sm">
+                Tools tailored for {CANCER_TYPES[profile.cancerType] || 'your journey'}
+              </p>
+            </>
+          ) : (
+            <>
+              <h2 className="text-2xl font-bold text-center mb-2 text-slate-900">Patient Tools</h2>
+              <p className="text-slate-500 text-center mb-6 text-sm">AI-powered navigation for your cancer journey</p>
+            </>
+          )}
 
           {/* Core Tools - Always visible */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-            {/* AI Second Opinion - Featured */}
-            <a href="https://navis.health" target="_blank" rel="noopener noreferrer" className="group bg-gradient-to-br from-violet-100 to-fuchsia-50 border-2 border-violet-300 rounded-xl p-5 hover:border-violet-500 hover:shadow-lg transition-all">
+            {/* AI Case Review - Featured */}
+            <Link href="/records" className="group bg-gradient-to-br from-violet-100 to-fuchsia-50 border-2 border-violet-300 rounded-xl p-5 hover:border-violet-500 hover:shadow-lg transition-all relative">
+              <span className="absolute -top-2 -right-2 bg-gradient-to-r from-amber-400 to-orange-400 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md">
+                Most Popular
+              </span>
               <div className="flex items-center gap-2 mb-2">
                 <Dna className="w-6 h-6 text-violet-600" />
                 <h3 className="font-bold text-slate-900 group-hover:text-violet-700">AI Case Review</h3>
               </div>
-              <p className="text-slate-600 text-sm">Upload your records. Get a complete second opinion.</p>
-            </a>
+              <p className="text-slate-600 text-sm">Upload your records. Get a complete second opinion based on NCCN guidelines.</p>
+            </Link>
 
-            <Link href="/cancer-checklist" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-violet-400 hover:shadow-md transition-all">
+            <Link href="/cancer-checklist" className="group bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-5 hover:border-blue-500 hover:shadow-lg transition-all relative">
+              <span className="absolute -top-2 -right-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md">
+                Prep Tool
+              </span>
               <div className="flex items-center gap-2 mb-2">
-                <CheckCircle className="w-6 h-6 text-violet-500" />
-                <h3 className="font-bold text-slate-900 group-hover:text-violet-600">Cancer Checklist</h3>
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">NCCN</span>
+                <CheckCircle className="w-6 h-6 text-blue-600" />
+                <h3 className="font-bold text-slate-900 group-hover:text-blue-700">Appointment Prep</h3>
               </div>
-              <p className="text-slate-600 text-sm">Test recommendations + questions for your oncologist.</p>
+              <p className="text-slate-600 text-sm">Questions to ask + scripts for your oncologist visit.</p>
+            </Link>
+
+            <Link href="/combat" className="group bg-gradient-to-br from-orange-50 to-red-50 border-2 border-orange-300 rounded-xl p-5 hover:border-orange-500 hover:shadow-lg transition-all relative">
+              <span className="absolute -top-2 -right-2 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md">
+                NEW
+              </span>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-2xl">⚔</span>
+                <h3 className="font-bold text-slate-900 group-hover:text-orange-600">CancerCombat</h3>
+              </div>
+              <p className="text-slate-600 text-sm">3 AI perspectives debate your diagnosis & treatment options.</p>
             </Link>
 
             <Link href="/records" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-emerald-400 hover:shadow-md transition-all">
@@ -541,7 +754,7 @@ function HomeContent() {
                 <FolderClosed className="w-6 h-6 text-emerald-500" />
                 <h3 className="font-bold text-slate-900 group-hover:text-emerald-600">Records Vault</h3>
               </div>
-              <p className="text-slate-600 text-sm">Collect, store, and translate your medical records.</p>
+              <p className="text-slate-600 text-sm">Translate confusing medical reports to plain English.</p>
             </Link>
 
             <Link href="/ask" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-fuchsia-400 hover:shadow-md transition-all">
@@ -549,7 +762,7 @@ function HomeContent() {
                 <AtomIcon />
                 <h3 className="font-bold text-slate-900 group-hover:text-fuchsia-600">Ask AI</h3>
               </div>
-              <p className="text-slate-600 text-sm">Quick questions about treatments, tests, or side effects.</p>
+              <p className="text-slate-600 text-sm">Questions about treatments, tests, or side effects.</p>
             </Link>
 
             <Link href="/trials" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-400 hover:shadow-md transition-all">
@@ -557,7 +770,8 @@ function HomeContent() {
                 <Microscope className="w-6 h-6 text-blue-500" />
                 <h3 className="font-bold text-slate-900 group-hover:text-blue-600">Clinical Trials</h3>
               </div>
-              <p className="text-slate-600 text-sm">Find trials matched to your cancer and location.</p>
+              <p className="text-slate-600 text-sm mb-2">Find trials matched to your diagnosis and location.</p>
+              <span className="text-[10px] px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-medium">ClinicalTrials.gov</span>
             </Link>
 
             <Link href="/coverage" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-emerald-400 hover:shadow-md transition-all">
@@ -565,62 +779,58 @@ function HomeContent() {
                 <DollarSign className="w-6 h-6 text-emerald-500" />
                 <h3 className="font-bold text-slate-900 group-hover:text-emerald-600">Financial Coverage</h3>
               </div>
-              <p className="text-slate-600 text-sm">Insurance coverage + financial assistance programs.</p>
+              <p className="text-slate-600 text-sm mb-2">What's covered + financial assistance programs.</p>
+              <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">Medicare 2026</span>
             </Link>
           </div>
 
           {/* More Tools - Expandable */}
-          <div className="text-center">
+          <div className="text-center mt-2">
             <button
               onClick={() => setShowAllTools(!showAllTools)}
-              className="text-sm text-violet-600 hover:text-violet-700 font-medium inline-flex items-center gap-1"
+              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-all ${
+                showAllTools
+                  ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  : 'bg-violet-100 text-violet-700 hover:bg-violet-200 border border-violet-200'
+              }`}
             >
-              {showAllTools ? 'Show less' : 'More tools'}
+              {showAllTools ? 'Show less tools' : 'Show more tools'}
               <span className={`transition-transform ${showAllTools ? 'rotate-180' : ''}`}>↓</span>
             </button>
           </div>
 
           {showAllTools && (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4 pt-4 border-t border-slate-200">
-              <a href="https://axestack.com/oncologists" className="group bg-white border border-slate-200 rounded-lg p-4 hover:border-teal-400 hover:shadow-md transition-all">
+              <Link href="/tests" className="group bg-white border border-slate-200 rounded-lg p-4 hover:border-orange-400 hover:shadow-md transition-all">
                 <div className="flex items-center gap-2 mb-1">
-                  <Stethoscope className="w-5 h-5 text-teal-500" />
-                  <h3 className="font-semibold text-slate-900 group-hover:text-teal-600">Find Oncologist</h3>
+                  <FlaskConical className="w-5 h-5 text-orange-500" />
+                  <h3 className="font-semibold text-slate-900 group-hover:text-orange-600">Precision Testing</h3>
                 </div>
-                <p className="text-slate-600 text-xs">Find specialists by cancer type, location, insurance.</p>
-              </a>
+                <p className="text-slate-600 text-xs">MRD, genomic tests, and biomarker monitoring.</p>
+              </Link>
 
-              <a href="https://axestack.com/research" className="group bg-white border border-slate-200 rounded-lg p-4 hover:border-cyan-400 hover:shadow-md transition-all">
+              <Link href="/research" className="group bg-white border border-slate-200 rounded-lg p-4 hover:border-cyan-400 hover:shadow-md transition-all">
                 <div className="flex items-center gap-2 mb-1">
                   <BookOpen className="w-5 h-5 text-cyan-500" />
                   <h3 className="font-semibold text-slate-900 group-hover:text-cyan-600">Research Library</h3>
                 </div>
                 <p className="text-slate-600 text-xs">Search 200M+ papers with AI summaries.</p>
-              </a>
+              </Link>
 
-              <a href="https://axestack.com/tests" className="group bg-white border border-slate-200 rounded-lg p-4 hover:border-orange-400 hover:shadow-md transition-all">
+              <Link href="/oncologists" className="group bg-white border border-slate-200 rounded-lg p-4 hover:border-teal-400 hover:shadow-md transition-all">
                 <div className="flex items-center gap-2 mb-1">
-                  <FlaskConical className="w-5 h-5 text-orange-500" />
-                  <h3 className="font-semibold text-slate-900 group-hover:text-orange-600">Precision Testing</h3>
+                  <Stethoscope className="w-5 h-5 text-teal-500" />
+                  <h3 className="font-semibold text-slate-900 group-hover:text-teal-600">Find Oncologist</h3>
                 </div>
-                <p className="text-slate-600 text-xs">MRD, genomic tests, and monitoring options.</p>
-              </a>
-
-              <a href="https://navis.health" target="_blank" rel="noopener noreferrer" className="group bg-white border border-slate-200 rounded-lg p-4 hover:border-amber-400 hover:shadow-md transition-all">
-                <div className="flex items-center gap-2 mb-1">
-                  <UserRound className="w-5 h-5 text-amber-500" />
-                  <h3 className="font-semibold text-slate-900 group-hover:text-amber-600">Expert Consult</h3>
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">PREMIUM</span>
-                </div>
-                <p className="text-slate-600 text-xs">1:1 video with oncology specialists for complex cases.</p>
-              </a>
+                <p className="text-slate-600 text-xs">Specialists by cancer type, location, insurance.</p>
+              </Link>
 
               <Link href="/hub" className="group bg-white border border-slate-200 rounded-lg p-4 hover:border-rose-400 hover:shadow-md transition-all">
                 <div className="flex items-center gap-2 mb-1">
                   <Heart className="w-5 h-5 text-rose-500" />
                   <h3 className="font-semibold text-slate-900 group-hover:text-rose-600">CareCircle</h3>
                 </div>
-                <p className="text-slate-600 text-xs">Stop repeating yourself. Update everyone at once.</p>
+                <p className="text-slate-600 text-xs">Update family & friends without repeating yourself.</p>
               </Link>
 
               <a href="https://community.cancerpatientlab.org/" target="_blank" rel="noopener noreferrer" className="group bg-white border border-slate-200 rounded-lg p-4 hover:border-pink-400 hover:shadow-md transition-all">
@@ -630,8 +840,57 @@ function HomeContent() {
                 </div>
                 <p className="text-slate-600 text-xs">Connect with patients and caregivers.</p>
               </a>
+
+              <Link href="/profile" className="group bg-white border border-slate-200 rounded-lg p-4 hover:border-violet-400 hover:shadow-md transition-all">
+                <div className="flex items-center gap-2 mb-1">
+                  <UserRound className="w-5 h-5 text-violet-500" />
+                  <h3 className="font-semibold text-slate-900 group-hover:text-violet-600">My Profile</h3>
+                </div>
+                <p className="text-slate-600 text-xs">Personalize your tools and save your diagnosis.</p>
+              </Link>
             </div>
           )}
+
+        </div>
+      </section>
+
+      {/* Caregiver Share Card */}
+      <section className="py-8 px-8 bg-white">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-gradient-to-br from-rose-50 via-white to-pink-50 border border-rose-200 rounded-2xl p-6 text-center">
+            <div className="text-3xl mb-3">💝</div>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Know someone fighting cancer?</h3>
+            <p className="text-slate-600 mb-4">Share these free tools with a patient or caregiver who needs them.</p>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText('https://opencancer.ai')
+                  const btn = document.getElementById('copy-btn')
+                  if (btn) {
+                    btn.textContent = 'Copied!'
+                    setTimeout(() => { btn.textContent = 'Copy Link' }, 2000)
+                  }
+                }}
+                id="copy-btn"
+                className="inline-flex items-center gap-2 bg-white border border-slate-300 hover:border-rose-400 text-slate-700 font-medium px-5 py-2.5 rounded-lg transition-all hover:shadow-md"
+              >
+                <Copy className="w-4 h-4" />
+                Copy Link
+              </button>
+              <a
+                href="sms:?body=I thought these free cancer tools might help: https://opencancer.ai - built by a survivor, NCCN-informed"
+                className="inline-flex items-center gap-2 bg-rose-500 hover:bg-rose-600 text-white font-medium px-5 py-2.5 rounded-lg transition-all"
+              >
+                <Share2 className="w-4 h-4" />
+                Text a Friend
+              </a>
+            </div>
+
+            <p className="text-xs text-slate-400 mt-4">
+              Built by a cancer survivor. Always free.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -657,6 +916,14 @@ function HomeContent() {
               NCI
             </span>
             <span className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
+              OpenOnco
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+              BioMCP
+            </span>
+            <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-teal-400"></span>
               Cancer Commons
             </span>
@@ -670,7 +937,15 @@ function HomeContent() {
 
       {/* What patients are saying - Scrolling */}
       <section className="py-12 px-8 bg-slate-50 border-t border-slate-200 overflow-hidden">
-        <style jsx>{`
+        <style jsx global>{`
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
           @keyframes scroll {
             0% { transform: translateX(0); }
             100% { transform: translateX(-50%); }
@@ -683,7 +958,7 @@ function HomeContent() {
           }
         `}</style>
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-slate-900">What patients are saying</h2>
+          <h2 className="text-2xl font-bold text-slate-900">What Patients & Experts Say</h2>
         </div>
 
         <div className="relative">
@@ -699,7 +974,7 @@ function HomeContent() {
                   "{testimonial.quote}"
                 </p>
                 <p className="text-sm text-slate-500 mt-2">
-                  — {testimonial.name}, {testimonial.context}
+                  - {testimonial.name}, {testimonial.context}
                 </p>
               </div>
             ))}
@@ -782,38 +1057,6 @@ function HomeContent() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 py-8 px-8 bg-white">
-        <div className="max-w-4xl mx-auto">
-          {/* Resources in footer */}
-          <div className="flex flex-wrap justify-center gap-6 mb-6 text-sm">
-            <a href="https://ariakerstein.com/chemolog" target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-violet-600 transition-colors flex items-center gap-1.5">
-              <Notebook className="w-4 h-4" /> Chemolog
-            </a>
-            <a href="https://www.ariakerstein.com/" target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-violet-600 transition-colors flex items-center gap-1.5">
-              <PenLine className="w-4 h-4" /> Field Notes
-            </a>
-            <a href="https://cancerhackerlab.com" target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-violet-600 transition-colors flex items-center gap-1.5">
-              <Microscope className="w-4 h-4" /> Cancer Hacker Lab
-            </a>
-          </div>
-
-          {/* Nav */}
-          <div className="flex justify-between items-center text-sm text-slate-500 pt-6 border-t border-slate-100">
-            <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">opencancer.ai</span>
-            <div className="flex gap-6">
-              <Link href="/records" className="hover:text-slate-900 transition-colors">Records</Link>
-              <a href="https://community.cancerpatientlab.org" target="_blank" rel="noopener noreferrer" className="hover:text-slate-900 transition-colors">Community</a>
-              <a href="https://axestack.com" className="hover:text-slate-900 transition-colors">For Founders</a>
-            </div>
-          </div>
-
-          {/* Copyright */}
-          <div className="text-center text-xs text-slate-400 mt-6">
-            © {new Date().getFullYear()} opencancer.ai. All rights reserved.
-          </div>
-        </div>
-      </footer>
     </main>
   )
 }

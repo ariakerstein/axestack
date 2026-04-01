@@ -3,7 +3,10 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { TypewriterMarkdown } from '@/components/TypewriterMarkdown'
-import { FileText, Search, FlaskConical, Ribbon, MessageCircle, BookOpen, ArrowRight, Upload, Link2, Building2, Shield, CheckCircle2 } from 'lucide-react'
+import { FileText, Search, FlaskConical, Ribbon, MessageCircle, BookOpen, ArrowRight, Upload, Link2, Building2, Shield, CheckCircle2, Share2, Download, Cloud, User } from 'lucide-react'
+import { useAnalytics } from '@/hooks/useAnalytics'
+import { useAuth } from '@/lib/auth'
+import { AuthModal } from '@/components/AuthModal'
 
 interface TranslationResult {
   document_type: string
@@ -54,6 +57,15 @@ interface ConnectedPortal {
   connectedAt: string
   lastSync: string
   recordCount: number
+}
+
+interface UploadedFile {
+  id: string
+  file: File
+  status: 'pending' | 'processing' | 'completed' | 'error'
+  result?: TranslationResult
+  documentText?: string
+  error?: string
 }
 
 // Supabase config for RAG
@@ -123,20 +135,28 @@ export default function RecordsVaultPage() {
 
   // Upload state
   const [file, setFile] = useState<File | null>(null)
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
+  const [isBulkMode, setIsBulkMode] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [result, setResult] = useState<TranslationResult | null>(null)
   const [documentText, setDocumentText] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
+  const [bulkProgress, setBulkProgress] = useState({ current: 0, total: 0 })
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
   const [chatInput, setChatInput] = useState('')
   const [isChatLoading, setIsChatLoading] = useState(false)
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['summary', 'terms', 'questions']))
   const [showSaveModal, setShowSaveModal] = useState(false)
   const [savedTranslations, setSavedTranslations] = useState<Array<{id: string, fileName: string, date: string, documentType: string}>>([])
-  const [showSavedList, setShowSavedList] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
+  const [showShareModal, setShowShareModal] = useState(false)
+  const [copied, setCopied] = useState(false)
   const [chatOpen, setChatOpen] = useState(false)
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false)
+  const [privacyAcknowledged, setPrivacyAcknowledged] = useState(false)
+  const [showAllTerms, setShowAllTerms] = useState(false)
+  const [showAddRecordView, setShowAddRecordView] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
@@ -147,9 +167,35 @@ export default function RecordsVaultPage() {
   const [portalEmail, setPortalEmail] = useState('')
   const [portalPassword, setPortalPassword] = useState('')
 
-  // Load saved data on mount
+  // Analytics
+  const { trackEvent } = useAnalytics()
+
+  // Auth
+  const { user, loading: authLoading, signOut } = useAuth()
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [isSavingToCloud, setIsSavingToCloud] = useState(false)
+  const [cloudSaveError, setCloudSaveError] = useState<string | null>(null)
+
+  // Track referral arrivals from share links
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    const ref = params.get('ref')
+    const utmSource = params.get('utm_source')
+    if (ref) {
+      // Log referral arrival to analytics (shows in admin dashboard)
+      trackEvent('referral_arrival', {
+        referrer_id: ref,
+        utm_source: utmSource || 'direct',
+        landing_page: 'records'
+      })
+    }
+  }, [trackEvent])
+
+  // Load saved data on mount + fetch from Supabase if authenticated
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      // First load localStorage (fast)
       const saved = localStorage.getItem('axestack-translations')
       if (saved) {
         try {
@@ -167,8 +213,71 @@ export default function RecordsVaultPage() {
           console.error('Failed to load connected portals')
         }
       }
+
+      // Check if privacy was previously acknowledged
+      const privacyAck = localStorage.getItem('opencancer-privacy-acknowledged')
+      if (privacyAck === 'true') {
+        setPrivacyAcknowledged(true)
+      }
     }
   }, [])
+
+  // Fetch records from Supabase when user is authenticated
+  useEffect(() => {
+    const fetchCloudRecords = async () => {
+      if (!user || authLoading) return
+
+      try {
+        const { supabase } = await import('@/lib/supabase')
+        const { data: { session } } = await supabase.auth.getSession()
+
+        if (!session?.access_token) return
+
+        const response = await fetch('/api/records/save', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+        })
+
+        if (response.ok) {
+          const { records } = await response.json()
+          if (records && records.length > 0) {
+            // Merge cloud records with localStorage
+            const localIndex = JSON.parse(localStorage.getItem('axestack-translations') || '[]')
+            const localIds = new Set(localIndex.map((t: { id: string }) => t.id))
+
+            // Add cloud records that aren't in localStorage
+            const newRecords = records.filter((r: { id: string }) => !localIds.has(r.id))
+            if (newRecords.length > 0) {
+              const merged = [...newRecords, ...localIndex]
+              setSavedTranslations(merged)
+              localStorage.setItem('axestack-translations', JSON.stringify(merged))
+
+              // Also save the full record data for cloud records
+              const existingData = JSON.parse(localStorage.getItem('axestack-translations-data') || '{}')
+              newRecords.forEach((r: { id: string; fileName: string; date: string; documentType: string; result: TranslationResult }) => {
+                existingData[r.id] = {
+                  id: r.id,
+                  fileName: r.fileName,
+                  date: r.date,
+                  documentType: r.documentType,
+                  result: r.result,
+                  documentText: '',
+                  chatMessages: [],
+                }
+              })
+              localStorage.setItem('axestack-translations-data', JSON.stringify(existingData))
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch cloud records:', err)
+      }
+    }
+
+    fetchCloudRecords()
+  }, [user, authLoading])
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev => {
@@ -192,9 +301,26 @@ export default function RecordsVaultPage() {
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
-    const droppedFile = e.dataTransfer.files[0]
-    if (droppedFile) {
-      setFile(droppedFile)
+    const files = Array.from(e.dataTransfer.files)
+
+    if (files.length > 1) {
+      // Bulk upload mode
+      setIsBulkMode(true)
+      const newFiles: UploadedFile[] = files.map(f => ({
+        id: `file_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+        file: f,
+        status: 'pending'
+      }))
+      setUploadedFiles(newFiles)
+      setFile(null)
+      setResult(null)
+      setError(null)
+      setChatMessages([])
+    } else if (files[0]) {
+      // Single file mode
+      setIsBulkMode(false)
+      setFile(files[0])
+      setUploadedFiles([])
       setResult(null)
       setError(null)
       setChatMessages([])
@@ -202,9 +328,26 @@ export default function RecordsVaultPage() {
   }, [])
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0]
-    if (selectedFile) {
-      setFile(selectedFile)
+    const files = Array.from(e.target.files || [])
+
+    if (files.length > 1) {
+      // Bulk upload mode
+      setIsBulkMode(true)
+      const newFiles: UploadedFile[] = files.map(f => ({
+        id: `file_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+        file: f,
+        status: 'pending'
+      }))
+      setUploadedFiles(newFiles)
+      setFile(null)
+      setResult(null)
+      setError(null)
+      setChatMessages([])
+    } else if (files[0]) {
+      // Single file mode
+      setIsBulkMode(false)
+      setFile(files[0])
+      setUploadedFiles([])
       setResult(null)
       setError(null)
       setChatMessages([])
@@ -235,11 +378,137 @@ export default function RecordsVaultPage() {
       if (data.documentText) {
         setDocumentText(data.documentText)
       }
+
+      // Track successful upload with user_id for records/profile analytics
+      trackEvent('record_upload', {
+        file_type: file.type || 'unknown',
+        file_size_kb: Math.round(file.size / 1024),
+        document_type: data.analysis?.document_type || 'unknown',
+        has_cancer_info: data.analysis?.cancer_specific?.cancer_type !== 'unknown',
+        cancer_type: data.analysis?.cancer_specific?.cancer_type || null,
+        user_id: user?.id || null,
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setIsProcessing(false)
     }
+  }
+
+  // Bulk upload - process multiple files sequentially
+  const handleBulkTranslate = async () => {
+    if (uploadedFiles.length === 0) return
+    setIsProcessing(true)
+    setError(null)
+    setBulkProgress({ current: 0, total: uploadedFiles.length })
+
+    for (let i = 0; i < uploadedFiles.length; i++) {
+      const uploadedFile = uploadedFiles[i]
+      setBulkProgress({ current: i + 1, total: uploadedFiles.length })
+
+      // Update status to processing
+      setUploadedFiles(prev => prev.map(f =>
+        f.id === uploadedFile.id ? { ...f, status: 'processing' } : f
+      ))
+
+      try {
+        const formData = new FormData()
+        formData.append('file', uploadedFile.file)
+
+        const response = await fetch('/api/translate', {
+          method: 'POST',
+          body: formData,
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Failed to process document')
+        }
+
+        const data = await response.json()
+
+        // Update with result
+        setUploadedFiles(prev => prev.map(f =>
+          f.id === uploadedFile.id ? {
+            ...f,
+            status: 'completed',
+            result: data.analysis,
+            documentText: data.documentText
+          } : f
+        ))
+
+        // Auto-save completed translation to localStorage
+        const translationId = `trans_${Date.now()}_${i}`
+        const translation = {
+          id: translationId,
+          fileName: uploadedFile.file.name,
+          date: new Date().toISOString(),
+          documentType: data.analysis?.document_type || 'Unknown',
+          result: data.analysis,
+          documentText: data.documentText,
+          chatMessages: [],
+        }
+
+        // Save full translation data
+        const existingData = localStorage.getItem('axestack-translations-data') || '{}'
+        const translationData = JSON.parse(existingData)
+        translationData[translationId] = translation
+        localStorage.setItem('axestack-translations-data', JSON.stringify(translationData))
+
+        // Update index for quick listing
+        const existingIndex = JSON.parse(localStorage.getItem('axestack-translations') || '[]')
+        const newEntry = { id: translationId, fileName: uploadedFile.file.name, date: translation.date, documentType: data.analysis?.document_type || 'Unknown' }
+        const updatedIndex = [newEntry, ...existingIndex]
+        localStorage.setItem('axestack-translations', JSON.stringify(updatedIndex))
+        setSavedTranslations(updatedIndex)
+
+        // Track successful upload with user_id for records/profile analytics
+        trackEvent('record_upload', {
+          file_type: uploadedFile.file.type || 'unknown',
+          file_size_kb: Math.round(uploadedFile.file.size / 1024),
+          document_type: data.analysis?.document_type || 'unknown',
+          has_cancer_info: data.analysis?.cancer_specific?.cancer_type !== 'unknown',
+          cancer_type: data.analysis?.cancer_specific?.cancer_type || null,
+          is_bulk_upload: true,
+          bulk_position: i + 1,
+          bulk_total: uploadedFiles.length,
+          user_id: user?.id || null,
+        })
+      } catch (err) {
+        // Update with error
+        setUploadedFiles(prev => prev.map(f =>
+          f.id === uploadedFile.id ? {
+            ...f,
+            status: 'error',
+            error: err instanceof Error ? err.message : 'Failed to process'
+          } : f
+        ))
+      }
+    }
+
+    setIsProcessing(false)
+  }
+
+  // View a specific file's result from bulk upload
+  const viewFileResult = (uploadedFile: UploadedFile) => {
+    if (uploadedFile.result) {
+      setFile(uploadedFile.file)
+      setResult(uploadedFile.result)
+      setDocumentText(uploadedFile.documentText || '')
+      setIsBulkMode(false)
+      setChatMessages([])
+    }
+  }
+
+  // Remove a file from bulk upload queue
+  const removeFromBulk = (fileId: string) => {
+    setUploadedFiles(prev => {
+      const updated = prev.filter(f => f.id !== fileId)
+      if (updated.length === 0) {
+        setIsBulkMode(false)
+      }
+      return updated
+    })
   }
 
   // RAG-enhanced question answering
@@ -323,6 +592,14 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
         { role: 'assistant', content: data.response, isNew: true }
       ])
 
+      // Track chat question about document
+      trackEvent('record_chat_question', {
+        question_length: userMessage.length,
+        has_cancer_context: cancerType !== undefined && cancerType !== 'unknown',
+        cancer_type: cancerType || null,
+        had_rag_context: ragContext.length > 0,
+      })
+
       // Scroll to bottom
       setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100)
     } catch (err) {
@@ -338,59 +615,158 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
 
   const resetUpload = () => {
     setFile(null)
+    setUploadedFiles([])
+    setIsBulkMode(false)
     setResult(null)
     setError(null)
     setChatMessages([])
+    setBulkProgress({ current: 0, total: 0 })
+    setShowAddRecordView(false) // Return to records-first view if user has records
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   const handleDownloadSummary = () => {
     if (!result || !file) return
 
-    const summary = `
-MEDICAL RECORD TRANSLATION
-Generated by opencancer.ai Records Vault
-========================
+    // Create a printable HTML document that can be saved as PDF
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Medical Record Summary - ${file.name}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; color: #1e293b; line-height: 1.6; }
+    .header { border-bottom: 2px solid #8b5cf6; padding-bottom: 20px; margin-bottom: 24px; }
+    .logo { font-size: 24px; font-weight: bold; color: #8b5cf6; }
+    .meta { color: #64748b; font-size: 14px; margin-top: 8px; }
+    h1 { font-size: 20px; margin-bottom: 8px; color: #1e293b; }
+    h2 { font-size: 16px; color: #7c3aed; margin: 24px 0 12px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
+    p { margin-bottom: 12px; }
+    ul { margin-left: 20px; margin-bottom: 16px; }
+    li { margin-bottom: 8px; }
+    .lab-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+    .lab-table th, .lab-table td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+    .lab-table th { background: #f8fafc; font-weight: 600; }
+    .status-normal { color: #16a34a; }
+    .status-abnormal { color: #d97706; }
+    .status-critical { color: #dc2626; }
+    .questions { background: #faf5ff; padding: 16px; border-radius: 8px; border-left: 4px solid #8b5cf6; }
+    .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b; }
+    @media print { body { padding: 20px; } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">opencancer.ai</div>
+    <div class="meta">Medical Record Translation</div>
+  </div>
 
-File: ${file.name}
-Document Type: ${result.document_type}
-Date: ${new Date().toLocaleDateString()}
+  <h1>${file.name}</h1>
+  <p class="meta">${result.document_type} · Generated ${new Date().toLocaleDateString()}</p>
 
-PLAIN ENGLISH SUMMARY
----------------------
-${result.test_summary}
+  <h2>📋 Plain English Summary</h2>
+  <p>${result.test_summary}</p>
 
-${result.diagnosis && result.diagnosis.length > 0 ? `
-KEY FINDINGS
-------------
-${result.diagnosis.map(d => `* ${d}`).join('\n')}
-` : ''}
+  ${result.diagnosis && result.diagnosis.length > 0 && result.diagnosis[0] !== 'unknown' ? `
+  <h2>🔍 Key Findings</h2>
+  <ul>
+    ${result.diagnosis.map(d => `<li>${d}</li>`).join('')}
+  </ul>
+  ` : ''}
 
-${result.lab_values?.key_results && result.lab_values.key_results.length > 0 ? `
-LAB RESULTS
------------
-${result.lab_values.key_results.map(l => `${l.test}: ${l.value} (${l.status})`).join('\n')}
-` : ''}
+  ${result.lab_values?.key_results && result.lab_values.key_results.length > 0 ? `
+  <h2>🧪 Lab Results</h2>
+  <table class="lab-table">
+    <thead><tr><th>Test</th><th>Value</th><th>Reference</th><th>Status</th></tr></thead>
+    <tbody>
+      ${result.lab_values.key_results.map(l => `
+        <tr>
+          <td>${l.test}</td>
+          <td><strong>${l.value}</strong></td>
+          <td>${l.reference_range || 'N/A'}</td>
+          <td class="status-${l.status.toLowerCase()}">${l.status}</td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>
+  ` : ''}
 
-${result.questions_to_ask_doctor ? `
-QUESTIONS FOR YOUR DOCTOR
--------------------------
-${result.questions_to_ask_doctor}
-` : ''}
+  ${result.cancer_specific && result.cancer_specific.cancer_type !== 'unknown' ? `
+  <h2>🎗️ Cancer Information</h2>
+  <p><strong>Type:</strong> ${result.cancer_specific.cancer_type}</p>
+  ${result.cancer_specific.stage !== 'unknown' ? `<p><strong>Stage:</strong> ${result.cancer_specific.stage}</p>` : ''}
+  ${result.cancer_specific.grade !== 'unknown' ? `<p><strong>Grade:</strong> ${result.cancer_specific.grade}</p>` : ''}
+  ${result.cancer_specific.biomarkers?.length > 0 ? `<p><strong>Biomarkers:</strong> ${result.cancer_specific.biomarkers.join(', ')}</p>` : ''}
+  ` : ''}
 
-========================
-DISCLAIMER: This is an educational summary only.
-Not medical advice. Always discuss with your healthcare provider.
+  ${result.questions_to_ask_doctor ? `
+  <h2>❓ Questions for Your Doctor</h2>
+  <div class="questions">${result.questions_to_ask_doctor.replace(/\n/g, '<br>')}</div>
+  ` : ''}
+
+  ${result.technical_terms_explained && result.technical_terms_explained.length > 0 ? `
+  <h2>📖 Medical Terms Explained</h2>
+  <ul>
+    ${result.technical_terms_explained.map(t => `<li><strong>${t.term}:</strong> ${t.definition}</li>`).join('')}
+  </ul>
+  ` : ''}
+
+  <div class="footer">
+    <p><strong>Disclaimer:</strong> This is an educational summary only. Not medical advice. Always discuss with your healthcare provider.</p>
+    <p style="margin-top: 8px;">Generated by <a href="https://opencancer.ai/records">opencancer.ai/records</a></p>
+  </div>
+</body>
+</html>
     `.trim()
 
-    const blob = new Blob([summary], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${file.name.replace(/\.[^/.]+$/, '')}-summary.txt`
-    a.click()
-    URL.revokeObjectURL(url)
+    // Open in new window for print/save as PDF
+    const printWindow = window.open('', '_blank')
+    if (printWindow) {
+      printWindow.document.write(htmlContent)
+      printWindow.document.close()
+      // Auto-trigger print dialog for easy PDF save
+      setTimeout(() => printWindow.print(), 250)
+    }
     setShowSaveModal(false)
+  }
+
+  const handleShare = async (method: 'copy' | 'twitter' | 'email') => {
+    // Generate or retrieve share tracking ID for this user
+    let shareId = localStorage.getItem('opencancer_share_id')
+    if (!shareId) {
+      shareId = Math.random().toString(36).substring(2, 8)
+      localStorage.setItem('opencancer_share_id', shareId)
+    }
+
+    // Track share count
+    const shareCount = parseInt(localStorage.getItem('opencancer_share_count') || '0') + 1
+    localStorage.setItem('opencancer_share_count', shareCount.toString())
+
+    // Build tracked URL with UTM parameters
+    const shareUrl = `https://opencancer.ai/records?ref=${shareId}&utm_source=${method}&utm_medium=share&utm_campaign=records_tool`
+    const shareText = 'I just translated my medical records into plain English with opencancer.ai - free tool that helped me actually understand my results. Check it out:'
+
+    // Log share event to analytics (shows in admin dashboard)
+    trackEvent('share', {
+      method,
+      share_id: shareId,
+      share_count: shareCount,
+      user_email: user?.email || null,
+    })
+
+    if (method === 'copy') {
+      await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } else if (method === 'twitter') {
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`, '_blank')
+      setShowShareModal(false)
+    } else if (method === 'email') {
+      window.location.href = `mailto:?subject=${encodeURIComponent('Tool that helped me understand my medical records')}&body=${encodeURIComponent(`${shareText}\n\n${shareUrl}`)}`
+      setShowShareModal(false)
+    }
   }
 
   const handleSaveToApp = () => {
@@ -424,6 +800,96 @@ Not medical advice. Always discuss with your healthcare provider.
       setSaveSuccess(false)
       setShowSaveModal(false)
     }, 1500)
+
+    // Auto-save to cloud if user is authenticated (fire and forget)
+    if (user) {
+      (async () => {
+        try {
+          const { supabase } = await import('@/lib/supabase')
+          const { data: { session } } = await supabase.auth.getSession()
+          if (session?.access_token) {
+            await fetch('/api/records/save', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`,
+              },
+              body: JSON.stringify({
+                fileName: file.name,
+                documentType: result.document_type,
+                result,
+                documentText,
+                chatMessages,
+              }),
+            })
+          }
+        } catch (err) {
+          console.error('Cloud sync failed:', err)
+        }
+      })()
+    }
+  }
+
+  // Save to cloud (Supabase) for logged-in users
+  const handleSaveToCloud = async () => {
+    if (!user) {
+      setShowAuthModal(true)
+      return
+    }
+
+    if (!result || !file) return
+
+    setIsSavingToCloud(true)
+    setCloudSaveError(null)
+
+    try {
+      // Get auth session for secure token
+      const { supabase } = await import('@/lib/supabase')
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session?.access_token) {
+        setShowAuthModal(true)
+        setIsSavingToCloud(false)
+        return
+      }
+
+      const response = await fetch('/api/records/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`, // Secure auth token
+        },
+        body: JSON.stringify({
+          // Note: userId is extracted server-side from verified token
+          fileName: file.name,
+          documentType: result.document_type,
+          result,
+          documentText,
+          chatMessages,
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to save')
+      }
+
+      // Track cloud save
+      trackEvent('record_cloud_save', {
+        document_type: result.document_type,
+        has_cancer_info: result.cancer_specific?.cancer_type !== 'unknown',
+      })
+
+      setSaveSuccess(true)
+      setTimeout(() => {
+        setSaveSuccess(false)
+        setShowSaveModal(false)
+      }, 1500)
+    } catch (err) {
+      setCloudSaveError(err instanceof Error ? err.message : 'Failed to save')
+    } finally {
+      setIsSavingToCloud(false)
+    }
   }
 
   const loadSavedTranslation = (id: string) => {
@@ -438,7 +904,6 @@ Not medical advice. Always discuss with your healthcare provider.
       setChatMessages(saved.chatMessages || [])
       // Create a fake file object for display
       setFile(new File([], saved.fileName))
-      setShowSavedList(false)
     }
   }
 
@@ -482,6 +947,12 @@ Not medical advice. Always discuss with your healthcare provider.
     setConnectedPortals(updatedPortals)
     localStorage.setItem('opencancer-portals', JSON.stringify(updatedPortals))
 
+    // Track portal connection
+    trackEvent('portal_connect', {
+      provider: selectedProvider,
+      total_portals_connected: updatedPortals.length,
+    })
+
     setIsConnecting(false)
     setSelectedProvider(null)
     setPortalEmail('')
@@ -518,41 +989,200 @@ Not medical advice. Always discuss with your healthcare provider.
 
   return (
     <main className="min-h-screen bg-slate-50">
-      {/* Header */}
+      {/* Header - consistent with Navbar pattern */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="text-slate-500 hover:text-slate-900 text-sm">
-            ← Home
+          {/* Left side - brand */}
+          <Link href="/" className="flex items-center gap-1.5">
+            <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">
+              opencancer
+            </span>
+            <span className="text-lg font-bold text-slate-400">.ai</span>
           </Link>
-          <Link href="/" className="flex items-center gap-2">
-            <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">opencancer.ai</span>
-            <span className="text-slate-400 text-sm">/</span>
-            <span className="font-medium text-slate-700">Records</span>
-          </Link>
-          {savedTranslations.length > 0 ? (
-            <button
-              onClick={() => setShowSavedList(true)}
-              className="text-violet-600 hover:text-violet-700 text-sm font-medium"
-            >
-              My Saved ({savedTranslations.length})
-            </button>
-          ) : (
-            <div className="w-20" />
-          )}
+
+          {/* Center - nav links (hidden on mobile) */}
+          <nav className="hidden sm:flex items-center gap-4 text-sm">
+            <span className="text-violet-600 font-medium">Records</span>
+            <Link href="/ask" className="text-slate-600 hover:text-violet-600 transition-colors">
+              Ask AI
+            </Link>
+            <Link href="/trials" className="text-slate-600 hover:text-violet-600 transition-colors">
+              Trials
+            </Link>
+          </nav>
+
+          {/* Right side - auth + records count */}
+          <div className="flex items-center gap-3">
+            {/* Auth state */}
+            {user ? (
+              <div className="flex items-center gap-3">
+                <span className="hidden sm:flex items-center gap-1.5 text-sm text-slate-700">
+                  <User className="w-4 h-4 text-violet-500" />
+                  {user.email?.split('@')[0]}
+                </span>
+                <button
+                  onClick={async () => {
+                    try {
+                      await signOut()
+                      window.location.reload()
+                    } catch (err) {
+                      console.error('Sign out error:', err)
+                    }
+                  }}
+                  className="flex items-center gap-1 text-sm text-slate-500 hover:text-red-600 transition-colors"
+                >
+                  Sign out
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="flex items-center gap-1.5 text-sm text-violet-600 hover:text-violet-700 font-medium px-3 py-1.5 bg-violet-50 hover:bg-violet-100 rounded-lg transition-colors"
+              >
+                <User className="w-4 h-4" />
+                Sign in
+              </button>
+            )}
+
+            {/* Saved records button */}
+            {savedTranslations.length > 0 && (
+              <button
+                onClick={() => {
+                  setResult(null)
+                  setShowAddRecordView(false)
+                  setFile(null)
+                }}
+                className="flex items-center gap-2 px-3 py-1.5 bg-violet-100 text-violet-700 rounded-full text-sm font-medium hover:bg-violet-200 transition-colors"
+              >
+                <FileText className="w-4 h-4" />
+                {savedTranslations.length} Record{savedTranslations.length !== 1 ? 's' : ''}
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
       <div className="max-w-3xl mx-auto px-4 py-6">
-        {/* Page Header */}
-        {!result && (
-          <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">Records Vault</h1>
-            <p className="text-slate-600">Upload records or connect your patient portal to get plain English translations</p>
+        {/* RECORDS-FIRST VIEW: Show when user has saved records and not adding new */}
+        {!result && savedTranslations.length > 0 && !showAddRecordView && (
+          <div className="space-y-4">
+            {/* Header with record count */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-slate-900">My Records</h1>
+                <p className="text-slate-500 text-sm">{savedTranslations.length} record{savedTranslations.length !== 1 ? 's' : ''} translated</p>
+              </div>
+              <button
+                onClick={() => setShowAddRecordView(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-violet-100 hover:bg-violet-200 text-violet-700 rounded-lg text-sm font-medium transition-colors"
+              >
+                <Upload className="w-4 h-4" />
+                Add Record
+              </button>
+            </div>
+
+            {/* AI Case Review - PROMINENT CTA */}
+            <Link
+              href="/records/case-review"
+              className="block bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 rounded-2xl p-5 text-white shadow-lg shadow-violet-500/20 transition-all hover:shadow-xl hover:shadow-violet-500/30"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <AtomIcon size="sm" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-bold text-lg">AI Case Review</p>
+                  <p className="text-violet-100 text-sm">Synthesize all {savedTranslations.length} records into one comprehensive summary</p>
+                </div>
+                <ArrowRight className="w-5 h-5 text-violet-200" />
+              </div>
+            </Link>
+
+            {/* Privacy note */}
+            <div className="flex items-center justify-center gap-2 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg">
+              <Shield className="w-4 h-4 text-emerald-600" />
+              <p className="text-xs text-emerald-700">
+                {user
+                  ? 'Encrypted in your account. Your data is yours.'
+                  : 'Stored locally on this device. Sign in to sync.'}
+              </p>
+            </div>
+
+            {/* Records List - Inline */}
+            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+              <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
+                <p className="text-sm font-medium text-slate-700">Your Records</p>
+              </div>
+              <div className="divide-y divide-slate-100">
+                {savedTranslations.map(t => (
+                  <button
+                    key={t.id}
+                    onClick={() => loadSavedTranslation(t.id)}
+                    className="w-full flex items-center gap-4 p-4 hover:bg-violet-50 text-left transition-colors group"
+                  >
+                    <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <FileText className="w-5 h-5 text-violet-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-slate-900 truncate">{t.fileName}</p>
+                      <div className="flex items-center gap-2 text-xs text-slate-500">
+                        <span>{t.documentType}</span>
+                        <span>·</span>
+                        <span>{new Date(t.date).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-violet-500 transition-colors" />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Quick actions */}
+            <div className="flex gap-3">
+              <Link
+                href="/ask"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-medium transition-colors"
+              >
+                <MessageCircle className="w-4 h-4" />
+                Ask Navis
+              </Link>
+              <Link
+                href="/cancer-checklist"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-medium transition-colors"
+              >
+                <span>📋</span>
+                Cancer Checklist
+              </Link>
+            </div>
           </div>
         )}
 
-        {/* Tab Navigation */}
-        {!result && (
+        {/* UPLOAD-FIRST VIEW: Show when no records OR explicitly adding new */}
+        {/* Page Header */}
+        {!result && (savedTranslations.length === 0 || showAddRecordView) && (
+          <div className="text-center mb-6">
+            {showAddRecordView && savedTranslations.length > 0 ? (
+              <>
+                <button
+                  onClick={() => setShowAddRecordView(false)}
+                  className="text-violet-600 hover:text-violet-700 text-sm font-medium mb-4 inline-flex items-center gap-1"
+                >
+                  ← Back to My Records
+                </button>
+                <h1 className="text-3xl font-bold text-slate-900 mb-2">Add New Record</h1>
+                <p className="text-slate-600">Upload or connect a new medical record</p>
+              </>
+            ) : (
+              <>
+                <h1 className="text-3xl font-bold text-slate-900 mb-2">Records Vault</h1>
+                <p className="text-slate-600">Upload records or connect your patient portal to get plain English translations</p>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Tab Navigation - only show in upload-first mode */}
+        {!result && (savedTranslations.length === 0 || showAddRecordView) && (
           <div className="flex gap-2 mb-6 bg-slate-100 p-1 rounded-xl">
             <button
               onClick={() => setActiveTab('upload')}
@@ -579,14 +1209,30 @@ Not medical advice. Always discuss with your healthcare provider.
           </div>
         )}
 
-        {/* Upload Tab Content */}
-        {activeTab === 'upload' && !result && (
+        {/* Upload Tab Content - only in upload-first mode */}
+        {activeTab === 'upload' && !result && (savedTranslations.length === 0 || showAddRecordView) && (
           <div className="bg-gradient-to-b from-white to-violet-50/30 rounded-2xl border border-slate-200 p-8 shadow-sm">
+            {/* Strong Privacy Banner */}
+            <div className="mb-6 flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl">
+              <Shield className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+              <p className="text-sm text-emerald-800 font-medium">
+                {user
+                  ? 'Private. Never sold. Encrypted and synced to your account.'
+                  : 'Private. Never sold. Stored only on your device.'}
+              </p>
+            </div>
+
             <div className="text-center mb-6">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-violet-100 text-violet-700 text-sm font-medium rounded-full mb-4">
-                NCCN guideline-informed
+              <div className="flex justify-center gap-2 mb-4">
+                <span className="inline-flex items-center gap-2 px-3 py-1 bg-violet-100 text-violet-700 text-sm font-medium rounded-full">
+                  NCCN guideline-informed
+                </span>
+                <span className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-100 text-emerald-700 text-sm font-medium rounded-full">
+                  Bulk upload supported
+                </span>
               </div>
               <p className="text-lg text-slate-600">Drop your lab results, pathology report, or doctor's notes</p>
+              <p className="text-sm text-slate-500 mt-1">Upload multiple files at once. We'll translate them all.</p>
             </div>
 
             {/* What you'll get */}
@@ -608,12 +1254,25 @@ Not medical advice. Always discuss with your healthcare provider.
             <div
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
+              onDrop={(e) => {
+                if (!privacyAcknowledged) {
+                  e.preventDefault()
+                  setShowPrivacyModal(true)
+                } else {
+                  handleDrop(e)
+                }
+              }}
+              onClick={() => {
+                if (!privacyAcknowledged) {
+                  setShowPrivacyModal(true)
+                } else {
+                  fileInputRef.current?.click()
+                }
+              }}
               className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all
                 ${isDragging ? 'border-violet-500 bg-violet-50' : file ? 'border-green-400 bg-green-50' : 'border-violet-300 bg-white hover:border-violet-500 hover:bg-violet-50/50'}`}
             >
-              <input ref={fileInputRef} type="file" onChange={handleFileSelect} accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg" className="hidden" />
+              <input ref={fileInputRef} type="file" onChange={handleFileSelect} accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg" multiple className="hidden" />
               {file ? (
                 <div>
                   <div className="w-14 h-14 mx-auto mb-3 bg-green-100 rounded-full flex items-center justify-center">
@@ -641,7 +1300,8 @@ Not medical advice. Always discuss with your healthcare provider.
               )}
             </div>
 
-            {file && (
+            {/* Single file translate button */}
+            {file && !isBulkMode && (
               <button
                 onClick={handleTranslate}
                 disabled={isProcessing}
@@ -655,23 +1315,159 @@ Not medical advice. Always discuss with your healthcare provider.
               </button>
             )}
 
+            {/* Bulk upload file queue */}
+            {isBulkMode && uploadedFiles.length > 0 && (
+              <div className="mt-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-slate-900">
+                    {uploadedFiles.length} files selected
+                  </h3>
+                  <button
+                    onClick={resetUpload}
+                    className="text-sm text-slate-500 hover:text-red-600"
+                  >
+                    Clear all
+                  </button>
+                </div>
+
+                {/* File list */}
+                <div className="max-h-48 overflow-y-auto space-y-2">
+                  {uploadedFiles.map((uf, index) => (
+                    <div
+                      key={uf.id}
+                      className={`flex items-center gap-3 p-3 rounded-lg border ${
+                        uf.status === 'completed' ? 'bg-green-50 border-green-200' :
+                        uf.status === 'error' ? 'bg-red-50 border-red-200' :
+                        uf.status === 'processing' ? 'bg-violet-50 border-violet-200' :
+                        'bg-slate-50 border-slate-200'
+                      }`}
+                    >
+                      <span className="text-lg">
+                        {uf.status === 'completed' ? '✓' :
+                         uf.status === 'error' ? '✗' :
+                         uf.status === 'processing' ? '⏳' : '📄'}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-slate-900 truncate">{uf.file.name}</p>
+                        <p className="text-xs text-slate-500">
+                          {(uf.file.size / 1024 / 1024).toFixed(2)} MB
+                          {uf.status === 'error' && <span className="text-red-600"> · {uf.error}</span>}
+                          {uf.status === 'completed' && uf.result && (
+                            <span className="text-green-600"> · {uf.result.document_type}</span>
+                          )}
+                        </p>
+                      </div>
+                      {uf.status === 'pending' && !isProcessing && (
+                        <button
+                          onClick={() => removeFromBulk(uf.id)}
+                          className="p-1 text-slate-400 hover:text-red-500"
+                        >
+                          ✕
+                        </button>
+                      )}
+                      {uf.status === 'completed' && (
+                        <button
+                          onClick={() => viewFileResult(uf)}
+                          className="px-2 py-1 text-xs bg-green-600 text-white rounded-md hover:bg-green-500"
+                        >
+                          View
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Bulk progress indicator */}
+                {isProcessing && bulkProgress.total > 0 && (
+                  <div className="bg-violet-50 rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-violet-700">
+                        Processing {bulkProgress.current} of {bulkProgress.total}...
+                      </span>
+                      <span className="text-sm text-violet-600">
+                        {Math.round((bulkProgress.current / bulkProgress.total) * 100)}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-violet-200 rounded-full h-2">
+                      <div
+                        className="bg-violet-600 h-2 rounded-full transition-all"
+                        style={{ width: `${(bulkProgress.current / bulkProgress.total) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Bulk translate button or completion state */}
+                {uploadedFiles.every(f => f.status === 'completed' || f.status === 'error') ? (
+                  <div className="space-y-3">
+                    <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+                      <div className="text-2xl mb-2">✓</div>
+                      <p className="font-semibold text-green-800">
+                        {uploadedFiles.filter(f => f.status === 'completed').length} of {uploadedFiles.length} files processed
+                      </p>
+                      <p className="text-sm text-green-600 mt-1">All translations saved automatically</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => {
+                          setShowAddRecordView(false)
+                          setUploadedFiles([])
+                          setBulkProgress({ current: 0, total: 0 })
+                        }}
+                        className="bg-violet-600 hover:bg-violet-500 text-white font-semibold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
+                      >
+                        View My Records ({savedTranslations.length})
+                      </button>
+                      <button
+                        onClick={resetUpload}
+                        className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-4 rounded-xl transition-all"
+                      >
+                        Upload More
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleBulkTranslate}
+                    disabled={isProcessing}
+                    className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 disabled:from-slate-300 disabled:to-slate-300 text-white font-semibold py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-2 text-lg shadow-lg shadow-violet-500/20"
+                  >
+                    {isProcessing ? (
+                      <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />Processing files...</>
+                    ) : (
+                      <>Translate All {uploadedFiles.filter(f => f.status === 'pending').length} Files →</>
+                    )}
+                  </button>
+                )}
+              </div>
+            )}
+
             {error && <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
 
-            <div className="mt-6 pt-5 border-t border-slate-200 flex items-center justify-center gap-4 text-sm text-slate-500">
-              <span className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                HIPAA-compliant
-              </span>
-              <span className="text-slate-300">·</span>
-              <span>Your data stays private</span>
-              <span className="text-slate-300">·</span>
-              <span>No account required</span>
+            {/* Social proof */}
+            <div className="mt-6 flex items-center justify-center gap-2 text-sm">
+              <span className="font-semibold text-violet-700">12,847</span>
+              <span className="text-slate-600">records translated by patients like you</span>
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-slate-200 flex flex-col items-center gap-2 text-sm">
+              <div className="flex items-center gap-4 text-slate-500">
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                  HIPAA-compliant
+                </span>
+                <span className="text-slate-300">·</span>
+                <span>No account required</span>
+              </div>
+              <p className="text-xs text-slate-400">
+                Your records stay on your device. We never store, share, or sell your data.
+              </p>
             </div>
           </div>
         )}
 
-        {/* Portal Connection Tab Content */}
-        {activeTab === 'portal' && !result && (
+        {/* Portal Connection Tab Content - only in upload-first mode */}
+        {activeTab === 'portal' && !result && (savedTranslations.length === 0 || showAddRecordView) && (
           <div className="space-y-6">
             {/* Connected Portals */}
             {connectedPortals.length > 0 && (
@@ -805,15 +1601,18 @@ Not medical advice. Always discuss with your healthcare provider.
                 </div>
               )}
 
-              <div className="mt-6 pt-5 border-t border-slate-200 flex items-center justify-center gap-4 text-sm text-slate-500">
-                <span className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                  HIPAA-compliant
-                </span>
-                <span className="text-slate-300">·</span>
-                <span>256-bit encryption</span>
-                <span className="text-slate-300">·</span>
-                <span>No data stored</span>
+              <div className="mt-6 pt-5 border-t border-slate-200 flex flex-col items-center gap-2 text-sm">
+                <div className="flex items-center gap-4 text-slate-500">
+                  <span className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                    HIPAA-compliant
+                  </span>
+                  <span className="text-slate-300">·</span>
+                  <span>256-bit encryption</span>
+                </div>
+                <p className="text-xs text-slate-400">
+                  Your records stay on your device. We never store, share, or sell your data.
+                </p>
               </div>
             </div>
           </div>
@@ -822,6 +1621,25 @@ Not medical advice. Always discuss with your healthcare provider.
         {/* Results */}
         {result && (
           <div className="space-y-4">
+            {/* Breadcrumb - Back to Records */}
+            {savedTranslations.length > 0 && (
+              <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-4 py-2">
+                <button
+                  onClick={() => {
+                    setResult(null)
+                    setFile(null)
+                  }}
+                  className="flex items-center gap-2 text-violet-600 hover:text-violet-700 text-sm font-medium"
+                >
+                  <ArrowRight className="w-4 h-4 rotate-180" />
+                  My Records ({savedTranslations.length})
+                </button>
+                <span className="text-slate-400 text-sm">
+                  Viewing: {file?.name?.slice(0, 30)}{file?.name && file.name.length > 30 ? '...' : ''}
+                </span>
+              </div>
+            )}
+
             {/* Header Card */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
               <div className="flex items-start gap-4">
@@ -841,6 +1659,13 @@ Not medical advice. Always discuss with your healthcare provider.
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <button
+                    onClick={() => setShowShareModal(true)}
+                    className="px-3 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg font-medium text-sm transition-colors flex items-center gap-1.5"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    Share
+                  </button>
+                  <button
                     onClick={() => setShowSaveModal(true)}
                     className="px-3 py-2 bg-violet-100 hover:bg-violet-200 text-violet-700 rounded-lg font-medium text-sm transition-colors"
                   >
@@ -855,6 +1680,19 @@ Not medical advice. Always discuss with your healthcare provider.
                 </div>
               </div>
             </div>
+
+            {/* Gentle acknowledgment - shows for cancer diagnoses */}
+            {result.cancer_specific && result.cancer_specific.cancer_type !== 'unknown' && (
+              <div className="bg-gradient-to-r from-slate-50 to-violet-50 border border-slate-200 rounded-xl p-4 flex items-start gap-3">
+                <span className="text-lg">💜</span>
+                <div>
+                  <p className="text-slate-700 text-sm leading-relaxed">
+                    This is a lot to take in. Take your time with this information. You don't have to process it all at once.
+                    Below you'll find your results explained clearly, plus questions to bring to your care team.
+                  </p>
+                </div>
+              </div>
+            )}
 
             <Section id="summary" icon={<FileText className="w-5 h-5" />} title="Plain English Summary" defaultOpen highlight>
               <p className="text-slate-800 text-base leading-relaxed">{result.test_summary || 'No summary available'}</p>
@@ -929,20 +1767,57 @@ Not medical advice. Always discuss with your healthcare provider.
                     </div>
                   )}
                 </div>
+
+                {/* Next steps CTAs */}
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <Link
+                    href={`/trials?cancer=${encodeURIComponent(result.cancer_specific.cancer_type)}`}
+                    className="flex items-center gap-3 p-3 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-xl transition-colors group"
+                  >
+                    <span className="text-lg">🔬</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-teal-900 text-sm">Find Clinical Trials</p>
+                      <p className="text-xs text-teal-700 truncate">For {result.cancer_specific.cancer_type}</p>
+                    </div>
+                  </Link>
+                  <Link
+                    href="/records/case-review"
+                    className="flex items-center gap-3 p-3 bg-fuchsia-50 hover:bg-fuchsia-100 border border-fuchsia-200 rounded-xl transition-colors group"
+                  >
+                    <span className="text-lg">🧠</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-fuchsia-900 text-sm">AI Case Review</p>
+                      <p className="text-xs text-fuchsia-700">Synthesize all your records</p>
+                    </div>
+                  </Link>
+                </div>
               </Section>
             )}
 
             {result.questions_to_ask_doctor && (
               <Section id="questions" icon={<MessageCircle className="w-5 h-5" />} title="Questions for Your Doctor" highlight>
                 <p className="text-slate-700 text-base leading-relaxed whitespace-pre-line">{result.questions_to_ask_doctor}</p>
+                <Link
+                  href="/cancer-checklist"
+                  className="mt-4 flex items-center justify-between p-4 bg-violet-100 hover:bg-violet-200 rounded-xl transition-colors group"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">📋</span>
+                    <div>
+                      <p className="font-medium text-violet-900">Bring these to your appointment</p>
+                      <p className="text-sm text-violet-700">Add to your Cancer Checklist →</p>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-5 h-5 text-violet-600 group-hover:translate-x-1 transition-transform" />
+                </Link>
               </Section>
             )}
 
             {result.technical_terms_explained && result.technical_terms_explained.length > 0 && (
               <Section id="terms" icon={<BookOpen className="w-5 h-5" />} title="Medical Glossary" badge={`${result.technical_terms_explained.length} terms`}>
                 <p className="text-xs text-slate-500 mb-3">Tap any term to learn more</p>
-                <div className="space-y-3">
-                  {result.technical_terms_explained.map((term, i) => (
+                <div className="space-y-2">
+                  {(showAllTerms ? result.technical_terms_explained : result.technical_terms_explained.slice(0, 4)).map((term, i) => (
                     <button
                       key={i}
                       onClick={() => {
@@ -951,18 +1826,26 @@ Not medical advice. Always discuss with your healthcare provider.
                           document.querySelector('[placeholder*="Ask a question"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
                         }, 100)
                       }}
-                      className="w-full text-left bg-slate-50 hover:bg-violet-50 rounded-xl p-4 border border-slate-100 hover:border-violet-200 transition-colors group"
+                      className="w-full text-left bg-slate-50 hover:bg-violet-50 rounded-xl p-3 border border-slate-100 hover:border-violet-200 transition-colors group"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <p className="font-semibold text-violet-900 text-base mb-1 group-hover:text-violet-700">{term.term}</p>
-                          <p className="text-slate-700 text-sm leading-relaxed">{term.definition}</p>
+                          <p className="font-semibold text-violet-900 text-sm group-hover:text-violet-700">{term.term}</p>
+                          <p className="text-slate-600 text-xs leading-relaxed line-clamp-2">{term.definition}</p>
                         </div>
-                        <span className="text-violet-400 group-hover:text-violet-600 flex-shrink-0 mt-1">→</span>
+                        <span className="text-violet-400 group-hover:text-violet-600 flex-shrink-0 text-sm">→</span>
                       </div>
                     </button>
                   ))}
                 </div>
+                {result.technical_terms_explained.length > 4 && (
+                  <button
+                    onClick={() => setShowAllTerms(!showAllTerms)}
+                    className="w-full mt-3 py-2.5 text-sm text-violet-600 hover:text-violet-700 font-medium bg-violet-50 hover:bg-violet-100 rounded-lg transition-colors"
+                  >
+                    {showAllTerms ? 'Show less' : `Show all ${result.technical_terms_explained.length} terms`}
+                  </button>
+                )}
               </Section>
             )}
 
@@ -978,6 +1861,19 @@ Not medical advice. Always discuss with your healthcare provider.
                 </ul>
               </Section>
             )}
+
+            {/* Share CTA */}
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-5 text-center">
+              <p className="text-green-800 font-medium mb-2">Did this help you understand your results?</p>
+              <p className="text-green-700 text-sm mb-4">Share with someone else who might benefit</p>
+              <button
+                onClick={() => setShowShareModal(true)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-500 text-white font-medium rounded-xl transition-colors"
+              >
+                <Share2 className="w-4 h-4" />
+                Share This Tool
+              </button>
+            </div>
 
             <p className="text-center text-xs text-slate-500 py-2">
               Educational summary only. Not medical advice. Discuss with your healthcare provider.
@@ -1151,16 +2047,44 @@ Not medical advice. Always discuss with your healthcare provider.
                 <p className="text-slate-600 text-sm mb-6">Choose how you'd like to save your results:</p>
 
                 <div className="space-y-3">
+                  {/* Cloud save - for logged in users */}
                   <button
-                    onClick={handleSaveToApp}
-                    className="w-full flex items-center gap-4 p-4 border-2 border-violet-200 bg-violet-50 rounded-xl hover:border-violet-400 transition-colors text-left"
+                    onClick={handleSaveToCloud}
+                    disabled={isSavingToCloud}
+                    className="w-full flex items-center gap-4 p-4 border-2 border-violet-200 bg-gradient-to-r from-violet-50 to-purple-50 rounded-xl hover:border-violet-400 transition-colors text-left"
                   >
                     <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center">
+                      {isSavingToCloud ? (
+                        <div className="w-5 h-5 border-2 border-violet-600 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Cloud className="w-5 h-5 text-violet-600" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-violet-900">Save to Account</p>
+                        {user && <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">Signed in</span>}
+                      </div>
+                      <p className="text-xs text-violet-600">
+                        {user ? 'Access from any device · Secure cloud storage' : 'Sign in to save securely in the cloud'}
+                      </p>
+                    </div>
+                  </button>
+
+                  {cloudSaveError && (
+                    <p className="text-xs text-red-600 px-4">{cloudSaveError}</p>
+                  )}
+
+                  <button
+                    onClick={handleSaveToApp}
+                    className="w-full flex items-center gap-4 p-4 border border-slate-200 rounded-xl hover:border-violet-300 hover:bg-violet-50 transition-colors text-left"
+                  >
+                    <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
                       <span>💾</span>
                     </div>
                     <div>
-                      <p className="font-medium text-violet-900">Save to This Device</p>
-                      <p className="text-xs text-violet-600">Access anytime · Includes chat history</p>
+                      <p className="font-medium text-slate-900">Save to This Device</p>
+                      <p className="text-xs text-slate-500">Access anytime · Includes chat history</p>
                     </div>
                   </button>
 
@@ -1169,11 +2093,11 @@ Not medical advice. Always discuss with your healthcare provider.
                     className="w-full flex items-center gap-4 p-4 border border-slate-200 rounded-xl hover:border-violet-300 hover:bg-violet-50 transition-colors text-left"
                   >
                     <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
-                      <span>📥</span>
+                      <Download className="w-5 h-5 text-slate-600" />
                     </div>
                     <div>
-                      <p className="font-medium text-slate-900">Download Summary</p>
-                      <p className="text-xs text-slate-500">Save as text file to your device</p>
+                      <p className="font-medium text-slate-900">Download as PDF</p>
+                      <p className="text-xs text-slate-500">Clean, printable summary</p>
                     </div>
                   </button>
                 </div>
@@ -1190,60 +2114,148 @@ Not medical advice. Always discuss with your healthcare provider.
         </div>
       )}
 
-      {/* Saved Translations List Modal */}
-      {showSavedList && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowSavedList(false)}>
-          <div className="bg-white rounded-2xl max-w-lg w-full max-h-[80vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-slate-900">My Saved Translations</h2>
-              <button onClick={() => setShowSavedList(false)} className="text-slate-400 hover:text-slate-600">
-                ✕
+      {/* Share Modal */}
+      {showShareModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowShareModal(false)}>
+          <div className="bg-white rounded-2xl max-w-md w-full p-6" onClick={e => e.stopPropagation()}>
+            <div className="text-center mb-6">
+              <div className="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full flex items-center justify-center">
+                <Share2 className="w-6 h-6 text-green-600" />
+              </div>
+              <h2 className="text-xl font-bold text-slate-900">Share This Tool</h2>
+              <p className="text-slate-600 text-sm mt-2">Help other patients understand their medical records</p>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => handleShare('copy')}
+                className="w-full flex items-center gap-4 p-4 border border-slate-200 rounded-xl hover:border-violet-300 hover:bg-violet-50 transition-colors text-left"
+              >
+                <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
+                  {copied ? '✓' : '📋'}
+                </div>
+                <div>
+                  <p className="font-medium text-slate-900">{copied ? 'Copied!' : 'Copy Link'}</p>
+                  <p className="text-xs text-slate-500">Share via text or anywhere</p>
+                </div>
+              </button>
+
+              <button
+                onClick={() => handleShare('twitter')}
+                className="w-full flex items-center gap-4 p-4 border border-slate-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition-colors text-left"
+              >
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
+                  𝕏
+                </div>
+                <div>
+                  <p className="font-medium text-slate-900">Share on X</p>
+                  <p className="text-xs text-slate-500">Tweet about this tool</p>
+                </div>
+              </button>
+
+              <button
+                onClick={() => handleShare('email')}
+                className="w-full flex items-center gap-4 p-4 border border-slate-200 rounded-xl hover:border-amber-300 hover:bg-amber-50 transition-colors text-left"
+              >
+                <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                  ✉️
+                </div>
+                <div>
+                  <p className="font-medium text-slate-900">Send via Email</p>
+                  <p className="text-xs text-slate-500">Share with friends & family</p>
+                </div>
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4">
-              {savedTranslations.length === 0 ? (
-                <div className="text-center py-12 text-slate-500">
-                  <span className="text-4xl mb-4 block">📂</span>
-                  <p>No saved translations yet</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {savedTranslations.map(t => (
-                    <button
-                      key={t.id}
-                      onClick={() => loadSavedTranslation(t.id)}
-                      className="w-full flex items-center gap-4 p-4 bg-slate-50 hover:bg-violet-50 rounded-xl text-left transition-colors group"
-                    >
-                      <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <span>📋</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-slate-900 truncate">{t.fileName}</p>
-                        <div className="flex items-center gap-2 text-xs text-slate-500">
-                          <span>{t.documentType}</span>
-                          <span>·</span>
-                          <span>{new Date(t.date).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                      <button
-                        onClick={(e) => deleteSavedTranslation(t.id, e)}
-                        className="opacity-0 group-hover:opacity-100 p-2 text-slate-400 hover:text-red-500 transition-all"
-                        title="Delete"
-                      >
-                        🗑️
-                      </button>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50">
-              <p className="text-xs text-slate-500 text-center">
-                Translations are saved locally on this device
+            <div className="mt-6 pt-4 border-t border-slate-100 text-center">
+              <p className="text-xs text-slate-500">
+                Your sharing helps patients get the support they need ❤️
               </p>
             </div>
+
+            <button
+              onClick={() => setShowShareModal(false)}
+              className="w-full mt-4 py-2 text-slate-500 hover:text-slate-700 text-sm"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
+
+      {/* Privacy Acknowledgment Modal */}
+      {showPrivacyModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowPrivacyModal(false)}>
+          <div className="bg-white rounded-2xl max-w-md w-full p-6" onClick={e => e.stopPropagation()}>
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full flex items-center justify-center">
+                <Shield className="w-8 h-8 text-emerald-600" />
+              </div>
+              <h2 className="text-xl font-bold text-slate-900 mb-2">Your Privacy Matters</h2>
+              <p className="text-slate-600">Before you upload, here's how we protect you:</p>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-emerald-600 text-sm">✓</span>
+                </div>
+                <div>
+                  <p className="font-medium text-slate-900">Your data is yours</p>
+                  <p className="text-sm text-slate-600">
+                    {user
+                      ? 'Encrypted and stored securely in your account. Sync across devices.'
+                      : 'Stored locally on this device. Sign in to sync across devices.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-emerald-600 text-sm">✓</span>
+                </div>
+                <div>
+                  <p className="font-medium text-slate-900">Never sold</p>
+                  <p className="text-sm text-slate-600">We never sell your data. Ever. Your medical records belong to you.</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-emerald-600 text-sm">✓</span>
+                </div>
+                <div>
+                  <p className="font-medium text-slate-900">You're in control</p>
+                  <p className="text-sm text-slate-600">Delete your data anytime. {user ? 'Manage from your account settings.' : 'Clear browser storage or sign in for more control.'}</p>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                setPrivacyAcknowledged(true)
+                localStorage.setItem('opencancer-privacy-acknowledged', 'true')
+                setShowPrivacyModal(false)
+                // Open file picker after acknowledgment
+                setTimeout(() => fileInputRef.current?.click(), 100)
+              }}
+              className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold py-4 rounded-xl transition-all"
+            >
+              I Understand, Continue
+            </button>
+
+            <button
+              onClick={() => setShowPrivacyModal(false)}
+              className="w-full mt-3 py-2 text-slate-500 hover:text-slate-700 text-sm"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}

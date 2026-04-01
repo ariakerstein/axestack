@@ -12,6 +12,7 @@ import {
   getCoverageSummary
 } from '@/lib/coverage-data'
 import { CANCER_TYPES } from '@/lib/cancer-data'
+import { useAuth } from '@/lib/auth'
 
 type Step = 'cancer' | 'insurance' | 'results'
 
@@ -19,6 +20,7 @@ type Step = 'cancer' | 'insurance' | 'results'
 const COMMON_CANCERS = ['breast', 'lung', 'prostate', 'colorectal', 'melanoma', 'lymphoma']
 
 export default function CoveragePage() {
+  const { user, profile: authProfile, loading: authLoading } = useAuth()
   const [step, setStep] = useState<Step>('cancer')
   const [cancerType, setCancerType] = useState('')
   const [insuranceType, setInsuranceType] = useState('')
@@ -26,16 +28,26 @@ export default function CoveragePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [showAllCancers, setShowAllCancers] = useState(false)
 
-  // Load profile if exists
+  // Load profile - prefer Supabase for authenticated users
   useEffect(() => {
-    const saved = localStorage.getItem('patient-profile')
-    if (saved) {
-      const profile = JSON.parse(saved)
-      if (profile.cancerType) {
-        setCancerType(profile.cancerType)
+    if (authLoading) return
+
+    // Use Supabase profile for authenticated users
+    if (user && authProfile) {
+      if (authProfile.cancer_type) {
+        setCancerType(authProfile.cancer_type)
+      }
+    } else {
+      // Fall back to localStorage for anonymous users
+      const saved = localStorage.getItem('patient-profile')
+      if (saved) {
+        const profile = JSON.parse(saved)
+        if (profile.cancerType) {
+          setCancerType(profile.cancerType)
+        }
       }
     }
-  }, [])
+  }, [user, authProfile, authLoading])
 
   const handleCancerSelect = (type: string) => {
     setCancerType(type)
@@ -58,17 +70,31 @@ export default function CoveragePage() {
 
   return (
     <main className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="text-slate-500 hover:text-slate-900 text-sm flex items-center gap-1">
-            ← Home
+      {/* Header - consistent with Navbar pattern */}
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+          {/* Left side - brand */}
+          <Link href="/" className="flex items-center gap-1.5">
+            <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">
+              opencancer
+            </span>
+            <span className="text-lg font-bold text-slate-400">.ai</span>
           </Link>
-          <Link href="/" className="flex items-center gap-2">
-            <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">opencancer.ai</span>
-            <span className="text-slate-400 text-sm">/</span>
-            <span className="font-medium text-slate-700">Financial Coverage</span>
-          </Link>
+
+          {/* Center - nav links (hidden on mobile) */}
+          <nav className="hidden sm:flex items-center gap-4 text-sm">
+            <Link href="/records" className="text-slate-600 hover:text-violet-600 transition-colors">
+              Records
+            </Link>
+            <Link href="/ask" className="text-slate-600 hover:text-violet-600 transition-colors">
+              Ask AI
+            </Link>
+            <Link href="/trials" className="text-slate-600 hover:text-violet-600 transition-colors">
+              Trials
+            </Link>
+          </nav>
+
+          {/* Right side - placeholder for balance */}
           <div className="w-16" />
         </div>
       </header>
@@ -425,13 +451,6 @@ export default function CoveragePage() {
         )}
       </div>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 py-8 px-4 bg-white mt-12">
-        <div className="max-w-2xl mx-auto flex justify-between items-center text-sm text-slate-500">
-          <Link href="/" className="hover:text-slate-900">← Home</Link>
-          <a href="https://axestack.com" className="hover:text-slate-900">axestack</a>
-        </div>
-      </footer>
     </main>
   )
 }

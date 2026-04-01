@@ -4,6 +4,11 @@ import Link from 'next/link'
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { CANCER_TYPES } from '@/lib/cancer-data'
+import { useAnalytics } from '@/hooks/useAnalytics'
+import { saveProfile } from '@/lib/supabase'
+import { useAuth } from '@/lib/auth'
+import { AuthModal } from '@/components/AuthModal'
+import { User } from 'lucide-react'
 
 interface PatientProfile {
   role: 'patient' | 'caregiver'
@@ -17,6 +22,7 @@ interface PatientProfile {
 
 export default function ProfilePage() {
   const router = useRouter()
+  const { user, profile: authProfile, refreshProfile, signOut, loading: authLoading } = useAuth()
   const [profile, setProfile] = useState<PatientProfile | null>(null)
   const [role, setRole] = useState<'patient' | 'caregiver'>('patient')
   const [name, setName] = useState('')
@@ -26,6 +32,9 @@ export default function ProfilePage() {
   const [stage, setStage] = useState('')
   const [location, setLocation] = useState('')
   const [saved, setSaved] = useState(false)
+  const [showAuthModal, setShowAuthModal] = useState(false)
+
+  const { trackEvent } = useAnalytics()
 
   // Filter cancer types based on search
   const filteredCancerTypes = useMemo(() => {
@@ -36,20 +45,43 @@ export default function ProfilePage() {
   }, [cancerSearch])
 
   useEffect(() => {
-    const saved = localStorage.getItem('patient-profile')
-    if (saved) {
-      const p = JSON.parse(saved)
-      setProfile(p)
-      setRole(p.role || 'patient')
-      setName(p.name || '')
-      setEmail(p.email || '')
-      setCancerType(p.cancerType || '')
-      setStage(p.stage || '')
-      setLocation(p.location || '')
+    // If user is logged in and has a Supabase profile, use that
+    if (user && authProfile) {
+      setProfile({
+        role: authProfile.role,
+        name: authProfile.name,
+        email: authProfile.email,
+        cancerType: authProfile.cancer_type,
+        stage: authProfile.stage || undefined,
+        location: authProfile.location || undefined,
+        createdAt: authProfile.created_at,
+      })
+      setRole(authProfile.role || 'patient')
+      setName(authProfile.name || '')
+      setEmail(authProfile.email || user.email || '')
+      setCancerType(authProfile.cancer_type || '')
+      setStage(authProfile.stage || '')
+      setLocation(authProfile.location || '')
+    } else {
+      // Fall back to localStorage for anonymous users
+      const saved = localStorage.getItem('patient-profile')
+      if (saved) {
+        const p = JSON.parse(saved)
+        setProfile(p)
+        setRole(p.role || 'patient')
+        setName(p.name || '')
+        setEmail(p.email || (user?.email || ''))
+        setCancerType(p.cancerType || '')
+        setStage(p.stage || '')
+        setLocation(p.location || '')
+      } else if (user?.email) {
+        // Pre-fill email for logged in user without profile
+        setEmail(user.email)
+      }
     }
-  }, [])
+  }, [user, authProfile])
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const newProfile: PatientProfile = {
       role,
       name,
@@ -59,9 +91,35 @@ export default function ProfilePage() {
       location: location || undefined,
       createdAt: profile?.createdAt || new Date().toISOString(),
     }
+
+    // Save to localStorage for offline access
     localStorage.setItem('patient-profile', JSON.stringify(newProfile))
     setProfile(newProfile)
     setSaved(true)
+
+    // Save to Supabase
+    await saveProfile({
+      email,
+      name,
+      role,
+      cancerType,
+      stage: stage || undefined,
+      location: location || undefined,
+    })
+
+    // Refresh auth context profile
+    if (user) {
+      await refreshProfile()
+    }
+
+    // Track profile creation/update
+    const isNewProfile = !profile?.createdAt
+    trackEvent(isNewProfile ? 'profile_created' : 'profile_updated', {
+      role,
+      cancer_type: cancerType,
+      has_stage: !!stage,
+      has_location: !!location,
+    })
 
     // Redirect to home with success message
     setTimeout(() => {
@@ -85,177 +143,237 @@ export default function ProfilePage() {
 
   return (
     <main className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="border-b border-slate-200 bg-white sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="text-slate-500 hover:text-slate-900 text-sm flex items-center gap-1">
-            ← Home
+      {/* Header - consistent with Navbar pattern */}
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+          {/* Left side - brand */}
+          <Link href="/" className="flex items-center gap-1.5">
+            <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">
+              opencancer
+            </span>
+            <span className="text-lg font-bold text-slate-400">.ai</span>
           </Link>
-          <Link href="/" className="flex items-center gap-2">
-            <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">opencancer.ai</span>
-            <span className="text-slate-400 text-sm">/</span>
-            <span className="font-medium text-slate-700">Profile</span>
-          </Link>
-          <div className="w-20" />
+
+          {/* Center - nav links (hidden on mobile) */}
+          <nav className="hidden sm:flex items-center gap-4 text-sm">
+            <Link href="/records" className="text-slate-600 hover:text-violet-600 transition-colors">
+              Records
+            </Link>
+            <Link href="/ask" className="text-slate-600 hover:text-violet-600 transition-colors">
+              Ask AI
+            </Link>
+            <Link href="/trials" className="text-slate-600 hover:text-violet-600 transition-colors">
+              Trials
+            </Link>
+          </nav>
+
+          {/* Right side - auth state */}
+          <div className="flex items-center gap-3">
+            {!authLoading && (
+              user ? (
+                <div className="flex items-center gap-3">
+                  <span className="hidden sm:flex items-center gap-1.5 text-sm text-slate-700">
+                    <User className="w-4 h-4 text-violet-500" />
+                    {user.email?.split('@')[0]}
+                  </span>
+                  <button
+                    onClick={() => signOut()}
+                    className="text-sm text-slate-500 hover:text-red-600 transition-colors"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowAuthModal(true)}
+                  className="flex items-center gap-1.5 text-sm text-violet-600 hover:text-violet-700 font-medium px-3 py-1.5 bg-violet-50 hover:bg-violet-100 rounded-lg transition-colors"
+                >
+                  <User className="w-4 h-4" />
+                  Sign in
+                </button>
+              )
+            )}
+          </div>
         </div>
       </header>
 
       <div className="max-w-lg mx-auto px-4 py-8">
         {/* Info */}
-        <div className="bg-violet-50 border border-violet-200 rounded-lg p-4 mb-6">
-          <p className="text-sm text-violet-800">
+        <div className={`border rounded-lg p-4 mb-6 ${user ? 'bg-emerald-50 border-emerald-200' : 'bg-violet-50 border-violet-200'}`}>
+          <p className={`text-sm ${user ? 'text-emerald-800' : 'text-violet-800'}`}>
             Your profile helps personalize tools like Clinical Trials, Ask AI, and Records Translator.
-            <strong className="block mt-1">Data stays on your device. We never share your information without your consent.</strong>
+            <strong className="block mt-1">
+              {user
+                ? 'Your data is encrypted and synced to your account.'
+                : 'Data stays on your device. Sign in to sync across devices.'}
+            </strong>
           </p>
         </div>
 
         {/* Form */}
         <div className="space-y-6">
-          {/* Role Selector */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              I am a...
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setRole('patient')}
-                className={`flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all ${
-                  role === 'patient'
-                    ? 'border-violet-500 bg-violet-50 text-violet-700'
-                    : 'border-slate-200 hover:border-slate-300 text-slate-600'
-                }`}
-              >
-                <span className="text-2xl">🎗️</span>
-                <span className="font-medium">Patient</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setRole('caregiver')}
-                className={`flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all ${
-                  role === 'caregiver'
-                    ? 'border-violet-500 bg-violet-50 text-violet-700'
-                    : 'border-slate-200 hover:border-slate-300 text-slate-600'
-                }`}
-              >
-                <span className="text-2xl">💜</span>
-                <span className="font-medium">Caregiver</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Name */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              {role === 'caregiver' ? "Patient's Name" : 'Name'} *
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={role === 'caregiver' ? "Patient's name" : 'Your name'}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
-            />
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Email *
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 ${
-                email && !isValidEmail(email) ? 'border-red-300' : 'border-slate-300'
-              }`}
-            />
-            <p className="text-xs text-slate-500 mt-1">For personalized recommendations</p>
-          </div>
-
-          {/* Cancer Type Grid with Search */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Cancer Type *
-            </label>
-            <div className="relative mb-3">
-              <input
-                type="text"
-                value={cancerSearch}
-                onChange={(e) => setCancerSearch(e.target.value)}
-                placeholder="Search cancer types..."
-                className="w-full px-3 py-2 pl-9 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
-              />
-              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-64 overflow-y-auto p-1">
-              {filteredCancerTypes.map(([key, label]) => (
+          {/* Top Row: Role + Cancer Type side by side */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Role Selector - Compact */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                I am a...
+              </label>
+              <div className="flex gap-2">
                 <button
-                  key={key}
                   type="button"
-                  onClick={() => {
-                    setCancerType(key)
-                    setCancerSearch('')
-                  }}
-                  className={`text-left px-3 py-2 rounded-lg text-sm transition-all ${
-                    cancerType === key
-                      ? 'bg-violet-500 text-white font-medium'
-                      : 'bg-slate-50 hover:bg-violet-50 text-slate-700 hover:text-violet-700 border border-slate-200'
+                  onClick={() => setRole('patient')}
+                  className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg border-2 transition-all text-sm ${
+                    role === 'patient'
+                      ? 'border-violet-500 bg-violet-50 text-violet-700'
+                      : 'border-slate-200 hover:border-slate-300 text-slate-600'
                   }`}
                 >
-                  {label}
+                  <span>🎗️</span>
+                  <span className="font-medium">Patient</span>
                 </button>
-              ))}
-              {filteredCancerTypes.length === 0 && (
-                <p className="col-span-full text-sm text-slate-500 text-center py-4">
-                  No matching cancer types found
-                </p>
-              )}
+                <button
+                  type="button"
+                  onClick={() => setRole('caregiver')}
+                  className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg border-2 transition-all text-sm ${
+                    role === 'caregiver'
+                      ? 'border-violet-500 bg-violet-50 text-violet-700'
+                      : 'border-slate-200 hover:border-slate-300 text-slate-600'
+                  }`}
+                >
+                  <span>💜</span>
+                  <span className="font-medium">Caregiver</span>
+                </button>
+              </div>
             </div>
-            {cancerType && (
-              <p className="text-sm text-violet-600 mt-2 flex items-center gap-1">
-                <span>✓</span> Selected: <strong>{CANCER_TYPES[cancerType]}</strong>
-              </p>
-            )}
+
+            {/* Cancer Type Search - Compact */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Cancer Type *
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={cancerType ? (CANCER_TYPES[cancerType] || cancerType) : cancerSearch}
+                  onChange={(e) => {
+                    setCancerSearch(e.target.value)
+                    if (cancerType) setCancerType('')
+                  }}
+                  onFocus={() => {
+                    if (cancerType) {
+                      setCancerSearch('')
+                      setCancerType('')
+                    }
+                  }}
+                  placeholder="Search or select..."
+                  className={`w-full px-3 py-2.5 pl-9 bg-white text-slate-900 placeholder:text-slate-400 border rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm ${
+                    cancerType ? 'border-violet-500 bg-violet-50' : 'border-slate-300'
+                  }`}
+                />
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                {cancerType && (
+                  <button
+                    onClick={() => { setCancerType(''); setCancerSearch(''); }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* Stage */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Stage (optional)
-            </label>
-            <select
-              value={stage}
-              onChange={(e) => setStage(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
-            >
-              <option value="">Select stage...</option>
-              <option value="0">Stage 0 (In Situ)</option>
-              <option value="I">Stage I</option>
-              <option value="II">Stage II</option>
-              <option value="III">Stage III</option>
-              <option value="IV">Stage IV</option>
-              <option value="unknown">Unknown / Not staged</option>
-            </select>
+          {/* Cancer Type Grid - Only show when searching or no selection */}
+          {!cancerType && (
+            <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto">
+                {filteredCancerTypes.map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => {
+                      setCancerType(key)
+                      setCancerSearch('')
+                    }}
+                    className="text-left px-3 py-2 rounded-lg text-sm transition-all bg-white hover:bg-violet-50 text-slate-700 hover:text-violet-700 border border-slate-200"
+                  >
+                    {label}
+                  </button>
+                ))}
+                {filteredCancerTypes.length === 0 && (
+                  <p className="col-span-full text-sm text-slate-500 text-center py-4">
+                    No matching cancer types found
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Name & Email Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                {role === 'caregiver' ? "Patient's Name" : 'Name'} *
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={role === 'caregiver' ? "Patient's name" : 'Your name'}
+                className="w-full px-3 py-2.5 bg-white text-slate-900 placeholder:text-slate-400 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Email *
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className={`w-full px-3 py-2.5 bg-white text-slate-900 placeholder:text-slate-400 border rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm ${
+                  email && !isValidEmail(email) ? 'border-red-300' : 'border-slate-300'
+                }`}
+              />
+            </div>
           </div>
 
-          {/* Location */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Location (optional)
-            </label>
-            <input
-              type="text"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="City, State or ZIP"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
-            />
-            <p className="text-xs text-slate-500 mt-1">For finding nearby trials and specialists</p>
+          {/* Stage & Location Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Stage (optional)
+              </label>
+              <select
+                value={stage}
+                onChange={(e) => setStage(e.target.value)}
+                className="w-full px-3 py-2.5 bg-white text-slate-900 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm"
+              >
+                <option value="">Select stage...</option>
+                <option value="0">Stage 0 (In Situ)</option>
+                <option value="I">Stage I</option>
+                <option value="II">Stage II</option>
+                <option value="III">Stage III</option>
+                <option value="IV">Stage IV</option>
+                <option value="unknown">Unknown / Not staged</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Location (optional)
+              </label>
+              <input
+                type="text"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="City, State or ZIP"
+                className="w-full px-3 py-2.5 bg-white text-slate-900 placeholder:text-slate-400 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm"
+              />
+            </div>
           </div>
 
           {/* Save Button */}
@@ -276,13 +394,23 @@ export default function ProfilePage() {
             </p>
           )}
 
-          {/* Clear */}
+          {/* Clear profile data */}
           {profile && (
             <button
               onClick={handleClear}
               className="w-full py-2 text-sm text-slate-500 hover:text-red-600 transition-colors"
             >
               Clear profile data
+            </button>
+          )}
+
+          {/* Sign out - separate action */}
+          {user && (
+            <button
+              onClick={() => signOut()}
+              className="w-full py-2 text-sm text-red-500 hover:text-red-700 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+            >
+              Sign out of account
             </button>
           )}
         </div>
@@ -292,13 +420,20 @@ export default function ProfilePage() {
           <div className="mt-8 p-4 bg-slate-50 rounded-lg">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-medium text-slate-700">Current Profile</h3>
-              <span className={`text-xs px-2 py-1 rounded-full ${
-                profile.role === 'caregiver'
-                  ? 'bg-purple-100 text-purple-700'
-                  : 'bg-violet-100 text-violet-700'
-              }`}>
-                {profile.role === 'caregiver' ? '💜 Caregiver' : '🎗️ Patient'}
-              </span>
+              <div className="flex items-center gap-2">
+                {user && (
+                  <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">
+                    Synced
+                  </span>
+                )}
+                <span className={`text-xs px-2 py-1 rounded-full ${
+                  profile.role === 'caregiver'
+                    ? 'bg-purple-100 text-purple-700'
+                    : 'bg-violet-100 text-violet-700'
+                }`}>
+                  {profile.role === 'caregiver' ? '💜 Caregiver' : '🎗️ Patient'}
+                </span>
+              </div>
             </div>
             <div className="text-sm text-slate-600 space-y-1">
               {profile.name && <p><strong>Name:</strong> {profile.name}</p>}
@@ -310,6 +445,12 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </main>
   )
 }

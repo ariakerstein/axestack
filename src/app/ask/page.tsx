@@ -1,11 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { CANCER_TYPES, PRIMARY_CATEGORIES, BLOOD_CANCERS } from '@/lib/cancer-data'
 import { useAuth } from '@/lib/auth'
 import { AuthModal } from '@/components/AuthModal'
 import { TypewriterMarkdown } from '@/components/TypewriterMarkdown'
+import { fetchSuggestedQuestions, getCategoryColor, SuggestedQuestion } from '@/lib/suggested-questions'
+import { useAnalytics } from '@/hooks/useAnalytics'
+import { ShareButton } from '@/components/ShareButton'
 
 interface Citation {
   title: string
@@ -30,10 +33,12 @@ interface Message {
   isLoading?: boolean
   typingComplete?: boolean
   feedback?: 'positive' | 'negative' | null
+  feedbackComment?: string
 }
 
 export default function AskPage() {
-  const { user } = useAuth()
+  const { user, profile: authProfile, loading: authLoading } = useAuth()
+  const { trackEvent } = useAnalytics()
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -42,17 +47,57 @@ export default function AskPage() {
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [questionCount, setQuestionCount] = useState(0)
   const [hasShownWelcome, setHasShownWelcome] = useState(false)
+  const [suggestedQuestions, setSuggestedQuestions] = useState<SuggestedQuestion[]>([])
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(true)
+  const [feedbackMessageId, setFeedbackMessageId] = useState<string | null>(null)
+  const [feedbackComment, setFeedbackComment] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
   const FREE_QUESTION_LIMIT = 3
 
-  const suggestedQuestions = [
-    "What questions should I ask my oncologist at my next appointment?",
-    "How can I find clinical trials that match my diagnosis?",
-    "What are the latest treatment options for my cancer type?",
-    "How do I interpret my biomarker test results?"
-  ]
+  // Load profile - prefer Supabase for authenticated users
+  useEffect(() => {
+    if (authLoading) return
+
+    // Use Supabase profile for authenticated users
+    if (user && authProfile) {
+      if (authProfile.cancer_type && !cancerType) {
+        setCancerType(authProfile.cancer_type)
+      }
+    } else {
+      // Fall back to localStorage for anonymous users
+      const saved = localStorage.getItem('patient-profile')
+      if (saved) {
+        try {
+          const profile = JSON.parse(saved)
+          if (profile.cancerType && !cancerType) {
+            setCancerType(profile.cancerType)
+          }
+        } catch (e) {
+          // Ignore parse errors
+        }
+      }
+    }
+  }, [user, authProfile, authLoading])
+
+  // Fetch cancer-specific suggested questions when cancer type changes
+  const loadSuggestedQuestions = useCallback(async (type: string | null) => {
+    setIsLoadingQuestions(true)
+    try {
+      const questions = await fetchSuggestedQuestions(type)
+      setSuggestedQuestions(questions)
+    } catch (err) {
+      console.error('Error loading suggested questions:', err)
+    } finally {
+      setIsLoadingQuestions(false)
+    }
+  }, [])
+
+  // Load questions on mount and when cancer type changes
+  useEffect(() => {
+    loadSuggestedQuestions(cancerType || null)
+  }, [cancerType, loadSuggestedQuestions])
 
   // Show welcome message on mount
   useEffect(() => {
@@ -60,7 +105,7 @@ export default function AskPage() {
       const welcomeMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: `Hi, I'm your **opencancer.ai assistant**. I can help you find information about cancer treatments, clinical trials, and caregiver strategies — grounded in NCCN guidelines and expert-led resources.
+        content: `Hi, I'm your **opencancer.ai assistant**. I can help you find information about cancer treatments, clinical trials, and caregiver strategies, grounded in NCCN guidelines and expert-led resources.
 
 **Get personalized guidance:** Click the settings icon to select your cancer type for tailored information.
 
@@ -101,6 +146,13 @@ I can help you with:
   const handleSubmit = async (messageText?: string) => {
     const text = messageText || input
     if (!text.trim() || isLoading) return
+
+    // Track the question being asked
+    trackEvent('ask_question', {
+      question_length: text.trim().length,
+      cancer_type: cancerType || null,
+      is_suggested_question: !!messageText,
+    })
 
     // Soft auth gate
     const newCount = questionCount + 1
@@ -184,16 +236,32 @@ I can help you with:
     ))
   }
 
-  const handleFeedback = async (messageId: string, type: 'positive' | 'negative') => {
+  const handleFeedback = async (messageId: string, type: 'positive' | 'negative', comment?: string) => {
+    // For negative feedback, show comment input first (unless comment is provided)
+    if (type === 'negative' && !comment && feedbackMessageId !== messageId) {
+      setFeedbackMessageId(messageId)
+      setFeedbackComment('')
+      return
+    }
+
     // Update local state
     setMessages(prev => prev.map(m =>
-      m.id === messageId ? { ...m, feedback: type } : m
+      m.id === messageId ? { ...m, feedback: type, feedbackComment: comment } : m
     ))
+
+    // Close comment input
+    setFeedbackMessageId(null)
+    setFeedbackComment('')
+
+    // Get the message content for context
+    const message = messages.find(m => m.id === messageId)
 
     // Log to console and localStorage
     const feedbackData = {
       messageId,
       type,
+      comment: comment || null,
+      messageContent: message?.content?.substring(0, 200) || null,
       timestamp: new Date().toISOString(),
       cancerType: cancerType || null
     }
@@ -218,99 +286,55 @@ I can help you with:
     }
   }
 
+  const submitNegativeFeedback = (messageId: string) => {
+    handleFeedback(messageId, 'negative', feedbackComment.trim() || undefined)
+  }
+
+  const cancelFeedback = () => {
+    setFeedbackMessageId(null)
+    setFeedbackComment('')
+  }
+
   // Only show suggested questions after welcome message, before user asks anything
   const showSuggestions = messages.length === 1 && messages[0]?.role === 'assistant'
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {/* 3D Orbiting Atom Icon */}
-              <div className="relative w-12 h-12" style={{ perspective: '200px', perspectiveOrigin: 'center' }}>
-                {/* Nucleus - 3D sphere */}
-                <div className="absolute inset-0 flex items-center justify-center z-10">
-                  <div
-                    className="w-4 h-4 rounded-full"
-                    style={{
-                      background: 'radial-gradient(circle at 30% 30%, #E879F9, #A855F7 50%, #7C3AED 100%)',
-                      boxShadow: '0 2px 8px rgba(168, 85, 247, 0.5)'
-                    }}
-                  />
-                </div>
+      {/* Header - consistent with Navbar pattern */}
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+          {/* Left side - brand */}
+          <Link href="/" className="flex items-center gap-1.5">
+            <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">
+              opencancer
+            </span>
+            <span className="text-lg font-bold text-slate-400">.ai</span>
+          </Link>
 
-                {/* Electron 1 - Horizontal orbit (X-Y plane) */}
-                <div className="absolute inset-0 animate-spin" style={{ animationDuration: '2.5s' }}>
-                  <div
-                    className="absolute top-1/2 -left-0.5 -translate-y-1/2 w-2.5 h-2.5 rounded-full"
-                    style={{
-                      background: 'radial-gradient(circle at 35% 35%, #C4B5FD, #8B5CF6 50%, #6D28D9 100%)',
-                      boxShadow: '0 1px 4px rgba(139, 92, 246, 0.6)'
-                    }}
-                  />
-                </div>
+          {/* Center - nav links (hidden on mobile) */}
+          <nav className="hidden sm:flex items-center gap-4 text-sm">
+            <Link href="/records" className="text-slate-600 hover:text-violet-600 transition-colors">
+              Records
+            </Link>
+            <span className="text-violet-600 font-medium">Ask AI</span>
+            <Link href="/trials" className="text-slate-600 hover:text-violet-600 transition-colors">
+              Trials
+            </Link>
+          </nav>
 
-                {/* Electron 2 - Vertical orbit (top-bottom) */}
-                <div className="absolute inset-0 animate-spin" style={{ animationDuration: '3s', animationDirection: 'reverse' }}>
-                  <div
-                    className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full"
-                    style={{
-                      background: 'radial-gradient(circle at 35% 35%, #67E8F9, #06B6D4 50%, #0891B2 100%)',
-                      boxShadow: '0 1px 4px rgba(6, 182, 212, 0.6)'
-                    }}
-                  />
-                </div>
-
-                {/* Electron 3 - Z-axis orbit (coming toward/away from viewer) */}
-                <div
-                  className="absolute inset-0 flex items-center justify-center electron-z-container"
-                  style={{ transformStyle: 'preserve-3d' }}
-                >
-                  <div
-                    className="w-2 h-2 rounded-full electron-z-ball"
-                    style={{
-                      background: 'radial-gradient(circle at 35% 35%, #FBCFE8, #EC4899 50%, #DB2777 100%)',
-                      boxShadow: '0 1px 4px rgba(236, 72, 153, 0.6)',
-                    }}
-                  />
-                </div>
-                <style jsx>{`
-                  @keyframes orbitZ {
-                    0% { transform: translateZ(24px) scale(1.3); }
-                    25% { transform: translateX(18px) translateZ(0px) scale(1); }
-                    50% { transform: translateZ(-24px) scale(0.7); }
-                    75% { transform: translateX(-18px) translateZ(0px) scale(1); }
-                    100% { transform: translateZ(24px) scale(1.3); }
-                  }
-                  .electron-z-ball {
-                    animation: orbitZ 3s ease-in-out infinite;
-                  }
-                `}</style>
-              </div>
-              <div>
-                <Link href="/" className="flex items-center gap-2">
-                  <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">opencancer.ai</span>
-                  <span className="text-slate-400 text-sm">/</span>
-                  <span className="font-medium text-slate-700">Ask AI</span>
-                </Link>
-                <p className="text-sm text-gray-600">
-                  NCCN-trained AI assistant
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {cancerType && (
-                <span className="text-xs bg-violet-100 text-violet-700 px-2 py-1 rounded-full">
-                  {CANCER_TYPES[cancerType] || cancerType}
-                </span>
-              )}
-              <Link href="/" className="text-sm text-gray-500 hover:text-gray-900">
-                ← Home
-              </Link>
-            </div>
+          {/* Right side */}
+          <div className="flex items-center gap-3">
+            {cancerType && (
+              <span className="hidden sm:inline text-xs bg-violet-100 text-violet-700 px-2 py-1 rounded-full">
+                {CANCER_TYPES[cancerType] || cancerType}
+              </span>
+            )}
+            <ShareButton
+              tool="ask"
+              title="Share Ask AI"
+              description="Help others find cancer information"
+              variant="icon"
+            />
           </div>
         </div>
       </header>
@@ -388,10 +412,45 @@ I can help you with:
                               </svg>
                             </button>
                             {message.feedback && (
-                              <span className="text-xs text-gray-500 ml-2">Thanks for your feedback!</span>
+                              <span className="text-xs text-gray-500 ml-2">
+                                Thanks for your feedback!
+                                {message.feedbackComment && <span className="italic"> (with comment)</span>}
+                              </span>
                             )}
                           </div>
                         </div>
+
+                        {/* Feedback comment input for negative feedback */}
+                        {feedbackMessageId === message.id && (
+                          <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <p className="text-xs text-gray-600 mb-2">What could be improved? (optional)</p>
+                            <textarea
+                              value={feedbackComment}
+                              onChange={(e) => setFeedbackComment(e.target.value)}
+                              placeholder="e.g., The answer was too technical, missing information about..."
+                              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent resize-none"
+                              rows={2}
+                              maxLength={500}
+                            />
+                            <div className="flex items-center justify-between mt-2">
+                              <span className="text-xs text-gray-400">{feedbackComment.length}/500</span>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={cancelFeedback}
+                                  className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  onClick={() => submitNegativeFeedback(message.id)}
+                                  className="px-3 py-1.5 text-xs bg-violet-600 hover:bg-violet-500 text-white rounded-lg font-medium"
+                                >
+                                  Submit Feedback
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -450,19 +509,53 @@ I can help you with:
             {/* Suggested Questions - shown after welcome message */}
             {showSuggestions && (
               <div className="mt-6">
-                <p className="text-sm font-medium text-gray-700 mb-3">Try asking:</p>
-                <div className="space-y-2">
-                  {suggestedQuestions.map((q, i) => (
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-medium text-gray-700">
+                    {cancerType ? `Questions for ${CANCER_TYPES[cancerType] || cancerType}:` : 'Try asking:'}
+                  </p>
+                  {cancerType && (
                     <button
-                      key={i}
-                      onClick={() => handleSubmit(q)}
-                      className="group flex items-center gap-3 w-full text-left px-4 py-3 bg-gradient-to-r from-gray-50 to-violet-50 hover:from-violet-50 hover:to-fuchsia-50 border border-gray-200 hover:border-violet-300 rounded-xl text-sm text-gray-700 transition-all hover:shadow-md"
+                      onClick={() => setShowSettingsModal(true)}
+                      className="text-xs text-violet-600 hover:text-violet-700"
                     >
-                      <span className="text-violet-500 font-medium group-hover:translate-x-1 transition-transform">→</span>
-                      {q}
+                      Change cancer type
                     </button>
-                  ))}
+                  )}
                 </div>
+                {isLoadingQuestions ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+                    <span className="ml-2 text-sm text-gray-500">Loading questions...</span>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {suggestedQuestions.map((q) => (
+                      <button
+                        key={q.id}
+                        onClick={() => handleSubmit(q.question)}
+                        className="group flex items-start gap-3 w-full text-left px-4 py-3 bg-gradient-to-r from-gray-50 to-violet-50 hover:from-violet-50 hover:to-fuchsia-50 border border-gray-200 hover:border-violet-300 rounded-xl text-sm text-gray-700 transition-all hover:shadow-md"
+                      >
+                        <span className="text-violet-500 font-medium group-hover:translate-x-1 transition-transform mt-0.5">→</span>
+                        <div className="flex-1 min-w-0">
+                          <span className="block">{q.question}</span>
+                          {q.category && (
+                            <span className={`inline-block mt-1.5 text-xs px-2 py-0.5 rounded-full ${getCategoryColor(q.category)}`}>
+                              {q.category}
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {!cancerType && !isLoadingQuestions && (
+                  <button
+                    onClick={() => setShowSettingsModal(true)}
+                    className="mt-4 w-full py-2.5 text-sm text-violet-600 bg-violet-50 hover:bg-violet-100 border border-violet-200 rounded-xl transition-colors"
+                  >
+                    Select your cancer type for personalized questions →
+                  </button>
+                )}
               </div>
             )}
 
@@ -505,19 +598,15 @@ I can help you with:
               </svg>
             </button>
 
-            {/* Send Button */}
+            {/* Send Button - no spinner here, "Thinking..." in chat provides feedback */}
             <button
               onClick={() => handleSubmit()}
               disabled={!input.trim() || isLoading}
               className="flex-shrink-0 p-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-400 hover:to-fuchsia-400 disabled:from-gray-300 disabled:to-gray-300 text-white rounded-xl transition-all shadow-md"
             >
-              {isLoading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                </svg>
-              )}
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
             </button>
           </div>
 

@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Use the same Supabase project as Navis
+// OpenCancer Supabase project
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://felofmlhqwcdpiyjgstx.supabase.co"
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlbG9mbWxocXdjZHBpeWpnc3R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA2NzQzODAsImV4cCI6MjA1NjI1MDM4MH0._kYA-prwPgxQWoKzWPzJDy2Bf95WgTF5_KnAPN2cGnQ"
 
@@ -10,10 +10,10 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 export function getSessionId(): string {
   if (typeof window === 'undefined') return ''
 
-  let sessionId = localStorage.getItem('promptdeck_session_id')
+  let sessionId = localStorage.getItem('opencancer_session_id')
   if (!sessionId) {
     sessionId = crypto.randomUUID()
-    localStorage.setItem('promptdeck_session_id', sessionId)
+    localStorage.setItem('opencancer_session_id', sessionId)
   }
   return sessionId
 }
@@ -209,4 +209,118 @@ export async function getFeedbackForDeck(deckId: string): Promise<PitchFeedback[
     return []
   }
   return data || []
+}
+
+// OpenCancer Profile types and operations
+export interface OpenCancerProfile {
+  id: string
+  session_id: string
+  email: string
+  name: string
+  role: 'patient' | 'caregiver'
+  cancer_type: string
+  stage: string | null
+  location: string | null
+  created_at: string
+  updated_at: string
+}
+
+export async function saveProfile(data: {
+  email: string
+  name: string
+  role: 'patient' | 'caregiver'
+  cancerType: string
+  stage?: string
+  location?: string
+}): Promise<OpenCancerProfile | null> {
+  const sessionId = getSessionId()
+
+  // Check if profile exists for this email
+  const { data: existing } = await supabase
+    .from('opencancer_profiles')
+    .select('id')
+    .eq('email', data.email)
+    .single()
+
+  if (existing) {
+    // Update existing profile
+    const { data: profile, error } = await supabase
+      .from('opencancer_profiles')
+      .update({
+        session_id: sessionId,
+        name: data.name,
+        role: data.role,
+        cancer_type: data.cancerType,
+        stage: data.stage || null,
+        location: data.location || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', existing.id)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error updating profile:', error)
+      return null
+    }
+    return profile
+  } else {
+    // Create new profile
+    const { data: profile, error } = await supabase
+      .from('opencancer_profiles')
+      .insert({
+        session_id: sessionId,
+        email: data.email,
+        name: data.name,
+        role: data.role,
+        cancer_type: data.cancerType,
+        stage: data.stage || null,
+        location: data.location || null,
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error creating profile:', error)
+      return null
+    }
+    return profile
+  }
+}
+
+export async function getProfileByEmail(email: string): Promise<OpenCancerProfile | null> {
+  const { data, error } = await supabase
+    .from('opencancer_profiles')
+    .select('*')
+    .eq('email', email)
+    .single()
+
+  if (error) {
+    if (error.code !== 'PGRST116') { // Not found is ok
+      console.error('Error fetching profile:', error)
+    }
+    return null
+  }
+  return data
+}
+
+export async function getProfileBySession(): Promise<OpenCancerProfile | null> {
+  const sessionId = getSessionId()
+  if (!sessionId) return null
+
+  const { data, error } = await supabase
+    .from('opencancer_profiles')
+    .select('*')
+    .eq('session_id', sessionId)
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  if (error) {
+    if (error.code !== 'PGRST116') {
+      console.error('Error fetching profile by session:', error)
+    }
+    return null
+  }
+  return data
 }
