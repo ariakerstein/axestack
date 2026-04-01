@@ -201,6 +201,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signOut = async () => {
+    // Clear localStorage profile - back to guest mode
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('patient-profile')
+    }
+    setProfile(null)
     await supabase.auth.signOut()
   }
 

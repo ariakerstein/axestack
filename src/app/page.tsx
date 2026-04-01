@@ -219,10 +219,13 @@ function HomeContent() {
         location: authProfile.location || undefined,
       })
     } else {
-      // Fall back to localStorage for anonymous users
+      // Fall back to localStorage for guest users
       const saved = localStorage.getItem('patient-profile')
       if (saved) {
         setProfile(JSON.parse(saved))
+      } else {
+        // No profile - guest mode
+        setProfile(null)
       }
     }
 
