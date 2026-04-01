@@ -12,6 +12,7 @@ interface AnalyticsData {
     checklistViews: number
     trialsSearches: number
     profileCreations: number
+    totalProfiles: number
     avgRecordsPerUser: number
     avgRecordsPerSession: number
     usersWithRecords: number
@@ -470,8 +471,9 @@ export default function AdminPage() {
                 icon="🔬"
               />
               <SummaryCard
-                label="Profiles Created"
-                value={data.summary.profileCreations}
+                label="Total Profiles"
+                value={data.summary.totalProfiles || data.summary.profileCreations}
+                subtext={data.summary.profileCreations > 0 ? `+${data.summary.profileCreations} this period` : undefined}
                 icon="🆕"
               />
               <SummaryCard

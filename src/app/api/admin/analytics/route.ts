@@ -93,7 +93,18 @@ export async function GET(request: Request) {
       e.event_type === 'page_view' && e.page_path === '/cancer-checklist'
     ).length
     const trialsSearches = opencancerEvents.filter((e: { event_type: string }) => e.event_type === 'trial_search').length
-    const profileCreations = opencancerEvents.filter((e: { event_type: string }) => e.event_type === 'profile_created').length
+    // Count actual profiles from database (not just analytics events)
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, created_at')
+      .gte('created_at', startDate.toISOString())
+
+    const profileCreations = profiles?.length || 0
+    const totalProfiles = await supabase
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+
+    const totalProfileCount = totalProfiles.count || 0
 
     // Get Combat analyses stats from combat_analyses table
     const { data: combatAnalyses, error: combatError } = await supabase
@@ -186,6 +197,7 @@ export async function GET(request: Request) {
         checklistViews,
         trialsSearches,
         profileCreations,
+        totalProfiles: totalProfileCount,
         // Records engagement (among active uploaders only)
         avgRecordsPerUser: parseFloat(avgRecordsPerUser),     // logged-in users only
         avgRecordsPerSession: parseFloat(avgRecordsPerSession), // all uploaders (incl anonymous)

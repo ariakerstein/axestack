@@ -65,7 +65,27 @@ export async function POST(request: NextRequest) {
 
     const isPDF = fileType === 'application/pdf' || fileName.toLowerCase().endsWith('.pdf')
     const isImage = fileType.startsWith('image/')
-    const isText = fileType === 'text/plain' || fileName.toLowerCase().endsWith('.txt')
+    // Expanded text file detection - handle various text formats users might upload
+    const lowerFileName = fileName.toLowerCase()
+    const isText = fileType === 'text/plain' ||
+      fileType === 'text/csv' ||
+      fileType === 'text/markdown' ||
+      lowerFileName.endsWith('.txt') ||
+      lowerFileName.endsWith('.md') ||
+      lowerFileName.endsWith('.csv')
+    const isWord = fileType === 'application/msword' ||
+      fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+      lowerFileName.endsWith('.doc') ||
+      lowerFileName.endsWith('.docx')
+
+    // Validate supported file types
+    if (!isPDF && !isImage && !isText && !isWord) {
+      console.log(`Unsupported file type: ${fileName}, type: ${fileType}`)
+      return NextResponse.json(
+        { error: `Unsupported file type: ${fileType || 'unknown'}. Please upload PDF, Word (.doc/.docx), image, or text files.` },
+        { status: 400 }
+      )
+    }
 
     let documentText = ''
     let mediaType = fileType
@@ -73,11 +93,19 @@ export async function POST(request: NextRequest) {
     // For text files, extract content directly
     if (isText) {
       documentText = buffer.toString('utf-8')
+      console.log(`Text file detected: ${fileName}, extracted ${documentText.length} characters`)
     }
 
     // Determine media type for Claude
     if (isPDF) {
       mediaType = 'application/pdf'
+    } else if (isWord) {
+      // Word documents - use proper MIME type for Claude's document understanding
+      mediaType = fileName.toLowerCase().endsWith('.docx') ||
+        fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        : 'application/msword'
+      console.log(`Word document detected: ${fileName}, using media type: ${mediaType}`)
     } else if (isImage) {
       // Keep the original image type
       mediaType = fileType
@@ -165,12 +193,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Determine document type label for response
+    const docTypeLabel = isPDF ? 'PDF' : isWord ? 'Word document' : isImage ? 'Image' : 'Document'
+
     return NextResponse.json({
       success: true,
       fileName,
       fileType,
       analysis,
-      documentText: documentText || `[${isPDF ? 'PDF' : 'Image'} content analyzed by AI]`,
+      documentText: documentText || `[${docTypeLabel} content analyzed by AI]`,
     })
 
   } catch (error) {
