@@ -40,10 +40,9 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Failed to fetch analytics' }, { status: 500 })
     }
 
-    // Filter to opencancer events
-    const opencancerEvents = (events || []).filter(
-      (e: { metadata?: { app?: string } }) => e.metadata?.app === 'opencancer'
-    )
+    // Use all events - this is the opencancer analytics table
+    // (Previously filtered to metadata.app === 'opencancer', but older events may not have this tag)
+    const opencancerEvents = events || []
 
     // Calculate metrics
     const totalPageViews = opencancerEvents.filter((e: { event_type: string }) => e.event_type === 'page_view').length
@@ -96,6 +95,36 @@ export async function GET(request: Request) {
     const trialsSearches = opencancerEvents.filter((e: { event_type: string }) => e.event_type === 'trial_search').length
     const profileCreations = opencancerEvents.filter((e: { event_type: string }) => e.event_type === 'profile_created').length
 
+    // Get Combat analyses stats from combat_analyses table
+    const { data: combatAnalyses, error: combatError } = await supabase
+      .from('combat_analyses')
+      .select('id, phase, records_summary, evidence_strength, created_at')
+      .gte('created_at', startDate.toISOString())
+      .order('created_at', { ascending: false })
+
+    const combatStats = {
+      total: combatAnalyses?.length || 0,
+      diagnosis: combatAnalyses?.filter(c => c.phase === 'diagnosis').length || 0,
+      treatment: combatAnalyses?.filter(c => c.phase === 'treatment').length || 0,
+      avgEvidenceStrength: combatAnalyses?.length
+        ? Math.round(combatAnalyses.reduce((sum, c) => sum + (c.evidence_strength || 0), 0) / combatAnalyses.length)
+        : 0,
+      byCancerType: {} as Record<string, number>,
+      recentCombats: (combatAnalyses || []).slice(0, 10).map(c => ({
+        phase: c.phase,
+        cancerType: c.records_summary?.cancer_type || 'unknown',
+        recordsCount: c.records_summary?.count || 0,
+        evidenceStrength: c.evidence_strength,
+        createdAt: c.created_at,
+      })),
+    }
+
+    // Count by cancer type
+    combatAnalyses?.forEach(c => {
+      const cancerType = c.records_summary?.cancer_type || 'unknown'
+      combatStats.byCancerType[cancerType] = (combatStats.byCancerType[cancerType] || 0) + 1
+    })
+
     // Recent events (last 50)
     const recentEvents = opencancerEvents.slice(0, 50).map((e: {
       event_type: string
@@ -125,15 +154,26 @@ export async function GET(request: Request) {
       deviceTypes[device] = (deviceTypes[device] || 0) + 1
     })
 
-    // Avg records per user (users with at least 1 upload)
+    // Records analytics - count by both user_id and session_id
     const recordUploads = opencancerEvents.filter((e: { event_type: string }) => e.event_type === 'record_upload')
+
+    // By logged-in user (user_id)
     const usersWithRecords = new Set(
       recordUploads
         .filter((e: { metadata?: { user_id?: string } }) => e.metadata?.user_id)
         .map((e: { metadata?: { user_id?: string } }) => e.metadata?.user_id)
     )
+    const userRecordUploads = recordUploads.filter((e: { metadata?: { user_id?: string } }) => e.metadata?.user_id).length
     const avgRecordsPerUser = usersWithRecords.size > 0
-      ? (recordUploads.filter((e: { metadata?: { user_id?: string } }) => e.metadata?.user_id).length / usersWithRecords.size).toFixed(1)
+      ? (userRecordUploads / usersWithRecords.size).toFixed(1)
+      : '0'
+
+    // By session (includes anonymous users)
+    const sessionsWithRecords = new Set(
+      recordUploads.map((e: { session_id: string }) => e.session_id)
+    )
+    const avgRecordsPerSession = sessionsWithRecords.size > 0
+      ? (recordUploads.length / sessionsWithRecords.size).toFixed(1)
       : '0'
 
     return NextResponse.json({
@@ -146,9 +186,14 @@ export async function GET(request: Request) {
         checklistViews,
         trialsSearches,
         profileCreations,
-        avgRecordsPerUser: parseFloat(avgRecordsPerUser),
-        usersWithRecords: usersWithRecords.size,
+        // Records engagement (among active uploaders only)
+        avgRecordsPerUser: parseFloat(avgRecordsPerUser),     // logged-in users only
+        avgRecordsPerSession: parseFloat(avgRecordsPerSession), // all uploaders (incl anonymous)
+        usersWithRecords: usersWithRecords.size,              // logged-in uploaders
+        sessionsWithRecords: sessionsWithRecords.size,        // all uploading sessions
+        combatAnalyses: combatStats.total,
       },
+      combatStats,
       pageViewsByPath: Object.entries(pageViewsByPath)
         .sort((a, b) => b[1] - a[1])
         .map(([path, count]) => ({ path, count })),

@@ -23,52 +23,92 @@ interface RecordInput {
   documentText?: string
 }
 
-// Three adversarial personas
+interface PerspectiveWeights {
+  guidelines: number  // 0-100
+  research: number    // 0-100
+  integrative: number // 0-100
+}
+
+// Get weight modifier text based on user's tuning
+function getWeightModifier(weight: number): string {
+  if (weight >= 80) return 'The patient VALUES YOUR PERSPECTIVE HIGHLY. Be thorough and confident in your analysis. Provide detailed reasoning.'
+  if (weight >= 60) return 'The patient is interested in your perspective. Provide substantive analysis.'
+  if (weight >= 40) return 'Present your perspective clearly but concisely.'
+  if (weight >= 20) return 'Keep your perspective brief. Focus only on the most critical points.'
+  return 'Provide only essential safety considerations from your specialty.'
+}
+
+// Three specialist perspectives - your tumor board
 const PERSONAS = {
   nccn: {
-    name: 'NCCN Guidelines',
+    name: 'Tumor Board: Guidelines',
     icon: 'shield',
     color: 'blue',
-    systemContext: `You are a conservative oncologist who strictly follows NCCN (National Comprehensive Cancer Network) guidelines.
+    specialists: ['Medical Oncologist', 'Radiation Oncologist', 'Surgical Oncologist'],
+    getSystemContext: (weight: number) => `You represent a tumor board following NCCN (National Comprehensive Cancer Network) guidelines.
+Your panel includes:
+- A Medical Oncologist specializing in systemic therapy protocols
+- A Radiation Oncologist evaluating local treatment approaches
+- A Surgical Oncologist assessing surgical intervention options
+
 Your perspective:
-- Evidence-based medicine is paramount
-- Only recommend treatments with robust Phase III trial data
-- Standard of care protocols are standard for a reason
-- Be cautious about unproven approaches
-- Emphasize FDA-approved therapies
-- Consider treatment toxicity and quality of life within established frameworks
-Cite specific NCCN guideline categories when possible.`
+- Evidence-based medicine from Phase III trials
+- Standard of care protocols that have saved millions of lives
+- FDA-approved therapies with established safety profiles
+- Treatment sequencing based on proven algorithms
+- Consider treatment toxicity within established risk/benefit frameworks
+
+${getWeightModifier(weight)}
+
+Cite specific NCCN guideline categories when possible. Speak as a unified tumor board consensus.`
   },
 
   emerging: {
-    name: 'Emerging Research',
+    name: 'Tumor Board: Cutting Edge',
     icon: 'flask',
     color: 'purple',
-    systemContext: `You are a cutting-edge oncology researcher at the forefront of cancer research.
+    specialists: ['Molecular Pathologist', 'Immunotherapy Specialist', 'Clinical Trial Investigator'],
+    getSystemContext: (weight: number) => `You represent a tumor board at an NCI-designated cancer center focused on precision medicine.
+Your panel includes:
+- A Molecular Pathologist analyzing genetic and biomarker profiles
+- An Immunotherapy Specialist evaluating checkpoint inhibitors and cell therapies
+- A Clinical Trial Investigator aware of emerging Phase I/II opportunities
+
 Your perspective:
-- Look for emerging therapies not yet in standard guidelines
-- Consider ongoing clinical trials that might benefit this patient
-- Analyze biomarkers for targeted therapy opportunities
-- Reference recent publications and breakthrough treatments
-- Consider combination therapies being explored in Phase I/II trials
-- Look for molecular targets with emerging drugs
-Be enthusiastic about promising directions while honest about evidence levels.`
+- Molecular profiling reveals targetable alterations standard panels miss
+- Clinical trials may offer access to promising therapies
+- Combination approaches exploring synergistic mechanisms
+- Biomarker-driven treatment selection
+- Novel drug targets and pathways
+
+${getWeightModifier(weight)}
+
+Reference specific trials (NCT numbers when relevant), recent publications, and emerging targets. Be enthusiastic but honest about evidence levels.`
   },
 
   integrative: {
-    name: 'Integrative Oncology',
+    name: 'Tumor Board: Whole Person',
     icon: 'leaf',
     color: 'green',
-    systemContext: `You are an integrative oncologist combining conventional treatment with evidence-based complementary approaches.
+    specialists: ['Integrative Oncologist', 'Oncology Nutritionist', 'Palliative Care Specialist'],
+    getSystemContext: (weight: number) => `You represent a supportive care tumor board focused on treatment optimization and quality of life.
+Your panel includes:
+- An Integrative Oncologist combining conventional care with evidence-based complementary approaches
+- An Oncology Nutritionist specializing in cancer-specific nutrition interventions
+- A Palliative Care Specialist focused on symptom management and treatment tolerance
+
 Your perspective:
-- Whole-person care matters - physical, emotional, nutritional
-- Evidence-based integrative approaches can support conventional treatment
-- Focus on quality of life, symptom management, treatment tolerance
-- Consider nutrition, exercise, stress reduction, sleep optimization
-- Address side effect management proactively
+- How to tolerate treatment better (fatigue, nausea, neuropathy management)
+- Nutrition strategies that support treatment efficacy
+- Exercise oncology - movement as medicine
+- Mind-body approaches with RCT evidence (meditation, yoga for anxiety)
+- Quality of life optimization throughout treatment
+
+${getWeightModifier(weight)}
+
 ONLY recommend approaches with published evidence (RCTs, systematic reviews).
-Do NOT recommend unproven therapies like homeopathy or crystals.
-Focus on: exercise oncology, oncology nutrition, mind-body medicine, acupuncture for specific symptoms.`
+Do NOT recommend unproven therapies like homeopathy, crystals, or supplements without evidence.
+Focus on actionable, evidence-based supportive care.`
   }
 }
 
@@ -113,18 +153,22 @@ async function getPersonaPerspective(
   persona: typeof PERSONAS.nccn,
   caseContext: string,
   phase: 'diagnosis' | 'treatment',
-  question: string
+  question: string,
+  weight: number
 ): Promise<{
   argument: string
   evidence: string[]
   confidence: number
   recommendation: string
+  specialists: string[]
 }> {
   const phasePrompt = phase === 'diagnosis'
     ? `Analyze this diagnosis. Is it correct and complete? Are there alternative diagnoses to consider? What additional testing might be needed?`
     : `Evaluate treatment options for this patient. What approach would you recommend and why?`
 
-  const fullPrompt = `${persona.systemContext}
+  const systemContext = persona.getSystemContext(weight)
+
+  const fullPrompt = `${systemContext}
 
 ${caseContext}
 
@@ -169,7 +213,8 @@ Be specific to THIS patient's case. Reference their actual biomarkers, stage, an
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (jsonMatch) {
       try {
-        return JSON.parse(jsonMatch[0])
+        const parsed = JSON.parse(jsonMatch[0])
+        return { ...parsed, specialists: persona.specialists }
       } catch {
         // Fallback
       }
@@ -179,7 +224,8 @@ Be specific to THIS patient's case. Reference their actual biomarkers, stage, an
       argument: text.slice(0, 300),
       evidence: ['See full analysis'],
       confidence: 70,
-      recommendation: 'Consult with your oncologist'
+      recommendation: 'Consult with your oncologist',
+      specialists: persona.specialists
     }
   } catch (err) {
     console.error('Persona API error:', err)
@@ -187,7 +233,8 @@ Be specific to THIS patient's case. Reference their actual biomarkers, stage, an
       argument: 'Analysis could not be completed.',
       evidence: ['Error during analysis'],
       confidence: 0,
-      recommendation: 'Please try again'
+      recommendation: 'Please try again',
+      specialists: persona.specialists
     }
   }
 }
@@ -266,10 +313,17 @@ Focus on actionable insights for the patient's next doctor conversation.`
 
 export async function POST(request: NextRequest) {
   try {
-    const { phase, records } = await request.json()
+    const { phase, records, weights } = await request.json()
 
     if (!records || records.length === 0) {
       return NextResponse.json({ error: 'No records provided' }, { status: 400 })
+    }
+
+    // Default weights if not provided
+    const perspectiveWeights: PerspectiveWeights = {
+      guidelines: weights?.guidelines ?? 50,
+      research: weights?.research ?? 50,
+      integrative: weights?.integrative ?? 50
     }
 
     const caseContext = buildCaseContext(records)
@@ -282,17 +336,17 @@ export async function POST(request: NextRequest) {
       ? `Is the diagnosis of ${cancerType}${stage ? ` (${stage})` : ''} correct and complete? What should be confirmed or explored?`
       : `What are the best treatment options for ${cancerType}${stage ? ` ${stage}` : ''}?`
 
-    // Get all three perspectives in parallel
+    // Get all three perspectives in parallel, passing their respective weights
     const [nccnResponse, emergingResponse, integrativeResponse] = await Promise.all([
-      getPersonaPerspective(PERSONAS.nccn, caseContext, phase, question),
-      getPersonaPerspective(PERSONAS.emerging, caseContext, phase, question),
-      getPersonaPerspective(PERSONAS.integrative, caseContext, phase, question)
+      getPersonaPerspective(PERSONAS.nccn, caseContext, phase, question, perspectiveWeights.guidelines),
+      getPersonaPerspective(PERSONAS.emerging, caseContext, phase, question, perspectiveWeights.research),
+      getPersonaPerspective(PERSONAS.integrative, caseContext, phase, question, perspectiveWeights.integrative)
     ])
 
     const perspectives = [
-      { name: 'NCCN Guidelines', icon: 'shield' as const, color: 'blue', ...nccnResponse },
-      { name: 'Emerging Research', icon: 'flask' as const, color: 'purple', ...emergingResponse },
-      { name: 'Integrative Oncology', icon: 'leaf' as const, color: 'green', ...integrativeResponse }
+      { name: PERSONAS.nccn.name, icon: 'shield' as const, color: 'blue', weight: perspectiveWeights.guidelines, ...nccnResponse },
+      { name: PERSONAS.emerging.name, icon: 'flask' as const, color: 'purple', weight: perspectiveWeights.research, ...emergingResponse },
+      { name: PERSONAS.integrative.name, icon: 'leaf' as const, color: 'green', weight: perspectiveWeights.integrative, ...integrativeResponse }
     ]
 
     // Synthesize the perspectives

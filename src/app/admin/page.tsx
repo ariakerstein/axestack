@@ -13,7 +13,24 @@ interface AnalyticsData {
     trialsSearches: number
     profileCreations: number
     avgRecordsPerUser: number
+    avgRecordsPerSession: number
     usersWithRecords: number
+    sessionsWithRecords: number
+    combatAnalyses: number
+  }
+  combatStats?: {
+    total: number
+    diagnosis: number
+    treatment: number
+    avgEvidenceStrength: number
+    byCancerType: Record<string, number>
+    recentCombats: Array<{
+      phase: string
+      cancerType: string
+      recordsCount: number
+      evidenceStrength: number
+      createdAt: string
+    }>
   }
   pageViewsByPath: Array<{ path: string; count: number }>
   eventsByType: Array<{ type: string; count: number }>
@@ -458,11 +475,82 @@ export default function AdminPage() {
                 icon="🆕"
               />
               <SummaryCard
-                label="Avg Records/User"
-                value={data.summary.avgRecordsPerUser || 0}
+                label="Avg Records/Uploader"
+                value={data.summary.avgRecordsPerSession || 0}
+                subtext={`${data.summary.sessionsWithRecords || 0} uploaders`}
                 icon="📊"
               />
+              <SummaryCard
+                label="Combat Analyses"
+                value={data.summary.combatAnalyses || 0}
+                icon="⚔️"
+              />
             </div>
+
+            {/* Combat Stats Section */}
+            {data.combatStats && data.combatStats.total > 0 && (
+              <div className="bg-gradient-to-br from-orange-50 to-red-50 border border-orange-200 rounded-xl shadow p-6 mb-8">
+                <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                  ⚔️ CancerCombat Analytics
+                </h2>
+                <div className="grid sm:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-white/80 rounded-lg p-3 text-center">
+                    <p className="text-2xl font-bold text-orange-600">{data.combatStats.total}</p>
+                    <p className="text-xs text-slate-600">Total Analyses</p>
+                  </div>
+                  <div className="bg-white/80 rounded-lg p-3 text-center">
+                    <p className="text-2xl font-bold text-blue-600">{data.combatStats.diagnosis}</p>
+                    <p className="text-xs text-slate-600">Diagnosis Phase</p>
+                  </div>
+                  <div className="bg-white/80 rounded-lg p-3 text-center">
+                    <p className="text-2xl font-bold text-purple-600">{data.combatStats.treatment}</p>
+                    <p className="text-xs text-slate-600">Treatment Phase</p>
+                  </div>
+                  <div className="bg-white/80 rounded-lg p-3 text-center">
+                    <p className="text-2xl font-bold text-emerald-600">{data.combatStats.avgEvidenceStrength}%</p>
+                    <p className="text-xs text-slate-600">Avg Evidence</p>
+                  </div>
+                </div>
+
+                <div className="grid lg:grid-cols-2 gap-6">
+                  {/* By Cancer Type */}
+                  <div>
+                    <h3 className="text-sm font-medium text-slate-700 mb-2">By Cancer Type</h3>
+                    <div className="space-y-2">
+                      {Object.entries(data.combatStats.byCancerType)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 5)
+                        .map(([type, count]) => (
+                          <div key={type} className="flex items-center justify-between bg-white/60 rounded px-3 py-1.5">
+                            <span className="text-sm text-slate-700 capitalize">{type}</span>
+                            <span className="text-sm font-semibold text-slate-900">{count}</span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+
+                  {/* Recent Combats */}
+                  <div>
+                    <h3 className="text-sm font-medium text-slate-700 mb-2">Recent Analyses</h3>
+                    <div className="space-y-2">
+                      {data.combatStats.recentCombats.slice(0, 5).map((combat, i) => (
+                        <div key={i} className="flex items-center justify-between bg-white/60 rounded px-3 py-1.5">
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs px-1.5 py-0.5 rounded ${
+                              combat.phase === 'diagnosis' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+                            }`}>
+                              {combat.phase}
+                            </span>
+                            <span className="text-sm text-slate-700 capitalize">{combat.cancerType}</span>
+                          </div>
+                          <span className="text-xs text-slate-500">{formatTimestamp(combat.createdAt)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Main Grid */}
             <div className="grid lg:grid-cols-2 gap-8 mb-8">
@@ -631,7 +719,7 @@ export default function AdminPage() {
   )
 }
 
-function SummaryCard({ label, value, icon }: { label: string; value: number; icon: string }) {
+function SummaryCard({ label, value, icon, subtext }: { label: string; value: number; icon: string; subtext?: string }) {
   return (
     <div className="bg-white rounded-xl shadow p-4 sm:p-6">
       <div className="flex items-center gap-3">
@@ -639,6 +727,7 @@ function SummaryCard({ label, value, icon }: { label: string; value: number; ico
         <div>
           <p className="text-2xl sm:text-3xl font-bold text-slate-900 tabular-nums">{value}</p>
           <p className="text-xs sm:text-sm text-slate-600">{label}</p>
+          {subtext && <p className="text-xs text-slate-400">{subtext}</p>}
         </div>
       </div>
     </div>

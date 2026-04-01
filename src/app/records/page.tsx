@@ -3,10 +3,12 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { TypewriterMarkdown } from '@/components/TypewriterMarkdown'
-import { FileText, Search, FlaskConical, Ribbon, MessageCircle, BookOpen, ArrowRight, Upload, Link2, Building2, Shield, CheckCircle2, Share2, Download, Cloud, User } from 'lucide-react'
+import { FileText, Search, FlaskConical, Ribbon, MessageCircle, BookOpen, ArrowRight, Upload, Link2, Building2, Shield, CheckCircle2, Share2, Download, Cloud, User, Mail, Sparkles } from 'lucide-react'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { useAuth } from '@/lib/auth'
 import { AuthModal } from '@/components/AuthModal'
+import { ClaimEmailModal } from '@/components/ClaimEmailModal'
+import { getSessionId } from '@/lib/supabase'
 
 interface TranslationResult {
   document_type: string
@@ -175,6 +177,10 @@ export default function RecordsVaultPage() {
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [isSavingToCloud, setIsSavingToCloud] = useState(false)
   const [cloudSaveError, setCloudSaveError] = useState<string | null>(null)
+
+  // @opencancer.ai email state
+  const [showEmailModal, setShowEmailModal] = useState(false)
+  const [claimedEmail, setClaimedEmail] = useState<string | null>(null)
 
   // Track referral arrivals from share links
   useEffect(() => {
@@ -1178,6 +1184,45 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 <p className="text-slate-600">Upload records or connect your patient portal to get plain English translations</p>
               </>
             )}
+          </div>
+        )}
+
+        {/* @opencancer.ai Email CTA Banner */}
+        {!result && (savedTranslations.length === 0 || showAddRecordView) && !claimedEmail && (
+          <button
+            onClick={() => setShowEmailModal(true)}
+            className="w-full mb-4 p-4 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-violet-500 rounded-xl text-white text-left group hover:shadow-lg hover:shadow-violet-500/25 transition-all"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+                  <Mail className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-lg">Get your @opencancer.ai email</span>
+                    <span className="px-2 py-0.5 bg-white/20 text-xs font-bold rounded-full">NEW</span>
+                  </div>
+                  <p className="text-white/80 text-sm">Forward medical docs there. They auto-appear in your vault.</p>
+                </div>
+              </div>
+              <ArrowRight className="w-5 h-5 text-white/70 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </button>
+        )}
+
+        {/* Claimed email banner */}
+        {!result && claimedEmail && (savedTranslations.length === 0 || showAddRecordView) && (
+          <div className="w-full mb-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+              </div>
+              <div>
+                <p className="font-semibold text-slate-900">Your email: <span className="text-emerald-600">{claimedEmail}</span></p>
+                <p className="text-sm text-slate-600">Forward medical documents there and they'll appear here automatically!</p>
+              </div>
+            </div>
           </div>
         )}
 
@@ -2187,6 +2232,18 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
+      />
+
+      {/* Claim @opencancer.ai Email Modal */}
+      <ClaimEmailModal
+        isOpen={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+        sessionId={getSessionId()}
+        userId={user?.id}
+        onSuccess={(email) => {
+          setClaimedEmail(email)
+          setShowEmailModal(false)
+        }}
       />
 
       {/* Privacy Acknowledgment Modal */}

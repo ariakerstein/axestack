@@ -324,3 +324,131 @@ export async function getProfileBySession(): Promise<OpenCancerProfile | null> {
   }
   return data
 }
+
+// Combat Analysis types and operations
+export interface CombatPerspective {
+  name: string
+  icon: 'shield' | 'flask' | 'leaf'
+  color: string
+  argument: string
+  evidence: string[]
+  confidence: number
+  recommendation: string
+}
+
+export interface CombatAnalysis {
+  id: string
+  session_id: string
+  user_id: string | null
+  phase: 'diagnosis' | 'treatment'
+  question: string
+  perspectives: CombatPerspective[]
+  synthesis: string
+  consensus: string[]
+  divergence: string[]
+  records_summary: {
+    count: number
+    cancer_type: string | null
+    document_types: string[]
+  }
+  evidence_strength: number
+  created_at: string
+  updated_at: string
+}
+
+export async function saveCombatAnalysis(data: {
+  phase: 'diagnosis' | 'treatment'
+  question: string
+  perspectives: CombatPerspective[]
+  synthesis: string
+  consensus: string[]
+  divergence: string[]
+  recordsSummary: {
+    count: number
+    cancerType: string | null
+    documentTypes: string[]
+  }
+  evidenceStrength: number
+  userId?: string | null
+}): Promise<CombatAnalysis | null> {
+  const sessionId = getSessionId()
+
+  const { data: analysis, error } = await supabase
+    .from('combat_analyses')
+    .insert({
+      session_id: sessionId,
+      user_id: data.userId || null,
+      phase: data.phase,
+      question: data.question,
+      perspectives: data.perspectives,
+      synthesis: data.synthesis,
+      consensus: data.consensus,
+      divergence: data.divergence,
+      records_summary: {
+        count: data.recordsSummary.count,
+        cancer_type: data.recordsSummary.cancerType,
+        document_types: data.recordsSummary.documentTypes
+      },
+      evidence_strength: data.evidenceStrength,
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error saving combat analysis:', error)
+    return null
+  }
+  return analysis
+}
+
+export async function getCombatAnalyses(userId?: string | null): Promise<CombatAnalysis[]> {
+  const sessionId = getSessionId()
+
+  let query = supabase
+    .from('combat_analyses')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (userId) {
+    // Get analyses owned by user OR matching current session
+    query = query.or(`user_id.eq.${userId},session_id.eq.${sessionId}`)
+  } else {
+    // Anonymous: only session analyses
+    query = query.eq('session_id', sessionId)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error('Error fetching combat analyses:', error)
+    return []
+  }
+  return data || []
+}
+
+export async function getCombatAnalysis(id: string): Promise<CombatAnalysis | null> {
+  const { data, error } = await supabase
+    .from('combat_analyses')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (error) {
+    console.error('Error fetching combat analysis:', error)
+    return null
+  }
+  return data
+}
+
+export async function deleteCombatAnalysis(id: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('combat_analyses')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error deleting combat analysis:', error)
+    return false
+  }
+  return true
+}

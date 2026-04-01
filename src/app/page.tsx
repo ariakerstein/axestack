@@ -447,9 +447,8 @@ function HomeContent() {
 
             {/* Header with value prop - always visible */}
             <div className="bg-gradient-to-r from-violet-600 to-fuchsia-600 px-6 py-5 text-white text-center">
-              <p className="text-violet-200 text-sm font-medium mb-1">⚡ Takes 60 seconds</p>
-              <h2 className="text-xl font-bold">Get Your Personalized Cancer Toolkit</h2>
-              <p className="text-violet-100 text-sm mt-1">AI-powered insights tailored to your diagnosis</p>
+              <h2 className="text-xl font-bold">Get Personalized Guidance</h2>
+              <p className="text-violet-100 text-sm mt-1">60 seconds to AI insights tailored to your diagnosis</p>
             </div>
 
             <div className="p-6 sm:p-8">
@@ -500,28 +499,23 @@ function HomeContent() {
                     </button>
                   </div>
 
-                  {/* What you'll unlock */}
-                  <div className="mt-8 pt-6 border-t border-slate-100">
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3 text-center">What you'll unlock</p>
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="text-center">
-                        <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center mx-auto mb-1.5">
-                          <Dna className="w-5 h-5 text-emerald-600" />
-                        </div>
-                        <p className="text-xs font-medium text-slate-700">AI Case Review</p>
-                      </div>
-                      <div className="text-center">
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-1.5">
-                          <CheckCircle className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <p className="text-xs font-medium text-slate-700">Care Checklist</p>
-                      </div>
-                      <div className="text-center">
-                        <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-1.5">
-                          <Microscope className="w-5 h-5 text-orange-600" />
-                        </div>
-                        <p className="text-xs font-medium text-slate-700">Clinical Trials</p>
-                      </div>
+                  {/* Personalized guidance preview */}
+                  <div className="mt-6 pt-5 border-t border-slate-100">
+                    <div className="flex items-center justify-center gap-4 text-xs text-slate-500">
+                      <span className="flex items-center gap-1.5">
+                        <Dna className="w-4 h-4 text-emerald-500" />
+                        AI Case Review
+                      </span>
+                      <span className="text-slate-300">·</span>
+                      <span className="flex items-center gap-1.5">
+                        <CheckCircle className="w-4 h-4 text-blue-500" />
+                        Care Checklist
+                      </span>
+                      <span className="text-slate-300">·</span>
+                      <span className="flex items-center gap-1.5">
+                        <Microscope className="w-4 h-4 text-orange-500" />
+                        Clinical Trials
+                      </span>
                     </div>
                   </div>
 
