@@ -87,7 +87,7 @@ export default function CoveragePage() {
               Records
             </Link>
             <Link href="/ask" className="text-slate-600 hover:text-violet-600 transition-colors">
-              Ask AI
+              Ask Navis
             </Link>
             <Link href="/trials" className="text-slate-600 hover:text-violet-600 transition-colors">
               Trials

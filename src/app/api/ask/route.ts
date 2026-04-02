@@ -66,9 +66,24 @@ When discussing symptoms:
 
 Be warm, informative, and reassuring while being honest about when to seek medical attention. Avoid medical jargon - explain in plain language.`
 
+// Concise mode system prompt - just facts, no suggestions
+const CONCISE_SYSTEM_PROMPT = `You are Navis, a medical information assistant. Provide ONLY factual information in a concise format.
+
+IMPORTANT RULES FOR CONCISE MODE:
+- Give direct, factual answers only
+- Do NOT include "questions to ask your doctor"
+- Do NOT include suggestions or recommendations
+- Do NOT include disclaimers in every response (one brief note at end is fine)
+- Do NOT repeat information or be redundant
+- Use bullet points for clarity
+- Keep responses under 200 words when possible
+- Focus on what the patient asked, nothing extra
+
+The patient wants facts, not advice. Act as a medical secretary organizing information, not an advisor.`
+
 export async function POST(request: NextRequest) {
   try {
-    const { message, cancerType, history = [] } = await request.json()
+    const { message, cancerType, history = [], conciseMode = false } = await request.json()
 
     // Map cancer type to guideline format
     const guidelineCancerType = cancerType && cancerType !== 'General' && cancerType !== 'other'
@@ -93,7 +108,9 @@ export async function POST(request: NextRequest) {
         'apikey': SUPABASE_ANON_KEY,
       },
       body: JSON.stringify({
-        question: message,
+        question: conciseMode
+          ? `[CONCISE MODE - Facts only, no suggestions] ${message}`
+          : message,
         cancerType: guidelineCancerType,
         conversationHistory,
         // Use Haiku for fast responses with RAG grounding
@@ -101,7 +118,9 @@ export async function POST(request: NextRequest) {
         // Low temperature for more deterministic, consistent responses
         temperature: 0.1,
         // Communication style
-        communicationStyle: 'balanced',
+        communicationStyle: conciseMode ? 'concise' : 'balanced',
+        // Override system prompt for concise mode
+        ...(conciseMode && { systemPromptOverride: CONCISE_SYSTEM_PROMPT }),
       }),
     })
 

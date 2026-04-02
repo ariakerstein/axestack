@@ -43,7 +43,7 @@ export function Navbar({ showBack = false, backHref = '/', backLabel = 'Home' }:
                 Records
               </Link>
               <Link href="/ask" className="text-slate-600 hover:text-violet-600 transition-colors">
-                Ask AI
+                Ask Navis
               </Link>
               <Link href="/trials" className="text-slate-600 hover:text-violet-600 transition-colors">
                 Trials
@@ -112,7 +112,7 @@ export function Navbar({ showBack = false, backHref = '/', backLabel = 'Home' }:
                 onClick={() => setMobileMenuOpen(false)}
                 className="py-2 text-slate-700 hover:text-violet-600 transition-colors"
               >
-                Ask AI
+                Ask Navis
               </Link>
               <Link
                 href="/trials"

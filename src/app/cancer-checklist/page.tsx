@@ -652,11 +652,14 @@ ${ragContext}
 
           {/* Center - nav links (hidden on mobile) */}
           <nav className="hidden sm:flex items-center gap-4 text-sm">
+            <Link href="/" className="text-slate-600 hover:text-violet-600 transition-colors">
+              Home
+            </Link>
             <Link href="/records" className="text-slate-600 hover:text-violet-600 transition-colors">
               Records
             </Link>
             <Link href="/ask" className="text-slate-600 hover:text-violet-600 transition-colors">
-              Ask AI
+              Ask Navis
             </Link>
             <Link href="/trials" className="text-slate-600 hover:text-violet-600 transition-colors">
               Trials
@@ -709,7 +712,7 @@ ${ragContext}
       </header>
 
       {/* Hero - Simplified */}
-      <section className="px-8 pt-8 pb-6 text-center">
+      <section className="px-4 pt-4 pb-4 text-center">
         <h1 className="text-3xl font-bold mb-2">
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-blue-600">
             Cancer Checklist
@@ -729,7 +732,7 @@ ${ragContext}
       </section>
 
       {/* Progress Steps - Bold & Clear */}
-      <div className="max-w-2xl mx-auto px-8 py-6">
+      <div className="max-w-2xl mx-auto px-4 py-4">
         <div className="flex items-center justify-center gap-4">
           {/* Step 1 */}
           <div className="flex items-center gap-2">

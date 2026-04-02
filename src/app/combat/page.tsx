@@ -836,6 +836,22 @@ export default function CombatPage() {
   const [diagnosisResult, setDiagnosisResult] = useState<CombatResult | null>(null)
   const [treatmentResult, setTreatmentResult] = useState<CombatResult | null>(null)
   const [expandedPerspectives, setExpandedPerspectives] = useState<Set<string>>(new Set())
+
+  // Load saved combat results from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedDiagnosis = localStorage.getItem('combat-diagnosis-result')
+      const savedTreatment = localStorage.getItem('combat-treatment-result')
+      if (savedDiagnosis) {
+        setDiagnosisResult(JSON.parse(savedDiagnosis))
+      }
+      if (savedTreatment) {
+        setTreatmentResult(JSON.parse(savedTreatment))
+      }
+    } catch (e) {
+      console.error('Error loading saved combat results:', e)
+    }
+  }, [])
   const [streamingContent, setStreamingContent] = useState('')
   const { trackEvent } = useAnalytics()
   const { user } = useAuth()
@@ -1002,8 +1018,10 @@ export default function CombatPage() {
         const result = JSON.parse(fullContent)
         if (targetPhase === 'diagnosis') {
           setDiagnosisResult(result)
+          localStorage.setItem('combat-diagnosis-result', JSON.stringify(result))
         } else {
           setTreatmentResult(result)
+          localStorage.setItem('combat-treatment-result', JSON.stringify(result))
         }
 
         trackEvent('combat_completed', {
@@ -1127,6 +1145,19 @@ export default function CombatPage() {
         ) : (
           /* Has records - show combat interface */
           <div className="space-y-5">
+            {/* Audit in Progress Banner */}
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                <span className="text-lg">🔬</span>
+              </div>
+              <div>
+                <p className="font-semibold text-amber-900">Medical Audit in Progress</p>
+                <p className="text-sm text-amber-700 mt-0.5">
+                  For informational purposes only. Always consult your oncologist.
+                </p>
+              </div>
+            </div>
+
             {/* Compact Header */}
             <div className="flex items-center justify-between">
               <div>
@@ -1353,8 +1384,10 @@ export default function CombatPage() {
                     onClick={() => {
                       if (phase === 'diagnosis') {
                         setDiagnosisResult(null)
+                        localStorage.removeItem('combat-diagnosis-result')
                       } else {
                         setTreatmentResult(null)
+                        localStorage.removeItem('combat-treatment-result')
                       }
                     }}
                     className="px-6 py-4 bg-white border-2 border-slate-200 hover:border-slate-300 text-slate-700 rounded-xl font-medium transition-all"

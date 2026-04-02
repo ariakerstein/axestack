@@ -26,8 +26,11 @@ export function Footer() {
               </span>
             </Link>
             <p className="text-sm text-slate-500 mt-2">
-              AI-powered tools for cancer patients and caregivers. Built by a cancer survivor.
+              AI-powered tools for cancer patients and caregivers.
             </p>
+            <Link href="/about" className="inline-block mt-2 text-base font-medium text-slate-700 hover:text-violet-600 transition-colors">
+              Built by a cancer survivor →
+            </Link>
           </div>
 
           {/* Tools */}
@@ -57,6 +60,7 @@ export function Footer() {
                 </a>
               </li>
               <li><Link href="/about" className="text-slate-600 hover:text-violet-600 transition-colors">About</Link></li>
+              <li><Link href="/privacy" className="text-slate-600 hover:text-violet-600 transition-colors">Privacy & Terms</Link></li>
             </ul>
           </div>
 

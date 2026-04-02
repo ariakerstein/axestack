@@ -217,8 +217,8 @@ export default function TestsPage() {
           <p className="text-slate-600 mb-2">
             MRD, genomic tests, and biomarker monitoring to guide your treatment decisions.
           </p>
-          <p className="text-xs text-slate-400">
-            Powered by <span className="font-medium text-violet-500">openonco</span> • NCCN guidelines database
+          <p className="text-xs text-slate-400 flex items-center justify-center gap-1">
+            Partnered with <a href="https://www.openonco.org/" target="_blank" rel="noopener noreferrer" className="text-blue-800 font-semibold hover:underline flex items-center gap-0.5">♥ OpenOnco</a> • NCCN guidelines database
           </p>
         </div>
 

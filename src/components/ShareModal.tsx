@@ -345,25 +345,19 @@ Based on ${recordsCount} medical record${recordsCount !== 1 ? 's' : ''}
             </div>
           </div>
 
-          {/* @opencancer.ai CTA */}
-          <div className="bg-gradient-to-r from-violet-50 to-fuchsia-50 border border-violet-200 rounded-xl p-4">
+          {/* @opencancer.ai CTA - Coming Soon */}
+          <div className="bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-xl p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <Sparkles className="w-4 h-4 text-violet-600" />
-                  <span className="text-xs font-bold text-violet-700 bg-violet-100 px-2 py-0.5 rounded-full">NEW</span>
+                  <Sparkles className="w-4 h-4 text-slate-400" />
+                  <span className="text-xs font-bold text-slate-500 bg-slate-200 px-2 py-0.5 rounded-full">COMING SOON</span>
                 </div>
-                <p className="text-sm text-slate-700">
-                  Get your own <span className="font-bold text-violet-700">you@opencancer.ai</span> email.
+                <p className="text-sm text-slate-600">
+                  Get your own <span className="font-medium text-slate-700">you@opencancer.ai</span> email.
                   Forward medical documents there and they'll appear in your Records Vault!
                 </p>
               </div>
-              <a
-                href="/profile#email"
-                className="flex-shrink-0 px-3 py-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-all"
-              >
-                Claim
-              </a>
             </div>
           </div>
         </div>
@@ -373,9 +367,16 @@ Based on ${recordsCount} medical record${recordsCount !== 1 ? 's' : ''}
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 border border-slate-200 text-slate-700 rounded-lg font-medium hover:bg-white transition-colors"
+              className="px-4 py-2.5 border border-slate-200 text-slate-700 rounded-lg font-medium hover:bg-white transition-colors"
             >
               Cancel
+            </button>
+            <button
+              onClick={handleCopy}
+              className="flex-1 px-4 py-2.5 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-white transition-colors flex items-center justify-center gap-2"
+            >
+              {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+              {copied ? 'Copied!' : 'Copy to Clipboard'}
             </button>
             <button
               onClick={handleSendEmail}

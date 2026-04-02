@@ -51,8 +51,15 @@ export default function AskPage() {
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(true)
   const [feedbackMessageId, setFeedbackMessageId] = useState<string | null>(null)
   const [feedbackComment, setFeedbackComment] = useState('')
+  const [conciseMode, setConciseMode] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  // Load concise mode preference
+  useEffect(() => {
+    const saved = localStorage.getItem('ask-concise-mode')
+    if (saved === 'true') setConciseMode(true)
+  }, [])
 
   const FREE_QUESTION_LIMIT = 3
 
@@ -187,7 +194,8 @@ I can help you with:
         body: JSON.stringify({
           message: text.trim(),
           cancerType: cancerType || undefined,
-          history: messages.filter(m => !m.isLoading).slice(-6)
+          history: messages.filter(m => !m.isLoading).slice(-6),
+          conciseMode,
         })
       })
 
@@ -265,7 +273,7 @@ I can help you with:
       timestamp: new Date().toISOString(),
       cancerType: cancerType || null
     }
-    console.log('[Ask AI] Feedback:', feedbackData)
+    console.log('[Ask Navis] Feedback:', feedbackData)
 
     try {
       const storedFeedback = JSON.parse(localStorage.getItem('ask-feedback') || '[]')
@@ -316,7 +324,7 @@ I can help you with:
             <Link href="/records" className="text-slate-600 hover:text-violet-600 transition-colors">
               Records
             </Link>
-            <span className="text-violet-600 font-medium">Ask AI</span>
+            <span className="text-violet-600 font-medium">Ask Navis</span>
             <Link href="/trials" className="text-slate-600 hover:text-violet-600 transition-colors">
               Trials
             </Link>
@@ -331,7 +339,7 @@ I can help you with:
             )}
             <ShareButton
               tool="ask"
-              title="Share Ask AI"
+              title="Share Ask Navis"
               description="Help others find cancer information"
               variant="icon"
             />
@@ -610,20 +618,31 @@ I can help you with:
             </button>
           </div>
 
-          {/* Cancer type badge if selected */}
-          {cancerType && (
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-xs bg-violet-100 text-violet-700 px-2 py-1 rounded-full">
-                {CANCER_TYPES[cancerType] || cancerType}
-              </span>
+          {/* Settings badges */}
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
+            {cancerType && (
+              <>
+                <span className="text-xs bg-violet-100 text-violet-700 px-2 py-1 rounded-full">
+                  {CANCER_TYPES[cancerType] || cancerType}
+                </span>
+                <button
+                  onClick={() => setShowSettingsModal(true)}
+                  className="text-xs text-gray-500 hover:text-violet-600"
+                >
+                  Change
+                </button>
+              </>
+            )}
+            {conciseMode && (
               <button
                 onClick={() => setShowSettingsModal(true)}
-                className="text-xs text-gray-500 hover:text-violet-600"
+                className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full hover:bg-amber-200 transition-colors"
+                title="Click to change"
               >
-                Change
+                Concise Mode ON
               </button>
-            </div>
-          )}
+            )}
+          </div>
 
           <p className="text-xs text-gray-400 text-center mt-2">
             AI-generated educational information only. Not medical advice. In emergencies, call 911.
@@ -713,6 +732,37 @@ I can help you with:
                     Clear Selection
                   </button>
                 )}
+
+                {/* Concise Mode Toggle */}
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-900">Concise Mode</h3>
+                      <p className="text-xs text-gray-500 mt-0.5">Just the facts - no suggestions or questions</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const newValue = !conciseMode
+                        setConciseMode(newValue)
+                        localStorage.setItem('ask-concise-mode', String(newValue))
+                      }}
+                      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        conciseMode ? 'bg-violet-600' : 'bg-gray-200'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                          conciseMode ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                  {conciseMode && (
+                    <p className="mt-2 text-xs text-violet-600 bg-violet-50 px-3 py-2 rounded-lg">
+                      Responses will be shorter and focused on facts only.
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </div>

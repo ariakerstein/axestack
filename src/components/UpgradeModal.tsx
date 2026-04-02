@@ -49,15 +49,18 @@ export function UpgradeModal({ isOpen, onClose, feature = 'general' }: UpgradeMo
 
         {/* Pricing Tiers */}
         <div className="p-6 grid md:grid-cols-2 gap-4">
-          {/* Pro Tier */}
-          <div className="border-2 border-slate-200 rounded-xl p-5 hover:border-violet-300 transition-all">
-            <div className="flex items-center gap-2 mb-3">
-              <Sliders className="w-5 h-5 text-violet-600" />
+          {/* Pro Tier - FREE for April */}
+          <div className="border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 to-green-50 rounded-xl p-5 relative">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-gradient-to-r from-emerald-500 to-green-500 text-white text-xs font-bold rounded-full">
+              FREE IN APRIL
+            </div>
+            <div className="flex items-center gap-2 mb-3 mt-2">
+              <Sliders className="w-5 h-5 text-emerald-600" />
               <h3 className="font-bold text-slate-900">Pro</h3>
             </div>
             <div className="mb-4">
-              <span className="text-3xl font-bold text-slate-900">$29</span>
-              <span className="text-slate-500">/month</span>
+              <span className="text-3xl font-bold text-emerald-600">Free</span>
+              <span className="text-slate-500 line-through ml-2">$29/mo</span>
             </div>
             <ul className="space-y-2 mb-6">
               <li className="flex items-start gap-2 text-sm text-slate-700">
@@ -79,9 +82,9 @@ export function UpgradeModal({ isOpen, onClose, feature = 'general' }: UpgradeMo
             </ul>
             <button
               onClick={() => handleUpgrade('pro')}
-              className="w-full py-3 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white rounded-xl font-semibold hover:opacity-90 transition-all"
+              className="w-full py-3 bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-xl font-semibold hover:opacity-90 transition-all shadow-lg shadow-emerald-500/25"
             >
-              Upgrade to Pro
+              Get Pro Free →
             </button>
           </div>
 
@@ -89,7 +92,7 @@ export function UpgradeModal({ isOpen, onClose, feature = 'general' }: UpgradeMo
           <div className="border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-5 relative">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
               <Star className="w-3 h-3 fill-white" />
-              RECOMMENDED
+              HUMAN EXPERT
             </div>
             <div className="flex items-center gap-2 mb-3 mt-2">
               <UserCheck className="w-5 h-5 text-amber-600" />

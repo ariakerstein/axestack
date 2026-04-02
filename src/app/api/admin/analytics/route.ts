@@ -86,32 +86,82 @@ export async function GET(request: Request) {
       }))
       .sort((a, b) => b.date.localeCompare(a.date))
 
-    // Get specific action counts
-    const askQuestions = opencancerEvents.filter((e: { event_type: string }) => e.event_type === 'ask_question').length
+    // Get specific action counts with details
+    const askQuestionEvents = opencancerEvents.filter((e: { event_type: string }) => e.event_type === 'ask_question')
+    const askQuestions = askQuestionEvents.length
+
+    // Get question details for drill-down
+    const questionDetails = askQuestionEvents.map((e: {
+      event_timestamp: string
+      session_id: string
+      metadata?: { question?: string; cancer_type?: string }
+    }) => ({
+      timestamp: e.event_timestamp,
+      sessionId: e.session_id?.substring(0, 8),
+      question: e.metadata?.question?.substring(0, 150) || '[No question text]',
+      cancerType: e.metadata?.cancer_type || 'General',
+    })).slice(0, 50) // Limit to 50 most recent
     const recordsUploaded = opencancerEvents.filter((e: { event_type: string }) => e.event_type === 'record_upload').length
     const checklistViews = opencancerEvents.filter((e: { event_type: string; page_path: string }) =>
       e.event_type === 'page_view' && e.page_path === '/cancer-checklist'
     ).length
     const trialsSearches = opencancerEvents.filter((e: { event_type: string }) => e.event_type === 'trial_search').length
-    // Count actual profiles from database (not just analytics events)
-    const { data: profiles, error: profilesError } = await supabase
-      .from('profiles')
-      .select('id, created_at')
-      .gte('created_at', startDate.toISOString())
 
-    const profileCreations = profiles?.length || 0
-    if (profilesError) {
-      console.error('Error fetching profiles in period:', profilesError)
+    // Count actual users from auth.users (not profiles table which may be empty)
+    // Filter out test accounts
+    const isTestEmail = (email: string): boolean => {
+      if (!email) return true
+      const lower = email.toLowerCase()
+      // Filter patterns for test/fake accounts
+      if (lower.includes('test')) return true
+      if (lower.includes('asdf')) return true
+      if (lower.includes('ariakerstein+')) return true // Dev test accounts
+      if (/^[a-z]{3,6}@gmail\.com$/.test(lower)) return true // Short random emails like "uueu@gmail.com"
+      if (/^[a-z]+\d+@gmail\.com$/.test(lower) && lower.length < 20) return true // "jenny2@gmail.com" style
+      if (lower.includes('ffdfd') || lower.includes('weewew') || lower.includes('hhfr')) return true
+      return false
     }
 
-    const { count: totalProfileCount, error: totalProfilesError } = await supabase
-      .from('profiles')
-      .select('*', { count: 'exact', head: true })
-
-    if (totalProfilesError) {
-      console.error('Error fetching total profiles count:', totalProfilesError)
+    let totalUserCount = 0
+    let usersCreatedInPeriod = 0
+    try {
+      const { data: authData, error: authError } = await supabase.auth.admin.listUsers({
+        perPage: 1000, // Get up to 1000 users
+      })
+      if (authError) {
+        console.error('Error fetching auth users:', authError)
+      } else if (authData?.users) {
+        const realUsers = authData.users.filter(
+          (u: { email?: string }) => !isTestEmail(u.email || '')
+        )
+        totalUserCount = realUsers.length
+        usersCreatedInPeriod = realUsers.filter(
+          (u: { created_at: string }) => new Date(u.created_at) >= startDate
+        ).length
+      }
+      console.log('User stats:', { totalUserCount, usersCreatedInPeriod })
+    } catch (err) {
+      console.error('Auth admin error:', err)
     }
-    console.log('Profile stats:', { profileCreations, totalProfileCount })
+
+    // Get actual profiles from opencancer_profiles table
+    let totalProfileCount = 0
+    let profilesCreatedInPeriod = 0
+    try {
+      const { data: allProfiles, error: profilesError } = await supabase
+        .from('opencancer_profiles')
+        .select('id, created_at')
+
+      if (!profilesError && allProfiles) {
+        totalProfileCount = allProfiles.length
+        profilesCreatedInPeriod = allProfiles.filter(
+          (p: { created_at: string }) => new Date(p.created_at) >= startDate
+        ).length
+      }
+      console.log('Profile stats:', { totalProfileCount, profilesCreatedInPeriod })
+    } catch (err) {
+      console.error('Profiles query error:', err)
+    }
 
     // Get Combat analyses stats from combat_analyses table
     const { data: combatAnalyses, error: combatError } = await supabase
@@ -194,6 +244,51 @@ export async function GET(request: Request) {
       ? (recordUploads.length / sessionsWithRecords.size).toFixed(1)
       : '0'
 
+    // === SHARING & VIRAL METRICS ===
+
+    // Share events breakdown
+    const shareEvents = opencancerEvents.filter((e: { event_type: string }) =>
+      e.event_type === 'share' || e.event_type === 'combat_shared'
+    )
+
+    const sharesByTool: Record<string, number> = {}
+    const sharesByMethod: Record<string, number> = {}
+    shareEvents.forEach((e: { metadata?: { tool?: string; method?: string } }) => {
+      const tool = e.metadata?.tool || 'unknown'
+      const method = e.metadata?.method || 'unknown'
+      sharesByTool[tool] = (sharesByTool[tool] || 0) + 1
+      sharesByMethod[method] = (sharesByMethod[method] || 0) + 1
+    })
+
+    // Referral arrivals (people who came via ref= links)
+    const referralArrivals = opencancerEvents.filter((e: { metadata?: { ref?: string } }) =>
+      e.metadata?.ref && e.metadata.ref !== 'unknown'
+    )
+    const referralsBySource: Record<string, number> = {}
+    referralArrivals.forEach((e: { metadata?: { ref?: string } }) => {
+      const ref = e.metadata?.ref || 'unknown'
+      referralsBySource[ref] = (referralsBySource[ref] || 0) + 1
+    })
+    const uniqueReferralSessions = new Set(
+      referralArrivals.map((e: { session_id: string }) => e.session_id)
+    ).size
+
+    // Caregiver vs Patient ratio from profiles
+    let caregiverCount = 0
+    let patientCount = 0
+    try {
+      const { data: profileRoles } = await supabase
+        .from('opencancer_profiles')
+        .select('role')
+
+      if (profileRoles) {
+        caregiverCount = profileRoles.filter((p: { role: string }) => p.role === 'caregiver').length
+        patientCount = profileRoles.filter((p: { role: string }) => p.role === 'patient').length
+      }
+    } catch (err) {
+      console.error('Error fetching profile roles:', err)
+    }
+
     return NextResponse.json({
       period: `Last ${days} days`,
       summary: {
@@ -203,8 +298,11 @@ export async function GET(request: Request) {
         recordsUploaded,
         checklistViews,
         trialsSearches,
-        profileCreations,
-        totalProfiles: totalProfileCount || 0,
+        profileCreations: profilesCreatedInPeriod,
+        totalProfiles: totalProfileCount,
+        // Auth user counts (separate from profiles)
+        totalUsers: totalUserCount,
+        usersCreatedInPeriod,
         // Records engagement (among active uploaders only)
         avgRecordsPerUser: parseFloat(avgRecordsPerUser),     // logged-in users only
         avgRecordsPerSession: parseFloat(avgRecordsPerSession), // all uploaders (incl anonymous)
@@ -213,6 +311,28 @@ export async function GET(request: Request) {
         combatAnalyses: combatStats.total,
       },
       combatStats,
+      // Sharing & Viral metrics
+      sharingStats: {
+        totalShares: shareEvents.length,
+        byTool: Object.entries(sharesByTool)
+          .sort((a, b) => b[1] - a[1])
+          .map(([tool, count]) => ({ tool, count })),
+        byMethod: Object.entries(sharesByMethod)
+          .sort((a, b) => b[1] - a[1])
+          .map(([method, count]) => ({ method, count })),
+      },
+      referralStats: {
+        totalReferralArrivals: referralArrivals.length,
+        uniqueReferralSessions: uniqueReferralSessions,
+        bySource: Object.entries(referralsBySource)
+          .sort((a, b) => b[1] - a[1])
+          .map(([source, count]) => ({ source, count })),
+      },
+      roleBreakdown: {
+        caregivers: caregiverCount,
+        patients: patientCount,
+        ratio: patientCount > 0 ? (caregiverCount / patientCount).toFixed(2) : '0',
+      },
       pageViewsByPath: Object.entries(pageViewsByPath)
         .sort((a, b) => b[1] - a[1])
         .map(([path, count]) => ({ path, count })),
@@ -227,6 +347,10 @@ export async function GET(request: Request) {
         .map(([device, count]) => ({ device, count })),
       dailyBreakdown,
       recentEvents,
+      // Drill-down details
+      drillDown: {
+        questions: questionDetails,
+      },
     })
   } catch (err) {
     console.error('Analytics error:', err)

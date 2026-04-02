@@ -8,8 +8,8 @@ import { useAuth } from '@/lib/auth'
 import { saveProfile, supabase } from '@/lib/supabase'
 import {
   Check, Dna, CheckCircle, Stethoscope,
-  Microscope, BookOpen, FlaskConical, FolderClosed, UserRound,
-  Heart, Users, Ribbon, DollarSign, Code, Share2, Copy
+  Microscope, BookOpen, FlaskConical, FolderClosed, FolderOpen, UserRound,
+  Heart, Users, Ribbon, DollarSign, Code, Share2, Copy, ShieldCheck, UserCheck
 } from 'lucide-react'
 
 // Cancer types for profile display
@@ -151,6 +151,21 @@ const TESTIMONIALS = [
     name: "David Y.",
     context: "Patient",
   },
+  {
+    quote: "I uploaded a summary from Navis Health AI, put in my own edits, and am providing it to my new medical oncologist for my appointment tomorrow. She's the director of the Metastatic Breast Cancer Program at Dana-Farber.",
+    name: "Jennifer N.",
+    context: "Metastatic Breast Cancer",
+  },
+  {
+    quote: "CancerCombat's three personas each offered different insights. Two aligned with my oncologist's recommendation to continue aBAT, and one even mentioned PARPi — which I've been using for 4 years. The guidelines persona suggested SBRT as a backup option. Exactly the kind of multi-perspective analysis I needed.",
+    name: "Russ H.",
+    context: "Stage IV Prostate Cancer",
+  },
+  {
+    quote: "Having my oncologist, Cancer Commons, and Dr. Gatenby all tell me I'm on the right path — and now CancerCombat AI agrees. It's validating to have multiple expert perspectives align.",
+    name: "Russ H.",
+    context: "Stage IV Prostate Cancer",
+  },
 ]
 
 // Upcoming events interface
@@ -187,13 +202,12 @@ function HomeContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { user, profile: authProfile, loading: authLoading, refreshProfile } = useAuth()
-  useAnalytics() // Track page views
+  const { trackEvent } = useAnalytics() // Track page views + custom events
   const currentDemo = useRotatingDemo() // Rotating cancer examples
   const [events, setEvents] = useState<UpcomingEvent[]>(FALLBACK_EVENTS)
   const [profile, setProfile] = useState<PatientProfile | null>(null)
   const [showSuccess, setShowSuccess] = useState(false)
   const [wizardStep, setWizardStep] = useState<number>(1)
-  const [showAllTools, setShowAllTools] = useState(false)
   const [showWizardModal, setShowWizardModal] = useState(false)
 
   // Wizard form state
@@ -661,38 +675,53 @@ function HomeContent() {
                           cancerType: wizardCancerType,
                         }
 
-                        // Save to localStorage for offline access
+                        // Save to localStorage FIRST for immediate offline access
                         localStorage.setItem('patient-profile', JSON.stringify(newProfile))
                         setProfile(newProfile)
 
-                        // Save to Supabase profile table
-                        await saveProfile({
-                          email: wizardEmail.trim(),
-                          name: wizardName.trim(),
-                          role: wizardRole!,
-                          cancerType: wizardCancerType,
-                        }).catch(err => console.warn('Profile sync failed:', err))
+                        // Save to Supabase profile table (non-blocking, with timeout)
+                        const profilePromise = Promise.race([
+                          saveProfile({
+                            email: wizardEmail.trim(),
+                            name: wizardName.trim(),
+                            role: wizardRole!,
+                            cancerType: wizardCancerType,
+                          }),
+                          new Promise((_, reject) => setTimeout(() => reject(new Error('Profile save timeout')), 5000))
+                        ]).catch(err => console.warn('Profile sync failed:', err))
 
-                        // Send magic link to create account + sign in
-                        const { error: authError } = await supabase.auth.signInWithOtp({
-                          email: wizardEmail.trim(),
-                          options: {
-                            emailRedirectTo: `${window.location.origin}/records`,
-                          },
-                        })
+                        // Send magic link with timeout
+                        try {
+                          const authPromise = Promise.race([
+                            supabase.auth.signInWithOtp({
+                              email: wizardEmail.trim(),
+                              options: {
+                                emailRedirectTo: `${window.location.origin}/records`,
+                              },
+                            }),
+                            new Promise<{ error: Error }>((_, reject) =>
+                              setTimeout(() => reject({ error: new Error('Auth timeout') }), 10000)
+                            )
+                          ])
 
-                        if (authError) {
-                          console.error('Auth error:', authError)
-                          // Still redirect even if auth fails - they can sign in later
-                          setWizardSaving(false)
-                          setShowWizardModal(false)
-                          router.push('/records')
-                          return
+                          const result = await authPromise
+                          const authError = 'error' in result ? result.error : null
+
+                          if (authError) {
+                            console.error('Auth error:', authError)
+                            // Still continue - they can sign in later
+                          }
+                        } catch (err) {
+                          console.error('Auth failed:', err)
+                          // Continue anyway - profile is saved locally
                         }
 
-                        // Show email sent confirmation
+                        // Show email sent confirmation (or at least move forward)
                         setWizardSaving(false)
                         setWizardEmailSent(true)
+
+                        // Wait for profile save to complete (already started)
+                        await profilePromise
 
                         // Send welcome email (non-blocking)
                         fetch('/api/email/welcome', {
@@ -768,7 +797,7 @@ function HomeContent() {
 
             <Link href="/cancer-checklist" className="group bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-5 hover:border-blue-500 hover:shadow-lg transition-all relative">
               <span className="absolute -top-2 -right-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md">
-                Prep Tool
+                ⭐ Most Popular
               </span>
               <div className="flex items-center gap-2 mb-2">
                 <CheckCircle className="w-6 h-6 text-blue-600" />
@@ -779,29 +808,36 @@ function HomeContent() {
 
             <Link href="/combat" className="group bg-gradient-to-br from-orange-50 to-red-50 border-2 border-orange-300 rounded-xl p-5 hover:border-orange-500 hover:shadow-lg transition-all relative">
               <span className="absolute -top-2 -right-2 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md">
-                NEW
+                🔥 Trending
               </span>
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-2xl">⚔</span>
+                <span className="text-2xl">⚔️</span>
                 <h3 className="font-bold text-slate-900 group-hover:text-orange-600">CancerCombat</h3>
               </div>
               <p className="text-slate-600 text-sm">3 AI perspectives debate your diagnosis & treatment options.</p>
             </Link>
 
-            <Link href="/records" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-emerald-400 hover:shadow-md transition-all">
+            <Link href="/records" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-emerald-400 hover:shadow-md transition-all relative">
               <div className="flex items-center gap-2 mb-2">
                 <FolderClosed className="w-6 h-6 text-emerald-500" />
                 <h3 className="font-bold text-slate-900 group-hover:text-emerald-600">Records Vault</h3>
               </div>
-              <p className="text-slate-600 text-sm">Translate confusing medical reports to plain English.</p>
+              <p className="text-slate-600 text-sm mb-2">Translate confusing medical reports to plain English.</p>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-violet-600 font-medium">1,000+ patients</span>
+                <span className="text-[10px] text-emerald-600 flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3" /> Private
+                </span>
+              </div>
             </Link>
 
             <Link href="/ask" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-fuchsia-400 hover:shadow-md transition-all">
               <div className="flex items-center gap-2 mb-2">
                 <AtomIcon />
-                <h3 className="font-bold text-slate-900 group-hover:text-fuchsia-600">Ask AI</h3>
+                <h3 className="font-bold text-slate-900 group-hover:text-fuchsia-600">Ask Navis</h3>
               </div>
               <p className="text-slate-600 text-sm">Questions about treatments, tests, or side effects.</p>
+              <p className="text-[10px] text-slate-400 mt-1.5">Powered by Claude • OpenAI • Gemini</p>
             </Link>
 
             <Link href="/trials" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-400 hover:shadow-md transition-all">
@@ -810,7 +846,12 @@ function HomeContent() {
                 <h3 className="font-bold text-slate-900 group-hover:text-blue-600">Clinical Trials</h3>
               </div>
               <p className="text-slate-600 text-sm mb-2">Find trials matched to your diagnosis and location.</p>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-medium">ClinicalTrials.gov</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-medium">ClinicalTrials.gov</span>
+                <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                  Powered by <img src="/biomcp-logo.png" alt="BioMCP" className="h-4 w-4 inline-block" /> <span className="font-medium text-slate-600">BioMCP</span>
+                </span>
+              </div>
             </Link>
 
             <Link href="/coverage" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-emerald-400 hover:shadow-md transition-all">
@@ -821,85 +862,190 @@ function HomeContent() {
               <p className="text-slate-600 text-sm mb-2">What's covered + financial assistance programs.</p>
               <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">Medicare 2026</span>
             </Link>
+
+            <Link href="/case-file" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-amber-400 hover:shadow-md transition-all">
+              <div className="flex items-center gap-2 mb-2">
+                <FolderOpen className="w-6 h-6 text-amber-500" />
+                <h3 className="font-bold text-slate-900 group-hover:text-amber-600">My Case File</h3>
+              </div>
+              <p className="text-slate-600 text-sm mb-2">All your medical info organized - just the facts.</p>
+              <span className="text-[10px] px-2 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">No AI commentary</span>
+            </Link>
+            <Link href="/tests" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-orange-400 hover:shadow-md transition-all">
+              <div className="flex items-center gap-2 mb-2">
+                <FlaskConical className="w-6 h-6 text-orange-500" />
+                <h3 className="font-bold text-slate-900 group-hover:text-orange-600">Precision Testing</h3>
+              </div>
+              <p className="text-slate-600 text-sm">MRD, genomic tests, and biomarker monitoring.</p>
+              <p className="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1">
+                Partnered with <a href="https://www.openonco.org/" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-blue-800 font-semibold hover:underline flex items-center gap-0.5">♥ OpenOnco</a>
+              </p>
+            </Link>
+
+            <Link href="/research" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-cyan-400 hover:shadow-md transition-all">
+              <div className="flex items-center gap-2 mb-2">
+                <BookOpen className="w-6 h-6 text-cyan-500" />
+                <h3 className="font-bold text-slate-900 group-hover:text-cyan-600">Research Library</h3>
+              </div>
+              <p className="text-slate-600 text-sm">Search 200M+ papers with AI summaries.</p>
+              <p className="text-[10px] text-slate-400 mt-1.5">
+                Partnered with <a href="https://biomcp.org/" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-emerald-600 font-semibold hover:underline">BioMCP</a>
+              </p>
+            </Link>
+
+            <Link href="/oncologists" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-teal-400 hover:shadow-md transition-all">
+              <div className="flex items-center gap-2 mb-2">
+                <Stethoscope className="w-6 h-6 text-teal-500" />
+                <h3 className="font-bold text-slate-900 group-hover:text-teal-600">Find Oncologist</h3>
+              </div>
+              <p className="text-slate-600 text-sm">Specialists by cancer type, location, insurance.</p>
+            </Link>
+
+            <Link href="/hub" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-rose-400 hover:shadow-md transition-all">
+              <div className="flex items-center gap-2 mb-2">
+                <Heart className="w-6 h-6 text-rose-500" />
+                <h3 className="font-bold text-slate-900 group-hover:text-rose-600">CareCircle</h3>
+              </div>
+              <p className="text-slate-600 text-sm">Update family & friends without repeating yourself.</p>
+            </Link>
+
+            <Link href="/expert-review" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-indigo-400 hover:shadow-md transition-all">
+              <div className="flex items-center gap-2 mb-2">
+                <UserCheck className="w-6 h-6 text-indigo-500" />
+                <h3 className="font-bold text-slate-900 group-hover:text-indigo-600">Expert Review</h3>
+              </div>
+              <p className="text-slate-600 text-sm">Get your case reviewed by oncology experts.</p>
+              <p className="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1">
+                Partnered with <a href="https://cancercommons.org" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="font-semibold text-slate-600 hover:text-violet-600">Cancer Commons</a>
+              </p>
+            </Link>
+
+            <a href="https://community.cancerpatientlab.org/" target="_blank" rel="noopener noreferrer" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-pink-400 hover:shadow-md transition-all">
+              <div className="flex items-center gap-2 mb-2">
+                <Users className="w-6 h-6 text-pink-500" />
+                <h3 className="font-bold text-slate-900 group-hover:text-pink-600">Community</h3>
+              </div>
+              <p className="text-slate-600 text-sm">Connect with patients and caregivers.</p>
+              <p className="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1">
+                Powered by <img src="/cpl-logo.avif" alt="Cancer Patient Lab" className="h-4 object-contain" />
+              </p>
+            </a>
+
+            <Link href="/profile" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-violet-400 hover:shadow-md transition-all">
+              <div className="flex items-center gap-2 mb-2">
+                <UserRound className="w-6 h-6 text-violet-500" />
+                <h3 className="font-bold text-slate-900 group-hover:text-violet-600">My Profile</h3>
+              </div>
+              <p className="text-slate-600 text-sm">Personalize your tools and save your diagnosis.</p>
+            </Link>
           </div>
-
-          {/* More Tools - Expandable */}
-          <div className="text-center mt-2">
-            <button
-              onClick={() => setShowAllTools(!showAllTools)}
-              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-all ${
-                showAllTools
-                  ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  : 'bg-violet-100 text-violet-700 hover:bg-violet-200 border border-violet-200'
-              }`}
-            >
-              {showAllTools ? 'Show less tools' : 'Show more tools'}
-              <span className={`transition-transform ${showAllTools ? 'rotate-180' : ''}`}>↓</span>
-            </button>
-          </div>
-
-          {showAllTools && (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4 pt-4 border-t border-slate-200">
-              <Link href="/tests" className="group bg-white border border-slate-200 rounded-lg p-4 hover:border-orange-400 hover:shadow-md transition-all">
-                <div className="flex items-center gap-2 mb-1">
-                  <FlaskConical className="w-5 h-5 text-orange-500" />
-                  <h3 className="font-semibold text-slate-900 group-hover:text-orange-600">Precision Testing</h3>
-                </div>
-                <p className="text-slate-600 text-xs">MRD, genomic tests, and biomarker monitoring.</p>
-              </Link>
-
-              <Link href="/research" className="group bg-white border border-slate-200 rounded-lg p-4 hover:border-cyan-400 hover:shadow-md transition-all">
-                <div className="flex items-center gap-2 mb-1">
-                  <BookOpen className="w-5 h-5 text-cyan-500" />
-                  <h3 className="font-semibold text-slate-900 group-hover:text-cyan-600">Research Library</h3>
-                </div>
-                <p className="text-slate-600 text-xs">Search 200M+ papers with AI summaries.</p>
-              </Link>
-
-              <Link href="/oncologists" className="group bg-white border border-slate-200 rounded-lg p-4 hover:border-teal-400 hover:shadow-md transition-all">
-                <div className="flex items-center gap-2 mb-1">
-                  <Stethoscope className="w-5 h-5 text-teal-500" />
-                  <h3 className="font-semibold text-slate-900 group-hover:text-teal-600">Find Oncologist</h3>
-                </div>
-                <p className="text-slate-600 text-xs">Specialists by cancer type, location, insurance.</p>
-              </Link>
-
-              <Link href="/hub" className="group bg-white border border-slate-200 rounded-lg p-4 hover:border-rose-400 hover:shadow-md transition-all">
-                <div className="flex items-center gap-2 mb-1">
-                  <Heart className="w-5 h-5 text-rose-500" />
-                  <h3 className="font-semibold text-slate-900 group-hover:text-rose-600">CareCircle</h3>
-                </div>
-                <p className="text-slate-600 text-xs">Update family & friends without repeating yourself.</p>
-              </Link>
-
-              <a href="https://community.cancerpatientlab.org/" target="_blank" rel="noopener noreferrer" className="group bg-white border border-slate-200 rounded-lg p-4 hover:border-pink-400 hover:shadow-md transition-all">
-                <div className="flex items-center gap-2 mb-1">
-                  <Users className="w-5 h-5 text-pink-500" />
-                  <h3 className="font-semibold text-slate-900 group-hover:text-pink-600">Community</h3>
-                </div>
-                <p className="text-slate-600 text-xs">Connect with patients and caregivers.</p>
-              </a>
-
-              <Link href="/profile" className="group bg-white border border-slate-200 rounded-lg p-4 hover:border-violet-400 hover:shadow-md transition-all">
-                <div className="flex items-center gap-2 mb-1">
-                  <UserRound className="w-5 h-5 text-violet-500" />
-                  <h3 className="font-semibold text-slate-900 group-hover:text-violet-600">My Profile</h3>
-                </div>
-                <p className="text-slate-600 text-xs">Personalize your tools and save your diagnosis.</p>
-              </Link>
-            </div>
-          )}
 
         </div>
       </section>
 
-      {/* Caregiver Share Card */}
+      {/* Caregiver Section */}
+      <section className="py-12 px-8 bg-gradient-to-br from-pink-50 via-white to-rose-50 border-t border-pink-100">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">
+              <span className="text-pink-600">Caregiver Tools:</span> Supporting someone with cancer?
+            </h2>
+            <p className="text-slate-600 max-w-2xl mx-auto">
+              93% of caregivers say understanding the diagnosis is their biggest challenge. These tools help you be the advocate your loved one needs.
+            </p>
+          </div>
+
+          {/* Core Caregiver Needs - mapped to tools */}
+          <div className="grid md:grid-cols-2 gap-4 mb-8">
+            <div className="bg-white rounded-xl p-5 border border-pink-200 shadow-sm">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <BookOpen className="w-5 h-5 text-violet-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-900 mb-1">Understand the diagnosis</h3>
+                  <p className="text-sm text-slate-600 mb-2">Translate medical jargon into plain English with our Records Vault.</p>
+                  <Link href="/records" onClick={() => trackEvent('caregiver_need_click', { need: 'understand_diagnosis', tool: 'records' })} className="text-sm text-violet-600 hover:text-violet-700 font-medium">
+                    Upload records →
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-5 border border-pink-200 shadow-sm">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-fuchsia-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Microscope className="w-5 h-5 text-fuchsia-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-900 mb-1">Explore treatment options</h3>
+                  <p className="text-sm text-slate-600 mb-2">Get a comprehensive case review and understand all the options.</p>
+                  <Link href="/records/case-review" onClick={() => trackEvent('caregiver_need_click', { need: 'treatment_options', tool: 'case_review' })} className="text-sm text-violet-600 hover:text-violet-700 font-medium">
+                    Start case review →
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-5 border border-pink-200 shadow-sm">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <CheckCircle className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-900 mb-1">Prepare for appointments</h3>
+                  <p className="text-sm text-slate-600 mb-2">Know exactly what to ask the oncologist with our question generator.</p>
+                  <Link href="/cancer-checklist" onClick={() => trackEvent('caregiver_need_click', { need: 'appointment_prep', tool: 'checklist' })} className="text-sm text-violet-600 hover:text-violet-700 font-medium">
+                    Build question list →
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-5 border border-pink-200 shadow-sm">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-rose-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Users className="w-5 h-5 text-rose-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-900 mb-1">Coordinate the care team</h3>
+                  <p className="text-sm text-slate-600 mb-2">Share updates without repeating yourself. Keep everyone informed.</p>
+                  <Link href="/hub" onClick={() => trackEvent('caregiver_need_click', { need: 'coordinate_care', tool: 'carecircle' })} className="text-sm text-violet-600 hover:text-violet-700 font-medium">
+                    Create CareCircle →
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* CTA */}
+          <div className="text-center">
+            <button
+              onClick={() => {
+                trackEvent('caregiver_cta_click', { source: 'homepage_caregiver_section' })
+                setShowWizardModal(true)
+                setWizardStep(1)
+                setWizardRole('caregiver')
+              }}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-pink-500/25 hover:shadow-xl transition-all"
+            >
+              <Heart className="w-5 h-5" />
+              Get Started as a Caregiver
+            </button>
+            <p className="text-xs text-slate-500 mt-3">
+              Free forever • Your data stays private
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Share Card */}
       <section className="py-8 px-8 bg-white">
         <div className="max-w-2xl mx-auto">
           <div className="bg-gradient-to-br from-rose-50 via-white to-pink-50 border border-rose-200 rounded-2xl p-6 text-center">
             <div className="text-3xl mb-3">💝</div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">Know someone fighting cancer?</h3>
-            <p className="text-slate-600 mb-4">Share these free tools with a patient or caregiver who needs them.</p>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Know someone who needs this?</h3>
+            <p className="text-slate-600 mb-4">Share these free tools with a patient or caregiver.</p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <button
@@ -1061,8 +1207,14 @@ function HomeContent() {
       {/* Upcoming Events */}
       <section className="py-12 px-8 border-t border-slate-200">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-slate-900">Upcoming Events</h2>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-4">
+              <h2 className="text-xl font-bold text-slate-900">Upcoming Events</h2>
+              <a href="https://www.cancerpatientlab.org/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs text-slate-500 hover:text-violet-600 transition-colors">
+                <span>Partnered with</span>
+                <img src="/cpl-logo.avif" alt="Cancer Patient Lab" className="h-6 object-contain" />
+              </a>
+            </div>
             <a
               href="https://community.cancerpatientlab.org/c/events/"
               target="_blank"

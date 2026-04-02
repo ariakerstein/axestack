@@ -33,14 +33,30 @@ export function ShareButton({
       localStorage.setItem('opencancer_share_id', shareId)
     }
 
-    const shareUrl = `https://opencancer.ai/${tool}?ref=${shareId}&utm_source=share&utm_medium=social&utm_campaign=${tool}_tool`
+    // Map tool names to actual URL paths
+    const toolPaths: Record<string, string> = {
+      'case-review': 'records/case-review',
+      'records': 'records',
+      'ask': 'ask',
+      'trials': 'trials',
+      'oncologists': 'oncologists',
+      'checklist': 'cancer-checklist',
+      'combat': 'combat',
+      'coverage': 'coverage',
+      'research': 'research',
+    }
+
+    const path = toolPaths[tool] || tool
+    const shareUrl = `https://opencancer.ai/${path}?ref=${shareId}&utm_source=share&utm_medium=social&utm_campaign=${tool}_tool`
 
     const shareTexts: Record<string, string> = {
       records: 'I used opencancer.ai to translate my medical records into plain English - check out this free tool:',
+      'case-review': 'I got an AI case review of my medical records - this free tool helped me understand my diagnosis:',
       ask: 'I found this helpful AI assistant for cancer questions - grounded in NCCN guidelines:',
       trials: 'Found this useful tool for searching clinical trials:',
       oncologists: 'This helped me find top cancer centers and oncologists:',
       checklist: 'Great checklist for preparing for oncology appointments:',
+      combat: 'I used CancerCombat to get 3 AI perspectives on my diagnosis:',
       default: 'Check out this helpful tool from opencancer.ai:'
     }
 

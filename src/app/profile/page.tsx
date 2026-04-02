@@ -8,7 +8,7 @@ import { useAnalytics } from '@/hooks/useAnalytics'
 import { saveProfile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth'
 import { AuthModal } from '@/components/AuthModal'
-import { User } from 'lucide-react'
+import { User, Heart, Ribbon, ToggleLeft, ToggleRight } from 'lucide-react'
 
 interface PatientProfile {
   role: 'patient' | 'caregiver'
@@ -160,7 +160,7 @@ export default function ProfilePage() {
               Records
             </Link>
             <Link href="/ask" className="text-slate-600 hover:text-violet-600 transition-colors">
-              Ask AI
+              Ask Navis
             </Link>
             <Link href="/trials" className="text-slate-600 hover:text-violet-600 transition-colors">
               Trials
@@ -201,7 +201,7 @@ export default function ProfilePage() {
         {/* Info */}
         <div className={`border rounded-lg p-4 mb-6 ${user ? 'bg-emerald-50 border-emerald-200' : 'bg-violet-50 border-violet-200'}`}>
           <p className={`text-sm ${user ? 'text-emerald-800' : 'text-violet-800'}`}>
-            Your profile helps personalize tools like Clinical Trials, Ask AI, and Records Translator.
+            Your profile helps personalize tools like Clinical Trials, Ask Navis, and Records Translator.
             <strong className="block mt-1">
               {user
                 ? 'Your data is encrypted and synced to your account.'
@@ -212,46 +212,64 @@ export default function ProfilePage() {
 
         {/* Form */}
         <div className="space-y-6">
-          {/* Top Row: Role + Cancer Type side by side */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Role Selector - Compact */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                I am a...
-              </label>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setRole('patient')}
-                  className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg border-2 transition-all text-sm ${
-                    role === 'patient'
-                      ? 'border-violet-500 bg-violet-50 text-violet-700'
-                      : 'border-slate-200 hover:border-slate-300 text-slate-600'
-                  }`}
-                >
-                  <span>🎗️</span>
-                  <span className="font-medium">Patient</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRole('caregiver')}
-                  className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg border-2 transition-all text-sm ${
-                    role === 'caregiver'
-                      ? 'border-violet-500 bg-violet-50 text-violet-700'
-                      : 'border-slate-200 hover:border-slate-300 text-slate-600'
-                  }`}
-                >
-                  <span>💜</span>
-                  <span className="font-medium">Caregiver</span>
-                </button>
+          {/* Caregiver Mode Toggle - Prominent */}
+          <div className={`rounded-xl p-4 border-2 transition-all ${
+            role === 'caregiver'
+              ? 'bg-gradient-to-r from-pink-50 to-rose-50 border-pink-300'
+              : 'bg-slate-50 border-slate-200'
+          }`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  role === 'caregiver' ? 'bg-pink-200' : 'bg-slate-200'
+                }`}>
+                  {role === 'caregiver' ? (
+                    <Heart className="w-5 h-5 text-pink-600" />
+                  ) : (
+                    <Ribbon className="w-5 h-5 text-violet-600" />
+                  )}
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-900">
+                    {role === 'caregiver' ? 'Caregiver Mode' : 'Patient Mode'}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {role === 'caregiver'
+                      ? 'Supporting someone with cancer'
+                      : 'Managing my own diagnosis'}
+                  </p>
+                </div>
               </div>
+              <button
+                type="button"
+                onClick={() => setRole(role === 'caregiver' ? 'patient' : 'caregiver')}
+                className="flex items-center gap-2"
+              >
+                {role === 'caregiver' ? (
+                  <ToggleRight className="w-10 h-10 text-pink-500" />
+                ) : (
+                  <ToggleLeft className="w-10 h-10 text-slate-400" />
+                )}
+              </button>
             </div>
 
-            {/* Cancer Type Search - Compact */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Cancer Type *
-              </label>
+            {role === 'caregiver' && (
+              <div className="mt-3 pt-3 border-t border-pink-200">
+                <p className="text-xs text-pink-700 font-medium mb-2">✨ Caregiver features enabled:</p>
+                <ul className="text-xs text-pink-600 space-y-1">
+                  <li>• Tailored tools for understanding the diagnosis</li>
+                  <li>• Appointment prep questions for caregivers</li>
+                  <li>• CareCircle to coordinate with family</li>
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* Cancer Type */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Cancer Type *
+            </label>
               <div className="relative">
                 <input
                   type="text"
@@ -283,7 +301,6 @@ export default function ProfilePage() {
                   </button>
                 )}
               </div>
-            </div>
           </div>
 
           {/* Cancer Type Grid - Only show when searching or no selection */}

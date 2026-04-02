@@ -39,7 +39,7 @@ export default function AboutPage() {
 
         {/* Short Bio */}
         <p className="text-slate-600 text-lg leading-relaxed mb-12">
-          Product leader. Cancer survivor. Dad. Previously at Meta, Included Health, Walmart Labs. Now I run <a href="https://www.cancerhackerlab.com/" target="_blank" rel="noopener noreferrer" className="text-violet-600 hover:underline font-medium">Cancer Hacker Lab</a>, a healthtech accelerator helping companies build products for patients.
+          Product leader. Cancer survivor. Dad. Previously at Meta, Included Health, Walmart Labs.
         </p>
 
         {/* Chemolog - Combined with cancer story */}

@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+import mammoth from 'mammoth'
+import { createClient } from '@supabase/supabase-js'
 
 // Use Navis Supabase for AI calls (reuse existing infrastructure)
 const SUPABASE_URL = "https://felofmlhqwcdpiyjgstx.supabase.co"
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlbG9mbWxocXdjZHBpeWpnc3R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA2NzQzODAsImV4cCI6MjA1NjI1MDM4MH0._kYA-prwPgxQWoKzWPzJDy2Bf95WgTF5_KnAPN2cGnQ"
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY
 
 // Optimized system prompt
 const SYSTEM_PROMPT = `You extract medical document information into structured JSON. Be concise and accurate.
@@ -46,17 +49,15 @@ export async function POST(request: NextRequest) {
     const fileName = file.name
     const fileType = file.type
     const fileSize = file.size
+    const fileSizeMB = fileSize / 1024 / 1024
 
-    // Check file size (limit to 20MB)
-    const MAX_SIZE = 20 * 1024 * 1024
-    if (fileSize > MAX_SIZE) {
-      return NextResponse.json(
-        { error: 'File too large. Please upload files under 20MB.' },
-        { status: 400 }
-      )
+    // Log file details (no hard limit - let Claude API handle it)
+    console.log(`Processing file: ${fileName}, type: ${fileType}, size: ${fileSizeMB.toFixed(2)}MB`)
+
+    // Warn for very large files (Claude API has ~32MB limit for documents)
+    if (fileSizeMB > 30) {
+      console.warn(`Large file warning: ${fileName} is ${fileSizeMB.toFixed(2)}MB - may fail due to API limits`)
     }
-
-    console.log(`Processing file: ${fileName}, type: ${fileType}, size: ${(fileSize / 1024 / 1024).toFixed(2)}MB`)
 
     // Convert file to base64
     const arrayBuffer = await file.arrayBuffer()
@@ -96,20 +97,45 @@ export async function POST(request: NextRequest) {
       console.log(`Text file detected: ${fileName}, extracted ${documentText.length} characters`)
     }
 
+    // For Word documents, extract text using mammoth (Claude doesn't support Word natively)
+    if (isWord) {
+      try {
+        // mammoth accepts Node.js Buffer directly
+        const result = await mammoth.extractRawText({ buffer: buffer })
+        documentText = result.value
+        console.log(`Word document extracted: ${fileName}, ${documentText.length} characters`)
+
+        // Log first 500 chars for debugging
+        if (documentText) {
+          console.log(`Word doc preview (${fileName}):`, documentText.substring(0, 500))
+        }
+
+        if (!documentText || documentText.trim().length < 10) {
+          console.warn(`Word document appears empty or minimal: ${fileName}`)
+          return NextResponse.json(
+            { error: 'Word document appears empty or could not be read. Try saving as PDF.' },
+            { status: 400 }
+          )
+        }
+      } catch (wordError) {
+        console.error(`Failed to extract Word document: ${fileName}`, wordError)
+        return NextResponse.json(
+          { error: 'Failed to read Word document. Please try saving as PDF.' },
+          { status: 400 }
+        )
+      }
+    }
+
     // Determine media type for Claude
     if (isPDF) {
       mediaType = 'application/pdf'
-    } else if (isWord) {
-      // Word documents - use proper MIME type for Claude's document understanding
-      mediaType = fileName.toLowerCase().endsWith('.docx') ||
-        fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        : 'application/msword'
-      console.log(`Word document detected: ${fileName}, using media type: ${mediaType}`)
     } else if (isImage) {
       // Keep the original image type
       mediaType = fileType
     }
+
+    // Word docs are now treated as text (extracted via mammoth)
+    const isTextBased = isText || isWord
 
     // Call Navis Supabase edge function (reuses existing Claude API key)
     const response = await fetch(`${SUPABASE_URL}/functions/v1/axestack-translate`, {
@@ -120,17 +146,28 @@ export async function POST(request: NextRequest) {
         'apikey': SUPABASE_ANON_KEY,
       },
       body: JSON.stringify({
-        base64Data: isText ? undefined : base64Data,
+        base64Data: isTextBased ? undefined : base64Data,
         mediaType,
-        isText,
-        documentText: isText ? documentText : undefined
+        isText: isTextBased,
+        documentText: isTextBased ? documentText : undefined
       }),
     })
 
     if (!response.ok) {
       const errorText = await response.text()
       console.error('Supabase edge function error:', errorText)
-      throw new Error(`API error: ${response.status}`)
+      console.error('Failed file details:', { fileName, fileType, fileSizeMB: fileSizeMB.toFixed(2), isPDF, isImage, isTextBased })
+
+      // Provide more helpful error messages
+      if (response.status === 500) {
+        if (fileSizeMB > 10) {
+          throw new Error(`File may be too large (${fileSizeMB.toFixed(1)}MB). Try a smaller PDF or split into multiple files.`)
+        }
+        throw new Error(`Processing failed. The document may be encrypted, scanned, or in an unsupported format. Try a different PDF.`)
+      } else if (response.status === 504 || response.status === 408) {
+        throw new Error(`Processing timed out. Large or complex documents may take too long. Try a simpler or smaller file.`)
+      }
+      throw new Error(`Processing failed (${response.status}). Please try again.`)
     }
 
     const data = await response.json()
@@ -139,11 +176,15 @@ export async function POST(request: NextRequest) {
     }
 
     const aiResponse = data.response || ''
+    console.log(`AI response length: ${aiResponse.length} chars`)
+    console.log(`AI response preview:`, aiResponse.substring(0, 300))
 
     // Parse JSON from response
     let analysis
     try {
       let cleanedResponse = aiResponse.trim()
+
+      // Remove markdown code blocks
       if (cleanedResponse.startsWith('```json')) {
         cleanedResponse = cleanedResponse.slice(7)
       } else if (cleanedResponse.startsWith('```')) {
@@ -154,10 +195,22 @@ export async function POST(request: NextRequest) {
       }
       cleanedResponse = cleanedResponse.trim()
 
+      // Try to find JSON object in response
       const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/)
       if (jsonMatch) {
-        analysis = JSON.parse(jsonMatch[0])
+        try {
+          analysis = JSON.parse(jsonMatch[0])
+        } catch (innerParseError) {
+          // Try fixing common JSON issues
+          let fixedJson = jsonMatch[0]
+            .replace(/,\s*}/g, '}')  // Remove trailing commas
+            .replace(/,\s*]/g, ']')  // Remove trailing commas in arrays
+            .replace(/'/g, '"')       // Replace single quotes with double
+          analysis = JSON.parse(fixedJson)
+          console.log('JSON parsed after fixing common issues')
+        }
       } else {
+        console.error('No JSON object found in response. Full response:', cleanedResponse)
         throw new Error('No JSON found in response')
       }
 
@@ -175,7 +228,11 @@ export async function POST(request: NextRequest) {
         }
       }
     } catch (parseError) {
-      console.error('Failed to parse response as JSON:', parseError)
+      const errorMsg = parseError instanceof Error ? parseError.message : 'Unknown parse error'
+      console.error('Failed to parse response as JSON:', errorMsg)
+      console.error('Raw AI response:', aiResponse)
+
+      // Return a structured fallback instead of failing
       analysis = {
         document_type: 'Other',
         patient_name: 'unknown',
@@ -183,18 +240,44 @@ export async function POST(request: NextRequest) {
         provider_name: 'unknown',
         institution: 'unknown',
         diagnosis: [],
-        test_summary: 'We were unable to fully parse this document. Please try uploading a clearer version or a different format.',
+        test_summary: `We processed your document but encountered a formatting issue. The document was successfully read (${documentText?.length || 0} characters extracted). Try uploading as PDF for better results.`,
         questions_to_ask_doctor: 'Please discuss this document with your healthcare provider.',
         recommended_next_steps: ['Review with healthcare provider'],
         cancer_specific: { cancer_type: 'unknown', stage: 'unknown', grade: 'unknown', biomarkers: [], treatment_timeline: 'unknown' },
         lab_values: { key_results: [] },
         technical_terms_explained: [],
-        processing_metadata: { confidence_level: 'Low', completeness: 'Limited' }
+        processing_metadata: { confidence_level: 'Low', completeness: 'Limited', parse_error: errorMsg }
       }
     }
 
     // Determine document type label for response
     const docTypeLabel = isPDF ? 'PDF' : isWord ? 'Word document' : isImage ? 'Image' : 'Document'
+
+    // Upload original file to Supabase Storage (non-blocking, best effort)
+    let storagePath: string | null = null
+    try {
+      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+      const sessionId = formData.get('sessionId') as string || 'anonymous'
+      const timestamp = Date.now()
+      const safeName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_')
+      const filePath = `opencancer/${sessionId}/${timestamp}_${safeName}`
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('medical-documents')
+        .upload(filePath, buffer, {
+          contentType: fileType || 'application/octet-stream',
+          upsert: false,
+        })
+
+      if (uploadError) {
+        console.error('Storage upload error (non-fatal):', uploadError.message)
+      } else {
+        storagePath = filePath
+        console.log(`File stored at: ${filePath}`)
+      }
+    } catch (storageErr) {
+      console.error('Storage upload failed (non-fatal):', storageErr)
+    }
 
     return NextResponse.json({
       success: true,
@@ -202,6 +285,7 @@ export async function POST(request: NextRequest) {
       fileType,
       analysis,
       documentText: documentText || `[${docTypeLabel} content analyzed by AI]`,
+      storagePath, // Include storage path for viewing original
     })
 
   } catch (error) {

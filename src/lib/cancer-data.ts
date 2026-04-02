@@ -35,6 +35,7 @@ export const CANCER_TYPES: Record<string, string> = {
   endometrial: 'Endometrial Cancer',
   testicular: 'Testicular Cancer',
   // GI cancers
+  anal_squamous: 'Squamous Cell Carcinoma of Anus (Anorectum)',
   bile_duct: 'Bile Duct Cancer (Cholangiocarcinoma)',
   gallbladder: 'Gallbladder Cancer',
   small_intestine: 'Small Intestine Cancer',
@@ -255,6 +256,14 @@ export const TESTS: Record<string, Test[]> = {
     { name: 'CCNE1 Amplification', reason: 'Predicts platinum resistance', priority: 'emerging', urgency: 'Often missed' },
     { name: 'Tumor Genomic Profiling', reason: 'Identifies rare actionable mutations', priority: 'emerging', urgency: 'Underutilized' },
   ],
+  anal_squamous: [
+    { name: 'HPV Testing (p16)', reason: 'HPV+ anal cancers have better prognosis and treatment response', priority: 'essential' },
+    { name: 'HIV Testing', reason: 'HIV status affects treatment planning and monitoring', priority: 'essential' },
+    { name: 'PET-CT Staging', reason: 'Standard for staging and detecting nodal/distant disease', priority: 'essential' },
+    { name: 'PD-L1 Expression', reason: 'Pembrolizumab approved for recurrent/metastatic anal cancer', priority: 'essential' },
+    { name: 'MSI / MMR Testing', reason: 'MSI-H tumors may respond to immunotherapy', priority: 'emerging', urgency: 'NCCN recommended' },
+    { name: 'Comprehensive Genomic Profiling', reason: 'Identifies PIK3CA, EGFR, and other actionable mutations', priority: 'emerging', urgency: 'For metastatic disease' },
+  ],
   // Default for other/uncommon cancer types
   other: [
     { name: 'Comprehensive Genomic Profiling', reason: 'Identifies targetable mutations across cancer types', priority: 'essential' },
@@ -311,6 +320,12 @@ export const QUESTIONS: Record<string, string[]> = {
     'Have I been tested for both germline AND somatic BRCA?',
     'Should I get HRD testing for PARP inhibitor eligibility?',
     'Am I a candidate for maintenance therapy?',
+  ],
+  anal_squamous: [
+    'Is my tumor HPV-positive (p16)?',
+    'Should I get PD-L1 testing for immunotherapy eligibility?',
+    'Am I a candidate for chemoradiation or surgery?',
+    'Should I get genomic profiling for actionable mutations?',
   ],
   other: [
     'Have you done comprehensive genomic profiling?',

@@ -33,6 +33,21 @@ interface AnalyticsData {
       createdAt: string
     }>
   }
+  sharingStats?: {
+    totalShares: number
+    byTool: Array<{ tool: string; count: number }>
+    byMethod: Array<{ method: string; count: number }>
+  }
+  referralStats?: {
+    totalReferralArrivals: number
+    uniqueReferralSessions: number
+    bySource: Array<{ source: string; count: number }>
+  }
+  roleBreakdown?: {
+    caregivers: number
+    patients: number
+    ratio: string
+  }
   pageViewsByPath: Array<{ path: string; count: number }>
   eventsByType: Array<{ type: string; count: number }>
   trafficSources: Array<{ source: string; count: number }>
@@ -50,6 +65,14 @@ interface AnalyticsData {
     sessionId: string
     metadata?: Record<string, unknown>
   }>
+  drillDown?: {
+    questions: Array<{
+      timestamp: string
+      sessionId: string
+      question: string
+      cancerType: string
+    }>
+  }
 }
 
 interface ProfileData {
@@ -75,6 +98,44 @@ interface ProfilesData {
   profiles: ProfileData[]
 }
 
+interface UserStats {
+  userId: string
+  email: string
+  stats: {
+    totalEvents: number
+    recordsUploaded: number
+    questionsAsked: number
+    pageViews: number
+    combatRuns: number
+    trialSearches: number
+    uniqueSessions: number
+    firstActivity: string | null
+    lastActivity: string | null
+  }
+  deviceInfo?: {
+    primary: string
+    all: Array<{ device: string; count: number }>
+  }
+  trafficInfo?: {
+    primary: string
+    all: Array<{ source: string; count: number }>
+  }
+  pagesVisited: Array<{ path: string; count: number }>
+  recentActivity: Array<{
+    type: string
+    path: string
+    timestamp: string
+    metadata?: Record<string, unknown>
+  }>
+  combatAnalyses: Array<{
+    phase: string
+    createdAt: string
+    evidenceStrength: number
+    cancerType: string
+    recordsCount: number
+  }>
+}
+
 export default function AdminPage() {
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [profilesData, setProfilesData] = useState<ProfilesData | null>(null)
@@ -85,6 +146,9 @@ export default function AdminPage() {
   const [days, setDays] = useState(30)
   const [activeTab, setActiveTab] = useState<'analytics' | 'profiles'>('analytics')
   const [selectedProfile, setSelectedProfile] = useState<ProfileData | null>(null)
+  const [userStats, setUserStats] = useState<UserStats | null>(null)
+  const [loadingUserStats, setLoadingUserStats] = useState(false)
+  const [showQuestionsDrillDown, setShowQuestionsDrillDown] = useState(false)
 
   const fetchAnalytics = async (key: string, numDays: number) => {
     setLoading(true)
@@ -126,6 +190,25 @@ export default function AdminPage() {
       }
     } catch (err) {
       console.error('Error fetching profiles:', err)
+    }
+  }
+
+  const fetchUserStats = async (profile: ProfileData) => {
+    setSelectedProfile(profile)
+    setLoadingUserStats(true)
+    setUserStats(null)
+    try {
+      const res = await fetch(`/api/admin/user-stats?userId=${profile.id}&email=${encodeURIComponent(profile.email)}`, {
+        headers: { 'x-admin-key': adminKey }
+      })
+      if (res.ok) {
+        const json = await res.json()
+        setUserStats(json)
+      }
+    } catch (err) {
+      console.error('Error fetching user stats:', err)
+    } finally {
+      setLoadingUserStats(false)
     }
   }
 
@@ -354,7 +437,7 @@ export default function AdminPage() {
                       {profilesData.profiles.map((profile) => (
                         <tr
                           key={profile.id}
-                          onClick={() => setSelectedProfile(profile)}
+                          onClick={() => fetchUserStats(profile)}
                           className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer"
                         >
                           <td className="py-3 px-2 text-slate-900 font-medium">{profile.name}</td>
@@ -383,54 +466,182 @@ export default function AdminPage() {
             {/* Profile Detail Modal */}
             {selectedProfile && (
               <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                <div className="absolute inset-0 bg-black/50" onClick={() => setSelectedProfile(null)} />
-                <div className="relative bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
+                <div className="absolute inset-0 bg-black/50" onClick={() => { setSelectedProfile(null); setUserStats(null); }} />
+                <div className="relative bg-white rounded-xl shadow-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                   <button
-                    onClick={() => setSelectedProfile(null)}
+                    onClick={() => { setSelectedProfile(null); setUserStats(null); }}
                     className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
                   >
                     ✕
                   </button>
-                  <h3 className="text-xl font-bold text-slate-900 mb-4">{selectedProfile.name}</h3>
-                  <div className="space-y-3 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Email</span>
-                      <span className="text-slate-900 font-medium">{selectedProfile.email}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Role</span>
-                      <span className={`px-2 py-0.5 text-xs rounded-full ${
-                        selectedProfile.role === 'caregiver'
-                          ? 'bg-purple-100 text-purple-700'
-                          : 'bg-violet-100 text-violet-700'
-                      }`}>
-                        {selectedProfile.role}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Cancer Type</span>
-                      <span className="text-slate-900">{selectedProfile.cancerType}</span>
-                    </div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-1">{selectedProfile.name}</h3>
+                  <p className="text-slate-500 text-sm mb-4">{selectedProfile.email}</p>
+
+                  {/* Profile Info Row */}
+                  <div className="flex flex-wrap gap-2 mb-6">
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      selectedProfile.role === 'caregiver'
+                        ? 'bg-purple-100 text-purple-700'
+                        : 'bg-violet-100 text-violet-700'
+                    }`}>
+                      {selectedProfile.role}
+                    </span>
+                    <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700">
+                      {selectedProfile.cancerType}
+                    </span>
                     {selectedProfile.stage && (
-                      <div className="flex justify-between">
-                        <span className="text-slate-500">Stage</span>
-                        <span className="text-slate-900">{selectedProfile.stage}</span>
-                      </div>
+                      <span className="px-2 py-1 text-xs rounded-full bg-amber-100 text-amber-700">
+                        Stage {selectedProfile.stage}
+                      </span>
                     )}
                     {selectedProfile.location && (
-                      <div className="flex justify-between">
-                        <span className="text-slate-500">Location</span>
-                        <span className="text-slate-900">{selectedProfile.location}</span>
-                      </div>
+                      <span className="px-2 py-1 text-xs rounded-full bg-slate-100 text-slate-700">
+                        📍 {selectedProfile.location}
+                      </span>
                     )}
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Joined</span>
-                      <span className="text-slate-900">{formatTimestamp(selectedProfile.createdAt)}</span>
+                  </div>
+
+                  {/* Stats Section */}
+                  {loadingUserStats ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-2 border-violet-600 border-t-transparent"></div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Last Updated</span>
-                      <span className="text-slate-900">{formatTimestamp(selectedProfile.updatedAt)}</span>
+                  ) : userStats ? (
+                    <>
+                      {/* Activity Stats Grid */}
+                      <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-6">
+                        <div className="bg-violet-50 rounded-lg p-3 text-center">
+                          <p className="text-2xl font-bold text-violet-700">{userStats.stats.recordsUploaded}</p>
+                          <p className="text-xs text-slate-600">Records</p>
+                        </div>
+                        <div className="bg-blue-50 rounded-lg p-3 text-center">
+                          <p className="text-2xl font-bold text-blue-700">{userStats.stats.questionsAsked}</p>
+                          <p className="text-xs text-slate-600">Questions</p>
+                        </div>
+                        <div className="bg-orange-50 rounded-lg p-3 text-center">
+                          <p className="text-2xl font-bold text-orange-700">{userStats.stats.combatRuns}</p>
+                          <p className="text-xs text-slate-600">Combats</p>
+                        </div>
+                        <div className="bg-green-50 rounded-lg p-3 text-center">
+                          <p className="text-2xl font-bold text-green-700">{userStats.stats.trialSearches}</p>
+                          <p className="text-xs text-slate-600">Trial Searches</p>
+                        </div>
+                        <div className="bg-slate-50 rounded-lg p-3 text-center">
+                          <p className="text-2xl font-bold text-slate-700">{userStats.stats.pageViews}</p>
+                          <p className="text-xs text-slate-600">Page Views</p>
+                        </div>
+                        <div className="bg-slate-50 rounded-lg p-3 text-center">
+                          <p className="text-2xl font-bold text-slate-700">{userStats.stats.uniqueSessions}</p>
+                          <p className="text-xs text-slate-600">Sessions</p>
+                        </div>
+                      </div>
+
+                      {/* Activity Dates */}
+                      <div className="flex flex-wrap gap-4 mb-4 text-sm">
+                        <div>
+                          <span className="text-slate-500">First seen: </span>
+                          <span className="text-slate-900">{userStats.stats.firstActivity ? formatTimestamp(userStats.stats.firstActivity) : 'Never'}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500">Last active: </span>
+                          <span className="text-slate-900">{userStats.stats.lastActivity ? formatTimestamp(userStats.stats.lastActivity) : 'Never'}</span>
+                        </div>
+                      </div>
+
+                      {/* Device & Traffic Info */}
+                      <div className="flex flex-wrap gap-2 mb-6">
+                        {userStats.deviceInfo && userStats.deviceInfo.primary !== 'unknown' && (
+                          <span className={`px-2 py-1 text-xs rounded-full ${
+                            userStats.deviceInfo.primary === 'mobile' ? 'bg-emerald-100 text-emerald-700' :
+                            userStats.deviceInfo.primary === 'tablet' ? 'bg-cyan-100 text-cyan-700' :
+                            'bg-slate-100 text-slate-700'
+                          }`}>
+                            {userStats.deviceInfo.primary === 'mobile' ? '📱' :
+                             userStats.deviceInfo.primary === 'tablet' ? '📲' : '🖥️'} {userStats.deviceInfo.primary}
+                          </span>
+                        )}
+                        {userStats.trafficInfo && userStats.trafficInfo.primary !== 'unknown' && (
+                          <span className="px-2 py-1 text-xs rounded-full bg-indigo-100 text-indigo-700">
+                            {userStats.trafficInfo.primary === 'direct' ? '🔗' :
+                             userStats.trafficInfo.primary === 'google' ? '🔍' :
+                             userStats.trafficInfo.primary === 'facebook' ? '📘' :
+                             userStats.trafficInfo.primary === 'circle' ? '⭕' :
+                             userStats.trafficInfo.primary === 'twitter' ? '🐦' : '🌐'} via {userStats.trafficInfo.primary}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Two Column Layout */}
+                      <div className="grid md:grid-cols-2 gap-6">
+                        {/* Pages Visited */}
+                        <div>
+                          <h4 className="text-sm font-semibold text-slate-900 mb-2">Pages Visited</h4>
+                          {userStats.pagesVisited.length === 0 ? (
+                            <p className="text-slate-500 text-sm">No page views tracked</p>
+                          ) : (
+                            <div className="space-y-1">
+                              {userStats.pagesVisited.map((page, i) => (
+                                <div key={i} className="flex justify-between text-sm">
+                                  <span className="text-slate-600 truncate font-mono">{page.path}</span>
+                                  <span className="text-slate-900 font-semibold ml-2">{page.count}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Recent Activity */}
+                        <div>
+                          <h4 className="text-sm font-semibold text-slate-900 mb-2">Recent Activity</h4>
+                          {userStats.recentActivity.length === 0 ? (
+                            <p className="text-slate-500 text-sm">No activity tracked</p>
+                          ) : (
+                            <div className="space-y-2 max-h-48 overflow-y-auto">
+                              {userStats.recentActivity.slice(0, 10).map((activity, i) => (
+                                <div key={i} className="flex items-center gap-2 text-xs">
+                                  <span className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700">
+                                    {formatEventType(activity.type)}
+                                  </span>
+                                  <span className="text-slate-500">{formatTimestamp(activity.timestamp)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Combat Analyses */}
+                      {userStats.combatAnalyses.length > 0 && (
+                        <div className="mt-6">
+                          <h4 className="text-sm font-semibold text-slate-900 mb-2">Combat Analyses</h4>
+                          <div className="space-y-2">
+                            {userStats.combatAnalyses.map((combat, i) => (
+                              <div key={i} className="flex items-center justify-between bg-orange-50 rounded-lg px-3 py-2 text-sm">
+                                <div className="flex items-center gap-2">
+                                  <span className={`px-1.5 py-0.5 text-xs rounded ${
+                                    combat.phase === 'diagnosis' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+                                  }`}>
+                                    {combat.phase}
+                                  </span>
+                                  <span className="text-slate-700 capitalize">{combat.cancerType}</span>
+                                  <span className="text-slate-500">({combat.recordsCount} records)</span>
+                                </div>
+                                <span className="text-slate-500 text-xs">{formatTimestamp(combat.createdAt)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="py-8 text-center text-slate-500">
+                      No activity data available for this user
                     </div>
+                  )}
+
+                  {/* Footer */}
+                  <div className="mt-6 pt-4 border-t border-slate-100 text-xs text-slate-500">
+                    Joined {formatTimestamp(selectedProfile.createdAt)} · Updated {formatTimestamp(selectedProfile.updatedAt)}
                   </div>
                 </div>
               </div>
@@ -454,6 +665,8 @@ export default function AdminPage() {
                 label="Questions Asked"
                 value={data.summary.askQuestions}
                 icon="💬"
+                onClick={() => setShowQuestionsDrillDown(true)}
+                clickable
               />
               <SummaryCard
                 label="Records Uploaded"
@@ -554,6 +767,101 @@ export default function AdminPage() {
               </div>
             )}
 
+            {/* Sharing & Viral Growth Section */}
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl shadow p-6 mb-8">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                🚀 Sharing & Viral Growth
+              </h2>
+              <div className="grid sm:grid-cols-4 gap-4 mb-6">
+                <div className="bg-white/80 rounded-lg p-3 text-center">
+                  <p className="text-2xl font-bold text-green-600">{data.sharingStats?.totalShares || 0}</p>
+                  <p className="text-xs text-slate-600">Total Shares</p>
+                </div>
+                <div className="bg-white/80 rounded-lg p-3 text-center">
+                  <p className="text-2xl font-bold text-blue-600">{data.referralStats?.uniqueReferralSessions || 0}</p>
+                  <p className="text-xs text-slate-600">Referral Arrivals</p>
+                </div>
+                <div className="bg-white/80 rounded-lg p-3 text-center">
+                  <p className="text-2xl font-bold text-purple-600">{data.roleBreakdown?.caregivers || 0}</p>
+                  <p className="text-xs text-slate-600">Caregivers</p>
+                </div>
+                <div className="bg-white/80 rounded-lg p-3 text-center">
+                  <p className="text-2xl font-bold text-violet-600">{data.roleBreakdown?.patients || 0}</p>
+                  <p className="text-xs text-slate-600">Patients</p>
+                </div>
+              </div>
+
+              <div className="grid lg:grid-cols-3 gap-6">
+                {/* Shares by Tool */}
+                <div>
+                  <h3 className="text-sm font-medium text-slate-700 mb-2">Shares by Tool</h3>
+                  {!data.sharingStats?.byTool?.length ? (
+                    <p className="text-slate-500 text-xs">No shares yet</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {data.sharingStats.byTool.slice(0, 5).map((item) => (
+                        <div key={item.tool} className="flex items-center justify-between bg-white/60 rounded px-3 py-1.5">
+                          <span className="text-sm text-slate-700 capitalize">{item.tool}</span>
+                          <span className="text-sm font-semibold text-slate-900">{item.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Shares by Method */}
+                <div>
+                  <h3 className="text-sm font-medium text-slate-700 mb-2">Share Methods</h3>
+                  {!data.sharingStats?.byMethod?.length ? (
+                    <p className="text-slate-500 text-xs">No shares yet</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {data.sharingStats.byMethod.map((item) => (
+                        <div key={item.method} className="flex items-center justify-between bg-white/60 rounded px-3 py-1.5">
+                          <span className="text-sm text-slate-700 capitalize">
+                            {item.method === 'copy' ? '📋 Copy' :
+                             item.method === 'email' ? '✉️ Email' :
+                             item.method === 'twitter' ? '🐦 Twitter' : item.method}
+                          </span>
+                          <span className="text-sm font-semibold text-slate-900">{item.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Referral Sources */}
+                <div>
+                  <h3 className="text-sm font-medium text-slate-700 mb-2">Referral Sources</h3>
+                  {!data.referralStats?.bySource?.length ? (
+                    <p className="text-slate-500 text-xs">No referrals tracked yet</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {data.referralStats.bySource.slice(0, 5).map((item) => (
+                        <div key={item.source} className="flex items-center justify-between bg-white/60 rounded px-3 py-1.5">
+                          <span className="text-sm text-slate-700 font-mono">{item.source}</span>
+                          <span className="text-sm font-semibold text-slate-900">{item.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Caregiver/Patient Insight */}
+              {(data.roleBreakdown?.caregivers || 0) > 0 && (
+                <div className="mt-4 pt-4 border-t border-green-200">
+                  <p className="text-sm text-slate-600">
+                    <span className="font-semibold text-slate-800">Caregiver Ratio:</span>{' '}
+                    {data.roleBreakdown?.ratio || '0'} caregivers per patient •{' '}
+                    <span className="text-green-700">
+                      {Math.round((data.roleBreakdown?.caregivers || 0) / ((data.roleBreakdown?.caregivers || 0) + (data.roleBreakdown?.patients || 1)) * 100)}% of signups are caregivers
+                    </span>
+                  </p>
+                </div>
+              )}
+            </div>
+
             {/* Main Grid */}
             <div className="grid lg:grid-cols-2 gap-8 mb-8">
               {/* Page Views by Path */}
@@ -653,7 +961,82 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* Daily Breakdown */}
+            {/* Daily Charts */}
+            {data.dailyBreakdown.length > 0 && (() => {
+              const chartData = data.dailyBreakdown.slice(0, 14).reverse()
+              const maxSessions = Math.max(...chartData.map(d => d.sessions), 1)
+              const maxUploads = Math.max(...chartData.map(d => d.events.record_upload || 0), 1)
+              const maxViews = Math.max(...chartData.map(d => d.views), 1)
+
+              return (
+                <div className="grid md:grid-cols-3 gap-6 mb-8">
+                  {/* Sessions Chart */}
+                  <div className="bg-white rounded-xl shadow p-5">
+                    <h3 className="text-sm font-semibold text-slate-700 mb-3">📊 Sessions (14 days)</h3>
+                    <div className="flex items-end gap-1 h-24">
+                      {chartData.map((day, i) => (
+                        <div key={day.date} className="flex-1 flex flex-col items-center group relative">
+                          <div
+                            className="w-full bg-violet-500 rounded-t hover:bg-violet-600 transition-colors cursor-pointer"
+                            style={{ height: `${(day.sessions / maxSessions) * 100}%`, minHeight: day.sessions > 0 ? '4px' : '0' }}
+                          />
+                          <div className="absolute bottom-full mb-1 hidden group-hover:block bg-slate-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                            {day.date.slice(5)}: {day.sessions}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-2 text-center">
+                      Total: {chartData.reduce((sum, d) => sum + d.sessions, 0)}
+                    </p>
+                  </div>
+
+                  {/* Records Uploaded Chart */}
+                  <div className="bg-white rounded-xl shadow p-5">
+                    <h3 className="text-sm font-semibold text-slate-700 mb-3">📁 Records Uploaded (14 days)</h3>
+                    <div className="flex items-end gap-1 h-24">
+                      {chartData.map((day, i) => (
+                        <div key={day.date} className="flex-1 flex flex-col items-center group relative">
+                          <div
+                            className="w-full bg-emerald-500 rounded-t hover:bg-emerald-600 transition-colors cursor-pointer"
+                            style={{ height: `${((day.events.record_upload || 0) / maxUploads) * 100}%`, minHeight: (day.events.record_upload || 0) > 0 ? '4px' : '0' }}
+                          />
+                          <div className="absolute bottom-full mb-1 hidden group-hover:block bg-slate-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                            {day.date.slice(5)}: {day.events.record_upload || 0}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-2 text-center">
+                      Total: {chartData.reduce((sum, d) => sum + (d.events.record_upload || 0), 0)}
+                    </p>
+                  </div>
+
+                  {/* Page Views Chart */}
+                  <div className="bg-white rounded-xl shadow p-5">
+                    <h3 className="text-sm font-semibold text-slate-700 mb-3">👁️ Page Views (14 days)</h3>
+                    <div className="flex items-end gap-1 h-24">
+                      {chartData.map((day, i) => (
+                        <div key={day.date} className="flex-1 flex flex-col items-center group relative">
+                          <div
+                            className="w-full bg-blue-500 rounded-t hover:bg-blue-600 transition-colors cursor-pointer"
+                            style={{ height: `${(day.views / maxViews) * 100}%`, minHeight: day.views > 0 ? '4px' : '0' }}
+                          />
+                          <div className="absolute bottom-full mb-1 hidden group-hover:block bg-slate-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                            {day.date.slice(5)}: {day.views}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-2 text-center">
+                      Total: {chartData.reduce((sum, d) => sum + d.views, 0)}
+                    </p>
+                  </div>
+                </div>
+              )
+            })()}
+
+            {/* Daily Breakdown Table */}
             <div className="bg-white rounded-xl shadow p-6 mb-8">
               <h2 className="text-lg font-semibold text-slate-900 mb-4">Daily Activity</h2>
               {data.dailyBreakdown.length === 0 ? (
@@ -714,6 +1097,52 @@ export default function AdminPage() {
                 </div>
               )}
             </div>
+
+            {/* Questions Drill-Down Modal */}
+            {showQuestionsDrillDown && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="absolute inset-0 bg-black/50" onClick={() => setShowQuestionsDrillDown(false)} />
+                <div className="relative bg-white rounded-xl shadow-xl p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+                  <button
+                    onClick={() => setShowQuestionsDrillDown(false)}
+                    className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+                  >
+                    ✕
+                  </button>
+                  <h3 className="text-xl font-bold text-slate-900 mb-1 flex items-center gap-2">
+                    <span>💬</span> Questions Asked
+                  </h3>
+                  <p className="text-slate-500 text-sm mb-6">
+                    {data.drillDown?.questions?.length || 0} questions in the last {days} days
+                  </p>
+
+                  {!data.drillDown?.questions?.length ? (
+                    <p className="text-slate-500 text-center py-8">No questions asked in this period</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {data.drillDown.questions.map((q, i) => (
+                        <div key={i} className="bg-slate-50 rounded-lg p-4 border border-slate-100">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700">
+                              {q.cancerType}
+                            </span>
+                            <span className="text-xs text-slate-500">
+                              Session: {q.sessionId}
+                            </span>
+                            <span className="text-xs text-slate-400 ml-auto">
+                              {formatTimestamp(q.timestamp)}
+                            </span>
+                          </div>
+                          <p className="text-slate-800 text-sm leading-relaxed">
+                            {q.question}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </>
         ) : null}
       </div>
@@ -721,18 +1150,23 @@ export default function AdminPage() {
   )
 }
 
-function SummaryCard({ label, value, icon, subtext }: { label: string; value: number; icon: string; subtext?: string }) {
+function SummaryCard({ label, value, icon, subtext, onClick, clickable }: { label: string; value: number; icon: string; subtext?: string; onClick?: () => void; clickable?: boolean }) {
+  const Component = clickable ? 'button' : 'div'
   return (
-    <div className="bg-white rounded-xl shadow p-4 sm:p-6">
+    <Component
+      onClick={onClick}
+      className={`bg-white rounded-xl shadow p-4 sm:p-6 text-left w-full ${clickable ? 'hover:bg-violet-50 hover:ring-2 hover:ring-violet-200 cursor-pointer transition-all' : ''}`}
+    >
       <div className="flex items-center gap-3">
         <span className="text-2xl">{icon}</span>
         <div>
           <p className="text-2xl sm:text-3xl font-bold text-slate-900 tabular-nums">{value}</p>
           <p className="text-xs sm:text-sm text-slate-600">{label}</p>
           {subtext && <p className="text-xs text-slate-400">{subtext}</p>}
+          {clickable && <p className="text-xs text-violet-500 mt-1">Click for details →</p>}
         </div>
       </div>
-    </div>
+    </Component>
   )
 }
 

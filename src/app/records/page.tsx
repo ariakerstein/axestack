@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { TypewriterMarkdown } from '@/components/TypewriterMarkdown'
-import { FileText, Search, FlaskConical, Ribbon, MessageCircle, BookOpen, ArrowRight, Upload, Link2, Building2, Shield, CheckCircle2, Share2, Download, Cloud, User, Mail, Sparkles } from 'lucide-react'
+import { FileText, Search, FlaskConical, Ribbon, MessageCircle, BookOpen, ArrowRight, Upload, Link2, Building2, Shield, ShieldCheck, CheckCircle2, Share2, Download, Cloud, User, Mail, Sparkles, Trash2, Eye } from 'lucide-react'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { useAuth } from '@/lib/auth'
 import { AuthModal } from '@/components/AuthModal'
@@ -142,9 +142,11 @@ export default function RecordsVaultPage() {
   const [isDragging, setIsDragging] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [result, setResult] = useState<TranslationResult | null>(null)
+  const [currentStoragePath, setCurrentStoragePath] = useState<string | null>(null)
   const [documentText, setDocumentText] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
   const [bulkProgress, setBulkProgress] = useState({ current: 0, total: 0 })
+  const [bulkComplete, setBulkComplete] = useState(false)
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
   const [chatInput, setChatInput] = useState('')
   const [isChatLoading, setIsChatLoading] = useState(false)
@@ -153,6 +155,7 @@ export default function RecordsVaultPage() {
   const [savedTranslations, setSavedTranslations] = useState<Array<{id: string, fileName: string, date: string, documentType: string}>>([])
   const [saveSuccess, setSaveSuccess] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
+  const [showSendReportModal, setShowSendReportModal] = useState(false)
   const [copied, setCopied] = useState(false)
   const [chatOpen, setChatOpen] = useState(false)
   const [showPrivacyModal, setShowPrivacyModal] = useState(false)
@@ -368,6 +371,7 @@ export default function RecordsVaultPage() {
     try {
       const formData = new FormData()
       formData.append('file', file)
+      formData.append('sessionId', localStorage.getItem('opencancer_session_id') || 'anonymous')
 
       const response = await fetch('/api/translate', {
         method: 'POST',
@@ -381,6 +385,7 @@ export default function RecordsVaultPage() {
 
       const data = await response.json()
       setResult(data.analysis)
+      setCurrentStoragePath(data.storagePath || null)
       if (data.documentText) {
         setDocumentText(data.documentText)
       }
@@ -406,6 +411,7 @@ export default function RecordsVaultPage() {
     if (uploadedFiles.length === 0) return
     setIsProcessing(true)
     setError(null)
+    setBulkComplete(false)
     setBulkProgress({ current: 0, total: uploadedFiles.length })
 
     for (let i = 0; i < uploadedFiles.length; i++) {
@@ -420,6 +426,9 @@ export default function RecordsVaultPage() {
       try {
         const formData = new FormData()
         formData.append('file', uploadedFile.file)
+        formData.append('sessionId', localStorage.getItem('opencancer_session_id') || 'anonymous')
+
+        console.log(`[Bulk] Processing ${i + 1}/${uploadedFiles.length}: ${uploadedFile.file.name}, type: ${uploadedFile.file.type || 'unknown'}, size: ${(uploadedFile.file.size / 1024).toFixed(1)}KB`)
 
         const response = await fetch('/api/translate', {
           method: 'POST',
@@ -428,10 +437,12 @@ export default function RecordsVaultPage() {
 
         if (!response.ok) {
           const errorData = await response.json()
-          throw new Error(errorData.error || 'Failed to process document')
+          console.error(`[Bulk] API error for ${uploadedFile.file.name}:`, errorData)
+          throw new Error(errorData.error || `API error: ${response.status}`)
         }
 
         const data = await response.json()
+        console.log(`[Bulk] Success: ${uploadedFile.file.name}, doc_type: ${data.analysis?.document_type || 'unknown'}`)
 
         // Update with result
         setUploadedFiles(prev => prev.map(f =>
@@ -452,6 +463,7 @@ export default function RecordsVaultPage() {
           documentType: data.analysis?.document_type || 'Unknown',
           result: data.analysis,
           documentText: data.documentText,
+          storagePath: data.storagePath || null, // Path to original file in Supabase Storage
           chatMessages: [],
         }
 
@@ -481,18 +493,22 @@ export default function RecordsVaultPage() {
           user_id: user?.id || null,
         })
       } catch (err) {
-        // Update with error
+        const errorMsg = err instanceof Error ? err.message : 'Failed to process'
+        console.error(`[Bulk] Failed: ${uploadedFile.file.name}`, err)
+
+        // Update with error - include file details for debugging
         setUploadedFiles(prev => prev.map(f =>
           f.id === uploadedFile.id ? {
             ...f,
             status: 'error',
-            error: err instanceof Error ? err.message : 'Failed to process'
+            error: `${errorMsg} (${uploadedFile.file.type || 'unknown type'}, ${(uploadedFile.file.size / 1024).toFixed(0)}KB)`
           } : f
         ))
       }
     }
 
     setIsProcessing(false)
+    setBulkComplete(true)
   }
 
   // View a specific file's result from bulk upload
@@ -504,6 +520,95 @@ export default function RecordsVaultPage() {
       setIsBulkMode(false)
       setChatMessages([])
     }
+  }
+
+  // Retry failed files
+  const retryFailedFiles = async () => {
+    const failedFiles = uploadedFiles.filter(f => f.status === 'error')
+    if (failedFiles.length === 0) return
+
+    setIsProcessing(true)
+    setBulkComplete(false)
+    setBulkProgress({ current: 0, total: failedFiles.length })
+
+    for (let i = 0; i < failedFiles.length; i++) {
+      const uploadedFile = failedFiles[i]
+      setBulkProgress({ current: i + 1, total: failedFiles.length })
+
+      // Reset status to processing
+      setUploadedFiles(prev => prev.map(f =>
+        f.id === uploadedFile.id ? { ...f, status: 'processing', error: undefined } : f
+      ))
+
+      try {
+        const formData = new FormData()
+        formData.append('file', uploadedFile.file)
+        formData.append('sessionId', localStorage.getItem('opencancer_session_id') || 'anonymous')
+
+        console.log(`[Retry] Processing: ${uploadedFile.file.name}, type: ${uploadedFile.file.type}, size: ${(uploadedFile.file.size / 1024).toFixed(1)}KB`)
+
+        const response = await fetch('/api/translate', {
+          method: 'POST',
+          body: formData,
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          console.error(`[Retry] API error for ${uploadedFile.file.name}:`, errorData)
+          throw new Error(errorData.error || `API error: ${response.status}`)
+        }
+
+        const data = await response.json()
+        console.log(`[Retry] Success: ${uploadedFile.file.name}`)
+
+        // Update with result
+        setUploadedFiles(prev => prev.map(f =>
+          f.id === uploadedFile.id ? {
+            ...f,
+            status: 'completed',
+            result: data.analysis,
+            documentText: data.documentText
+          } : f
+        ))
+
+        // Auto-save completed translation
+        const translationId = `trans_${Date.now()}_retry_${i}`
+        const translation = {
+          id: translationId,
+          fileName: uploadedFile.file.name,
+          date: new Date().toISOString(),
+          documentType: data.analysis?.document_type || 'Unknown',
+          result: data.analysis,
+          documentText: data.documentText,
+          storagePath: data.storagePath || null,
+          chatMessages: [],
+        }
+
+        const existingData = localStorage.getItem('axestack-translations-data') || '{}'
+        const translationData = JSON.parse(existingData)
+        translationData[translationId] = translation
+        localStorage.setItem('axestack-translations-data', JSON.stringify(translationData))
+
+        const existingIndex = JSON.parse(localStorage.getItem('axestack-translations') || '[]')
+        const newEntry = { id: translationId, fileName: uploadedFile.file.name, date: translation.date, documentType: data.analysis?.document_type || 'Unknown' }
+        const updatedIndex = [newEntry, ...existingIndex]
+        localStorage.setItem('axestack-translations', JSON.stringify(updatedIndex))
+        setSavedTranslations(updatedIndex)
+
+      } catch (err) {
+        console.error(`[Retry] Failed: ${uploadedFile.file.name}`, err)
+        setUploadedFiles(prev => prev.map(f =>
+          f.id === uploadedFile.id ? {
+            ...f,
+            status: 'error',
+            error: err instanceof Error ? err.message : 'Failed to process'
+          } : f
+        ))
+      }
+    }
+
+    setIsProcessing(false)
+    setBulkComplete(true)
   }
 
   // Remove a file from bulk upload queue
@@ -775,6 +880,57 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
     }
   }
 
+  // Send actual report content via email
+  const handleSendReport = () => {
+    if (!result || !file) return
+
+    // Build report content
+    const docType = result.document_type || 'Medical Document'
+    const summary = result.test_summary || 'No summary available'
+    const questions = result.questions_to_ask_doctor || 'No questions generated'
+    const diagnoses = result.diagnosis?.filter(d => d && d !== 'unknown').join(', ') || 'Not specified'
+
+    // Format lab values if present
+    let labResults = ''
+    if (result.lab_values?.key_results?.length > 0) {
+      labResults = '\n\nKEY LAB RESULTS:\n' + result.lab_values.key_results
+        .map(r => `- ${r.test}: ${r.value} (${r.status})`)
+        .join('\n')
+    }
+
+    // Format next steps if present
+    let nextSteps = ''
+    if (result.recommended_next_steps?.length > 0) {
+      nextSteps = '\n\nRECOMMENDED NEXT STEPS:\n' + result.recommended_next_steps
+        .map(s => `- ${s}`)
+        .join('\n')
+    }
+
+    const emailSubject = `Medical Record Summary: ${file.name}`
+    const emailBody = `MEDICAL RECORD SUMMARY
+Document: ${file.name}
+Type: ${docType}
+Date: ${result.date_of_service || 'Not specified'}
+Provider: ${result.provider_name || 'Not specified'}
+Institution: ${result.institution || 'Not specified'}
+
+DIAGNOSIS:
+${diagnoses}
+
+PLAIN ENGLISH SUMMARY:
+${summary}
+
+QUESTIONS TO ASK YOUR DOCTOR:
+${questions}${labResults}${nextSteps}
+
+---
+This summary was generated by opencancer.ai to help you understand your medical records.
+Always discuss results with your healthcare provider.`
+
+    window.location.href = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
+    setShowSendReportModal(false)
+  }
+
   const handleSaveToApp = () => {
     if (!result || !file) return
 
@@ -786,6 +942,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
       documentType: result.document_type,
       result,
       documentText,
+      storagePath: currentStoragePath,
       chatMessages,
     }
 
@@ -913,6 +1070,37 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
     }
   }
 
+  // View original document from Supabase Storage
+  const viewOriginalDocument = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+
+    // Get the full translation data to find storagePath
+    const data = localStorage.getItem('axestack-translations-data')
+    if (!data) return
+
+    const translations = JSON.parse(data)
+    const translation = translations[id]
+
+    if (!translation?.storagePath) {
+      alert('Original document not available. Only documents uploaded after this update can be viewed.')
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/records/view?path=${encodeURIComponent(translation.storagePath)}`)
+      const result = await response.json()
+
+      if (result.url) {
+        window.open(result.url, '_blank')
+      } else {
+        alert('Failed to load document')
+      }
+    } catch (err) {
+      console.error('Error viewing document:', err)
+      alert('Failed to load document')
+    }
+  }
+
   const deleteSavedTranslation = (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
 
@@ -1008,9 +1196,18 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
 
           {/* Center - nav links (hidden on mobile) */}
           <nav className="hidden sm:flex items-center gap-4 text-sm">
-            <span className="text-violet-600 font-medium">Records</span>
+            <button
+              onClick={() => {
+                setResult(null)
+                setShowAddRecordView(false)
+                setFile(null)
+              }}
+              className="text-violet-600 font-medium hover:text-violet-700 transition-colors"
+            >
+              Records
+            </button>
             <Link href="/ask" className="text-slate-600 hover:text-violet-600 transition-colors">
-              Ask AI
+              Ask Navis
             </Link>
             <Link href="/trials" className="text-slate-600 hover:text-violet-600 transition-colors">
               Trials
@@ -1076,14 +1273,25 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold text-slate-900">My Records</h1>
-                <p className="text-slate-500 text-sm">{savedTranslations.length} record{savedTranslations.length !== 1 ? 's' : ''} translated</p>
+                {isProcessing ? (
+                  <p className="text-violet-600 text-sm font-medium flex items-center gap-2">
+                    <span className="w-3 h-3 border-2 border-violet-600 border-t-transparent rounded-full animate-spin" />
+                    Processing {bulkProgress.current} of {bulkProgress.total}...
+                  </p>
+                ) : bulkComplete && uploadedFiles.length > 0 ? (
+                  <p className="text-emerald-600 text-sm font-medium flex items-center gap-1">
+                    ✓ Done! {savedTranslations.length} record{savedTranslations.length !== 1 ? 's' : ''} translated
+                  </p>
+                ) : (
+                  <p className="text-slate-500 text-sm">{savedTranslations.length} record{savedTranslations.length !== 1 ? 's' : ''} translated</p>
+                )}
               </div>
               <button
                 onClick={() => setShowAddRecordView(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-violet-100 hover:bg-violet-200 text-violet-700 rounded-lg text-sm font-medium transition-colors"
+                className="flex items-center gap-2 px-5 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-violet-500/20 hover:shadow-lg transition-all"
               >
                 <Upload className="w-4 h-4" />
-                Add Record
+                + Add Record
               </button>
             </div>
 
@@ -1116,29 +1324,61 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
 
             {/* Records List - Inline */}
             <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-              <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
+              <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                 <p className="text-sm font-medium text-slate-700">Your Records</p>
+                {savedTranslations.length > 0 && (
+                  <button
+                    onClick={() => {
+                      if (confirm('Delete all saved records? This cannot be undone.')) {
+                        localStorage.removeItem('axestack-translations')
+                        localStorage.removeItem('axestack-translations-data')
+                        setSavedTranslations([])
+                      }
+                    }}
+                    className="text-xs text-slate-400 hover:text-red-500 transition-colors"
+                  >
+                    Clear All
+                  </button>
+                )}
               </div>
               <div className="divide-y divide-slate-100">
                 {savedTranslations.map(t => (
-                  <button
+                  <div
                     key={t.id}
-                    onClick={() => loadSavedTranslation(t.id)}
                     className="w-full flex items-center gap-4 p-4 hover:bg-violet-50 text-left transition-colors group"
                   >
-                    <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <FileText className="w-5 h-5 text-violet-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-slate-900 truncate">{t.fileName}</p>
-                      <div className="flex items-center gap-2 text-xs text-slate-500">
-                        <span>{t.documentType}</span>
-                        <span>·</span>
-                        <span>{new Date(t.date).toLocaleDateString()}</span>
+                    <button
+                      onClick={() => loadSavedTranslation(t.id)}
+                      className="flex items-center gap-4 flex-1 min-w-0"
+                    >
+                      <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <FileText className="w-5 h-5 text-violet-600" />
                       </div>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-violet-500 transition-colors" />
-                  </button>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-slate-900 truncate">{t.fileName}</p>
+                        <div className="flex items-center gap-2 text-xs text-slate-500">
+                          <span>{t.documentType}</span>
+                          <span>·</span>
+                          <span>{new Date(t.date).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-violet-500 transition-colors" />
+                    </button>
+                    <button
+                      onClick={(e) => viewOriginalDocument(t.id, e)}
+                      className="p-2 text-slate-300 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
+                      title="View original document"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={(e) => deleteSavedTranslation(t.id, e)}
+                      className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                      title="Delete record"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 ))}
               </div>
             </div>
@@ -1182,6 +1422,9 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
               <>
                 <h1 className="text-3xl font-bold text-slate-900 mb-2">Records Vault</h1>
                 <p className="text-slate-600">Upload records or connect your patient portal to get plain English translations</p>
+                <p className="text-xs text-slate-400 mt-2 flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5" /> Encrypted • Your data is never sold • Only you can access your records
+                </p>
               </>
             )}
           </div>
@@ -1363,6 +1606,74 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
             {/* Bulk upload file queue */}
             {isBulkMode && uploadedFiles.length > 0 && (
               <div className="mt-5 space-y-3">
+                {/* Prominent progress indicator at TOP during processing */}
+                {isProcessing && bulkProgress.total > 0 && (
+                  <div className="bg-gradient-to-r from-violet-600 to-purple-600 rounded-xl p-4 text-white shadow-lg">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span className="font-semibold">
+                        Processing file {bulkProgress.current} of {bulkProgress.total}
+                      </span>
+                    </div>
+                    <div className="w-full bg-white/30 rounded-full h-3">
+                      <div
+                        className="bg-white h-3 rounded-full transition-all duration-300"
+                        style={{ width: `${(bulkProgress.current / bulkProgress.total) * 100}%` }}
+                      />
+                    </div>
+                    <p className="text-sm text-white/80 mt-2">
+                      {uploadedFiles.filter(f => f.status === 'completed').length} completed · {uploadedFiles.filter(f => f.status === 'error').length} errors
+                    </p>
+                  </div>
+                )}
+
+                {/* Completion banner */}
+                {bulkComplete && !isProcessing && (
+                  <div className={`rounded-xl p-4 shadow-lg ${
+                    uploadedFiles.filter(f => f.status === 'error').length > 0
+                      ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white'
+                      : 'bg-gradient-to-r from-emerald-500 to-green-500 text-white'
+                  }`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">
+                          {uploadedFiles.filter(f => f.status === 'error').length > 0 ? '⚠️' : '✅'}
+                        </span>
+                        <div>
+                          <p className="font-bold text-lg">
+                            Processing Complete!
+                          </p>
+                          <p className="text-sm opacity-90">
+                            {uploadedFiles.filter(f => f.status === 'completed').length} of {uploadedFiles.length} files processed successfully
+                            {uploadedFiles.filter(f => f.status === 'error').length > 0 && (
+                              <> · {uploadedFiles.filter(f => f.status === 'error').length} failed</>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setBulkComplete(false)}
+                        className="text-white/80 hover:text-white p-1"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    {uploadedFiles.filter(f => f.status === 'error').length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-white/20">
+                        <p className="text-sm opacity-90 mb-2">
+                          Failed: {uploadedFiles.filter(f => f.status === 'error').map(f => f.file.name).join(', ')}
+                        </p>
+                        <button
+                          onClick={retryFailedFiles}
+                          className="bg-white text-orange-600 font-semibold px-4 py-2 rounded-lg text-sm hover:bg-orange-50 transition-colors"
+                        >
+                          🔄 Retry Failed Files
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-slate-900">
                     {uploadedFiles.length} files selected
@@ -1370,6 +1681,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                   <button
                     onClick={resetUpload}
                     className="text-sm text-slate-500 hover:text-red-600"
+                    disabled={isProcessing}
                   >
                     Clear all
                   </button>
@@ -1380,17 +1692,19 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                   {uploadedFiles.map((uf, index) => (
                     <div
                       key={uf.id}
-                      className={`flex items-center gap-3 p-3 rounded-lg border ${
+                      className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
                         uf.status === 'completed' ? 'bg-green-50 border-green-200' :
                         uf.status === 'error' ? 'bg-red-50 border-red-200' :
-                        uf.status === 'processing' ? 'bg-violet-50 border-violet-200' :
+                        uf.status === 'processing' ? 'bg-violet-50 border-violet-300 ring-2 ring-violet-400 ring-offset-1' :
                         'bg-slate-50 border-slate-200'
                       }`}
                     >
-                      <span className="text-lg">
+                      <span className="text-lg flex-shrink-0">
                         {uf.status === 'completed' ? '✓' :
                          uf.status === 'error' ? '✗' :
-                         uf.status === 'processing' ? '⏳' : '📄'}
+                         uf.status === 'processing' ? (
+                           <span className="w-5 h-5 border-2 border-violet-600 border-t-transparent rounded-full animate-spin inline-block" />
+                         ) : '📄'}
                       </span>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-slate-900 truncate">{uf.file.name}</p>
@@ -1422,25 +1736,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                   ))}
                 </div>
 
-                {/* Bulk progress indicator */}
-                {isProcessing && bulkProgress.total > 0 && (
-                  <div className="bg-violet-50 rounded-lg p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-violet-700">
-                        Processing {bulkProgress.current} of {bulkProgress.total}...
-                      </span>
-                      <span className="text-sm text-violet-600">
-                        {Math.round((bulkProgress.current / bulkProgress.total) * 100)}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-violet-200 rounded-full h-2">
-                      <div
-                        className="bg-violet-600 h-2 rounded-full transition-all"
-                        style={{ width: `${(bulkProgress.current / bulkProgress.total) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
+                {/* Progress hint when scrolled - removed duplicate, main progress is at top */}
 
                 {/* Bulk translate button or completion state */}
                 {uploadedFiles.every(f => f.status === 'completed' || f.status === 'error') ? (
@@ -1668,18 +1964,18 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
           <div className="space-y-4">
             {/* Breadcrumb - Back to Records */}
             {savedTranslations.length > 0 && (
-              <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-4 py-2">
+              <div className="flex items-center justify-between bg-violet-50 border border-violet-200 rounded-xl px-4 py-3">
                 <button
                   onClick={() => {
                     setResult(null)
                     setFile(null)
                   }}
-                  className="flex items-center gap-2 text-violet-600 hover:text-violet-700 text-sm font-medium"
+                  className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-medium transition-colors"
                 >
                   <ArrowRight className="w-4 h-4 rotate-180" />
-                  My Records ({savedTranslations.length})
+                  Back to Records ({savedTranslations.length})
                 </button>
-                <span className="text-slate-400 text-sm">
+                <span className="text-slate-600 text-sm">
                   Viewing: {file?.name?.slice(0, 30)}{file?.name && file.name.length > 30 ? '...' : ''}
                 </span>
               </div>
@@ -1704,11 +2000,11 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <button
-                    onClick={() => setShowShareModal(true)}
-                    className="px-3 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg font-medium text-sm transition-colors flex items-center gap-1.5"
+                    onClick={handleSendReport}
+                    className="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-medium text-sm transition-colors flex items-center gap-1.5"
                   >
-                    <Share2 className="w-3.5 h-3.5" />
-                    Share
+                    <Mail className="w-3.5 h-3.5" />
+                    Send Report
                   </button>
                   <button
                     onClick={() => setShowSaveModal(true)}

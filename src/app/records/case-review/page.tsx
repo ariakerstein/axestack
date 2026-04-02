@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
-import { FileText, AlertTriangle, ChevronDown, ChevronUp, MessageCircle, ArrowLeft, Calendar, FlaskConical, Pill, Activity, HelpCircle, CheckCircle, XCircle, Info, Download, RefreshCw, Lightbulb, Brain } from 'lucide-react'
+import { FileText, AlertTriangle, ChevronDown, ChevronUp, MessageCircle, ArrowLeft, Calendar, FlaskConical, Pill, Activity, HelpCircle, CheckCircle, XCircle, Info, Download, RefreshCw, Lightbulb, Brain, Share2, Copy, Check, X, Link2, PenLine, Save } from 'lucide-react'
 import { TypewriterMarkdown } from '@/components/TypewriterMarkdown'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { ShareButton } from '@/components/ShareButton'
@@ -45,6 +45,15 @@ interface SavedTranslation {
   documentType: string
   result: TranslationResult
   documentText?: string
+  corrections?: Record<string, FieldCorrection>
+}
+
+interface FieldCorrection {
+  field: string
+  original: string
+  corrected: string
+  note?: string
+  corrected_at: string
 }
 
 interface CaseBrief {
@@ -123,9 +132,160 @@ export default function CaseReviewPage() {
   const [chatInput, setChatInput] = useState('')
   const [isChatLoading, setIsChatLoading] = useState(false)
   const [chatOpen, setChatOpen] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [activeSection, setActiveSection] = useState<string>('brief')
+  const [shareModalOpen, setShareModalOpen] = useState(false)
+  const [shareUrl, setShareUrl] = useState<string | null>(null)
+  const [isSharing, setIsSharing] = useState(false)
+  const [shareCopied, setShareCopied] = useState(false)
+  const [showRawText, setShowRawText] = useState<Set<string>>(new Set())
+  const [patientNotes, setPatientNotes] = useState('')
+  const [notesExpanded, setNotesExpanded] = useState(false)
+  const [notesSaved, setNotesSaved] = useState(false)
+  const [editModal, setEditModal] = useState<{
+    recordId: string
+    field: string
+    fieldLabel: string
+    currentValue: string
+    originalValue: string
+  } | null>(null)
+  const [editValue, setEditValue] = useState('')
+  const [editNote, setEditNote] = useState('')
+  const [isSavingCorrection, setIsSavingCorrection] = useState(false)
   const chatEndRef = useRef<HTMLDivElement>(null)
   const { trackEvent } = useAnalytics()
+
+  // Load saved notes on mount
+  useEffect(() => {
+    const savedNotes = localStorage.getItem('axestack-patient-notes')
+    if (savedNotes) {
+      setPatientNotes(savedNotes)
+    }
+  }, [])
+
+  const saveNotes = () => {
+    localStorage.setItem('axestack-patient-notes', patientNotes)
+    setNotesSaved(true)
+    setTimeout(() => setNotesSaved(false), 2000)
+  }
+
+  // Get corrected value for a field, or return original
+  const getCorrectedValue = (record: SavedTranslation, field: string, originalValue: string): { value: string; isCorrected: boolean } => {
+    const correction = record.corrections?.[field]
+    if (correction) {
+      return { value: correction.corrected, isCorrected: true }
+    }
+    return { value: originalValue, isCorrected: false }
+  }
+
+  // Open edit modal for a field
+  const openEditModal = (recordId: string, field: string, fieldLabel: string, currentValue: string) => {
+    const record = records.find(r => r.id === recordId)
+    const originalValue = record?.corrections?.[field]?.original || currentValue
+    setEditModal({ recordId, field, fieldLabel, currentValue, originalValue })
+    setEditValue(currentValue)
+    setEditNote(record?.corrections?.[field]?.note || '')
+  }
+
+  // Save a correction
+  const saveCorrection = async () => {
+    if (!editModal) return
+    setIsSavingCorrection(true)
+
+    try {
+      const correction: FieldCorrection = {
+        field: editModal.field,
+        original: editModal.originalValue,
+        corrected: editValue,
+        note: editNote || undefined,
+        corrected_at: new Date().toISOString(),
+      }
+
+      // Update local records state
+      setRecords(prev => prev.map(r => {
+        if (r.id === editModal.recordId) {
+          return {
+            ...r,
+            corrections: {
+              ...r.corrections,
+              [editModal.field]: correction,
+            },
+          }
+        }
+        return r
+      }))
+
+      // Save to localStorage
+      const data = localStorage.getItem('axestack-translations-data')
+      if (data) {
+        const translations = JSON.parse(data)
+        if (translations[editModal.recordId]) {
+          translations[editModal.recordId].corrections = {
+            ...translations[editModal.recordId].corrections,
+            [editModal.field]: correction,
+          }
+          localStorage.setItem('axestack-translations-data', JSON.stringify(translations))
+        }
+      }
+
+      // Try to save to server (non-blocking)
+      fetch('/api/records/corrections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recordId: editModal.recordId,
+          sessionId: localStorage.getItem('opencancer_session_id'),
+          field: editModal.field,
+          original: editModal.originalValue,
+          corrected: editValue,
+          note: editNote,
+        }),
+      }).catch(err => console.log('Server sync skipped:', err))
+
+      trackEvent('record_correction', {
+        field: editModal.field,
+        has_note: !!editNote,
+      })
+
+      setEditModal(null)
+      setEditValue('')
+      setEditNote('')
+    } catch (err) {
+      console.error('Error saving correction:', err)
+    } finally {
+      setIsSavingCorrection(false)
+    }
+  }
+
+  // Remove a correction
+  const removeCorrection = (recordId: string, field: string) => {
+    setRecords(prev => prev.map(r => {
+      if (r.id === recordId && r.corrections) {
+        const { [field]: _, ...rest } = r.corrections
+        return { ...r, corrections: rest }
+      }
+      return r
+    }))
+
+    // Update localStorage
+    const data = localStorage.getItem('axestack-translations-data')
+    if (data) {
+      const translations = JSON.parse(data)
+      if (translations[recordId]?.corrections) {
+        delete translations[recordId].corrections[field]
+        localStorage.setItem('axestack-translations-data', JSON.stringify(translations))
+      }
+    }
+  }
+
+  const toggleRawText = (id: string) => {
+    setShowRawText(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   // Load all saved records on mount
   useEffect(() => {
@@ -175,49 +335,74 @@ export default function CaseReviewPage() {
   const generateCaseBrief = async () => {
     if (records.length === 0) return
     setGenerating(true)
+    setError(null)
 
     try {
-      // Build context from all records
+      // Build context from all records, using corrected values where available
+      // Truncate each record to prevent token overflow with many records
+      const MAX_SUMMARY_LENGTH = 200
+      const MAX_TOTAL_CHARS = 15000 // ~4000 tokens, leaving room for prompt and response
+
       const recordsSummary = records.map(r => {
         const result = r.result
+        const corrections = r.corrections || {}
+
+        // Helper to get corrected or original value
+        const getVal = (field: string, original: string) => corrections[field]?.corrected || original
+
+        const diagnosis = getVal('diagnosis', result.diagnosis?.join(', ') || 'Not specified')
+        const cancerType = getVal('cancer_type', result.cancer_specific?.cancer_type || 'Not specified')
+        const stage = getVal('stage', result.cancer_specific?.stage || 'Not specified')
+
+        // Truncate summary if too long
+        const summary = result.test_summary?.length > MAX_SUMMARY_LENGTH
+          ? result.test_summary.substring(0, MAX_SUMMARY_LENGTH) + '...'
+          : result.test_summary
+
+        // Build corrections note if any exist
+        const correctionNotes = Object.values(corrections)
+          .filter(c => c.note)
+          .map(c => `${c.field}: ${c.note}`)
+          .join('; ')
+
         return `
 DOCUMENT: ${r.fileName} (${r.documentType})
 Date: ${result.date_of_service || r.date}
-Summary: ${result.test_summary}
-Diagnosis: ${result.diagnosis?.join(', ') || 'Not specified'}
-Cancer Type: ${result.cancer_specific?.cancer_type || 'Not specified'}
-Stage: ${result.cancer_specific?.stage || 'Not specified'}
+Summary: ${summary}
+Diagnosis: ${diagnosis}${corrections['diagnosis'] ? ' [PATIENT CORRECTED]' : ''}
+Cancer Type: ${cancerType}${corrections['cancer_type'] ? ' [PATIENT CORRECTED]' : ''}
+Stage: ${stage}${corrections['stage'] ? ' [PATIENT CORRECTED]' : ''}
 Biomarkers: ${result.cancer_specific?.biomarkers?.join(', ') || 'None listed'}
-Key Labs: ${result.lab_values?.key_results?.map(l => `${l.test}: ${l.value}`).join(', ') || 'None'}
-Next Steps: ${result.recommended_next_steps?.join(', ') || 'None listed'}
+Key Labs: ${result.lab_values?.key_results?.slice(0, 5).map(l => `${l.test}: ${l.value}`).join(', ') || 'None'}
+Next Steps: ${result.recommended_next_steps?.slice(0, 3).join(', ') || 'None listed'}${correctionNotes ? `\nPatient Notes: ${correctionNotes}` : ''}
         `.trim()
       }).join('\n\n---\n\n')
+
+      // If total is too large, truncate to fit within limits
+      let finalSummary = recordsSummary
+      if (recordsSummary.length > MAX_TOTAL_CHARS) {
+        console.warn(`Case brief input too large (${recordsSummary.length} chars), truncating to ${MAX_TOTAL_CHARS}`)
+        finalSummary = recordsSummary.substring(0, MAX_TOTAL_CHARS) + '\n\n[Additional records truncated for processing]'
+      }
+
+      // Include patient notes if available (truncated if too long)
+      const savedNotes = localStorage.getItem('axestack-patient-notes') || ''
+      const truncatedNotes = savedNotes.trim().length > 500
+        ? savedNotes.trim().substring(0, 500) + '...'
+        : savedNotes.trim()
+      const notesSection = truncatedNotes
+        ? `\n\nPATIENT NOTES:\n${truncatedNotes}`
+        : ''
 
       const response = await fetch('/api/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: `You are helping a cancer patient understand their complete medical case. Based on these ${records.length} medical records, create a comprehensive case brief.
+          message: `Return ONLY valid JSON. No markdown. Based on ${records.length} medical records:
 
-MEDICAL RECORDS:
-${recordsSummary}
+${finalSummary}${notesSection}
 
-Please provide a JSON response with this exact structure:
-{
-  "bottomLine": "A 2-3 sentence executive summary of the patient's cancer case - the most important things to know",
-  "keyFindings": ["Array of 4-6 key findings from across all records"],
-  "gaps": ["Array of 2-4 potential gaps - what records might be missing, what tests haven't been done, etc."],
-  "questionsForDoctor": ["Array of 3-5 questions the patient should ask their oncologist based on these records"],
-  "timeline": [{"date": "YYYY-MM-DD or Month YYYY", "event": "What happened", "source": "Document name"}],
-  "cancerSummary": {
-    "type": "Cancer type if known",
-    "stage": "Stage if known",
-    "biomarkers": ["List of biomarkers found"],
-    "treatments": ["List of treatments mentioned"]
-  }
-}
-
-Be thorough but patient-friendly. Use plain language. If information is missing or unclear, note that in the gaps section.`,
+Return JSON: {"bottomLine":"2-3 sentence summary","keyFindings":["finding1"],"gaps":["gap1"],"questionsForDoctor":["question1"],"timeline":[{"date":"date","event":"event","source":"file"}],"cancerSummary":{"type":"type","stage":"stage","biomarkers":["marker"],"treatments":["treatment"]}}`,
         }),
       })
 
@@ -226,28 +411,58 @@ Be thorough but patient-friendly. Use plain language. If information is missing 
 
       // Parse the JSON from the response
       try {
-        // Extract JSON from the response (it might be wrapped in markdown)
-        const jsonMatch = data.response.match(/\{[\s\S]*\}/)
-        if (jsonMatch) {
-          const brief = JSON.parse(jsonMatch[0])
-          setCaseBrief(brief)
-          // Save to localStorage for persistence
-          localStorage.setItem('axestack-case-brief', JSON.stringify({
-            brief,
-            generatedAt: new Date().toISOString(),
-            recordCount: records.length,
-          }))
-          trackEvent('case_review_generated', {
-            record_count: records.length,
-            has_cancer_info: brief.cancerSummary?.type !== undefined,
-          })
+        // Clean up the response - remove markdown code blocks
+        let cleanedResponse = data.response.trim()
+
+        // Remove ALL markdown code blocks (can appear anywhere in response)
+        cleanedResponse = cleanedResponse
+          .replace(/```json\s*/gi, '')
+          .replace(/```\s*/g, '')
+          .trim()
+
+        // If response has text before JSON, extract just the JSON part
+        // Look for the actual JSON object start
+        const jsonStartMatch = cleanedResponse.match(/\{\s*"/)
+        const startIdx = jsonStartMatch ? cleanedResponse.indexOf(jsonStartMatch[0]) : cleanedResponse.indexOf('{')
+        if (startIdx === -1) throw new Error('No JSON object found')
+
+        let braceCount = 0
+        let endIdx = startIdx
+        for (let i = startIdx; i < cleanedResponse.length; i++) {
+          if (cleanedResponse[i] === '{') braceCount++
+          if (cleanedResponse[i] === '}') braceCount--
+          if (braceCount === 0) {
+            endIdx = i
+            break
+          }
         }
+
+        const jsonStr = cleanedResponse.substring(startIdx, endIdx + 1)
+        const brief = JSON.parse(jsonStr)
+        setCaseBrief(brief)
+        // Save to localStorage for persistence
+        localStorage.setItem('axestack-case-brief', JSON.stringify({
+          brief,
+          generatedAt: new Date().toISOString(),
+          recordCount: records.length,
+        }))
+        trackEvent('case_review_generated', {
+          record_count: records.length,
+          has_cancer_info: brief.cancerSummary?.type !== undefined,
+        })
       } catch (parseErr) {
         console.error('Failed to parse case brief JSON:', parseErr)
-        // Create a basic brief from the text response
+        console.error('Raw response:', data.response?.substring(0, 500))
+        // Create a basic brief from the text response - clean up markdown
+        const cleanedFallback = data.response
+          .replace(/```json\s*/gi, '')
+          .replace(/```\s*/g, '')
+          .replace(/\{[\s\S]*\}/g, '') // Remove any JSON-looking content
+          .trim()
+          .substring(0, 500) || 'Unable to generate summary. Please try refreshing.'
         setCaseBrief({
-          bottomLine: data.response.substring(0, 500),
-          keyFindings: ['Unable to parse structured findings - see summary above'],
+          bottomLine: cleanedFallback,
+          keyFindings: ['Unable to parse structured findings - please click Refresh to try again'],
           gaps: ['Please review your records manually'],
           questionsForDoctor: ['Ask your doctor to review these records with you'],
           timeline: [],
@@ -255,6 +470,15 @@ Be thorough but patient-friendly. Use plain language. If information is missing 
       }
     } catch (err) {
       console.error('Failed to generate case brief:', err)
+      setError(`Failed to generate case brief. ${records.length > 5 ? 'Try with fewer records or ' : ''}Please refresh and try again.`)
+      // Set a minimal fallback brief
+      setCaseBrief({
+        bottomLine: 'Unable to generate summary. Please try refreshing or reducing the number of records.',
+        keyFindings: ['Analysis failed - please try again'],
+        gaps: ['Unable to analyze'],
+        questionsForDoctor: ['Please review records with your doctor'],
+        timeline: [],
+      })
     } finally {
       setGenerating(false)
     }
@@ -394,6 +618,121 @@ Be thorough but patient-friendly. Use plain language. If information is missing 
     })
   }
 
+  // Share case review with another patient
+  const handleShareCase = async () => {
+    if (!caseBrief || records.length === 0) return
+    setIsSharing(true)
+
+    try {
+      const recordSummaries = records.map(r => ({
+        fileName: r.fileName,
+        documentType: r.documentType,
+        summary: r.result.test_summary,
+      }))
+
+      const response = await fetch('/api/case-review/share', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          caseBrief,
+          recordSummaries,
+          cancerType: caseBrief.cancerSummary?.type || null,
+        }),
+      })
+
+      if (!response.ok) throw new Error('Failed to create share link')
+      const data = await response.json()
+      setShareUrl(data.shareUrl)
+      setShareModalOpen(true)
+
+      trackEvent('case_review_shared', {
+        record_count: records.length,
+        cancer_type: caseBrief.cancerSummary?.type || 'unknown',
+      })
+    } catch (err) {
+      console.error('Share error:', err)
+      alert('Failed to create share link. Please try again.')
+    } finally {
+      setIsSharing(false)
+    }
+  }
+
+  const copyShareLink = async () => {
+    if (!shareUrl) return
+    await navigator.clipboard.writeText(shareUrl)
+    setShareCopied(true)
+    setTimeout(() => setShareCopied(false), 2000)
+  }
+
+  // Email the full case brief content directly
+  const handleEmailFullReport = () => {
+    if (!caseBrief) return
+
+    // Build comprehensive email content
+    let emailBody = `MY CASE REVIEW SUMMARY\n`
+    emailBody += `Generated: ${new Date().toLocaleDateString()}\n`
+    emailBody += `Records analyzed: ${records.length}\n\n`
+
+    // Bottom line
+    emailBody += `THE BOTTOM LINE:\n${caseBrief.bottomLine}\n\n`
+
+    // Cancer summary if present
+    if (caseBrief.cancerSummary) {
+      emailBody += `CANCER DETAILS:\n`
+      emailBody += `Type: ${caseBrief.cancerSummary.type}\n`
+      emailBody += `Stage: ${caseBrief.cancerSummary.stage}\n`
+      if (caseBrief.cancerSummary.biomarkers?.length > 0) {
+        emailBody += `Biomarkers: ${caseBrief.cancerSummary.biomarkers.join(', ')}\n`
+      }
+      if (caseBrief.cancerSummary.treatments?.length > 0) {
+        emailBody += `Treatments: ${caseBrief.cancerSummary.treatments.join(', ')}\n`
+      }
+      emailBody += `\n`
+    }
+
+    // Key findings
+    if (caseBrief.keyFindings?.length > 0) {
+      emailBody += `KEY FINDINGS:\n`
+      caseBrief.keyFindings.forEach(f => {
+        emailBody += `- ${f}\n`
+      })
+      emailBody += `\n`
+    }
+
+    // Questions for doctor
+    if (caseBrief.questionsForDoctor?.length > 0) {
+      emailBody += `QUESTIONS TO ASK YOUR DOCTOR:\n`
+      caseBrief.questionsForDoctor.forEach((q, i) => {
+        emailBody += `${i + 1}. ${q}\n`
+      })
+      emailBody += `\n`
+    }
+
+    // Information gaps
+    if (caseBrief.gaps?.length > 0) {
+      emailBody += `INFORMATION GAPS (things to follow up on):\n`
+      caseBrief.gaps.forEach(g => {
+        emailBody += `- ${g}\n`
+      })
+      emailBody += `\n`
+    }
+
+    // Timeline
+    if (caseBrief.timeline?.length > 0) {
+      emailBody += `MEDICAL TIMELINE:\n`
+      caseBrief.timeline.forEach(t => {
+        emailBody += `${t.date}: ${t.event} (${t.source})\n`
+      })
+      emailBody += `\n`
+    }
+
+    emailBody += `---\nThis summary was generated by opencancer.ai to help you understand your medical records.\nAlways discuss results with your healthcare provider.`
+
+    const emailSubject = `My Case Review Summary - ${records.length} Records Analyzed`
+    window.location.href = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
+    setShareModalOpen(false)
+  }
+
   // Chat about the full case
   const handleAskQuestion = async () => {
     if (!chatInput.trim() || records.length === 0) return
@@ -415,6 +754,12 @@ ${result.cancer_specific?.cancer_type !== 'unknown' ? `Cancer: ${result.cancer_s
         `.trim()
       }).join('\n\n')
 
+      // Include patient notes if available
+      const savedNotes = localStorage.getItem('axestack-patient-notes') || ''
+      const notesContext = savedNotes.trim()
+        ? `\n\nPATIENT-PROVIDED NOTES:\n${savedNotes.trim()}`
+        : ''
+
       const response = await fetch('/api/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -423,11 +768,11 @@ ${result.cancer_specific?.cancer_type !== 'unknown' ? `Cancer: ${result.cancer_s
 
 ${caseContext}
 
-${caseBrief ? `CASE BRIEF: ${caseBrief.bottomLine}` : ''}
+${caseBrief ? `CASE BRIEF: ${caseBrief.bottomLine}` : ''}${notesContext}
 
 Patient Question: ${userMessage}
 
-Provide a helpful, educational response. Reference specific records when relevant. Always remind them to discuss with their healthcare provider.`,
+Provide a helpful, educational response. Reference specific records when relevant. Patient-provided notes should be treated as authoritative corrections. Always remind them to discuss with their healthcare provider.`,
           history: chatMessages.filter(m => !m.isNew),
         }),
       })
@@ -488,7 +833,7 @@ Provide a helpful, educational response. Reference specific records when relevan
                 Records
               </Link>
               <Link href="/ask" className="text-slate-600 hover:text-violet-600 transition-colors">
-                Ask AI
+                Ask Navis
               </Link>
               <Link href="/trials" className="text-slate-600 hover:text-violet-600 transition-colors">
                 Trials
@@ -539,7 +884,7 @@ Provide a helpful, educational response. Reference specific records when relevan
               Records
             </Link>
             <Link href="/ask" className="text-slate-600 hover:text-violet-600 transition-colors">
-              Ask AI
+              Ask Navis
             </Link>
             <Link href="/trials" className="text-slate-600 hover:text-violet-600 transition-colors">
               Trials
@@ -589,14 +934,36 @@ Provide a helpful, educational response. Reference specific records when relevan
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {/* Add Records - prominent */}
+            <Link
+              href="/records"
+              className="flex items-center gap-2 px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-lg text-sm font-medium transition-colors"
+            >
+              <FileText className="w-4 h-4" />
+              + Add Records
+            </Link>
             {caseBrief && (
-              <button
-                onClick={handleExportPDF}
-                className="flex items-center gap-2 px-4 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg text-sm font-medium transition-colors"
-              >
-                <Download className="w-4 h-4" />
-                Export PDF
-              </button>
+              <>
+                <button
+                  onClick={handleShareCase}
+                  disabled={isSharing}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                >
+                  {isSharing ? (
+                    <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Share2 className="w-4 h-4" />
+                  )}
+                  Share
+                </button>
+                <button
+                  onClick={handleExportPDF}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg text-sm font-medium transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  Export PDF
+                </button>
+              </>
             )}
             <button
               onClick={generateCaseBrief}
@@ -616,6 +983,51 @@ Provide a helpful, educational response. Reference specific records when relevan
               )}
             </button>
           </div>
+        </div>
+
+        {/* Patient Notes/Annotations */}
+        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl overflow-hidden">
+          <button
+            onClick={() => setNotesExpanded(!notesExpanded)}
+            className="w-full px-4 py-3 flex items-center justify-between hover:bg-amber-100 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <PenLine className="w-5 h-5 text-amber-600" />
+              <span className="font-medium text-slate-900">Add Notes & Context</span>
+              {patientNotes && !notesExpanded && (
+                <span className="text-xs bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">
+                  Has notes
+                </span>
+              )}
+            </div>
+            <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform ${notesExpanded ? 'rotate-180' : ''}`} />
+          </button>
+
+          {notesExpanded && (
+            <div className="px-4 pb-4 border-t border-amber-200">
+              <p className="text-sm text-amber-800 mt-3 mb-2">
+                Add details the AI might have missed: diagnosis date, treatments, corrections, etc.
+              </p>
+              <textarea
+                value={patientNotes}
+                onChange={(e) => setPatientNotes(e.target.value)}
+                placeholder="e.g., Dx 2008. Age 52. PSA 135. Gleason 4+5. Treatments: RRP, RT, TARP Vaccine, ADT, ARSI. Current status: M1cHSPC..."
+                className="w-full h-24 px-3 py-2 text-sm border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
+              />
+              <div className="flex items-center justify-between mt-2">
+                <p className="text-xs text-amber-600">
+                  These notes will be included when you click Refresh
+                </p>
+                <button
+                  onClick={saveNotes}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  {notesSaved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+                  {notesSaved ? 'Saved!' : 'Save Notes'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Navigation Tabs */}
@@ -661,6 +1073,23 @@ Provide a helpful, educational response. Reference specific records when relevan
               </div>
             ) : caseBrief ? (
               <>
+                {/* Error message if generation had issues */}
+                {error && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-amber-800 text-sm">{error}</p>
+                        <button
+                          onClick={() => { setError(null); generateCaseBrief(); }}
+                          className="mt-2 text-sm text-amber-700 hover:text-amber-800 font-medium underline"
+                        >
+                          Try again
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {/* Bottom Line */}
                 <div className="bg-gradient-to-br from-violet-50 to-fuchsia-50 border border-violet-200 rounded-2xl p-6">
                   <div className="flex items-center gap-2 mb-3">
@@ -835,21 +1264,66 @@ Provide a helpful, educational response. Reference specific records when relevan
                         <p className="text-xs font-medium text-slate-500 mb-1">Summary</p>
                         <p className="text-slate-800">{record.result.test_summary}</p>
                       </div>
-                      {record.result.diagnosis?.length > 0 && (
-                        <div>
-                          <p className="text-xs font-medium text-slate-500 mb-1">Diagnosis</p>
-                          <p className="text-slate-800">{record.result.diagnosis.join(', ')}</p>
-                        </div>
-                      )}
-                      {record.result.cancer_specific?.cancer_type && record.result.cancer_specific.cancer_type !== 'unknown' && (
-                        <div>
-                          <p className="text-xs font-medium text-slate-500 mb-1">Cancer Info</p>
-                          <p className="text-slate-800">
-                            {record.result.cancer_specific.cancer_type}
-                            {record.result.cancer_specific.stage !== 'unknown' && ` - Stage ${record.result.cancer_specific.stage}`}
-                          </p>
-                        </div>
-                      )}
+                      {record.result.diagnosis?.length > 0 && (() => {
+                        const diagnosisStr = record.result.diagnosis.join(', ')
+                        const { value, isCorrected } = getCorrectedValue(record, 'diagnosis', diagnosisStr)
+                        return (
+                          <div className="group">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="text-xs font-medium text-slate-500">Diagnosis</p>
+                              {isCorrected && (
+                                <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded">Corrected</span>
+                              )}
+                              <button
+                                onClick={() => openEditModal(record.id, 'diagnosis', 'Diagnosis', value)}
+                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-violet-100 rounded transition-all"
+                                title="Edit this field"
+                              >
+                                <PenLine className="w-3 h-3 text-violet-600" />
+                              </button>
+                            </div>
+                            <p className={`text-slate-800 ${isCorrected ? 'bg-green-50 px-2 py-1 rounded border border-green-200' : ''}`}>{value}</p>
+                          </div>
+                        )
+                      })()}
+                      {record.result.cancer_specific?.cancer_type && record.result.cancer_specific.cancer_type !== 'unknown' && (() => {
+                        const { value: typeValue, isCorrected: typeCorrected } = getCorrectedValue(record, 'cancer_type', record.result.cancer_specific.cancer_type)
+                        const { value: stageValue, isCorrected: stageCorrected } = getCorrectedValue(record, 'stage', record.result.cancer_specific.stage || '')
+                        const anyCorrection = typeCorrected || stageCorrected
+                        return (
+                          <div className="group">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="text-xs font-medium text-slate-500">Cancer Info</p>
+                              {anyCorrection && (
+                                <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded">Corrected</span>
+                              )}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span
+                                onClick={() => openEditModal(record.id, 'cancer_type', 'Cancer Type', typeValue)}
+                                className={`cursor-pointer hover:ring-2 hover:ring-violet-300 rounded px-2 py-1 transition-all ${typeCorrected ? 'bg-green-50 border border-green-200' : 'bg-slate-100'}`}
+                                title="Click to edit"
+                              >
+                                {typeValue}
+                                <PenLine className="w-3 h-3 text-violet-400 inline ml-1 opacity-50" />
+                              </span>
+                              {stageValue && stageValue !== 'unknown' && (
+                                <>
+                                  <span className="text-slate-400">-</span>
+                                  <span
+                                    onClick={() => openEditModal(record.id, 'stage', 'Stage', stageValue)}
+                                    className={`cursor-pointer hover:ring-2 hover:ring-violet-300 rounded px-2 py-1 transition-all ${stageCorrected ? 'bg-green-50 border border-green-200' : 'bg-slate-100'}`}
+                                    title="Click to edit"
+                                  >
+                                    Stage {stageValue}
+                                    <PenLine className="w-3 h-3 text-violet-400 inline ml-1 opacity-50" />
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })()}
                       {record.result.lab_values?.key_results?.length > 0 && (
                         <div>
                           <p className="text-xs font-medium text-slate-500 mb-1">Key Lab Values</p>
@@ -868,16 +1342,39 @@ Provide a helpful, educational response. Reference specific records when relevan
                           </div>
                         </div>
                       )}
-                      <Link
-                        href="/records"
-                        onClick={() => {
-                          // Set this record as active in records page
-                          localStorage.setItem('axestack-view-record', record.id)
-                        }}
-                        className="inline-flex items-center gap-1 text-violet-600 hover:text-violet-700 text-sm font-medium"
-                      >
-                        View full translation →
-                      </Link>
+                      <div className="flex items-center gap-4">
+                        <Link
+                          href="/records"
+                          onClick={() => {
+                            // Set this record as active in records page
+                            localStorage.setItem('axestack-view-record', record.id)
+                          }}
+                          className="inline-flex items-center gap-1 text-violet-600 hover:text-violet-700 text-sm font-medium"
+                        >
+                          View full translation →
+                        </Link>
+                        {record.documentText && (
+                          <button
+                            onClick={() => toggleRawText(record.id)}
+                            className="text-xs text-slate-400 hover:text-slate-600 underline"
+                          >
+                            {showRawText.has(record.id) ? 'Hide' : 'View'} raw text
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Raw extracted text (for debugging) */}
+                      {showRawText.has(record.id) && record.documentText && (
+                        <div className="mt-3 p-3 bg-slate-100 rounded-lg border border-slate-200">
+                          <p className="text-xs font-medium text-slate-500 mb-2 flex items-center gap-2">
+                            <Info className="w-3 h-3" />
+                            Extracted text (what AI sees from .docx):
+                          </p>
+                          <pre className="text-xs text-slate-600 whitespace-pre-wrap font-mono max-h-60 overflow-y-auto">
+                            {record.documentText}
+                          </pre>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1096,6 +1593,196 @@ Provide a helpful, educational response. Reference specific records when relevan
           className="fixed inset-0 bg-black/20 z-40 sm:hidden"
           onClick={() => setChatOpen(false)}
         />
+      )}
+
+      {/* Edit Field Modal */}
+      {editModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setEditModal(null)}
+          />
+          <div className="relative bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+            <button
+              onClick={() => setEditModal(null)}
+              className="absolute top-4 right-4 p-1 text-slate-400 hover:text-slate-600"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="mb-6">
+              <div className="w-12 h-12 mb-3 bg-violet-100 rounded-xl flex items-center justify-center">
+                <PenLine className="w-6 h-6 text-violet-600" />
+              </div>
+              <h2 className="text-xl font-bold text-slate-900">Edit {editModal.fieldLabel}</h2>
+              <p className="text-slate-600 text-sm mt-1">
+                Correct any errors in the AI-extracted data
+              </p>
+            </div>
+
+            {/* Original value */}
+            {editModal.originalValue !== editValue && (
+              <div className="mb-4 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                <p className="text-xs font-medium text-slate-500 mb-1">Original (AI-extracted)</p>
+                <p className="text-sm text-slate-600 line-through">{editModal.originalValue}</p>
+              </div>
+            )}
+
+            {/* Edit input */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Corrected Value
+              </label>
+              <input
+                type="text"
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-900"
+                placeholder={`Enter correct ${editModal.fieldLabel.toLowerCase()}`}
+              />
+            </div>
+
+            {/* Note input */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Note (optional)
+              </label>
+              <input
+                type="text"
+                value={editNote}
+                onChange={(e) => setEditNote(e.target.value)}
+                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-900 text-sm"
+                placeholder="e.g., Confirmed with oncologist"
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setEditModal(null)}
+                className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-slate-700 font-medium hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveCorrection}
+                disabled={isSavingCorrection || !editValue.trim()}
+                className="flex-1 px-4 py-3 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isSavingCorrection ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4" />
+                    Save Correction
+                  </>
+                )}
+              </button>
+            </div>
+
+            {editModal.originalValue !== editValue && (
+              <p className="text-xs text-slate-500 text-center mt-4">
+                Click &quot;Refresh&quot; after correcting to update the case brief
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Share Modal */}
+      {shareModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setShareModalOpen(false)}
+          />
+          <div className="relative bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+            <button
+              onClick={() => setShareModalOpen(false)}
+              className="absolute top-4 right-4 p-1 text-slate-400 hover:text-slate-600"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="text-center mb-6">
+              <div className="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-blue-100 to-violet-100 rounded-full flex items-center justify-center">
+                <Link2 className="w-6 h-6 text-blue-600" />
+              </div>
+              <h2 className="text-xl font-bold text-slate-900">Share Your Case Review</h2>
+              <p className="text-slate-600 text-sm mt-2">
+                Send this link to another patient or caregiver. Link expires in 48 hours.
+              </p>
+            </div>
+
+            {shareUrl && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 p-3 bg-slate-100 rounded-xl">
+                  <input
+                    type="text"
+                    value={shareUrl}
+                    readOnly
+                    className="flex-1 bg-transparent text-sm text-slate-700 outline-none truncate"
+                  />
+                  <button
+                    onClick={copyShareLink}
+                    className="flex items-center gap-1 px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
+                    {shareCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    {shareCopied ? 'Copied!' : 'Copy'}
+                  </button>
+                </div>
+
+                {/* Primary action: Email the full report content */}
+                <button
+                  onClick={handleEmailFullReport}
+                  className="w-full flex items-center justify-center gap-3 p-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors"
+                >
+                  <span className="text-xl">📧</span>
+                  <div className="text-left">
+                    <span className="block font-semibold">Email Full Report</span>
+                    <span className="text-xs text-blue-100">Send summary, questions, and findings</span>
+                  </div>
+                </button>
+
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-200"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white text-slate-500">or share a link</span>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      window.open(`sms:?body=${encodeURIComponent(`Check out my AI case review: ${shareUrl}`)}`, '_blank')
+                    }}
+                    className="flex-1 flex items-center justify-center gap-2 p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
+                  >
+                    <span className="text-lg">💬</span>
+                    <span className="text-sm font-medium text-slate-700">Text Link</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      window.location.href = `mailto:?subject=${encodeURIComponent('My AI Case Review')}&body=${encodeURIComponent(`I wanted to share my AI case review with you: ${shareUrl}`)}`
+                    }}
+                    className="flex-1 flex items-center justify-center gap-2 p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
+                  >
+                    <span className="text-lg">🔗</span>
+                    <span className="text-sm font-medium text-slate-700">Email Link</span>
+                  </button>
+                </div>
+
+                <p className="text-xs text-slate-500 text-center">
+                  Full report includes all content. Link requires internet access.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </main>
   )

@@ -133,7 +133,7 @@ export default function TrialsPage() {
               Records
             </Link>
             <Link href="/ask" className="text-slate-600 hover:text-violet-600 transition-colors">
-              Ask AI
+              Ask Navis
             </Link>
             <span className="text-violet-600 font-medium">Trials</span>
           </nav>
