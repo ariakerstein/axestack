@@ -95,7 +95,6 @@ export async function GET(request: NextRequest) {
       .eq('user_id', userId)
       .eq('source', 'opencancer') // Only opencancer records
       .order('created_at', { ascending: false })
-      .limit(50)
 
     if (error) {
       console.error('Supabase error:', error)
