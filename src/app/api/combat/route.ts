@@ -154,7 +154,8 @@ async function getPersonaPerspective(
   caseContext: string,
   phase: 'diagnosis' | 'treatment',
   question: string,
-  weight: number
+  weight: number,
+  userId?: string
 ): Promise<{
   argument: string
   evidence: string[]
@@ -242,7 +243,8 @@ Be specific to THIS patient's case. Reference their actual biomarkers, stage, an
 
 async function synthesizePerspectives(
   perspectives: Array<{ name: string; argument: string; recommendation: string }>,
-  phase: 'diagnosis' | 'treatment'
+  phase: 'diagnosis' | 'treatment',
+  userId?: string
 ): Promise<{
   synthesis: string
   consensus: string[]
@@ -340,9 +342,9 @@ export async function POST(request: NextRequest) {
 
     // Get all three perspectives in parallel, passing their respective weights
     const [nccnResponse, emergingResponse, integrativeResponse] = await Promise.all([
-      getPersonaPerspective(PERSONAS.nccn, caseContext, phase, question, perspectiveWeights.guidelines),
-      getPersonaPerspective(PERSONAS.emerging, caseContext, phase, question, perspectiveWeights.research),
-      getPersonaPerspective(PERSONAS.integrative, caseContext, phase, question, perspectiveWeights.integrative)
+      getPersonaPerspective(PERSONAS.nccn, caseContext, phase, question, perspectiveWeights.guidelines, userId),
+      getPersonaPerspective(PERSONAS.emerging, caseContext, phase, question, perspectiveWeights.research, userId),
+      getPersonaPerspective(PERSONAS.integrative, caseContext, phase, question, perspectiveWeights.integrative, userId)
     ])
 
     const perspectives = [
@@ -354,7 +356,8 @@ export async function POST(request: NextRequest) {
     // Synthesize the perspectives
     const synthesis = await synthesizePerspectives(
       perspectives.map(p => ({ name: p.name, argument: p.argument, recommendation: p.recommendation })),
-      phase
+      phase,
+      userId
     )
 
     const result = {
