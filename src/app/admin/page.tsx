@@ -184,6 +184,7 @@ interface ActivityGraphData {
     to: string
     connection_count: number
     avg_time_hours: number
+    unique_patients: number
   }>
   highIntentPatients: Array<{
     user_id: string
@@ -754,8 +755,8 @@ export default function AdminPage() {
                           <span className="px-1.5 py-0.5 bg-violet-100 text-violet-700 rounded">{formatEventType(p.to)}</span>
                         </div>
                         <div className="text-right">
-                          <span className="text-sm font-semibold text-slate-900">{p.connection_count}</span>
-                          <span className="text-xs text-slate-400 ml-1">({p.avg_time_hours}h avg)</span>
+                          <span className="text-sm font-semibold text-slate-900">{p.connection_count}x</span>
+                          <span className="text-xs text-slate-400 ml-1">({p.unique_patients} users, {p.avg_time_hours}h)</span>
                         </div>
                       </div>
                     ))}

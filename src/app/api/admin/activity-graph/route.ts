@@ -67,16 +67,18 @@ export async function GET(request: Request) {
       to: string
       connection_count: number
       avg_time_hours: number
+      unique_patients: number
     }> = []
 
     if (!connectionsError && connections) {
       behavioralPatterns = connections
-        .filter(c => c.from_activity && c.to_activity) // Filter out incomplete data
+        .filter(c => (c.from_activity || c.activity_a) && (c.to_activity || c.activity_b))
         .map(c => ({
-          from: c.from_activity || 'unknown',
-          to: c.to_activity || 'unknown',
+          from: c.from_activity || c.activity_a || 'unknown',
+          to: c.to_activity || c.activity_b || 'unknown',
           connection_count: c.connection_count || 0,
-          avg_time_hours: c.avg_time_between_hours ? Math.round(c.avg_time_between_hours * 10) / 10 : 0
+          avg_time_hours: Math.round((c.avg_time_between_hours || c.avg_hours_between || 0) * 10) / 10,
+          unique_patients: c.unique_patients || 0
         }))
     }
 
