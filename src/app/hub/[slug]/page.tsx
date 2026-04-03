@@ -35,6 +35,13 @@ export default function HubViewPage() {
   const [email, setEmail] = useState('')
   const [subscribed, setSubscribed] = useState(false)
 
+  // Invite state
+  const [showInvite, setShowInvite] = useState(false)
+  const [inviteEmails, setInviteEmails] = useState('')
+  const [inviteMessage, setInviteMessage] = useState('')
+  const [inviteSending, setInviteSending] = useState(false)
+  const [inviteResult, setInviteResult] = useState<{ sent: number; failed: number } | null>(null)
+
   useEffect(() => {
     // Load hub from localStorage
     const hubs = JSON.parse(localStorage.getItem('careCircleHubs') || '[]') as Hub[]
@@ -79,6 +86,63 @@ export default function HubViewPage() {
     navigator.clipboard.writeText(url)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleSendInvites = async () => {
+    if (!hub || !inviteEmails.trim()) return
+
+    setInviteSending(true)
+    setInviteResult(null)
+
+    // Parse emails (comma or newline separated)
+    const emails = inviteEmails
+      .split(/[,\n]/)
+      .map(e => e.trim())
+      .filter(e => e.length > 0)
+
+    try {
+      const response = await fetch('/api/hub/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          emails,
+          hubSlug: slug,
+          patientName: hub.patientName,
+          inviterName: hub.patientName, // Owner's name
+          personalMessage: inviteMessage.trim() || undefined,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setInviteResult({ sent: data.sent, failed: data.failed })
+        setInviteEmails('')
+        setInviteMessage('')
+
+        // Log the invite activity
+        logActivity({
+          activityType: 'caregiver_invite',
+          metadata: {
+            hubSlug: slug,
+            hubName: hub.patientName,
+            inviteCount: data.sent,
+          },
+        })
+
+        // Close after success
+        setTimeout(() => {
+          setShowInvite(false)
+          setInviteResult(null)
+        }, 3000)
+      } else {
+        console.error('Invite error:', data.error)
+      }
+    } catch (err) {
+      console.error('Failed to send invites:', err)
+    } finally {
+      setInviteSending(false)
+    }
   }
 
   const handleSubscribe = () => {
@@ -264,6 +328,87 @@ export default function HubViewPage() {
                 Post Update
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Invite People (Owner Only) */}
+        {isOwner && (
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="font-semibold text-slate-900">Invite Your Circle</h2>
+              {!showInvite && (
+                <button
+                  onClick={() => setShowInvite(true)}
+                  className="text-rose-600 hover:text-rose-700 text-sm font-medium"
+                >
+                  + Invite People
+                </button>
+              )}
+            </div>
+
+            {showInvite && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm text-slate-600 mb-2">
+                    Email addresses (one per line or comma-separated)
+                  </label>
+                  <textarea
+                    value={inviteEmails}
+                    onChange={(e) => setInviteEmails(e.target.value)}
+                    placeholder="mom@example.com&#10;sister@example.com&#10;friend@example.com"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none text-sm"
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-600 mb-2">
+                    Personal message (optional)
+                  </label>
+                  <textarea
+                    value={inviteMessage}
+                    onChange={(e) => setInviteMessage(e.target.value)}
+                    placeholder="I'd love for you to follow my journey here..."
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none text-sm"
+                    rows={2}
+                  />
+                </div>
+
+                {inviteResult && (
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-center">
+                    <p className="text-green-700 text-sm">
+                      ✓ Sent {inviteResult.sent} invite{inviteResult.sent !== 1 ? 's' : ''}
+                      {inviteResult.failed > 0 && ` (${inviteResult.failed} failed)`}
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowInvite(false)
+                      setInviteEmails('')
+                      setInviteMessage('')
+                    }}
+                    className="flex-1 px-4 py-3 border border-slate-300 rounded-xl text-slate-600 hover:bg-slate-50 font-medium transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSendInvites}
+                    disabled={!inviteEmails.trim() || inviteSending}
+                    className="flex-1 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 disabled:from-slate-300 disabled:to-slate-300 text-white font-semibold px-4 py-3 rounded-xl transition-all"
+                  >
+                    {inviteSending ? 'Sending...' : 'Send Invites'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {!showInvite && hub.subscribers.length > 0 && (
+              <p className="text-slate-500 text-sm">
+                {hub.subscribers.length} {hub.subscribers.length === 1 ? 'person has' : 'people have'} joined your circle
+              </p>
+            )}
           </div>
         )}
 

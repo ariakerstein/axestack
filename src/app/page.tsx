@@ -432,14 +432,14 @@ function HomeContent() {
               </div>
               {/* CTA + Social proof */}
               <div className="border-t border-slate-100 p-4 bg-gradient-to-r from-violet-50/50 to-transparent">
-                <div className="flex items-center justify-between gap-4">
-                  <Link href="/about" className="flex items-center gap-3 hover:opacity-80 transition-opacity py-2 -my-1">
-                    <img src="/ari.png" alt="Ari" className="w-8 h-8 rounded-full object-cover" />
-                    <p className="text-xs text-slate-500"><span className="font-medium text-slate-700">Built by a cancer survivor</span></p>
+                <div className="flex items-center justify-between gap-3">
+                  <Link href="/about" className="flex items-center gap-2 hover:opacity-80 transition-opacity py-2 -my-1 min-w-0">
+                    <img src="/ari.png" alt="Ari" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                    <p className="text-xs text-slate-500 truncate"><span className="font-medium text-slate-700">Built by a survivor</span></p>
                   </Link>
                   <button
                     onClick={() => { setShowWizardModal(true); setWizardStep(1); setWizardRole(null); }}
-                    className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold px-8 py-3 rounded-xl transition-all shadow-lg shadow-orange-500/25 hover:shadow-xl hover:scale-105 min-h-[44px]"
+                    className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold px-4 sm:px-8 py-3 rounded-xl transition-all shadow-lg shadow-orange-500/25 hover:shadow-xl hover:scale-105 min-h-[44px] whitespace-nowrap flex-shrink-0"
                   >
                     Start Here →
                   </button>

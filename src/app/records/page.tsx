@@ -567,18 +567,29 @@ export default function RecordsVaultPage() {
           chatMessages: [],
         }
 
-        // Save full translation data
-        const existingData = localStorage.getItem('axestack-translations-data') || '{}'
-        const translationData = JSON.parse(existingData)
-        translationData[translationId] = translation
-        localStorage.setItem('axestack-translations-data', JSON.stringify(translationData))
-
-        // Update index for quick listing
-        const existingIndex = JSON.parse(localStorage.getItem('axestack-translations') || '[]')
+        // Save full translation data (with error handling for quota)
         const newEntry = { id: translationId, fileName: uploadedFile.file.name, date: translation.date, documentType: data.analysis?.document_type || 'Unknown' }
-        const updatedIndex = [newEntry, ...existingIndex]
-        localStorage.setItem('axestack-translations', JSON.stringify(updatedIndex))
-        setSavedTranslations(updatedIndex)
+        try {
+          const existingData = localStorage.getItem('axestack-translations-data') || '{}'
+          const translationData = JSON.parse(existingData)
+          translationData[translationId] = translation
+          localStorage.setItem('axestack-translations-data', JSON.stringify(translationData))
+
+          // Update index for quick listing
+          const existingIndex = JSON.parse(localStorage.getItem('axestack-translations') || '[]')
+          const updatedIndex = [newEntry, ...existingIndex]
+          localStorage.setItem('axestack-translations', JSON.stringify(updatedIndex))
+          setSavedTranslations(updatedIndex)
+        } catch (err) {
+          console.error('localStorage save failed (quota?):', err)
+          // Still update state so user sees the record this session
+          setSavedTranslations(prev => [newEntry, ...prev])
+          // Warning will show if user isn't authenticated
+          if (!user) {
+            setStorageWarning('Local storage is full. Sign in to save records to the cloud.')
+            setTimeout(() => setStorageWarning(null), 8000)
+          }
+        }
 
         // Track successful upload with user_id for records/profile analytics
         trackEvent('record_upload', {
@@ -713,16 +724,25 @@ export default function RecordsVaultPage() {
           chatMessages: [],
         }
 
-        const existingData = localStorage.getItem('axestack-translations-data') || '{}'
-        const translationData = JSON.parse(existingData)
-        translationData[translationId] = translation
-        localStorage.setItem('axestack-translations-data', JSON.stringify(translationData))
-
-        const existingIndex = JSON.parse(localStorage.getItem('axestack-translations') || '[]')
         const newEntry = { id: translationId, fileName: uploadedFile.file.name, date: translation.date, documentType: data.analysis?.document_type || 'Unknown' }
-        const updatedIndex = [newEntry, ...existingIndex]
-        localStorage.setItem('axestack-translations', JSON.stringify(updatedIndex))
-        setSavedTranslations(updatedIndex)
+        try {
+          const existingData = localStorage.getItem('axestack-translations-data') || '{}'
+          const translationData = JSON.parse(existingData)
+          translationData[translationId] = translation
+          localStorage.setItem('axestack-translations-data', JSON.stringify(translationData))
+
+          const existingIndex = JSON.parse(localStorage.getItem('axestack-translations') || '[]')
+          const updatedIndex = [newEntry, ...existingIndex]
+          localStorage.setItem('axestack-translations', JSON.stringify(updatedIndex))
+          setSavedTranslations(updatedIndex)
+        } catch (err) {
+          console.error('localStorage save failed (quota?):', err)
+          setSavedTranslations(prev => [newEntry, ...prev])
+          if (!user) {
+            setStorageWarning('Local storage is full. Sign in to save records to the cloud.')
+            setTimeout(() => setStorageWarning(null), 8000)
+          }
+        }
 
         // Auto-save to cloud if user is authenticated
         if (user) {

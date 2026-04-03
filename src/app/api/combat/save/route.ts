@@ -55,6 +55,52 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Save to knowledge graph (async, non-blocking)
+    // 1. Save the combat question as an entity
+    ;(async () => {
+      try {
+        await supabase.from('patient_entities').insert({
+          user_id: userId || null,
+          session_id: sessionId,
+          entity_type: 'combat_question',
+          entity_value: question.slice(0, 500),
+          entity_status: phase, // 'diagnosis' or 'treatment'
+          confidence: 1.0,
+          source_type: 'combat',
+          metadata: {
+            combat_id: data?.id,
+            evidence_strength: evidenceStrength,
+            record_count: recordsSummary?.count || 0,
+            cancer_type: recordsSummary?.cancer_type || null,
+          }
+        })
+        console.log('Combat question saved to graph')
+      } catch (err) {
+        console.error('Failed to save combat question to graph:', err)
+      }
+    })()
+
+    // 2. Save consensus points as entities (key insights)
+    if (consensus && consensus.length > 0) {
+      ;(async () => {
+        try {
+          const consensusEntities = consensus.slice(0, 5).map((point: string) => ({
+            user_id: userId || null,
+            session_id: sessionId,
+            entity_type: 'combat_insight',
+            entity_value: point.slice(0, 500),
+            entity_status: 'consensus',
+            confidence: 0.9,
+            source_type: 'combat',
+            metadata: { combat_id: data?.id, phase }
+          }))
+          await supabase.from('patient_entities').insert(consensusEntities)
+        } catch (err) {
+          console.error('Failed to save consensus to graph:', err)
+        }
+      })()
+    }
+
     return NextResponse.json({ success: true, data })
   } catch (error) {
     console.error('Combat save error:', error)

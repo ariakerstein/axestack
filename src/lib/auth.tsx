@@ -43,6 +43,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!hasAuthTokens) {
       // No tokens = definitely guest, stop loading immediately
       setLoading(false)
+    } else {
+      // Has tokens - but add a failsafe timeout in case getSession() hangs
+      const timeout = setTimeout(() => {
+        setLoading(false)
+      }, 2000) // Max 2 seconds wait
+      return () => clearTimeout(timeout)
     }
   }, [])
 
@@ -90,24 +96,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Get initial session (async, but we may have already set loading=false for guests)
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
 
-      // Load profile and migrate data for logged in users
+      // Set loading false IMMEDIATELY after session check
+      // Don't wait for profile - that's a nice-to-have, not blocking
+      setLoading(false)
+
+      // Load profile and migrate data in background for logged in users
       if (session?.user) {
-        // Don't block on migration - run in background
+        // All of these run in background - don't block UI
         migrateSessionDecks(session.user.id)
-
-        // Load profile (this is the only blocking call for auth users)
-        const existingProfile = await loadProfile(session.user.email!)
-
-        // Sync from localStorage in background if needed
-        if (!existingProfile) {
-          syncProfileToSupabase(session.user.email!) // Don't await
-        }
+        loadProfile(session.user.email!).then(existingProfile => {
+          if (!existingProfile) {
+            syncProfileToSupabase(session.user.email!)
+          }
+        })
       }
-
+    }).catch(() => {
+      // Even on error, stop loading
       setLoading(false)
     })
 
@@ -220,10 +228,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(null)
       setProfile(null)
 
-      // Clear localStorage profile - back to guest mode
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('patient-profile')
-      }
+      // NOTE: We keep localStorage profile so returning users retain their data
+      // This allows: sign in → set profile → sign out → sign in → profile still there
+      // The profile will sync to Supabase on next sign-in if needed
 
       // Sign out from Supabase (clears auth tokens)
       const { error } = await supabase.auth.signOut()
