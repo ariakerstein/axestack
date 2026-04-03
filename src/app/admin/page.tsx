@@ -296,6 +296,7 @@ export default function AdminPage() {
   const [userStats, setUserStats] = useState<UserStats | null>(null)
   const [loadingUserStats, setLoadingUserStats] = useState(false)
   const [showQuestionsDrillDown, setShowQuestionsDrillDown] = useState(false)
+  const [showUploaderEmails, setShowUploaderEmails] = useState(false)
 
   // Entity Graph enhanced state
   const [selectedDiagnosis, setSelectedDiagnosis] = useState<string | null>(null)
@@ -1968,6 +1969,8 @@ export default function AdminPage() {
                 value={data.summary.avgRecordsPerUser || 0}
                 subtext={`${data.summary.usersWithRecords || 0} uploaders`}
                 icon="📊"
+                clickable
+                onClick={() => setShowUploaderEmails(!showUploaderEmails)}
               />
               <SummaryCard
                 label="Combat Analyses"
@@ -1975,6 +1978,44 @@ export default function AdminPage() {
                 icon="⚔️"
               />
             </div>
+
+            {/* Uploader Emails Drilldown */}
+            {showUploaderEmails && winbackData && (
+              <div className="bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-200 rounded-xl shadow p-6 mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-slate-900">📧 Uploader Emails ({winbackData.winbackUsers.length} users who uploaded but haven&apos;t run Combat)</h2>
+                  <button
+                    onClick={() => setShowUploaderEmails(false)}
+                    className="text-slate-400 hover:text-slate-600"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="bg-white rounded-lg p-4 max-h-64 overflow-y-auto">
+                  <div className="space-y-2">
+                    {winbackData.winbackUsers.map((user, i) => (
+                      <div key={i} className="flex items-center justify-between py-1 border-b border-slate-100 last:border-0">
+                        <span className="text-sm text-slate-700">{user.email}</span>
+                        <span className="text-xs text-slate-400">{user.uploadCount} records</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <p className="text-xs text-slate-500 mt-3">
+                  These users uploaded records but never ran Combat. Great winback targets!
+                </p>
+                <button
+                  onClick={() => {
+                    const emails = winbackData.winbackUsers.map(u => u.email).join(', ')
+                    navigator.clipboard.writeText(emails)
+                    alert('Emails copied to clipboard!')
+                  }}
+                  className="mt-3 px-4 py-2 bg-violet-600 text-white text-sm rounded-lg hover:bg-violet-700"
+                >
+                  📋 Copy All Emails
+                </button>
+              </div>
+            )}
 
             {/* Combat Stats Section */}
             {data.combatStats && data.combatStats.total > 0 && (
