@@ -21,17 +21,13 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const startDate = new Date()
-  startDate.setDate(startDate.getDate() - days)
-
   try {
     const supabase = getSupabase()
 
-    // Get activity stats by type
+    // Get activity stats by type (all time - no date filter)
     const { data: activities, error: activitiesError } = await supabase
       .from('patient_activity')
       .select('activity_type, created_at, user_id, metadata')
-      .gte('created_at', startDate.toISOString())
       .order('created_at', { ascending: false })
 
     if (activitiesError) {
@@ -145,7 +141,7 @@ export async function GET(request: Request) {
     }))
 
     return NextResponse.json({
-      period: `Last ${days} days`,
+      period: 'All time',
       summary: {
         totalActivities: activities?.length || 0,
         uniqueUsers: uniqueUsers.size,
