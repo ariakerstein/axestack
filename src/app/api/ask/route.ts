@@ -75,6 +75,29 @@ async function saveInteractionToGraph(
   })
 }
 
+// Log eval metrics for quality analysis (async, non-blocking)
+async function logEvalMetrics(params: {
+  question: string
+  response: string
+  userId?: string
+  sessionId?: string
+  cancerType?: string
+  hasPatientContext: boolean
+  confidenceScore?: number
+  usedFallback?: boolean
+}): Promise<void> {
+  try {
+    // Call our eval logging endpoint
+    await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://opencancer.ai'}/api/eval/log`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    })
+  } catch (err) {
+    console.error('Eval logging failed:', err)
+  }
+}
+
 interface Message {
   role: 'user' | 'assistant'
   content: string
@@ -248,8 +271,22 @@ ${enrichedQuestion}`
 
       if (fallbackResponse.ok) {
         const fallbackData = await fallbackResponse.json()
+        const fallbackResponseText = fallbackData.response || fallbackData.answer || ragResponse
+
+        // Log eval metrics for fallback path (async, non-blocking)
+        logEvalMetrics({
+          question: message,
+          response: fallbackResponseText,
+          userId,
+          sessionId,
+          cancerType,
+          hasPatientContext: !!patientContext,
+          confidenceScore: fallbackData.confidenceScore,
+          usedFallback: true,
+        }).catch(() => {})
+
         return NextResponse.json({
-          response: fallbackData.response || fallbackData.answer || ragResponse,
+          response: fallbackResponseText,
           cancerType: cancerType || null,
           // Note: fallback won't have citations since it skipped RAG
           confidenceScore: fallbackData.confidenceScore,
@@ -266,6 +303,18 @@ ${enrichedQuestion}`
     saveInteractionToGraph(message, userId, sessionId).catch(err => {
       console.error('Failed to save interaction to graph:', err)
     })
+
+    // Log eval metrics for quality analysis (async, non-blocking)
+    logEvalMetrics({
+      question: message,
+      response: ragResponse,
+      userId,
+      sessionId,
+      cancerType,
+      hasPatientContext: !!patientContext,
+      confidenceScore: data.confidenceScore,
+      usedFallback: false,
+    }).catch(() => {})
 
     // direct-navis returns: { response, confidenceScore, citations, citationUrls, followUpQuestions }
     return NextResponse.json({
