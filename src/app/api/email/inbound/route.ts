@@ -30,10 +30,15 @@ interface ResendInboundEmail {
 export async function POST(request: NextRequest) {
   try {
     // Verify webhook signature if secret is set
-    const signature = request.headers.get('resend-signature')
+    // Resend uses Svix for webhooks - check multiple possible header names
+    const signature = request.headers.get('svix-signature') || request.headers.get('resend-signature')
     if (RESEND_WEBHOOK_SECRET && !signature) {
+      console.log('Webhook headers:', Object.fromEntries(request.headers.entries()))
       return NextResponse.json({ error: 'Missing signature' }, { status: 401 })
     }
+
+    // TODO: Add proper svix signature verification
+    // For now, accept if signature is present (Resend signed it)
 
     const payload: ResendInboundEmail = await request.json()
 
