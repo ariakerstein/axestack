@@ -996,7 +996,7 @@ function HomeContent() {
                 <div>
                   <h3 className="font-semibold text-slate-900 mb-1">Understand the diagnosis</h3>
                   <p className="text-sm text-slate-600 mb-2">Translate medical jargon into plain English with our Records Vault.</p>
-                  <Link href="/records" onClick={() => trackEvent('caregiver_need_click', { need: 'understand_diagnosis', tool: 'records' })} className="inline-block text-sm text-violet-600 hover:text-violet-700 font-medium py-2 -my-1">
+                  <Link href="/records" onClick={() => trackEvent('caregiver_need_click', { need: 'understand_diagnosis', tool: 'records' })} className="inline-flex items-center text-sm text-violet-600 hover:text-violet-700 font-medium min-h-[44px]">
                     Upload records →
                   </Link>
                 </div>
@@ -1011,7 +1011,7 @@ function HomeContent() {
                 <div>
                   <h3 className="font-semibold text-slate-900 mb-1">Explore treatment options</h3>
                   <p className="text-sm text-slate-600 mb-2">Get a comprehensive case review and understand all the options.</p>
-                  <Link href="/records/case-review" onClick={() => trackEvent('caregiver_need_click', { need: 'treatment_options', tool: 'case_review' })} className="inline-block text-sm text-violet-600 hover:text-violet-700 font-medium py-2 -my-1">
+                  <Link href="/records/case-review" onClick={() => trackEvent('caregiver_need_click', { need: 'treatment_options', tool: 'case_review' })} className="inline-flex items-center text-sm text-violet-600 hover:text-violet-700 font-medium min-h-[44px]">
                     Start case review →
                   </Link>
                 </div>
@@ -1026,7 +1026,7 @@ function HomeContent() {
                 <div>
                   <h3 className="font-semibold text-slate-900 mb-1">Prepare for appointments</h3>
                   <p className="text-sm text-slate-600 mb-2">Know exactly what to ask the oncologist with our question generator.</p>
-                  <Link href="/cancer-checklist" onClick={() => trackEvent('caregiver_need_click', { need: 'appointment_prep', tool: 'checklist' })} className="inline-block text-sm text-violet-600 hover:text-violet-700 font-medium py-2 -my-1">
+                  <Link href="/cancer-checklist" onClick={() => trackEvent('caregiver_need_click', { need: 'appointment_prep', tool: 'checklist' })} className="inline-flex items-center text-sm text-violet-600 hover:text-violet-700 font-medium min-h-[44px]">
                     Build question list →
                   </Link>
                 </div>
@@ -1041,7 +1041,7 @@ function HomeContent() {
                 <div>
                   <h3 className="font-semibold text-slate-900 mb-1">Coordinate the care team</h3>
                   <p className="text-sm text-slate-600 mb-2">Share updates without repeating yourself. Keep everyone informed.</p>
-                  <Link href="/hub" onClick={() => trackEvent('caregiver_need_click', { need: 'coordinate_care', tool: 'carecircle' })} className="inline-block text-sm text-violet-600 hover:text-violet-700 font-medium py-2 -my-1">
+                  <Link href="/hub" onClick={() => trackEvent('caregiver_need_click', { need: 'coordinate_care', tool: 'carecircle' })} className="inline-flex items-center text-sm text-violet-600 hover:text-violet-700 font-medium min-h-[44px]">
                     Create CareCircle →
                   </Link>
                 </div>

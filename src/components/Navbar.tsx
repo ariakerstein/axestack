@@ -38,14 +38,14 @@ export function Navbar({ showBack = false, backHref = '/', backLabel = 'Home' }:
 
           {/* Right side - Desktop */}
           <div className="hidden sm:flex items-center gap-4">
-            <nav className="flex items-center gap-4 text-sm">
-              <Link href="/records" className="text-slate-600 hover:text-violet-600 transition-colors">
+            <nav className="flex items-center gap-2 text-sm">
+              <Link href="/records" className="text-slate-600 hover:text-violet-600 transition-colors px-3 py-2 min-h-[44px] flex items-center">
                 Records
               </Link>
-              <Link href="/ask" className="text-slate-600 hover:text-violet-600 transition-colors">
+              <Link href="/ask" className="text-slate-600 hover:text-violet-600 transition-colors px-3 py-2 min-h-[44px] flex items-center">
                 Ask Navis
               </Link>
-              <Link href="/trials" className="text-slate-600 hover:text-violet-600 transition-colors">
+              <Link href="/trials" className="text-slate-600 hover:text-violet-600 transition-colors px-3 py-2 min-h-[44px] flex items-center">
                 Trials
               </Link>
             </nav>
@@ -90,34 +90,34 @@ export function Navbar({ showBack = false, backHref = '/', backLabel = 'Home' }:
           {/* Mobile menu button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="sm:hidden p-2 text-slate-500 hover:text-slate-700"
+            className="sm:hidden p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-500 hover:text-slate-700"
           >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
 
         {/* Mobile menu */}
         {mobileMenuOpen && (
           <div className="sm:hidden border-t border-slate-100 bg-white">
-            <nav className="flex flex-col px-4 py-3 gap-2">
+            <nav className="flex flex-col px-4 py-2">
               <Link
                 href="/records"
                 onClick={() => setMobileMenuOpen(false)}
-                className="py-2 text-slate-700 hover:text-violet-600 transition-colors"
+                className="py-3 min-h-[44px] flex items-center text-slate-700 hover:text-violet-600 transition-colors"
               >
                 Records
               </Link>
               <Link
                 href="/ask"
                 onClick={() => setMobileMenuOpen(false)}
-                className="py-2 text-slate-700 hover:text-violet-600 transition-colors"
+                className="py-3 min-h-[44px] flex items-center text-slate-700 hover:text-violet-600 transition-colors"
               >
                 Ask Navis
               </Link>
               <Link
                 href="/trials"
                 onClick={() => setMobileMenuOpen(false)}
-                className="py-2 text-slate-700 hover:text-violet-600 transition-colors"
+                className="py-3 min-h-[44px] flex items-center text-slate-700 hover:text-violet-600 transition-colors"
               >
                 Trials
               </Link>

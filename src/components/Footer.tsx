@@ -35,51 +35,51 @@ export function Footer() {
 
           {/* Tools */}
           <div>
-            <h3 className="font-semibold text-slate-900 text-sm mb-3">Tools</h3>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="/records" className="text-slate-600 hover:text-violet-600 transition-colors">Records Vault</Link></li>
-              <li><Link href="/ask" className="text-slate-600 hover:text-violet-600 transition-colors">Ask Navis</Link></li>
-              <li><Link href="/trials" className="text-slate-600 hover:text-violet-600 transition-colors">Clinical Trials</Link></li>
-              <li><Link href="/cancer-checklist" className="text-slate-600 hover:text-violet-600 transition-colors">Cancer Checklist</Link></li>
-              <li><Link href="/oncologists" className="text-slate-600 hover:text-violet-600 transition-colors">Find Oncologists</Link></li>
+            <h3 className="font-semibold text-slate-900 text-sm mb-2">Tools</h3>
+            <ul className="space-y-0 text-sm">
+              <li><Link href="/records" className="text-slate-600 hover:text-violet-600 transition-colors py-2 min-h-[44px] flex items-center">Records Vault</Link></li>
+              <li><Link href="/ask" className="text-slate-600 hover:text-violet-600 transition-colors py-2 min-h-[44px] flex items-center">Ask Navis</Link></li>
+              <li><Link href="/trials" className="text-slate-600 hover:text-violet-600 transition-colors py-2 min-h-[44px] flex items-center">Clinical Trials</Link></li>
+              <li><Link href="/cancer-checklist" className="text-slate-600 hover:text-violet-600 transition-colors py-2 min-h-[44px] flex items-center">Cancer Checklist</Link></li>
+              <li><Link href="/oncologists" className="text-slate-600 hover:text-violet-600 transition-colors py-2 min-h-[44px] flex items-center">Find Oncologists</Link></li>
             </ul>
           </div>
 
           {/* Community */}
           <div>
-            <h3 className="font-semibold text-slate-900 text-sm mb-3">Community</h3>
-            <ul className="space-y-2 text-sm">
+            <h3 className="font-semibold text-slate-900 text-sm mb-2">Community</h3>
+            <ul className="space-y-0 text-sm">
               <li>
-                <a href="https://cancerhackerlab.com" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:text-violet-600 transition-colors inline-flex items-center gap-1">
+                <a href="https://cancerhackerlab.com" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:text-violet-600 transition-colors py-2 min-h-[44px] flex items-center gap-1">
                   Cancer Hacker Lab <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
               <li>
-                <a href="https://community.cancerpatientlab.org" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:text-violet-600 transition-colors inline-flex items-center gap-1">
+                <a href="https://community.cancerpatientlab.org" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:text-violet-600 transition-colors py-2 min-h-[44px] flex items-center gap-1">
                   Discussion Forum <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
-              <li><Link href="/about" className="text-slate-600 hover:text-violet-600 transition-colors">About</Link></li>
-              <li><Link href="/privacy" className="text-slate-600 hover:text-violet-600 transition-colors">Privacy & Terms</Link></li>
+              <li><Link href="/about" className="text-slate-600 hover:text-violet-600 transition-colors py-2 min-h-[44px] flex items-center">About</Link></li>
+              <li><Link href="/privacy" className="text-slate-600 hover:text-violet-600 transition-colors py-2 min-h-[44px] flex items-center">Privacy & Terms</Link></li>
             </ul>
           </div>
 
           {/* Open Source */}
           <div>
-            <h3 className="font-semibold text-slate-900 text-sm mb-3">Open Source</h3>
-            <ul className="space-y-2 text-sm">
+            <h3 className="font-semibold text-slate-900 text-sm mb-2">Open Source</h3>
+            <ul className="space-y-0 text-sm">
               <li>
-                <a href="https://github.com/ariakerstein/opencancer-skills" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:text-violet-600 transition-colors inline-flex items-center gap-1">
+                <a href="https://github.com/ariakerstein/opencancer-skills" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:text-violet-600 transition-colors py-2 min-h-[44px] flex items-center gap-1">
                   GitHub <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
               <li>
-                <a href="https://axestack.com" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:text-violet-600 transition-colors inline-flex items-center gap-1">
+                <a href="https://axestack.com" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:text-violet-600 transition-colors py-2 min-h-[44px] flex items-center gap-1">
                   Axestack <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
             </ul>
-            <p className="text-xs text-slate-500 mt-3">
+            <p className="text-xs text-slate-500 mt-2">
               Contribute code, suggest features, or fork it for your own community. PRs welcome.
             </p>
           </div>
