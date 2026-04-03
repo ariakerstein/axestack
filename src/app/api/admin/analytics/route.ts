@@ -243,21 +243,14 @@ export async function GET(request: Request) {
       deviceTypes[device] = (deviceTypes[device] || 0) + 1
     })
 
-    // Records analytics - count by both user_id and session_id
-    const recordUploads = opencancerEvents.filter((e: { event_type: string }) => e.event_type === 'record_upload')
-
-    // By logged-in user (user_id)
-    const usersWithRecords = new Set(
-      recordUploads
-        .filter((e: { metadata?: { user_id?: string } }) => e.metadata?.user_id)
-        .map((e: { metadata?: { user_id?: string } }) => e.metadata?.user_id)
-    )
-    const userRecordUploads = recordUploads.filter((e: { metadata?: { user_id?: string } }) => e.metadata?.user_id).length
-    const avgRecordsPerUser = usersWithRecords.size > 0
-      ? (userRecordUploads / usersWithRecords.size).toFixed(1)
+    // Records analytics - use patient_activity (authoritative) for uploaders
+    // recordUploaders and recordsUploaded already computed from patient_activity above
+    const avgRecordsPerUser = recordUploaders.size > 0
+      ? (recordsUploaded / recordUploaders.size).toFixed(1)
       : '0'
 
-    // By session (includes anonymous users)
+    // Session counts still from analytics_events (for anonymous tracking)
+    const recordUploads = opencancerEvents.filter((e: { event_type: string }) => e.event_type === 'record_upload')
     const sessionsWithRecords = new Set(
       recordUploads.map((e: { session_id: string }) => e.session_id)
     )
@@ -324,10 +317,10 @@ export async function GET(request: Request) {
         // Auth user counts (separate from profiles)
         totalUsers: totalUserCount,
         usersCreatedInPeriod,
-        // Records engagement (among active uploaders only)
-        avgRecordsPerUser: parseFloat(avgRecordsPerUser),     // logged-in users only
-        avgRecordsPerSession: parseFloat(avgRecordsPerSession), // all uploaders (incl anonymous)
-        usersWithRecords: usersWithRecords.size,              // logged-in uploaders
+        // Records engagement (from patient_activity - authoritative)
+        avgRecordsPerUser: parseFloat(avgRecordsPerUser),     // all-time uploaders
+        avgRecordsPerSession: parseFloat(avgRecordsPerSession), // session-based (from analytics_events)
+        usersWithRecords: recordUploaders.size,               // from patient_activity (authoritative)
         sessionsWithRecords: sessionsWithRecords.size,        // all uploading sessions
         combatAnalyses: combatStats.total,
       },
