@@ -360,10 +360,10 @@ export default function AdminPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6 border-b border-slate-200">
+        <div className="flex gap-2 mb-6 border-b border-slate-200 overflow-x-auto">
           <button
             onClick={() => setActiveTab('analytics')}
-            className={`px-4 py-2 font-medium transition-colors border-b-2 -mb-px ${
+            className={`px-4 py-2 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
               activeTab === 'analytics'
                 ? 'text-violet-600 border-violet-600'
                 : 'text-slate-500 border-transparent hover:text-slate-700'
@@ -373,7 +373,7 @@ export default function AdminPage() {
           </button>
           <button
             onClick={() => setActiveTab('profiles')}
-            className={`px-4 py-2 font-medium transition-colors border-b-2 -mb-px ${
+            className={`px-4 py-2 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
               activeTab === 'profiles'
                 ? 'text-violet-600 border-violet-600'
                 : 'text-slate-500 border-transparent hover:text-slate-700'
@@ -383,7 +383,7 @@ export default function AdminPage() {
           </button>
           <button
             onClick={() => setActiveTab('usage')}
-            className={`px-4 py-2 font-medium transition-colors border-b-2 -mb-px ${
+            className={`px-4 py-2 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
               activeTab === 'usage'
                 ? 'text-violet-600 border-violet-600'
                 : 'text-slate-500 border-transparent hover:text-slate-700'
@@ -391,6 +391,18 @@ export default function AdminPage() {
           >
             API Usage {usageData?.summary?.totalCalls ? `($${usageData.summary.estimatedCostUsd})` : ''}
           </button>
+          <a
+            href="/admin/graph"
+            className="px-4 py-2 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap text-slate-500 border-transparent hover:text-slate-700 flex items-center gap-1"
+          >
+            🕸️ Knowledge Graph
+          </a>
+          <a
+            href="/admin/evals"
+            className="px-4 py-2 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap text-slate-500 border-transparent hover:text-slate-700 flex items-center gap-1"
+          >
+            📊 Navis Evals
+          </a>
         </div>
 
         {loading ? (
