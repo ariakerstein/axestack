@@ -854,7 +854,7 @@ export default function CombatPage() {
   }, [])
   const [streamingContent, setStreamingContent] = useState('')
   const { trackEvent } = useAnalytics()
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
 
   // Deliberation theater state
   const [activePerspective, setActivePerspective] = useState<'guidelines' | 'research' | 'integrative' | null>(null)
@@ -953,24 +953,122 @@ export default function CombatPage() {
     setTimeout(addNext, 500)
   }
 
-  // Load records on mount
+  // Load records on mount - from localStorage first, then Supabase
   useEffect(() => {
-    const data = localStorage.getItem('axestack-translations-data')
-    if (!data) {
+    // Only run on client side
+    if (typeof window === 'undefined') return
+
+    // Timeout fallback - don't hang forever
+    const timeout = setTimeout(() => {
+      if (loading) {
+        console.log('Combat: Auth timeout, proceeding without auth')
+        setLoading(false)
+      }
+    }, 3000)
+
+    const loadRecords = async () => {
+      // Always load from localStorage first (fast, synchronous)
+      const data = localStorage.getItem('axestack-translations-data')
+      let localRecords: SavedTranslation[] = []
+
+      if (data) {
+        try {
+          const translations = JSON.parse(data)
+          localRecords = Object.values(translations)
+          localRecords.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+          console.log('Combat: Loaded', localRecords.length, 'records from localStorage')
+          setRecords(localRecords)
+        } catch (e) {
+          console.error('Combat: Failed to load local records:', e)
+        }
+      } else {
+        console.log('Combat: No records in localStorage')
+      }
+
+      // Wait for auth to settle before fetching from cloud
+      if (authLoading) {
+        // Don't set loading=false yet, wait for auth
+        return
+      }
+
+      // Then, fetch from Supabase if user is authenticated
+      if (user) {
+        try {
+          const { supabase } = await import('@/lib/supabase')
+          const { data: { session } } = await supabase.auth.getSession()
+
+          if (session?.access_token) {
+            const response = await fetch('/api/records/save', {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${session.access_token}`,
+              },
+            })
+
+            if (response.ok) {
+              const { records: cloudRecords } = await response.json()
+              console.log('Combat: Fetched', cloudRecords?.length || 0, 'records from cloud')
+
+              if (cloudRecords && cloudRecords.length > 0) {
+                // Merge cloud records with localStorage by fileName (more reliable than ID)
+                const localFileNames = new Set(localRecords.map(r => r.fileName?.toLowerCase()))
+                const newRecords = cloudRecords.filter((r: SavedTranslation) =>
+                  !localFileNames.has(r.fileName?.toLowerCase())
+                )
+
+                if (newRecords.length > 0) {
+                  console.log('Combat: Adding', newRecords.length, 'new records from cloud')
+                  // Add to localStorage
+                  const existingData = JSON.parse(localStorage.getItem('axestack-translations-data') || '{}')
+                  newRecords.forEach((r: SavedTranslation) => {
+                    existingData[r.id] = {
+                      id: r.id,
+                      fileName: r.fileName,
+                      date: r.date,
+                      documentType: r.documentType,
+                      result: r.result,
+                      documentText: '',
+                    }
+                  })
+                  localStorage.setItem('axestack-translations-data', JSON.stringify(existingData))
+
+                  // Update state with merged records
+                  const merged = [...newRecords, ...localRecords]
+                  merged.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                  setRecords(merged)
+                } else if (localRecords.length === 0) {
+                  // No local records - use cloud records directly
+                  console.log('Combat: Using cloud records (no local)')
+                  setRecords(cloudRecords)
+                  // Also save to localStorage for offline access
+                  const newData: Record<string, SavedTranslation> = {}
+                  cloudRecords.forEach((r: SavedTranslation) => {
+                    newData[r.id] = {
+                      id: r.id,
+                      fileName: r.fileName,
+                      date: r.date,
+                      documentType: r.documentType,
+                      result: r.result,
+                      documentText: '',
+                    }
+                  })
+                  localStorage.setItem('axestack-translations-data', JSON.stringify(newData))
+                }
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Combat: Failed to fetch cloud records:', err)
+        }
+      }
+
       setLoading(false)
-      return
     }
 
-    try {
-      const translations = JSON.parse(data)
-      const recordList: SavedTranslation[] = Object.values(translations)
-      recordList.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      setRecords(recordList)
-    } catch (e) {
-      console.error('Failed to load records:', e)
-    }
-    setLoading(false)
-  }, [])
+    loadRecords()
+
+    return () => clearTimeout(timeout)
+  }, [user, authLoading, loading])
 
   const runCombat = async (targetPhase: 'diagnosis' | 'treatment') => {
     if (records.length === 0) return

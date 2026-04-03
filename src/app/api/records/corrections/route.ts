@@ -4,7 +4,9 @@ import { createClient } from '@supabase/supabase-js'
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://felofmlhqwcdpiyjgstx.supabase.co"
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+function getSupabase() {
+  return createClient(SUPABASE_URL, SUPABASE_KEY)
+}
 
 interface Correction {
   field: string
@@ -25,6 +27,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const supabase = getSupabase()
     // Try to find by record ID or session
     let query = supabase
       .from('medical_records')
@@ -58,6 +61,7 @@ export async function GET(request: NextRequest) {
 // POST - Save a correction
 export async function POST(request: NextRequest) {
   try {
+    const supabase = getSupabase()
     const body = await request.json()
     const { recordId, sessionId, userId, field, original, corrected, note } = body
 
@@ -72,9 +76,6 @@ export async function POST(request: NextRequest) {
       note: note || undefined,
       corrected_at: new Date().toISOString(),
     }
-
-    // Build the update query
-    let query = supabase.from('medical_records')
 
     // Try to find existing record
     let existingRecord = null
@@ -139,6 +140,7 @@ export async function POST(request: NextRequest) {
 // DELETE - Remove a correction
 export async function DELETE(request: NextRequest) {
   try {
+    const supabase = getSupabase()
     const body = await request.json()
     const { recordId, field } = body
 

@@ -162,6 +162,11 @@ const TESTIMONIALS = [
     context: "Stage IV Prostate Cancer",
   },
   {
+    quote: "When I read this stuff I get chills. Whoever came up with this is fire. Good job Ari!",
+    name: "Russ H.",
+    context: "Prostate Cancer",
+  },
+  {
     quote: "Having my oncologist, Cancer Commons, and Dr. Gatenby all tell me I'm on the right path — and now CancerCombat AI agrees. It's validating to have multiple expert perspectives align.",
     name: "Russ H.",
     context: "Stage IV Prostate Cancer",
@@ -301,7 +306,18 @@ function HomeContent() {
         <div className="absolute top-20 right-1/4 w-80 h-80 bg-fuchsia-400/15 rounded-full blur-3xl" />
 
         <div className="relative text-center max-w-4xl">
-          {profile ? (
+          {authLoading ? (
+            /* Show minimal loading state while auth loads */
+            <div className="py-8">
+              <h1 className="text-5xl md:text-6xl font-bold mb-4">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500">
+                  opencancer
+                </span>
+                <span className="text-slate-400">.ai</span>
+              </h1>
+              <div className="animate-pulse text-slate-400 mt-4">Loading...</div>
+            </div>
+          ) : profile ? (
             <>
               {/* Brand */}
               <h1 className="text-4xl md:text-5xl font-bold mb-6">
@@ -373,8 +389,8 @@ function HomeContent() {
         </div>
       </section>
 
-      {/* Value Demo - Clean and focused */}
-      {!profile && (
+      {/* Value Demo - Clean and focused - only show when auth is loaded and no profile */}
+      {!authLoading && !profile && (
         <section className="px-8 pb-10 -mt-2">
           <div className="max-w-2xl mx-auto">
             <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">

@@ -158,7 +158,23 @@ export async function POST(request: NextRequest) {
       console.error('Supabase edge function error:', errorText)
       console.error('Failed file details:', { fileName, fileType, fileSizeMB: fileSizeMB.toFixed(2), isPDF, isImage, isTextBased })
 
-      // Provide more helpful error messages
+      // Try to parse actual error from edge function
+      let actualError = ''
+      try {
+        const errorData = JSON.parse(errorText)
+        actualError = errorData.error || ''
+        console.error('Parsed error from edge function:', actualError)
+      } catch (e) {
+        // Couldn't parse, use raw text
+        actualError = errorText.substring(0, 200)
+      }
+
+      // Show the actual API error if available
+      if (actualError) {
+        throw new Error(actualError)
+      }
+
+      // Fallback error messages
       if (response.status === 500) {
         if (fileSizeMB > 10) {
           throw new Error(`File may be too large (${fileSizeMB.toFixed(1)}MB). Try a smaller PDF or split into multiple files.`)

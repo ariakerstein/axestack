@@ -162,6 +162,8 @@ export default function RecordsVaultPage() {
   const [reportSent, setReportSent] = useState(false)
   const [reportError, setReportError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [shareLinkCopied, setShareLinkCopied] = useState(false)
+  const [creatingShareLink, setCreatingShareLink] = useState(false)
   const [chatOpen, setChatOpen] = useState(false)
   const [showPrivacyModal, setShowPrivacyModal] = useState(false)
   const [privacyAcknowledged, setPrivacyAcknowledged] = useState(false)
@@ -189,6 +191,32 @@ export default function RecordsVaultPage() {
   // @opencancer.ai email state
   const [showEmailModal, setShowEmailModal] = useState(false)
   const [claimedEmail, setClaimedEmail] = useState<string | null>(null)
+
+  // Load claimed email from database
+  useEffect(() => {
+    const loadClaimedEmail = async () => {
+      const sessionId = localStorage.getItem('opencancer_session_id')
+      if (!sessionId && !user?.id) return
+
+      try {
+        const { supabase } = await import('@/lib/supabase')
+        const { data } = await supabase
+          .from('email_addresses')
+          .select('username')
+          .or(`session_id.eq.${sessionId}${user?.id ? `,user_id.eq.${user.id}` : ''}`)
+          .eq('status', 'active')
+          .limit(1)
+          .single()
+
+        if (data?.username) {
+          setClaimedEmail(`${data.username}@opencancer.ai`)
+        }
+      } catch (e) {
+        // No claimed email, that's fine
+      }
+    }
+    loadClaimedEmail()
+  }, [user])
 
   // Track referral arrivals from share links
   useEffect(() => {
@@ -497,6 +525,34 @@ export default function RecordsVaultPage() {
           bulk_total: uploadedFiles.length,
           user_id: user?.id || null,
         })
+
+        // Auto-save to cloud if user is authenticated (fire and forget)
+        if (user) {
+          (async () => {
+            try {
+              const { supabase } = await import('@/lib/supabase')
+              const { data: { session } } = await supabase.auth.getSession()
+              if (session?.access_token) {
+                await fetch('/api/records/save', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`,
+                  },
+                  body: JSON.stringify({
+                    fileName: uploadedFile.file.name,
+                    documentType: data.analysis?.document_type,
+                    result: data.analysis,
+                    documentText: data.documentText,
+                    chatMessages: [],
+                  }),
+                })
+              }
+            } catch (err) {
+              console.error('Cloud sync failed:', err)
+            }
+          })()
+        }
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : 'Failed to process'
         console.error(`[Bulk] Failed: ${uploadedFile.file.name}`, err)
@@ -599,6 +655,34 @@ export default function RecordsVaultPage() {
         const updatedIndex = [newEntry, ...existingIndex]
         localStorage.setItem('axestack-translations', JSON.stringify(updatedIndex))
         setSavedTranslations(updatedIndex)
+
+        // Auto-save to cloud if user is authenticated
+        if (user) {
+          (async () => {
+            try {
+              const { supabase } = await import('@/lib/supabase')
+              const { data: { session } } = await supabase.auth.getSession()
+              if (session?.access_token) {
+                await fetch('/api/records/save', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`,
+                  },
+                  body: JSON.stringify({
+                    fileName: uploadedFile.file.name,
+                    documentType: data.analysis?.document_type,
+                    result: data.analysis,
+                    documentText: data.documentText,
+                    chatMessages: [],
+                  }),
+                })
+              }
+            } catch (err) {
+              console.error('Cloud sync failed:', err)
+            }
+          })()
+        }
 
       } catch (err) {
         console.error(`[Retry] Failed: ${uploadedFile.file.name}`, err)
@@ -829,6 +913,13 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
   </ul>
   ` : ''}
 
+  ${result.recommended_next_steps && result.recommended_next_steps.length > 0 ? `
+  <h2>✅ Recommended Next Steps</h2>
+  <ul>
+    ${result.recommended_next_steps.map(s => `<li>${s}</li>`).join('')}
+  </ul>
+  ` : ''}
+
   <div class="footer">
     <p><strong>Disclaimer:</strong> This is an educational summary only. Not medical advice. Always discuss with your healthcare provider.</p>
     <p style="margin-top: 8px;">Generated by <a href="https://opencancer.ai/records">opencancer.ai/records</a></p>
@@ -882,6 +973,48 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
     } else if (method === 'email') {
       window.location.href = `mailto:?subject=${encodeURIComponent('Tool that helped me understand my medical records')}&body=${encodeURIComponent(`${shareText}\n\n${shareUrl}`)}`
       setShowShareModal(false)
+    }
+  }
+
+  // Create shareable link for this specific record
+  const handleCopyRecordLink = async () => {
+    if (!result || !file) return
+
+    setCreatingShareLink(true)
+    try {
+      const response = await fetch('/api/share', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileName: file.name,
+          documentType: result.document_type,
+          result: result,
+          summary: result.test_summary,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to create share link')
+      }
+
+      const { shareUrl } = await response.json()
+      await navigator.clipboard.writeText(shareUrl)
+      setShareLinkCopied(true)
+      setTimeout(() => setShareLinkCopied(false), 3000)
+
+      trackEvent('record_share_link_created', {
+        document_type: result.document_type,
+        has_cancer_info: result.cancer_specific?.cancer_type !== 'unknown',
+      })
+    } catch (err) {
+      console.error('Failed to create share link:', err)
+      // Fallback: copy a message instead
+      const fallbackText = `Check out my medical record summary on opencancer.ai`
+      await navigator.clipboard.writeText(fallbackText)
+      setShareLinkCopied(true)
+      setTimeout(() => setShareLinkCopied(false), 3000)
+    } finally {
+      setCreatingShareLink(false)
     }
   }
 
@@ -1221,6 +1354,9 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
             </Link>
             <Link href="/trials" className="text-slate-600 hover:text-violet-600 transition-colors">
               Trials
+            </Link>
+            <Link href="/combat" className="text-slate-600 hover:text-orange-600 transition-colors">
+              Combat
             </Link>
           </nav>
 
@@ -2009,6 +2145,18 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                   )}
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    onClick={handleCopyRecordLink}
+                    disabled={creatingShareLink}
+                    className={`px-3 py-2 rounded-lg font-medium text-sm transition-colors flex items-center gap-1.5 ${
+                      shareLinkCopied
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700'
+                    }`}
+                  >
+                    <Link2 className="w-3.5 h-3.5" />
+                    {creatingShareLink ? 'Creating...' : shareLinkCopied ? 'Link Copied!' : 'Copy Link'}
+                  </button>
                   <button
                     onClick={handleSendReport}
                     className="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-medium text-sm transition-colors flex items-center gap-1.5"

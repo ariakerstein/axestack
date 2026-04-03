@@ -2,6 +2,33 @@
 
 import { useState, useEffect } from 'react'
 
+interface UsageData {
+  summary: {
+    totalCalls: number
+    totalInputTokens: number
+    totalOutputTokens: number
+    totalTokens: number
+    estimatedCostUsd: string
+    successRate: number
+  }
+  byOperation: Array<{ operation: string; count: number; tokens: number; cost: number }>
+  byModel: Array<{ model: string; count: number; tokens: number; cost: number }>
+  byFileType: Array<{ fileType: string; count: number; tokens: number; cost: number }>
+  dailyUsage: Array<{ date: string; calls: number; tokens: number; cost: number }>
+  recentCalls: Array<{
+    id: string
+    operation: string
+    model: string
+    inputTokens: number
+    outputTokens: number
+    cost: number
+    fileType: string
+    success: boolean
+    createdAt: string
+  }>
+  message?: string
+}
+
 interface AnalyticsData {
   period: string
   summary: {
@@ -139,12 +166,13 @@ interface UserStats {
 export default function AdminPage() {
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [profilesData, setProfilesData] = useState<ProfilesData | null>(null)
+  const [usageData, setUsageData] = useState<UsageData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [adminKey, setAdminKey] = useState('')
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [days, setDays] = useState(30)
-  const [activeTab, setActiveTab] = useState<'analytics' | 'profiles'>('analytics')
+  const [activeTab, setActiveTab] = useState<'analytics' | 'profiles' | 'usage'>('analytics')
   const [selectedProfile, setSelectedProfile] = useState<ProfileData | null>(null)
   const [userStats, setUserStats] = useState<UserStats | null>(null)
   const [loadingUserStats, setLoadingUserStats] = useState(false)
@@ -170,8 +198,9 @@ export default function AdminPage() {
       setIsAuthenticated(true)
       // Save key to localStorage for convenience
       localStorage.setItem('opencancer_admin_key', key)
-      // Also fetch profiles
+      // Also fetch profiles and usage
       fetchProfiles(key)
+      fetchUsage(key, numDays)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
@@ -190,6 +219,20 @@ export default function AdminPage() {
       }
     } catch (err) {
       console.error('Error fetching profiles:', err)
+    }
+  }
+
+  const fetchUsage = async (key: string, numDays: number) => {
+    try {
+      const res = await fetch(`/api/admin/usage?days=${numDays}`, {
+        headers: { 'x-admin-key': key }
+      })
+      if (res.ok) {
+        const json = await res.json()
+        setUsageData(json)
+      }
+    } catch (err) {
+      console.error('Error fetching usage:', err)
     }
   }
 
@@ -281,7 +324,11 @@ export default function AdminPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
             <h1 className="text-3xl font-bold text-slate-900">Admin Dashboard</h1>
-            <p className="text-slate-600 mt-1">{activeTab === 'analytics' ? (data?.period || `Last ${days} days`) : `${profilesData?.total || 0} profiles`}</p>
+            <p className="text-slate-600 mt-1">{
+              activeTab === 'analytics' ? (data?.period || `Last ${days} days`) :
+              activeTab === 'usage' ? `API cost: $${usageData?.summary?.estimatedCostUsd || '0.00'} (${days} days)` :
+              `${profilesData?.total || 0} profiles`
+            }</p>
           </div>
           <div className="flex items-center gap-4">
             {activeTab === 'analytics' && (
@@ -298,7 +345,7 @@ export default function AdminPage() {
               </select>
             )}
             <button
-              onClick={() => { fetchAnalytics(adminKey, days); fetchProfiles(adminKey); }}
+              onClick={() => { fetchAnalytics(adminKey, days); fetchProfiles(adminKey); fetchUsage(adminKey, days); }}
               className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition"
             >
               Refresh
@@ -334,6 +381,16 @@ export default function AdminPage() {
           >
             Profiles {profilesData?.total ? `(${profilesData.total})` : ''}
           </button>
+          <button
+            onClick={() => setActiveTab('usage')}
+            className={`px-4 py-2 font-medium transition-colors border-b-2 -mb-px ${
+              activeTab === 'usage'
+                ? 'text-violet-600 border-violet-600'
+                : 'text-slate-500 border-transparent hover:text-slate-700'
+            }`}
+          >
+            API Usage {usageData?.summary?.totalCalls ? `($${usageData.summary.estimatedCostUsd})` : ''}
+          </button>
         </div>
 
         {loading ? (
@@ -342,6 +399,188 @@ export default function AdminPage() {
           </div>
         ) : error ? (
           <div className="bg-red-50 text-red-700 p-4 rounded-lg">{error}</div>
+        ) : activeTab === 'usage' ? (
+          /* Usage Tab */
+          <div className="space-y-6">
+            {usageData?.message && (
+              <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg text-sm">
+                {usageData.message}
+              </div>
+            )}
+
+            {/* Summary Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+              <div className="bg-white rounded-xl shadow p-4">
+                <p className="text-2xl font-bold text-slate-900">{usageData?.summary?.totalCalls || 0}</p>
+                <p className="text-xs text-slate-500">API Calls</p>
+              </div>
+              <div className="bg-white rounded-xl shadow p-4">
+                <p className="text-2xl font-bold text-blue-600">{((usageData?.summary?.totalInputTokens || 0) / 1000).toFixed(1)}K</p>
+                <p className="text-xs text-slate-500">Input Tokens</p>
+              </div>
+              <div className="bg-white rounded-xl shadow p-4">
+                <p className="text-2xl font-bold text-purple-600">{((usageData?.summary?.totalOutputTokens || 0) / 1000).toFixed(1)}K</p>
+                <p className="text-xs text-slate-500">Output Tokens</p>
+              </div>
+              <div className="bg-white rounded-xl shadow p-4">
+                <p className="text-2xl font-bold text-emerald-600">{((usageData?.summary?.totalTokens || 0) / 1000).toFixed(1)}K</p>
+                <p className="text-xs text-slate-500">Total Tokens</p>
+              </div>
+              <div className="bg-gradient-to-br from-violet-50 to-fuchsia-50 rounded-xl shadow p-4 border border-violet-200">
+                <p className="text-2xl font-bold text-violet-700">${usageData?.summary?.estimatedCostUsd || '0.00'}</p>
+                <p className="text-xs text-violet-600 font-medium">Est. Cost</p>
+              </div>
+              <div className="bg-white rounded-xl shadow p-4">
+                <p className="text-2xl font-bold text-slate-900">{usageData?.summary?.successRate || 100}%</p>
+                <p className="text-xs text-slate-500">Success Rate</p>
+              </div>
+            </div>
+
+            {/* Charts Row */}
+            <div className="grid lg:grid-cols-3 gap-6">
+              {/* By Operation */}
+              <div className="bg-white rounded-xl shadow p-6">
+                <h3 className="text-lg font-semibold text-slate-900 mb-4">By Operation</h3>
+                {!usageData?.byOperation?.length ? (
+                  <p className="text-slate-500 text-sm">No data yet</p>
+                ) : (
+                  <div className="space-y-3">
+                    {usageData.byOperation.map((item) => (
+                      <div key={item.operation} className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-violet-500" />
+                          <span className="text-sm text-slate-700 capitalize">{item.operation}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-sm font-semibold text-slate-900">{item.count}</span>
+                          <span className="text-xs text-slate-400 ml-2">${item.cost.toFixed(4)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* By Model */}
+              <div className="bg-white rounded-xl shadow p-6">
+                <h3 className="text-lg font-semibold text-slate-900 mb-4">By Model</h3>
+                {!usageData?.byModel?.length ? (
+                  <p className="text-slate-500 text-sm">No data yet</p>
+                ) : (
+                  <div className="space-y-3">
+                    {usageData.byModel.map((item) => (
+                      <div key={item.model} className="flex items-center justify-between">
+                        <span className="text-sm text-slate-700 truncate max-w-[120px]" title={item.model}>
+                          {item.model.replace('claude-', '').replace(/-20\d{6}/, '')}
+                        </span>
+                        <div className="text-right">
+                          <span className="text-sm font-semibold text-slate-900">{item.count}</span>
+                          <span className="text-xs text-slate-400 ml-2">${item.cost.toFixed(4)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* By File Type */}
+              <div className="bg-white rounded-xl shadow p-6">
+                <h3 className="text-lg font-semibold text-slate-900 mb-4">By File Type</h3>
+                {!usageData?.byFileType?.length ? (
+                  <p className="text-slate-500 text-sm">No data yet</p>
+                ) : (
+                  <div className="space-y-3">
+                    {usageData.byFileType.map((item) => (
+                      <div key={item.fileType} className="flex items-center justify-between">
+                        <span className="text-sm text-slate-700 capitalize">{item.fileType || 'unknown'}</span>
+                        <div className="text-right">
+                          <span className="text-sm font-semibold text-slate-900">{item.count}</span>
+                          <span className="text-xs text-slate-400 ml-2">${item.cost.toFixed(4)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Daily Usage Chart */}
+            {usageData?.dailyUsage && usageData.dailyUsage.length > 0 && (() => {
+              const chartData = usageData.dailyUsage.slice(0, 14).reverse()
+              const maxCost = Math.max(...chartData.map(d => d.cost), 0.01)
+
+              return (
+                <div className="bg-white rounded-xl shadow p-6">
+                  <h3 className="text-lg font-semibold text-slate-900 mb-4">Daily Cost (14 days)</h3>
+                  <div className="flex items-end gap-1 h-32">
+                    {chartData.map((day) => (
+                      <div key={day.date} className="flex-1 flex flex-col items-center group relative">
+                        <div
+                          className="w-full bg-gradient-to-t from-violet-500 to-fuchsia-400 rounded-t hover:from-violet-600 hover:to-fuchsia-500 transition-colors cursor-pointer"
+                          style={{ height: `${(day.cost / maxCost) * 100}%`, minHeight: day.cost > 0 ? '4px' : '0' }}
+                        />
+                        <div className="absolute bottom-full mb-1 hidden group-hover:block bg-slate-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                          {day.date.slice(5)}: ${day.cost.toFixed(4)} ({day.calls} calls)
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-slate-500 mt-2 text-center">
+                    Total: ${chartData.reduce((sum, d) => sum + d.cost, 0).toFixed(4)} | {chartData.reduce((sum, d) => sum + d.calls, 0)} calls
+                  </p>
+                </div>
+              )
+            })()}
+
+            {/* Recent Calls Table */}
+            <div className="bg-white rounded-xl shadow p-6">
+              <h3 className="text-lg font-semibold text-slate-900 mb-4">Recent API Calls</h3>
+              {!usageData?.recentCalls?.length ? (
+                <p className="text-slate-500 text-sm">No API calls yet</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-200">
+                        <th className="text-left py-2 px-2 font-medium text-slate-600">Operation</th>
+                        <th className="text-left py-2 px-2 font-medium text-slate-600">Model</th>
+                        <th className="text-right py-2 px-2 font-medium text-slate-600">Input</th>
+                        <th className="text-right py-2 px-2 font-medium text-slate-600">Output</th>
+                        <th className="text-right py-2 px-2 font-medium text-slate-600">Cost</th>
+                        <th className="text-center py-2 px-2 font-medium text-slate-600">Status</th>
+                        <th className="text-right py-2 px-2 font-medium text-slate-600">Time</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {usageData.recentCalls.map((call) => (
+                        <tr key={call.id} className="border-b border-slate-100 hover:bg-slate-50">
+                          <td className="py-2 px-2">
+                            <span className="px-2 py-0.5 bg-violet-100 text-violet-700 rounded text-xs font-medium capitalize">
+                              {call.operation}
+                            </span>
+                          </td>
+                          <td className="py-2 px-2 text-slate-600 text-xs font-mono">
+                            {call.model?.replace('claude-', '').replace(/-20\d{6}/, '') || 'unknown'}
+                          </td>
+                          <td className="py-2 px-2 text-right text-slate-700 tabular-nums">{(call.inputTokens || 0).toLocaleString()}</td>
+                          <td className="py-2 px-2 text-right text-slate-700 tabular-nums">{(call.outputTokens || 0).toLocaleString()}</td>
+                          <td className="py-2 px-2 text-right text-slate-900 font-medium tabular-nums">${call.cost?.toFixed(4) || '0.0000'}</td>
+                          <td className="py-2 px-2 text-center">
+                            {call.success ? (
+                              <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" title="Success" />
+                            ) : (
+                              <span className="w-2 h-2 rounded-full bg-red-500 inline-block" title="Failed" />
+                            )}
+                          </td>
+                          <td className="py-2 px-2 text-right text-slate-500 text-xs">{formatTimestamp(call.createdAt)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
         ) : activeTab === 'profiles' ? (
           /* Profiles Tab */
           <div>

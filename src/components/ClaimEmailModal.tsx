@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Mail, Check, AlertCircle, Sparkles, ArrowRight, FileText, Loader2 } from 'lucide-react'
+import { X, Mail, Check, AlertCircle, Sparkles, ArrowRight, FileText, Loader2, Shield } from 'lucide-react'
 
 interface ClaimEmailModalProps {
   isOpen: boolean
@@ -144,19 +144,10 @@ export function ClaimEmailModal({ isOpen, onClose, sessionId, userId, onSuccess 
           ) : (
             <>
               {/* Value proposition */}
-              <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center flex-shrink-0">
-                    <Sparkles className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-900">The Hotmail moment for cancer care</p>
-                    <p className="text-sm text-slate-600 mt-1">
-                      Forward ANY medical email or document to your @opencancer.ai address.
-                      It automatically appears in your Records Vault, translated and organized.
-                    </p>
-                  </div>
-                </div>
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                <p className="text-sm text-slate-600">
+                  Forward medical emails to store securely and auto-update your case file. Your records become a living document that grows with each email.
+                </p>
               </div>
 
               {/* Username input */}
@@ -170,7 +161,7 @@ export function ClaimEmailModal({ isOpen, onClose, sessionId, userId, onSuccess 
                     value={username}
                     onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9._-]/g, ''))}
                     placeholder="yourname"
-                    className={`w-full px-4 py-3 pr-32 border rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-lg font-medium ${
+                    className={`w-full px-4 py-3 pr-32 border rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-lg font-medium text-slate-900 placeholder:text-slate-400 ${
                       error ? 'border-red-300' : available ? 'border-emerald-300' : 'border-slate-300'
                     }`}
                   />
@@ -206,25 +197,25 @@ export function ClaimEmailModal({ isOpen, onClose, sessionId, userId, onSuccess 
               <div className="border-t border-slate-200 pt-4">
                 <h4 className="text-sm font-medium text-slate-700 mb-3">How it works:</h4>
                 <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2 text-slate-600">
+                  <div className="flex flex-col items-center gap-1 text-slate-600">
                     <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center">
                       <Mail className="w-4 h-4 text-violet-600" />
                     </div>
-                    <span>Doctor sends email</span>
+                    <span className="text-xs text-center">Forward<br/>email</span>
                   </div>
                   <ArrowRight className="w-4 h-4 text-slate-300" />
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 text-xs font-bold">
-                      @
+                  <div className="flex flex-col items-center gap-1 text-slate-600">
+                    <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center">
+                      <Shield className="w-4 h-4 text-violet-600" />
                     </div>
-                    <span>Hits your inbox</span>
+                    <span className="text-xs text-center">Stored<br/>securely</span>
                   </div>
                   <ArrowRight className="w-4 h-4 text-slate-300" />
-                  <div className="flex items-center gap-2 text-slate-600">
+                  <div className="flex flex-col items-center gap-1 text-slate-600">
                     <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center">
                       <FileText className="w-4 h-4 text-violet-600" />
                     </div>
-                    <span>Auto in Vault</span>
+                    <span className="text-xs text-center">Case file<br/>updated</span>
                   </div>
                 </div>
               </div>
