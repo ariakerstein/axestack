@@ -42,15 +42,21 @@ export async function GET(request: Request) {
 
     activities?.forEach((a) => {
       // Count by type
-      activityCounts[a.activity_type] = (activityCounts[a.activity_type] || 0) + 1
+      if (a.activity_type) {
+        activityCounts[a.activity_type] = (activityCounts[a.activity_type] || 0) + 1
+      }
 
       // Track unique users
       if (a.user_id) uniqueUsers.add(a.user_id)
 
-      // Daily breakdown
-      const date = a.created_at.split('T')[0]
-      if (!dailyActivity[date]) dailyActivity[date] = {}
-      dailyActivity[date][a.activity_type] = (dailyActivity[date][a.activity_type] || 0) + 1
+      // Daily breakdown (skip if no created_at)
+      if (a.created_at) {
+        const date = a.created_at.split('T')[0]
+        if (!dailyActivity[date]) dailyActivity[date] = {}
+        if (a.activity_type) {
+          dailyActivity[date][a.activity_type] = (dailyActivity[date][a.activity_type] || 0) + 1
+        }
+      }
     })
 
     // Get behavioral patterns from patient_graph_connections view
@@ -134,9 +140,9 @@ export async function GET(request: Request) {
 
     // Recent activities (last 20)
     const recentActivities = (activities || []).slice(0, 20).map(a => ({
-      type: a.activity_type,
-      user: a.user_id?.substring(0, 8) + '...',
-      timestamp: a.created_at,
+      type: a.activity_type || 'unknown',
+      user: a.user_id ? a.user_id.substring(0, 8) + '...' : 'anonymous',
+      timestamp: a.created_at || null,
       metadata: a.metadata
     }))
 
