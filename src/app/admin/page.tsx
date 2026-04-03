@@ -1562,6 +1562,28 @@ export default function AdminPage() {
               )}
             </div>
 
+            {/* Pharma Insight Bar - The sentence they'd pay to read */}
+            {entityGraphData && generateInsights().length > 0 && (
+              <div className="bg-gradient-to-r from-amber-900 via-orange-900 to-red-900 rounded-xl p-6 border border-amber-700">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 bg-amber-500/20 rounded-full flex items-center justify-center">
+                    <span className="text-xl">💡</span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-amber-200 font-semibold mb-2 text-sm uppercase tracking-wide">Clinical Insights</h3>
+                    <div className="space-y-2">
+                      {generateInsights().map((insight, i) => (
+                        <p key={i} className="text-white text-sm leading-relaxed">{insight}</p>
+                      ))}
+                    </div>
+                    <p className="text-amber-400/70 text-xs mt-3 italic">
+                      These insights are auto-generated from patient graph data — the seed of your B2B product.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Ontology Explanation */}
             <div className="bg-gradient-to-br from-violet-50 to-fuchsia-50 border border-violet-200 rounded-xl p-6">
               <h3 className="font-semibold text-slate-900 mb-3">🧠 What is this?</h3>
@@ -1584,6 +1606,13 @@ export default function AdminPage() {
                     <li>• received_treatment, uploaded, asked</li>
                   </ul>
                 </div>
+              </div>
+              <div className="mt-4 pt-4 border-t border-violet-200">
+                <p className="text-xs text-violet-600 font-medium">B2B Signal:</p>
+                <p className="text-xs text-slate-600">
+                  <span className="text-red-600 font-medium">Non-SOC treatments</span> = treatment-experienced patients actively seeking alternatives.
+                  This is pharma gold: patients who have exhausted standard options.
+                </p>
               </div>
             </div>
           </div>
