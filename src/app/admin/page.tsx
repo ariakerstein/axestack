@@ -1270,17 +1270,20 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* Interactive Cross-Tab View: Click diagnosis to highlight related entities */}
-            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 rounded-xl shadow-xl p-6">
+            {/* Cross-Tab: Diagnosis → Biomarkers → Treatments */}
+            <div className="bg-gradient-to-br from-blue-50 to-violet-50 border border-blue-200 rounded-xl shadow p-6">
               <div className="mb-4 flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-semibold text-white">Clinical Intelligence Cross-Tab</h2>
-                  <p className="text-xs text-slate-400">Click any diagnosis to see co-occurring biomarkers and treatments</p>
+                  <h2 className="text-lg font-semibold text-slate-900">🧬 Cross-Tab Analysis</h2>
+                  <p className="text-sm text-slate-600 mt-1">
+                    <strong>How it works:</strong> Click a diagnosis to see what biomarkers and treatments patients with that diagnosis have.
+                    This answers: &quot;For patients with X cancer, what biomarkers are they tracking and what treatments have they tried?&quot;
+                  </p>
                 </div>
                 {selectedDiagnosis && (
                   <button
                     onClick={() => setSelectedDiagnosis(null)}
-                    className="text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-1 rounded-full"
+                    className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-full"
                   >
                     Clear Selection
                   </button>
@@ -1289,7 +1292,7 @@ export default function AdminPage() {
 
               {/* Diagnosis pills - clickable */}
               <div className="mb-6">
-                <p className="text-xs text-slate-500 mb-2 uppercase tracking-wide">Diagnoses</p>
+                <p className="text-xs text-slate-500 mb-2 uppercase tracking-wide font-medium">Click a diagnosis:</p>
                 <div className="flex flex-wrap gap-2">
                   {entityGraphData?.crossTab?.map((row, i) => (
                     <button
@@ -1297,10 +1300,10 @@ export default function AdminPage() {
                       onClick={() => setSelectedDiagnosis(selectedDiagnosis === row.diagnosis ? null : row.diagnosis)}
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                         selectedDiagnosis === row.diagnosis
-                          ? 'bg-blue-500 text-white ring-2 ring-blue-400 ring-offset-2 ring-offset-slate-900'
+                          ? 'bg-blue-600 text-white ring-2 ring-blue-400'
                           : selectedDiagnosis
-                            ? 'bg-slate-800 text-slate-500 opacity-50'
-                            : 'bg-slate-700 text-slate-200 hover:bg-slate-600'
+                            ? 'bg-slate-100 text-slate-400'
+                            : 'bg-white text-slate-700 hover:bg-blue-100 border border-slate-200'
                       }`}
                     >
                       {row.diagnosis}
@@ -1312,26 +1315,26 @@ export default function AdminPage() {
 
               {/* Selected diagnosis detail view */}
               {selectedDiagnosis && getCoOccurringEntities() && (
-                <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700 mb-6">
-                  <h3 className="text-white font-semibold mb-4 capitalize flex items-center gap-2">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+                <div className="bg-white rounded-xl p-4 border border-blue-200 mb-6">
+                  <h3 className="text-slate-900 font-semibold mb-4 capitalize flex items-center gap-2">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
                     {selectedDiagnosis}
-                    <span className="text-xs font-normal text-slate-400">
-                      ({getCoOccurringEntities()?.patientCount} patients)
+                    <span className="text-xs font-normal text-slate-500">
+                      ({getCoOccurringEntities()?.patientCount} patients with this diagnosis)
                     </span>
                   </h3>
                   <div className="grid sm:grid-cols-2 gap-6">
                     {/* Biomarkers */}
                     <div>
-                      <p className="text-xs text-emerald-400 mb-3 uppercase tracking-wide font-medium">Associated Biomarkers</p>
+                      <p className="text-xs text-emerald-700 mb-3 uppercase tracking-wide font-medium">Biomarkers They Track</p>
                       {getCoOccurringEntities()?.topBiomarkers.length === 0 ? (
-                        <p className="text-slate-500 text-sm">None extracted</p>
+                        <p className="text-slate-400 text-sm">None extracted from their records</p>
                       ) : (
                         <div className="space-y-2">
                           {getCoOccurringEntities()?.topBiomarkers.map((b, j) => (
-                            <div key={j} className="flex items-center justify-between bg-emerald-900/30 rounded-lg px-3 py-2">
-                              <span className="text-emerald-300 text-sm">{b.name}</span>
-                              <span className="text-emerald-500 text-xs font-mono">{b.count}x</span>
+                            <div key={j} className="flex items-center justify-between bg-emerald-50 rounded-lg px-3 py-2">
+                              <span className="text-emerald-800 text-sm">{b.name}</span>
+                              <span className="text-emerald-600 text-xs font-mono">{b.count}x</span>
                             </div>
                           ))}
                         </div>
@@ -1339,28 +1342,28 @@ export default function AdminPage() {
                     </div>
                     {/* Treatments with SOC badges */}
                     <div>
-                      <p className="text-xs text-orange-400 mb-3 uppercase tracking-wide font-medium">Treatments Used</p>
+                      <p className="text-xs text-orange-700 mb-3 uppercase tracking-wide font-medium">Treatments Used</p>
                       {getCoOccurringEntities()?.topTreatments.length === 0 ? (
-                        <p className="text-slate-500 text-sm">None extracted</p>
+                        <p className="text-slate-400 text-sm">None extracted from their records</p>
                       ) : (
                         <div className="space-y-2">
                           {getCoOccurringEntities()?.topTreatments.map((t, j) => {
                             const isSoc = isStandardOfCare(t.name, [selectedDiagnosis])
                             return (
                               <div key={j} className={`flex items-center justify-between rounded-lg px-3 py-2 ${
-                                isSoc ? 'bg-slate-700/50' : 'bg-red-900/30 border border-red-700/50'
+                                isSoc ? 'bg-slate-50' : 'bg-red-50 border border-red-200'
                               }`}>
                                 <div className="flex items-center gap-2">
-                                  <span className={`text-sm ${isSoc ? 'text-slate-300' : 'text-orange-300'}`}>{t.name}</span>
+                                  <span className={`text-sm ${isSoc ? 'text-slate-700' : 'text-red-700 font-medium'}`}>{t.name}</span>
                                   <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
                                     isSoc
-                                      ? 'bg-slate-600 text-slate-400'
+                                      ? 'bg-slate-200 text-slate-600'
                                       : 'bg-red-600 text-white'
                                   }`}>
-                                    {isSoc ? 'SOC' : 'Non-SOC'}
+                                    {isSoc ? 'Standard' : 'Non-Standard'}
                                   </span>
                                 </div>
-                                <span className="text-orange-500 text-xs font-mono">{t.count}x</span>
+                                <span className="text-orange-600 text-xs font-mono">{t.count}x</span>
                               </div>
                             )
                           })}
@@ -1378,32 +1381,32 @@ export default function AdminPage() {
                     <div
                       key={i}
                       onClick={() => setSelectedDiagnosis(row.diagnosis)}
-                      className="bg-slate-800/50 rounded-lg p-4 cursor-pointer hover:bg-slate-700/50 transition-colors border border-transparent hover:border-blue-500/50"
+                      className="bg-white rounded-lg p-4 cursor-pointer hover:bg-blue-50 transition-colors border border-slate-200 hover:border-blue-400"
                     >
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-semibold text-white capitalize text-sm">{row.diagnosis}</h3>
-                        <span className="text-xs bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded-full">{row.patientCount} pts</span>
+                        <h3 className="font-semibold text-slate-900 capitalize text-sm">{row.diagnosis}</h3>
+                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{row.patientCount} pts</span>
                       </div>
                       <div className="flex gap-1 flex-wrap">
                         {row.topTreatments.slice(0, 3).map((t, j) => {
                           const isSoc = isStandardOfCare(t.name, [row.diagnosis])
                           return (
                             <span key={j} className={`text-[10px] px-1.5 py-0.5 rounded ${
-                              isSoc ? 'bg-slate-700 text-slate-400' : 'bg-red-900/50 text-red-300'
+                              isSoc ? 'bg-slate-100 text-slate-600' : 'bg-red-100 text-red-600'
                             }`}>
                               {t.name}
                             </span>
                           )
                         })}
                         {row.topTreatments.length > 3 && (
-                          <span className="text-[10px] text-slate-500">+{row.topTreatments.length - 3}</span>
+                          <span className="text-[10px] text-slate-400">+{row.topTreatments.length - 3}</span>
                         )}
                       </div>
                     </div>
                   ))}
                 </div>
               ) : !selectedDiagnosis && (
-                <p className="text-slate-500 text-sm">No cross-tab data yet</p>
+                <p className="text-slate-500 text-sm">No cross-tab data yet. Entities are extracted from patient records.</p>
               )}
             </div>
 
@@ -1983,7 +1986,7 @@ export default function AdminPage() {
             {showUploaderEmails && winbackData && (
               <div className="bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-200 rounded-xl shadow p-6 mb-8">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-slate-900">📧 Uploader Emails ({winbackData.winbackUsers.length} users who uploaded but haven&apos;t run Combat)</h2>
+                  <h2 className="text-lg font-semibold text-slate-900">📧 Uploader Emails ({winbackData.users.length} users who uploaded but haven&apos;t run Combat)</h2>
                   <button
                     onClick={() => setShowUploaderEmails(false)}
                     className="text-slate-400 hover:text-slate-600"
@@ -1993,10 +1996,10 @@ export default function AdminPage() {
                 </div>
                 <div className="bg-white rounded-lg p-4 max-h-64 overflow-y-auto">
                   <div className="space-y-2">
-                    {winbackData.winbackUsers.map((user, i) => (
+                    {winbackData.users.map((user, i) => (
                       <div key={i} className="flex items-center justify-between py-1 border-b border-slate-100 last:border-0">
                         <span className="text-sm text-slate-700">{user.email}</span>
-                        <span className="text-xs text-slate-400">{user.uploadCount} records</span>
+                        <span className="text-xs text-slate-400">{user.record_uploads} records</span>
                       </div>
                     ))}
                   </div>
@@ -2006,7 +2009,7 @@ export default function AdminPage() {
                 </p>
                 <button
                   onClick={() => {
-                    const emails = winbackData.winbackUsers.map(u => u.email).join(', ')
+                    const emails = winbackData.users.map(u => u.email).join(', ')
                     navigator.clipboard.writeText(emails)
                     alert('Emails copied to clipboard!')
                   }}
