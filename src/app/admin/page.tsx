@@ -206,17 +206,54 @@ interface ActivityGraphData {
   }>
 }
 
+interface EntityGraphData {
+  stats: {
+    patient_count: number
+    diagnosis_count: number
+    biomarker_count: number
+    treatment_count: number
+    record_count: number
+    question_count: number
+    total_edges: number
+    similar_patient_pairs: number
+  }
+  topEntities: {
+    diagnoses: Array<{ name: string; count: number }>
+    biomarkers: Array<{ name: string; count: number }>
+    treatments: Array<{ name: string; count: number }>
+  }
+  cooccurrence: Array<{
+    entity_a: string
+    entity_b: string
+    patient_count: number
+  }>
+  similarPatients: Array<{
+    patientA: string
+    patientB: string
+    sharedEntities: number
+    sharedValues: string[]
+    similarity: number
+  }>
+  recentEdges: Array<{
+    from: string
+    relationship: string
+    to: string
+    when: string
+  }>
+}
+
 export default function AdminPage() {
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [profilesData, setProfilesData] = useState<ProfilesData | null>(null)
   const [usageData, setUsageData] = useState<UsageData | null>(null)
   const [activityGraphData, setActivityGraphData] = useState<ActivityGraphData | null>(null)
+  const [entityGraphData, setEntityGraphData] = useState<EntityGraphData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [adminKey, setAdminKey] = useState('')
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [days, setDays] = useState(30)
-  const [activeTab, setActiveTab] = useState<'analytics' | 'profiles' | 'usage' | 'activity'>('analytics')
+  const [activeTab, setActiveTab] = useState<'analytics' | 'profiles' | 'usage' | 'activity' | 'entity'>('analytics')
   const [selectedProfile, setSelectedProfile] = useState<ProfileData | null>(null)
   const [userStats, setUserStats] = useState<UserStats | null>(null)
   const [loadingUserStats, setLoadingUserStats] = useState(false)
@@ -246,6 +283,7 @@ export default function AdminPage() {
       fetchProfiles(key)
       fetchUsage(key, numDays)
       fetchActivityGraph(key, numDays)
+      fetchEntityGraph(key)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
@@ -292,6 +330,20 @@ export default function AdminPage() {
       }
     } catch (err) {
       console.error('Error fetching activity graph:', err)
+    }
+  }
+
+  const fetchEntityGraph = async (key: string) => {
+    try {
+      const res = await fetch('/api/admin/entity-graph', {
+        headers: { 'x-admin-key': key }
+      })
+      if (res.ok) {
+        const json = await res.json()
+        setEntityGraphData(json)
+      }
+    } catch (err) {
+      console.error('Error fetching entity graph:', err)
     }
   }
 
@@ -405,7 +457,7 @@ export default function AdminPage() {
               </select>
             )}
             <button
-              onClick={() => { fetchAnalytics(adminKey, days); fetchProfiles(adminKey); fetchUsage(adminKey, days); fetchActivityGraph(adminKey, days); }}
+              onClick={() => { fetchAnalytics(adminKey, days); fetchProfiles(adminKey); fetchUsage(adminKey, days); fetchActivityGraph(adminKey, days); fetchEntityGraph(adminKey); }}
               className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition"
             >
               Refresh
@@ -460,6 +512,16 @@ export default function AdminPage() {
             }`}
           >
             🔥 Activity Graph {activityGraphData?.summary?.totalActivities ? `(${activityGraphData.summary.totalActivities})` : ''}
+          </button>
+          <button
+            onClick={() => setActiveTab('entity')}
+            className={`px-4 py-2 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
+              activeTab === 'entity'
+                ? 'text-violet-600 border-violet-600'
+                : 'text-slate-500 border-transparent hover:text-slate-700'
+            }`}
+          >
+            🕸️ Entity Graph {entityGraphData?.stats?.total_edges ? `(${entityGraphData.stats.total_edges} edges)` : ''}
           </button>
           <a
             href="/admin/graph"
@@ -832,6 +894,209 @@ export default function AdminPage() {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        ) : activeTab === 'entity' ? (
+          /* Entity Graph Tab - Palantir-style ontology */
+          <div className="space-y-6">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
+              <div className="bg-white rounded-xl shadow p-4">
+                <p className="text-2xl font-bold text-slate-900">{entityGraphData?.stats?.patient_count || 0}</p>
+                <p className="text-xs text-slate-500">Patients</p>
+              </div>
+              <div className="bg-white rounded-xl shadow p-4">
+                <p className="text-2xl font-bold text-blue-600">{entityGraphData?.stats?.diagnosis_count || 0}</p>
+                <p className="text-xs text-slate-500">Diagnoses</p>
+              </div>
+              <div className="bg-white rounded-xl shadow p-4">
+                <p className="text-2xl font-bold text-emerald-600">{entityGraphData?.stats?.biomarker_count || 0}</p>
+                <p className="text-xs text-slate-500">Biomarkers</p>
+              </div>
+              <div className="bg-white rounded-xl shadow p-4">
+                <p className="text-2xl font-bold text-orange-600">{entityGraphData?.stats?.treatment_count || 0}</p>
+                <p className="text-xs text-slate-500">Treatments</p>
+              </div>
+              <div className="bg-white rounded-xl shadow p-4">
+                <p className="text-2xl font-bold text-violet-600">{entityGraphData?.stats?.record_count || 0}</p>
+                <p className="text-xs text-slate-500">Records</p>
+              </div>
+              <div className="bg-white rounded-xl shadow p-4">
+                <p className="text-2xl font-bold text-pink-600">{entityGraphData?.stats?.question_count || 0}</p>
+                <p className="text-xs text-slate-500">Questions</p>
+              </div>
+              <div className="bg-white rounded-xl shadow p-4">
+                <p className="text-2xl font-bold text-slate-700">{entityGraphData?.stats?.total_edges || 0}</p>
+                <p className="text-xs text-slate-500">Relationships</p>
+              </div>
+              <div className="bg-white rounded-xl shadow p-4">
+                <p className="text-2xl font-bold text-amber-600">{entityGraphData?.stats?.similar_patient_pairs || 0}</p>
+                <p className="text-xs text-slate-500">Similar Pairs</p>
+              </div>
+            </div>
+
+            {/* Top Entities */}
+            <div className="grid lg:grid-cols-3 gap-6">
+              {/* Top Diagnoses */}
+              <div className="bg-white rounded-xl shadow p-6">
+                <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                  <span className="w-3 h-3 bg-blue-500 rounded-full"></span>
+                  Top Diagnoses
+                </h3>
+                {!entityGraphData?.topEntities?.diagnoses?.length ? (
+                  <p className="text-slate-500 text-sm">No diagnoses yet</p>
+                ) : (
+                  <div className="space-y-2">
+                    {entityGraphData.topEntities.diagnoses.map((d, i) => (
+                      <div key={i} className="flex justify-between items-center">
+                        <span className="text-sm text-slate-700 truncate">{d.name}</span>
+                        <span className="text-sm font-semibold text-blue-600 tabular-nums">{d.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Top Biomarkers */}
+              <div className="bg-white rounded-xl shadow p-6">
+                <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                  <span className="w-3 h-3 bg-emerald-500 rounded-full"></span>
+                  Top Biomarkers
+                </h3>
+                {!entityGraphData?.topEntities?.biomarkers?.length ? (
+                  <p className="text-slate-500 text-sm">No biomarkers yet</p>
+                ) : (
+                  <div className="space-y-2">
+                    {entityGraphData.topEntities.biomarkers.map((b, i) => (
+                      <div key={i} className="flex justify-between items-center">
+                        <span className="text-sm text-slate-700 truncate">{b.name}</span>
+                        <span className="text-sm font-semibold text-emerald-600 tabular-nums">{b.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Top Treatments */}
+              <div className="bg-white rounded-xl shadow p-6">
+                <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                  <span className="w-3 h-3 bg-orange-500 rounded-full"></span>
+                  Top Treatments
+                </h3>
+                {!entityGraphData?.topEntities?.treatments?.length ? (
+                  <p className="text-slate-500 text-sm">No treatments yet</p>
+                ) : (
+                  <div className="space-y-2">
+                    {entityGraphData.topEntities.treatments.map((t, i) => (
+                      <div key={i} className="flex justify-between items-center">
+                        <span className="text-sm text-slate-700 truncate">{t.name}</span>
+                        <span className="text-sm font-semibold text-orange-600 tabular-nums">{t.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Entity Co-occurrence & Similar Patients */}
+            <div className="grid lg:grid-cols-2 gap-6">
+              {/* Co-occurrence */}
+              <div className="bg-white rounded-xl shadow p-6">
+                <h3 className="font-semibold text-slate-900 mb-2">🔗 Entity Co-occurrence</h3>
+                <p className="text-xs text-slate-500 mb-4">Entities that appear together in patient profiles</p>
+                {!entityGraphData?.cooccurrence?.length ? (
+                  <p className="text-slate-500 text-sm">No co-occurrences detected yet</p>
+                ) : (
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {entityGraphData.cooccurrence.slice(0, 12).map((co, i) => (
+                      <div key={i} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2">
+                        <div className="flex items-center gap-1 text-xs flex-1 min-w-0">
+                          <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded truncate max-w-[120px]">{co.entity_a}</span>
+                          <span className="text-slate-400 flex-shrink-0">↔</span>
+                          <span className="px-1.5 py-0.5 bg-violet-100 text-violet-700 rounded truncate max-w-[120px]">{co.entity_b}</span>
+                        </div>
+                        <span className="text-sm font-semibold text-slate-700 ml-2">{co.patient_count} pts</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Similar Patients */}
+              <div className="bg-white rounded-xl shadow p-6">
+                <h3 className="font-semibold text-slate-900 mb-2">👥 Similar Patients</h3>
+                <p className="text-xs text-slate-500 mb-4">Patients with shared diagnoses, biomarkers, or treatments</p>
+                {!entityGraphData?.similarPatients?.length ? (
+                  <p className="text-slate-500 text-sm">No similar patients detected yet</p>
+                ) : (
+                  <div className="space-y-3 max-h-64 overflow-y-auto">
+                    {entityGraphData.similarPatients.map((sp, i) => (
+                      <div key={i} className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-3">
+                        <div className="flex justify-between items-center mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-xs text-slate-600">{sp.patientA}</span>
+                            <span className="text-amber-500">↔</span>
+                            <span className="font-mono text-xs text-slate-600">{sp.patientB}</span>
+                          </div>
+                          <span className="text-sm font-bold text-amber-700">{Math.round(sp.similarity * 100)}%</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {sp.sharedValues?.slice(0, 4).map((v, j) => (
+                            <span key={j} className="text-xs px-1.5 py-0.5 bg-white border border-amber-300 rounded text-amber-800">{v}</span>
+                          ))}
+                          {sp.sharedEntities > 4 && (
+                            <span className="text-xs text-amber-600">+{sp.sharedEntities - 4} more</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Recent Relationships */}
+            <div className="bg-white rounded-xl shadow p-6">
+              <h3 className="font-semibold text-slate-900 mb-4">Recent Relationships</h3>
+              {!entityGraphData?.recentEdges?.length ? (
+                <p className="text-slate-500 text-sm">No relationships yet</p>
+              ) : (
+                <div className="space-y-2">
+                  {entityGraphData.recentEdges.map((edge, i) => (
+                    <div key={i} className="flex items-center gap-3 py-2 border-b border-slate-100 last:border-0">
+                      <span className="text-xs font-mono text-slate-500">{edge.from}</span>
+                      <span className="px-2 py-0.5 bg-violet-100 text-violet-700 text-xs rounded-full">{edge.relationship}</span>
+                      <span className="text-xs font-mono text-slate-500 truncate">{edge.to}</span>
+                      <span className="text-xs text-slate-400 ml-auto">{formatTimestamp(edge.when)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Ontology Explanation */}
+            <div className="bg-gradient-to-br from-violet-50 to-fuchsia-50 border border-violet-200 rounded-xl p-6">
+              <h3 className="font-semibold text-slate-900 mb-3">🧠 What is this?</h3>
+              <p className="text-sm text-slate-600 mb-4">
+                This is a <strong>Palantir-style ontology graph</strong> connecting patients to their medical entities.
+                Unlike the Activity Graph (what users DO), this shows what we KNOW about patients.
+              </p>
+              <div className="grid sm:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="font-medium text-slate-700 mb-1">Nodes (Things)</p>
+                  <ul className="text-slate-600 space-y-1">
+                    <li>• Patients, Diagnoses, Biomarkers</li>
+                    <li>• Treatments, Records, Questions</li>
+                  </ul>
+                </div>
+                <div>
+                  <p className="font-medium text-slate-700 mb-1">Edges (Relationships)</p>
+                  <ul className="text-slate-600 space-y-1">
+                    <li>• has_diagnosis, has_biomarker</li>
+                    <li>• received_treatment, uploaded, asked</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         ) : activeTab === 'profiles' ? (
