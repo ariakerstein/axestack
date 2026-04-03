@@ -1965,8 +1965,8 @@ export default function AdminPage() {
               />
               <SummaryCard
                 label="Avg Records/Uploader"
-                value={data.summary.avgRecordsPerSession || 0}
-                subtext={`${data.summary.sessionsWithRecords || 0} uploaders`}
+                value={data.summary.avgRecordsPerUser || 0}
+                subtext={`${data.summary.usersWithRecords || 0} uploaders`}
                 icon="📊"
               />
               <SummaryCard
