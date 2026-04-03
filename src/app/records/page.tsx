@@ -3,11 +3,12 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { TypewriterMarkdown } from '@/components/TypewriterMarkdown'
-import { FileText, Search, FlaskConical, Ribbon, MessageCircle, BookOpen, ArrowRight, Upload, Link2, Building2, Shield, ShieldCheck, CheckCircle2, Share2, Download, Cloud, User, Mail, Sparkles, Trash2, Eye } from 'lucide-react'
+import { FileText, Search, FlaskConical, Ribbon, MessageCircle, BookOpen, ArrowRight, Upload, Link2, Building2, Shield, ShieldCheck, CheckCircle2, Share2, Download, Cloud, User, Mail, Sparkles, Trash2, Eye, Inbox, Paperclip, RefreshCw } from 'lucide-react'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { useAuth } from '@/lib/auth'
 import { AuthModal } from '@/components/AuthModal'
 import { ClaimEmailModal } from '@/components/ClaimEmailModal'
+import { EntityAnnotation } from '@/components/EntityAnnotation'
 import { getSessionId } from '@/lib/supabase'
 
 interface TranslationResult {
@@ -131,9 +132,28 @@ const PORTAL_PROVIDERS = [
   { id: 'other', name: 'Other Portal', icon: '🔗', description: 'Connect any patient portal', popular: false },
 ]
 
+// Received email interface
+interface ReceivedEmail {
+  id: string
+  from_address: string
+  subject: string | null
+  body_text: string | null
+  body_html: string | null
+  received_at: string
+  processed: boolean
+  attachments: {
+    id: string
+    filename: string
+    content_type: string | null
+    size_bytes: number | null
+    storage_path: string | null
+    processed: boolean
+  }[]
+}
+
 export default function RecordsVaultPage() {
   // Tab state
-  const [activeTab, setActiveTab] = useState<'upload' | 'portal'>('upload')
+  const [activeTab, setActiveTab] = useState<'upload' | 'portal' | 'inbox'>('upload')
 
   // Upload state
   const [file, setFile] = useState<File | null>(null)
@@ -192,31 +212,75 @@ export default function RecordsVaultPage() {
   const [showEmailModal, setShowEmailModal] = useState(false)
   const [claimedEmail, setClaimedEmail] = useState<string | null>(null)
 
-  // Load claimed email from database
+  // Inbox state
+  const [receivedEmails, setReceivedEmails] = useState<ReceivedEmail[]>([])
+  const [loadingEmails, setLoadingEmails] = useState(false)
+  const [selectedEmail, setSelectedEmail] = useState<ReceivedEmail | null>(null)
+  const [emailAddressId, setEmailAddressId] = useState<string | null>(null)
+
+  // Load claimed email from database via API (bypasses RLS)
   useEffect(() => {
+    // Wait for auth to finish loading before checking
+    if (authLoading) return
+
     const loadClaimedEmail = async () => {
       const sessionId = localStorage.getItem('opencancer_session_id')
       if (!sessionId && !user?.id) return
 
       try {
-        const { supabase } = await import('@/lib/supabase')
-        const { data } = await supabase
-          .from('email_addresses')
-          .select('username')
-          .or(`session_id.eq.${sessionId}${user?.id ? `,user_id.eq.${user.id}` : ''}`)
-          .eq('status', 'active')
-          .limit(1)
-          .single()
+        const params = new URLSearchParams()
+        if (sessionId) params.set('sessionId', sessionId)
+        if (user?.id) params.set('userId', user.id)
 
-        if (data?.username) {
-          setClaimedEmail(`${data.username}@opencancer.ai`)
+        console.log('[Email Status] Checking with params:', { sessionId, userId: user?.id })
+
+        const response = await fetch(`/api/email/status?${params}`)
+        const data = await response.json()
+
+        console.log('[Email Status] Response:', data)
+
+        if (data.claimed && data.username) {
+          setClaimedEmail(data.email)
+          setEmailAddressId(data.emailAddressId)
+          if (data.linked) {
+            console.log('Email address linked to user account')
+          }
+        } else {
+          // Clear state if no email claimed
+          setClaimedEmail(null)
+          setEmailAddressId(null)
         }
       } catch (e) {
-        // No claimed email, that's fine
+        console.error('Failed to load claimed email:', e)
       }
     }
     loadClaimedEmail()
-  }, [user])
+  }, [user, authLoading])
+
+  // Fetch received emails when inbox tab is active
+  const fetchReceivedEmails = useCallback(async () => {
+    if (!emailAddressId) return
+
+    setLoadingEmails(true)
+    try {
+      const res = await fetch(`/api/email/received?emailAddressId=${emailAddressId}`)
+      const data = await res.json()
+      if (data.emails) {
+        setReceivedEmails(data.emails)
+      }
+    } catch (e) {
+      console.error('Failed to fetch emails:', e)
+    } finally {
+      setLoadingEmails(false)
+    }
+  }, [emailAddressId])
+
+  // Load emails when switching to inbox tab or when emailAddressId changes
+  useEffect(() => {
+    if (activeTab === 'inbox' && emailAddressId) {
+      fetchReceivedEmails()
+    }
+  }, [activeTab, emailAddressId, fetchReceivedEmails])
 
   // Track referral arrivals from share links
   useEffect(() => {
@@ -405,6 +469,7 @@ export default function RecordsVaultPage() {
       const formData = new FormData()
       formData.append('file', file)
       formData.append('sessionId', localStorage.getItem('opencancer_session_id') || 'anonymous')
+      if (user?.id) formData.append('userId', user.id)
 
       const response = await fetch('/api/translate', {
         method: 'POST',
@@ -460,6 +525,7 @@ export default function RecordsVaultPage() {
         const formData = new FormData()
         formData.append('file', uploadedFile.file)
         formData.append('sessionId', localStorage.getItem('opencancer_session_id') || 'anonymous')
+        if (user?.id) formData.append('userId', user.id)
 
         console.log(`[Bulk] Processing ${i + 1}/${uploadedFiles.length}: ${uploadedFile.file.name}, type: ${uploadedFile.file.type || 'unknown'}, size: ${(uploadedFile.file.size / 1024).toFixed(1)}KB`)
 
@@ -605,6 +671,7 @@ export default function RecordsVaultPage() {
         const formData = new FormData()
         formData.append('file', uploadedFile.file)
         formData.append('sessionId', localStorage.getItem('opencancer_session_id') || 'anonymous')
+        if (user?.id) formData.append('userId', user.id)
 
         console.log(`[Retry] Processing: ${uploadedFile.file.name}, type: ${uploadedFile.file.type}, size: ${(uploadedFile.file.size / 1024).toFixed(1)}KB`)
 
@@ -1458,6 +1525,33 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
               </div>
             </Link>
 
+            {/* Email Inbox */}
+            <button
+              onClick={() => {
+                setShowAddRecordView(true)
+                setActiveTab('inbox')
+              }}
+              className="w-full bg-white border border-slate-200 hover:border-violet-300 rounded-2xl p-4 text-left transition-all hover:shadow-md"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-violet-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Inbox className="w-5 h-5 text-violet-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-slate-900">Email Inbox</p>
+                  <p className="text-slate-500 text-sm">
+                    {claimedEmail ? `Emails sent to ${claimedEmail}` : 'Forward medical records via email'}
+                  </p>
+                </div>
+                {receivedEmails.length > 0 && (
+                  <span className="bg-violet-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                    {receivedEmails.length}
+                  </span>
+                )}
+                <ArrowRight className="w-4 h-4 text-slate-400" />
+              </div>
+            </button>
+
             {/* Privacy note */}
             <div className="flex items-center justify-center gap-2 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg">
               <Shield className="w-4 h-4 text-emerald-600" />
@@ -1631,7 +1725,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
             </button>
             <button
               onClick={() => setActiveTab('portal')}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium transition-all ${
+              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium transition-all relative ${
                 activeTab === 'portal'
                   ? 'bg-white text-violet-700 shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
@@ -1639,6 +1733,25 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
             >
               <Link2 className="w-4 h-4" />
               Connect Portal
+              <span className="absolute -top-2 -right-1 bg-amber-100 text-amber-700 text-[10px] font-semibold px-1.5 py-0.5 rounded-full border border-amber-200">
+                Soon
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveTab('inbox')}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium transition-all relative ${
+                activeTab === 'inbox'
+                  ? 'bg-white text-violet-700 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Inbox className="w-4 h-4" />
+              Email Inbox
+              {receivedEmails.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-violet-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                  {receivedEmails.length}
+                </span>
+              )}
             </button>
           </div>
         )}
@@ -2105,6 +2218,194 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
           </div>
         )}
 
+        {/* Inbox Tab Content */}
+        {activeTab === 'inbox' && !result && (savedTranslations.length === 0 || showAddRecordView) && (
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
+            {/* Header */}
+            <div className="p-6 border-b border-slate-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-slate-900 flex items-center gap-2">
+                    <Inbox className="w-5 h-5 text-violet-600" />
+                    Email Inbox
+                  </h3>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Emails sent to {claimedEmail || 'your @opencancer.ai address'}
+                  </p>
+                </div>
+                <button
+                  onClick={fetchReceivedEmails}
+                  disabled={loadingEmails}
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-violet-600 hover:bg-violet-50 rounded-lg transition-colors"
+                >
+                  <RefreshCw className={`w-4 h-4 ${loadingEmails ? 'animate-spin' : ''}`} />
+                  Refresh
+                </button>
+              </div>
+            </div>
+
+            {/* Email List or Empty State */}
+            {!claimedEmail ? (
+              <div className="p-8 text-center">
+                <div className="w-16 h-16 bg-violet-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Mail className="w-8 h-8 text-violet-600" />
+                </div>
+                <h4 className="font-semibold text-slate-900 mb-2">No email address yet</h4>
+                <p className="text-slate-500 text-sm mb-4">
+                  Claim your free @opencancer.ai email to receive medical documents here.
+                </p>
+                <button
+                  onClick={() => setShowEmailModal(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  <Mail className="w-4 h-4" />
+                  Claim Your Email
+                </button>
+              </div>
+            ) : loadingEmails ? (
+              <div className="p-8 text-center">
+                <div className="w-8 h-8 border-2 border-violet-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                <p className="text-slate-500">Loading emails...</p>
+              </div>
+            ) : receivedEmails.length === 0 ? (
+              <div className="p-8 text-center">
+                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Inbox className="w-8 h-8 text-slate-400" />
+                </div>
+                <h4 className="font-semibold text-slate-900 mb-2">No emails yet</h4>
+                <p className="text-slate-500 text-sm mb-4">
+                  Forward medical documents to <span className="font-medium text-violet-600">{claimedEmail}</span>
+                </p>
+                <div className="bg-slate-50 rounded-xl p-4 max-w-md mx-auto text-left">
+                  <p className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-2">How it works:</p>
+                  <ol className="text-sm text-slate-600 space-y-2">
+                    <li className="flex items-start gap-2">
+                      <span className="w-5 h-5 bg-violet-100 text-violet-700 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0">1</span>
+                      Forward any medical email to {claimedEmail}
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="w-5 h-5 bg-violet-100 text-violet-700 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0">2</span>
+                      Attachments are automatically stored here
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="w-5 h-5 bg-violet-100 text-violet-700 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0">3</span>
+                      Click to translate any document to plain English
+                    </li>
+                  </ol>
+                </div>
+              </div>
+            ) : selectedEmail ? (
+              /* Email Detail View */
+              <div>
+                <div className="p-4 border-b border-slate-200 bg-slate-50">
+                  <button
+                    onClick={() => setSelectedEmail(null)}
+                    className="text-sm text-violet-600 hover:text-violet-700 font-medium flex items-center gap-1"
+                  >
+                    <ArrowRight className="w-4 h-4 rotate-180" />
+                    Back to inbox
+                  </button>
+                </div>
+                <div className="p-6">
+                  <div className="mb-4">
+                    <h4 className="text-lg font-semibold text-slate-900 mb-1">
+                      {selectedEmail.subject || '(No subject)'}
+                    </h4>
+                    <p className="text-sm text-slate-500">
+                      From: {selectedEmail.from_address}
+                    </p>
+                    <p className="text-sm text-slate-400">
+                      {new Date(selectedEmail.received_at).toLocaleString()}
+                    </p>
+                  </div>
+
+                  {/* Attachments */}
+                  {selectedEmail.attachments.length > 0 && (
+                    <div className="mb-4 p-4 bg-violet-50 border border-violet-200 rounded-xl">
+                      <p className="text-sm font-medium text-violet-700 mb-2 flex items-center gap-2">
+                        <Paperclip className="w-4 h-4" />
+                        {selectedEmail.attachments.length} Attachment{selectedEmail.attachments.length > 1 ? 's' : ''}
+                      </p>
+                      <div className="space-y-2">
+                        {selectedEmail.attachments.map(att => (
+                          <div key={att.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-violet-100">
+                            <div className="flex items-center gap-3">
+                              <FileText className="w-5 h-5 text-violet-600" />
+                              <div>
+                                <p className="text-sm font-medium text-slate-900">{att.filename}</p>
+                                <p className="text-xs text-slate-500">
+                                  {att.size_bytes ? `${Math.round(att.size_bytes / 1024)} KB` : 'Unknown size'}
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => {
+                                // TODO: Process attachment as medical record
+                                alert('Processing attachment coming soon!')
+                              }}
+                              className="text-sm text-violet-600 hover:text-violet-700 font-medium"
+                            >
+                              Translate →
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Email Body */}
+                  <div className="prose prose-sm max-w-none">
+                    {selectedEmail.body_html ? (
+                      <div dangerouslySetInnerHTML={{ __html: selectedEmail.body_html }} />
+                    ) : selectedEmail.body_text ? (
+                      <pre className="whitespace-pre-wrap text-sm text-slate-700 font-sans">
+                        {selectedEmail.body_text}
+                      </pre>
+                    ) : (
+                      <p className="text-slate-500 italic">No content</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Email List */
+              <div className="divide-y divide-slate-100">
+                {receivedEmails.map(email => (
+                  <button
+                    key={email.id}
+                    onClick={() => setSelectedEmail(email)}
+                    className="w-full p-4 hover:bg-slate-50 transition-colors text-left flex items-start gap-4"
+                  >
+                    <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Mail className="w-5 h-5 text-slate-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-medium text-slate-900 truncate">
+                          {email.from_address}
+                        </p>
+                        {email.attachments.length > 0 && (
+                          <span className="flex items-center gap-1 text-xs text-violet-600 bg-violet-100 px-2 py-0.5 rounded-full">
+                            <Paperclip className="w-3 h-3" />
+                            {email.attachments.length}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-slate-700 truncate">
+                        {email.subject || '(No subject)'}
+                      </p>
+                      <p className="text-xs text-slate-400 mt-1">
+                        {new Date(email.received_at).toLocaleDateString()} at {new Date(email.received_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-slate-400 flex-shrink-0 mt-3" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Results */}
         {result && (
           <div className="space-y-4">
@@ -2196,6 +2497,12 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
             <Section id="summary" icon={<FileText className="w-5 h-5" />} title="Plain English Summary" defaultOpen highlight>
               <p className="text-slate-800 text-base leading-relaxed">{result.test_summary || 'No summary available'}</p>
             </Section>
+
+            {/* Knowledge Graph - Entity Annotation */}
+            <EntityAnnotation
+              sessionId={typeof window !== 'undefined' ? localStorage.getItem('opencancer_session_id') : null}
+              userId={user?.id || null}
+            />
 
             {result.diagnosis && result.diagnosis.length > 0 && result.diagnosis[0] !== 'unknown' && (
               <Section id="findings" icon={<Search className="w-5 h-5" />} title="Key Findings" badge={`${result.diagnosis.length} items`}>

@@ -201,12 +201,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signOut = async () => {
-    // Clear localStorage profile - back to guest mode
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('patient-profile')
+    try {
+      // Clear state first
+      setUser(null)
+      setSession(null)
+      setProfile(null)
+
+      // Clear localStorage profile - back to guest mode
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('patient-profile')
+      }
+
+      // Sign out from Supabase (clears auth tokens)
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        console.error('Supabase signOut error:', error)
+      }
+
+      // Force page reload to clear any cached state
+      if (typeof window !== 'undefined') {
+        window.location.href = '/'
+      }
+    } catch (e) {
+      console.error('SignOut error:', e)
+      // Force reload anyway
+      if (typeof window !== 'undefined') {
+        window.location.href = '/'
+      }
     }
-    setProfile(null)
-    await supabase.auth.signOut()
   }
 
   return (

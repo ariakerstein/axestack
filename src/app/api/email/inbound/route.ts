@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://felofmlhqwcdpiyjgstx.supabase.co"
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+
 function getSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+  return createClient(SUPABASE_URL, SUPABASE_KEY)
 }
 
 // Resend webhook verification
@@ -58,11 +58,11 @@ export async function POST(request: NextRequest) {
       .from('email_addresses')
       .select('id, session_id, user_id')
       .eq('username', username)
-      .eq('status', 'active')
+      .eq('is_active', true)
       .single()
 
     if (lookupError || !emailRecord) {
-      console.log('No active email address found for:', username)
+      console.log('No active email address found for:', username, 'Error:', lookupError)
       // Store in orphan queue for debugging
       await supabase.from('received_emails').insert({
         email_address_id: null,
@@ -169,7 +169,10 @@ export async function POST(request: NextRequest) {
 
   } catch (err) {
     console.error('Inbound email webhook error:', err)
-    return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 })
+    return NextResponse.json({
+      error: 'Webhook processing failed',
+      details: err instanceof Error ? err.message : String(err)
+    }, { status: 500 })
   }
 }
 

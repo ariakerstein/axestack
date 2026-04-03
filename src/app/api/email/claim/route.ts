@@ -125,7 +125,8 @@ export async function POST(request: Request) {
         session_id: sessionId || null,
         display_name: displayName || null,
         is_verified: false,
-        is_active: true
+        is_active: true,
+        status: 'active'
       })
       .select()
       .single()

@@ -41,6 +41,8 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
     const file = formData.get('file') as File
+    const sessionId = formData.get('sessionId') as string | null
+    const userId = formData.get('userId') as string | null
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
@@ -293,6 +295,23 @@ export async function POST(request: NextRequest) {
       }
     } catch (storageErr) {
       console.error('Storage upload failed (non-fatal):', storageErr)
+    }
+
+    // Trigger entity extraction in background (non-blocking)
+    if (analysis && (sessionId || userId)) {
+      const baseUrl = request.nextUrl.origin
+      fetch(`${baseUrl}/api/entities/extract`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          translationResult: analysis,
+          documentText: documentText || null,
+          sessionId,
+          userId
+        })
+      }).catch(err => {
+        console.error('Entity extraction background call failed:', err)
+      })
     }
 
     return NextResponse.json({

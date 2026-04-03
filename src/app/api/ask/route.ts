@@ -1,9 +1,79 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { CANCER_TYPES } from '@/lib/cancer-data'
+import { createClient } from '@supabase/supabase-js'
 
 // Use the same Supabase project as Navis for the RAG pipeline
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://felofmlhqwcdpiyjgstx.supabase.co"
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlbG9mbWxocXdjZHBpeWpnc3R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA2NzQzODAsImV4cCI6MjA1NjI1MDM4MH0._kYA-prwPgxQWoKzWPzJDy2Bf95WgTF5_KnAPN2cGnQ"
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+
+function getSupabase() {
+  return createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+}
+
+// Fetch patient context from knowledge graph
+async function getPatientContext(userId?: string, sessionId?: string): Promise<string | null> {
+  if (!userId && !sessionId) return null
+
+  const supabase = getSupabase()
+
+  // Fetch patient entities
+  let query = supabase
+    .from('patient_entities')
+    .select('entity_type, entity_value, entity_status, entity_date, numeric_value, numeric_unit')
+    .order('created_at', { ascending: false })
+    .limit(50)
+
+  if (userId) {
+    query = query.eq('user_id', userId)
+  } else if (sessionId) {
+    query = query.eq('session_id', sessionId)
+  }
+
+  const { data: entities } = await query
+
+  if (!entities || entities.length === 0) return null
+
+  // Group by type for a clean summary
+  const grouped: Record<string, string[]> = {}
+  for (const e of entities) {
+    if (!grouped[e.entity_type]) grouped[e.entity_type] = []
+    let value = e.entity_value
+    if (e.entity_status) value += ` (${e.entity_status})`
+    if (e.entity_date) value += ` - ${new Date(e.entity_date).toLocaleDateString()}`
+    if (e.numeric_value && e.numeric_unit) value += `: ${e.numeric_value} ${e.numeric_unit}`
+    grouped[e.entity_type].push(value)
+  }
+
+  // Build context string
+  const lines = Object.entries(grouped).map(([type, values]) => {
+    return `${type.toUpperCase()}: ${values.join(', ')}`
+  })
+
+  return lines.join('\n')
+}
+
+// Save Q&A interaction to knowledge graph (questions as entities)
+async function saveInteractionToGraph(
+  question: string,
+  userId?: string,
+  sessionId?: string
+): Promise<void> {
+  if (!userId && !sessionId) return
+
+  const supabase = getSupabase()
+
+  // Save the question as an entity (patient questions are valuable for their wiki)
+  await supabase.from('patient_entities').insert({
+    user_id: userId || null,
+    session_id: sessionId || null,
+    entity_type: 'question',
+    entity_value: question.slice(0, 500), // Truncate long questions
+    entity_status: 'asked',
+    confidence: 1.0,
+    source_type: 'navis_chat',
+  })
+}
 
 interface Message {
   role: 'user' | 'assistant'
@@ -83,7 +153,7 @@ The patient wants facts, not advice. Act as a medical secretary organizing infor
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, cancerType, history = [], conciseMode = false } = await request.json()
+    const { message, cancerType, history = [], conciseMode = false, userId, sessionId } = await request.json()
 
     // Map cancer type to guideline format
     const guidelineCancerType = cancerType && cancerType !== 'General' && cancerType !== 'other'
@@ -99,6 +169,23 @@ export async function POST(request: NextRequest) {
     // Detect if this is a symptom question upfront
     const isSymptom = isSymptomQuestion(message)
 
+    // Fetch patient's knowledge graph context for personalization
+    const patientContext = await getPatientContext(userId, sessionId)
+
+    // Build the question with patient context if available
+    let enrichedQuestion = conciseMode
+      ? `[CONCISE MODE - Facts only, no suggestions] ${message}`
+      : message
+
+    // Add patient context for personalized answers
+    if (patientContext) {
+      enrichedQuestion = `[PATIENT CONTEXT - Use this to personalize your response:]
+${patientContext}
+
+[PATIENT QUESTION:]
+${enrichedQuestion}`
+    }
+
     // Call the Navis direct-navis edge function (RAG pipeline with NCCN guidelines)
     const response = await fetch(`${SUPABASE_URL}/functions/v1/direct-navis`, {
       method: 'POST',
@@ -108,13 +195,12 @@ export async function POST(request: NextRequest) {
         'apikey': SUPABASE_ANON_KEY,
       },
       body: JSON.stringify({
-        question: conciseMode
-          ? `[CONCISE MODE - Facts only, no suggestions] ${message}`
-          : message,
+        question: enrichedQuestion,
         cancerType: guidelineCancerType,
         conversationHistory,
         // Use Haiku for fast responses with RAG grounding
-        model: 'claude-haiku-4-5-20251001',
+        // Key must match edge function's CLAUDE_MODELS keys
+        model: 'claude-3-5-haiku',
         // Low temperature for more deterministic, consistent responses
         temperature: 0.1,
         // Communication style
@@ -152,7 +238,7 @@ export async function POST(request: NextRequest) {
           question: message,
           cancerType: guidelineCancerType,
           conversationHistory,
-          model: 'claude-haiku-4-5-20251001',
+          model: 'claude-3-5-haiku',
           temperature: 0.3, // Slightly higher for more natural symptom discussion
           communicationStyle: 'balanced',
           skipRAG: true, // Skip NCCN guidelines, use general knowledge
@@ -176,6 +262,11 @@ export async function POST(request: NextRequest) {
       // If fallback fails, continue with original RAG response
     }
 
+    // Save the question to the knowledge graph (async, non-blocking)
+    saveInteractionToGraph(message, userId, sessionId).catch(err => {
+      console.error('Failed to save interaction to graph:', err)
+    })
+
     // direct-navis returns: { response, confidenceScore, citations, citationUrls, followUpQuestions }
     return NextResponse.json({
       response: ragResponse || 'Sorry, I encountered an error. Please try again.',
@@ -185,6 +276,8 @@ export async function POST(request: NextRequest) {
       citations: data.citations,
       citationUrls: data.citationUrls,
       followUpQuestions: data.followUpQuestions,
+      // Indicate if patient context was used
+      hasPatientContext: !!patientContext,
     })
   } catch (error) {
     console.error('Ask API error:', error)

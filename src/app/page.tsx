@@ -792,14 +792,18 @@ function HomeContent() {
             </>
           ) : (
             <>
-              <h2 className="text-2xl font-bold text-center mb-2 text-slate-900">Patient Tools</h2>
-              <p className="text-slate-500 text-center mb-4 text-sm">AI-powered navigation for your cancer journey</p>
+              <h2 className="text-2xl font-bold text-center mb-2 text-slate-900">
+                <span className="text-violet-600">Patient Tools:</span> Facing cancer yourself?
+              </h2>
+              <p className="text-slate-500 text-center mb-4 text-sm max-w-lg mx-auto">
+                The average cancer patient waits 6+ weeks for a second opinion. Get AI-powered insights in minutes, grounded in the same NCCN guidelines your doctors use.
+              </p>
               <p className="text-center mb-6">
                 <button
                   onClick={() => { setShowWizardModal(true); setWizardStep(1); setWizardRole(null); }}
                   className="text-sm text-violet-600 hover:text-violet-700 font-medium underline underline-offset-2"
                 >
-                  Overwhelmed? Let us guide you →
+                  Not sure where to start? Let us guide you →
                 </button>
               </p>
             </>
@@ -917,7 +921,10 @@ function HomeContent() {
               </p>
             </Link>
 
-            <Link href="/oncologists" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-teal-400 hover:shadow-md transition-all">
+            <Link href="/oncologists" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-teal-400 hover:shadow-md transition-all relative">
+              <span className="absolute -top-2 -right-2 bg-amber-100 text-amber-700 text-[10px] font-semibold px-2 py-0.5 rounded-full border border-amber-200">
+                Soon
+              </span>
               <div className="flex items-center gap-2 mb-2">
                 <Stethoscope className="w-6 h-6 text-teal-500" />
                 <h3 className="font-bold text-slate-900 group-hover:text-teal-600">Find Oncologist</h3>

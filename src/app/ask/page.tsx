@@ -10,6 +10,17 @@ import { fetchSuggestedQuestions, getCategoryColor, SuggestedQuestion } from '@/
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { ShareButton } from '@/components/ShareButton'
 
+// Get or create a session ID for anonymous users
+function getSessionId(): string {
+  if (typeof window === 'undefined') return ''
+  let sessionId = localStorage.getItem('opencancer-session-id')
+  if (!sessionId) {
+    sessionId = crypto.randomUUID()
+    localStorage.setItem('opencancer-session-id', sessionId)
+  }
+  return sessionId
+}
+
 interface Citation {
   title: string
   url: string
@@ -52,8 +63,15 @@ export default function AskPage() {
   const [feedbackMessageId, setFeedbackMessageId] = useState<string | null>(null)
   const [feedbackComment, setFeedbackComment] = useState('')
   const [conciseMode, setConciseMode] = useState(false)
+  const [sessionId, setSessionId] = useState<string>('')
+  const [hasPatientContext, setHasPatientContext] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  // Initialize session ID for anonymous users
+  useEffect(() => {
+    setSessionId(getSessionId())
+  }, [])
 
   // Load concise mode preference
   useEffect(() => {
@@ -196,10 +214,18 @@ I can help you with:
           cancerType: cancerType || undefined,
           history: messages.filter(m => !m.isLoading).slice(-6),
           conciseMode,
+          // Pass user/session context for personalized answers from knowledge graph
+          userId: user?.id,
+          sessionId: sessionId,
         })
       })
 
       const data = await response.json()
+
+      // Track if patient context was used for personalization
+      if (data.hasPatientContext) {
+        setHasPatientContext(true)
+      }
 
       // Remove loading message and add real response
       setMessages(prev => {
@@ -641,6 +667,17 @@ I can help you with:
               >
                 Concise Mode ON
               </button>
+            )}
+            {hasPatientContext && (
+              <span
+                className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full flex items-center gap-1"
+                title="Your uploaded documents are being used to personalize answers"
+              >
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                Personalized
+              </span>
             )}
           </div>
 
