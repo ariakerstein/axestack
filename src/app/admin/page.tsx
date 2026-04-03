@@ -297,6 +297,100 @@ export default function AdminPage() {
   const [loadingUserStats, setLoadingUserStats] = useState(false)
   const [showQuestionsDrillDown, setShowQuestionsDrillDown] = useState(false)
 
+  // Entity Graph enhanced state
+  const [selectedDiagnosis, setSelectedDiagnosis] = useState<string | null>(null)
+  const [journeyStage, setJourneyStage] = useState<'all' | 'newly-diagnosed' | 'treatment-experienced' | 'recurrence'>('all')
+
+  // Standard of Care treatments by cancer type - non-SOC treatments are everything else
+  // This is the pharma signal: non-SOC = treatment-experienced looking for what's next
+  const SOC_TREATMENTS: Record<string, string[]> = {
+    'prostate': [
+      'adt', 'androgen deprivation therapy', 'lhrh', 'gnrh',
+      'enzalutamide', 'abiraterone', 'darolutamide', 'apalutamide',
+      'docetaxel', 'cabazitaxel', 'radiation', 'ebrt', 'external beam',
+      'radical prostatectomy', 'prostatectomy', 'surgery',
+      'sipuleucel-t', 'provenge', 'radium-223', 'xofigo',
+      'lutetium', 'pluvicto', 'psma'
+    ],
+    'breast': [
+      'tamoxifen', 'letrozole', 'anastrozole', 'exemestane',
+      'trastuzumab', 'herceptin', 'pertuzumab', 'perjeta',
+      'paclitaxel', 'doxorubicin', 'cyclophosphamide',
+      'mastectomy', 'lumpectomy', 'radiation',
+      'palbociclib', 'ribociclib', 'abemaciclib',
+      'olaparib', 'talazoparib'
+    ],
+    'lung': [
+      'pembrolizumab', 'keytruda', 'nivolumab', 'opdivo',
+      'carboplatin', 'cisplatin', 'pemetrexed',
+      'osimertinib', 'tagrisso', 'alectinib',
+      'lobectomy', 'pneumonectomy', 'radiation', 'sbrt'
+    ],
+    'default': [
+      'chemotherapy', 'radiation', 'surgery', 'immunotherapy',
+      'hormone therapy'
+    ]
+  }
+
+  const isStandardOfCare = (treatment: string, diagnoses: string[]): boolean => {
+    const treatmentLower = treatment.toLowerCase()
+
+    // Detect cancer type from diagnoses
+    let cancerType = 'default'
+    for (const diag of diagnoses) {
+      const diagLower = diag.toLowerCase()
+      if (diagLower.includes('prostate')) cancerType = 'prostate'
+      else if (diagLower.includes('breast')) cancerType = 'breast'
+      else if (diagLower.includes('lung') || diagLower.includes('nsclc') || diagLower.includes('sclc')) cancerType = 'lung'
+    }
+
+    const socList = SOC_TREATMENTS[cancerType] || SOC_TREATMENTS['default']
+    return socList.some(soc => treatmentLower.includes(soc))
+  }
+
+  // Get co-occurring entities for selected diagnosis
+  const getCoOccurringEntities = () => {
+    if (!selectedDiagnosis || !entityGraphData?.crossTab) return null
+    return entityGraphData.crossTab.find(row => row.diagnosis === selectedDiagnosis)
+  }
+
+  // Generate pharma-valuable insights from graph data
+  const generateInsights = (): string[] => {
+    const insights: string[] = []
+    if (!entityGraphData) return insights
+
+    const { topEntities, crossTab } = entityGraphData
+    const diagnoses = topEntities?.diagnoses?.map(d => d.name) || []
+
+    // Calculate non-SOC percentage
+    const treatments = topEntities?.treatments || []
+    if (treatments.length > 0) {
+      const nonSocCount = treatments.filter(t => !isStandardOfCare(t.name, diagnoses)).length
+      const nonSocPercent = Math.round((nonSocCount / treatments.length) * 100)
+      if (nonSocPercent > 50) {
+        insights.push(`${nonSocPercent}% of tracked treatments are non-standard-of-care — these are treatment-experienced patients actively seeking alternatives.`)
+      }
+    }
+
+    // Top diagnosis insight
+    const topDiagnosis = topEntities?.diagnoses?.[0]
+    if (topDiagnosis) {
+      const crossTabRow = crossTab?.find(row => row.diagnosis.includes(topDiagnosis.name) || topDiagnosis.name.includes(row.diagnosis))
+      if (crossTabRow && crossTabRow.topBiomarkers.length > 0) {
+        const topBiomarker = crossTabRow.topBiomarkers[0]
+        insights.push(`${topDiagnosis.name} patients are most commonly tracked for ${topBiomarker.name} status.`)
+      }
+    }
+
+    // Biomarker-treatment correlation
+    const psa = topEntities?.biomarkers?.find(b => b.name.toLowerCase() === 'psa')
+    if (psa && psa.count > 2) {
+      insights.push(`PSA tracking is present in ${psa.count} patient profiles — strong engagement with disease monitoring.`)
+    }
+
+    return insights
+  }
+
   const fetchAnalytics = async (key: string, numDays: number) => {
     setLoading(true)
     setError(null)
@@ -1107,24 +1201,47 @@ export default function AdminPage() {
             </div>
           </div>
         ) : activeTab === 'entity' ? (
-          /* Entity Graph Tab - Palantir-style ontology */
+          /* Entity Graph Tab - Palantir-style ontology with pharma insights */
           <div className="space-y-6">
+            {/* Journey Stage Filter - Top Filter Bar */}
+            <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-xl p-4 flex items-center justify-between">
+              <div>
+                <h2 className="text-white font-semibold">Clinical Knowledge Graph</h2>
+                <p className="text-slate-400 text-xs">Click any diagnosis to see co-occurring biomarkers and treatments</p>
+              </div>
+              <div className="flex gap-2">
+                {(['all', 'newly-diagnosed', 'treatment-experienced', 'recurrence'] as const).map(stage => (
+                  <button
+                    key={stage}
+                    onClick={() => setJourneyStage(stage)}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
+                      journeyStage === stage
+                        ? 'bg-white text-slate-900'
+                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                    }`}
+                  >
+                    {stage === 'all' ? 'All Stages' : stage.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Stats Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
               <div className="bg-white rounded-xl shadow p-4">
-                <p className="text-2xl font-bold text-slate-900">{entityGraphData?.stats?.patient_count || 0}</p>
+                <p className="text-2xl font-bold text-slate-900">{entityGraphData?.stats?.patient_count || entityGraphData?.topEntities?.diagnoses?.reduce((sum, d) => sum + d.count, 0) || 0}</p>
                 <p className="text-xs text-slate-500">Patients</p>
               </div>
               <div className="bg-white rounded-xl shadow p-4">
-                <p className="text-2xl font-bold text-blue-600">{entityGraphData?.stats?.diagnosis_count || 0}</p>
+                <p className="text-2xl font-bold text-blue-600">{entityGraphData?.stats?.diagnosis_count || entityGraphData?.topEntities?.diagnoses?.length || 0}</p>
                 <p className="text-xs text-slate-500">Diagnoses</p>
               </div>
               <div className="bg-white rounded-xl shadow p-4">
-                <p className="text-2xl font-bold text-emerald-600">{entityGraphData?.stats?.biomarker_count || 0}</p>
+                <p className="text-2xl font-bold text-emerald-600">{entityGraphData?.stats?.biomarker_count || entityGraphData?.topEntities?.biomarkers?.length || 0}</p>
                 <p className="text-xs text-slate-500">Biomarkers</p>
               </div>
               <div className="bg-white rounded-xl shadow p-4">
-                <p className="text-2xl font-bold text-orange-600">{entityGraphData?.stats?.treatment_count || 0}</p>
+                <p className="text-2xl font-bold text-orange-600">{entityGraphData?.stats?.treatment_count || entityGraphData?.topEntities?.treatments?.length || 0}</p>
                 <p className="text-xs text-slate-500">Treatments</p>
               </div>
               <div className="bg-white rounded-xl shadow p-4">
@@ -1140,60 +1257,152 @@ export default function AdminPage() {
                 <p className="text-xs text-slate-500">Relationships</p>
               </div>
               <div className="bg-white rounded-xl shadow p-4">
-                <p className="text-2xl font-bold text-amber-600">{entityGraphData?.stats?.similar_patient_pairs || 0}</p>
-                <p className="text-xs text-slate-500">Similar Pairs</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-2xl font-bold text-red-600">
+                    {entityGraphData?.topEntities?.treatments?.filter(t =>
+                      !isStandardOfCare(t.name, entityGraphData?.topEntities?.diagnoses?.map(d => d.name) || [])
+                    ).length || 0}
+                  </p>
+                  <span className="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded">Non-SOC</span>
+                </div>
+                <p className="text-xs text-slate-500">Non-Standard Tx</p>
               </div>
             </div>
 
-            {/* Cross-Tab View: Diagnosis → Biomarkers → Treatments */}
-            <div className="bg-gradient-to-br from-blue-50 to-violet-50 border border-blue-200 rounded-xl shadow p-6">
-              <div className="mb-4">
-                <h2 className="text-lg font-semibold text-slate-900">🧬 Clinical Intelligence Cross-Tab</h2>
-                <p className="text-xs text-slate-500">For each diagnosis: associated biomarkers and treatments from patient records</p>
+            {/* Interactive Cross-Tab View: Click diagnosis to highlight related entities */}
+            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 rounded-xl shadow-xl p-6">
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-white">Clinical Intelligence Cross-Tab</h2>
+                  <p className="text-xs text-slate-400">Click any diagnosis to see co-occurring biomarkers and treatments</p>
+                </div>
+                {selectedDiagnosis && (
+                  <button
+                    onClick={() => setSelectedDiagnosis(null)}
+                    className="text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-1 rounded-full"
+                  >
+                    Clear Selection
+                  </button>
+                )}
               </div>
-              {!entityGraphData?.crossTab?.length ? (
-                <p className="text-slate-500 text-sm">No cross-tab data yet</p>
-              ) : (
-                <div className="space-y-4">
-                  {entityGraphData.crossTab.map((row, i) => (
-                    <div key={i} className="bg-white/80 rounded-lg p-4">
+
+              {/* Diagnosis pills - clickable */}
+              <div className="mb-6">
+                <p className="text-xs text-slate-500 mb-2 uppercase tracking-wide">Diagnoses</p>
+                <div className="flex flex-wrap gap-2">
+                  {entityGraphData?.crossTab?.map((row, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setSelectedDiagnosis(selectedDiagnosis === row.diagnosis ? null : row.diagnosis)}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                        selectedDiagnosis === row.diagnosis
+                          ? 'bg-blue-500 text-white ring-2 ring-blue-400 ring-offset-2 ring-offset-slate-900'
+                          : selectedDiagnosis
+                            ? 'bg-slate-800 text-slate-500 opacity-50'
+                            : 'bg-slate-700 text-slate-200 hover:bg-slate-600'
+                      }`}
+                    >
+                      {row.diagnosis}
+                      <span className="ml-1.5 text-xs opacity-75">({row.patientCount})</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Selected diagnosis detail view */}
+              {selectedDiagnosis && getCoOccurringEntities() && (
+                <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700 mb-6">
+                  <h3 className="text-white font-semibold mb-4 capitalize flex items-center gap-2">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+                    {selectedDiagnosis}
+                    <span className="text-xs font-normal text-slate-400">
+                      ({getCoOccurringEntities()?.patientCount} patients)
+                    </span>
+                  </h3>
+                  <div className="grid sm:grid-cols-2 gap-6">
+                    {/* Biomarkers */}
+                    <div>
+                      <p className="text-xs text-emerald-400 mb-3 uppercase tracking-wide font-medium">Associated Biomarkers</p>
+                      {getCoOccurringEntities()?.topBiomarkers.length === 0 ? (
+                        <p className="text-slate-500 text-sm">None extracted</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {getCoOccurringEntities()?.topBiomarkers.map((b, j) => (
+                            <div key={j} className="flex items-center justify-between bg-emerald-900/30 rounded-lg px-3 py-2">
+                              <span className="text-emerald-300 text-sm">{b.name}</span>
+                              <span className="text-emerald-500 text-xs font-mono">{b.count}x</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {/* Treatments with SOC badges */}
+                    <div>
+                      <p className="text-xs text-orange-400 mb-3 uppercase tracking-wide font-medium">Treatments Used</p>
+                      {getCoOccurringEntities()?.topTreatments.length === 0 ? (
+                        <p className="text-slate-500 text-sm">None extracted</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {getCoOccurringEntities()?.topTreatments.map((t, j) => {
+                            const isSoc = isStandardOfCare(t.name, [selectedDiagnosis])
+                            return (
+                              <div key={j} className={`flex items-center justify-between rounded-lg px-3 py-2 ${
+                                isSoc ? 'bg-slate-700/50' : 'bg-red-900/30 border border-red-700/50'
+                              }`}>
+                                <div className="flex items-center gap-2">
+                                  <span className={`text-sm ${isSoc ? 'text-slate-300' : 'text-orange-300'}`}>{t.name}</span>
+                                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                                    isSoc
+                                      ? 'bg-slate-600 text-slate-400'
+                                      : 'bg-red-600 text-white'
+                                  }`}>
+                                    {isSoc ? 'SOC' : 'Non-SOC'}
+                                  </span>
+                                </div>
+                                <span className="text-orange-500 text-xs font-mono">{t.count}x</span>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Grid of all cross-tab when nothing selected */}
+              {!selectedDiagnosis && entityGraphData?.crossTab?.length ? (
+                <div className="grid lg:grid-cols-2 gap-4">
+                  {entityGraphData.crossTab.slice(0, 6).map((row, i) => (
+                    <div
+                      key={i}
+                      onClick={() => setSelectedDiagnosis(row.diagnosis)}
+                      className="bg-slate-800/50 rounded-lg p-4 cursor-pointer hover:bg-slate-700/50 transition-colors border border-transparent hover:border-blue-500/50"
+                    >
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-semibold text-slate-900 capitalize">{row.diagnosis}</h3>
-                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{row.patientCount} patients</span>
+                        <h3 className="font-semibold text-white capitalize text-sm">{row.diagnosis}</h3>
+                        <span className="text-xs bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded-full">{row.patientCount} pts</span>
                       </div>
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-xs font-medium text-emerald-700 mb-2">Top Biomarkers</p>
-                          {row.topBiomarkers.length === 0 ? (
-                            <p className="text-xs text-slate-400">None extracted</p>
-                          ) : (
-                            <div className="flex flex-wrap gap-1">
-                              {row.topBiomarkers.map((b, j) => (
-                                <span key={j} className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">
-                                  {b.name} ({b.count})
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-xs font-medium text-orange-700 mb-2">Top Treatments</p>
-                          {row.topTreatments.length === 0 ? (
-                            <p className="text-xs text-slate-400">None extracted</p>
-                          ) : (
-                            <div className="flex flex-wrap gap-1">
-                              {row.topTreatments.map((t, j) => (
-                                <span key={j} className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded">
-                                  {t.name} ({t.count})
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
+                      <div className="flex gap-1 flex-wrap">
+                        {row.topTreatments.slice(0, 3).map((t, j) => {
+                          const isSoc = isStandardOfCare(t.name, [row.diagnosis])
+                          return (
+                            <span key={j} className={`text-[10px] px-1.5 py-0.5 rounded ${
+                              isSoc ? 'bg-slate-700 text-slate-400' : 'bg-red-900/50 text-red-300'
+                            }`}>
+                              {t.name}
+                            </span>
+                          )
+                        })}
+                        {row.topTreatments.length > 3 && (
+                          <span className="text-[10px] text-slate-500">+{row.topTreatments.length - 3}</span>
+                        )}
                       </div>
                     </div>
                   ))}
                 </div>
+              ) : !selectedDiagnosis && (
+                <p className="text-slate-500 text-sm">No cross-tab data yet</p>
               )}
             </div>
 
@@ -1239,22 +1448,39 @@ export default function AdminPage() {
                 )}
               </div>
 
-              {/* Top Treatments */}
+              {/* Top Treatments with SOC badges */}
               <div className="bg-white rounded-xl shadow p-6">
-                <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                  <span className="w-3 h-3 bg-orange-500 rounded-full"></span>
-                  Top Treatments
+                <h3 className="font-semibold text-slate-900 mb-4 flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <span className="w-3 h-3 bg-orange-500 rounded-full"></span>
+                    Top Treatments
+                  </span>
+                  <span className="text-xs text-slate-400 font-normal">
+                    <span className="text-red-500 font-medium">Red</span> = Non-SOC
+                  </span>
                 </h3>
                 {!entityGraphData?.topEntities?.treatments?.length ? (
                   <p className="text-slate-500 text-sm">No treatments yet</p>
                 ) : (
                   <div className="space-y-2">
-                    {entityGraphData.topEntities.treatments.map((t, i) => (
-                      <div key={i} className="flex justify-between items-center">
-                        <span className="text-sm text-slate-700 truncate">{t.name}</span>
-                        <span className="text-sm font-semibold text-orange-600 tabular-nums">{t.count}</span>
-                      </div>
-                    ))}
+                    {entityGraphData.topEntities.treatments.map((t, i) => {
+                      const isSoc = isStandardOfCare(t.name, entityGraphData?.topEntities?.diagnoses?.map(d => d.name) || [])
+                      return (
+                        <div key={i} className={`flex justify-between items-center px-2 py-1 rounded ${
+                          isSoc ? '' : 'bg-red-50'
+                        }`}>
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <span className={`text-sm truncate ${isSoc ? 'text-slate-700' : 'text-red-700 font-medium'}`}>{t.name}</span>
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 ${
+                              isSoc ? 'bg-slate-100 text-slate-500' : 'bg-red-100 text-red-600 font-medium'
+                            }`}>
+                              {isSoc ? 'SOC' : 'Non-SOC'}
+                            </span>
+                          </div>
+                          <span className={`text-sm font-semibold tabular-nums ${isSoc ? 'text-orange-600' : 'text-red-600'}`}>{t.count}</span>
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
               </div>
