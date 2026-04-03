@@ -88,12 +88,11 @@ export async function GET(request: NextRequest) {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
-    // Only return records for the authenticated user from opencancer
+    // Return all records for the authenticated user (any source)
     const { data, error } = await supabase
       .from('medical_records')
-      .select('id, original_name, record_type, created_at, ai_analysis')
+      .select('id, original_name, record_type, created_at, ai_analysis, source')
       .eq('user_id', userId)
-      .eq('source', 'opencancer') // Only opencancer records
       .order('created_at', { ascending: false })
 
     if (error) {
