@@ -34,6 +34,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<OpenCancerProfile | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // FAST: Check localStorage immediately on mount (sync, no network)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    // Quick check: if no auth tokens in localStorage, we're definitely a guest
+    const hasAuthTokens = localStorage.getItem('sb-felofmlhqwcdpiyjgstx-auth-token')
+    if (!hasAuthTokens) {
+      // No tokens = definitely guest, stop loading immediately
+      setLoading(false)
+    }
+  }, [])
+
   // Load profile from Supabase for authenticated user
   const loadProfile = async (email: string) => {
     const supabaseProfile = await getProfileByEmail(email)
@@ -77,21 +89,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    // Get initial session
+    // Get initial session (async, but we may have already set loading=false for guests)
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
 
       // Load profile and migrate data for logged in users
       if (session?.user) {
+        // Don't block on migration - run in background
         migrateSessionDecks(session.user.id)
 
-        // First try to load existing Supabase profile
+        // Load profile (this is the only blocking call for auth users)
         const existingProfile = await loadProfile(session.user.email!)
 
-        // If no Supabase profile exists, sync from localStorage
+        // Sync from localStorage in background if needed
         if (!existingProfile) {
-          await syncProfileToSupabase(session.user.email!)
+          syncProfileToSupabase(session.user.email!) // Don't await
         }
       }
 
