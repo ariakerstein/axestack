@@ -381,7 +381,7 @@ function HomeContent() {
               </p>
 
               <p className="text-slate-500 max-w-xl mx-auto mb-8">
-                In 2018, I was diagnosed with cancer as a new dad. The medical system gave me data. What I needed was clarity. These tools exist because patients deserve better. Navigate your cancer with clarity.
+                In 2018, I was diagnosed with cancer as a new dad. The medical system gave me confusion and overwhelm. This site exists because patients deserve better.
               </p>
 
             </>
