@@ -86,11 +86,33 @@ export async function GET(request: Request) {
       }))
       .sort((a, b) => b.date.localeCompare(a.date))
 
-    // Get specific action counts with details
-    const askQuestionEvents = opencancerEvents.filter((e: { event_type: string }) => e.event_type === 'ask_question')
-    const askQuestions = askQuestionEvents.length
+    // Get action counts from patient_activity (authoritative source, all time)
+    const { data: patientActivities } = await supabase
+      .from('patient_activity')
+      .select('activity_type, user_id')
 
-    // Get question details for drill-down
+    const recordUploaders = new Set<string>()
+    const questionAskers = new Set<string>()
+    let recordsUploaded = 0
+    let askQuestions = 0
+    let trialsSearches = 0
+
+    patientActivities?.forEach((a: { activity_type: string; user_id: string | null }) => {
+      if (a.activity_type === 'record_upload') {
+        recordsUploaded++
+        if (a.user_id) recordUploaders.add(a.user_id)
+      }
+      if (a.activity_type === 'ask_question') {
+        askQuestions++
+        if (a.user_id) questionAskers.add(a.user_id)
+      }
+      if (a.activity_type === 'trial_search') {
+        trialsSearches++
+      }
+    })
+
+    // Get question details for drill-down (still from analytics_events for metadata)
+    const askQuestionEvents = opencancerEvents.filter((e: { event_type: string }) => e.event_type === 'ask_question')
     const questionDetails = askQuestionEvents.map((e: {
       event_timestamp: string
       session_id: string
@@ -101,11 +123,10 @@ export async function GET(request: Request) {
       question: e.metadata?.question?.substring(0, 150) || '[No question text]',
       cancerType: e.metadata?.cancer_type || 'General',
     })).slice(0, 50) // Limit to 50 most recent
-    const recordsUploaded = opencancerEvents.filter((e: { event_type: string }) => e.event_type === 'record_upload').length
+
     const checklistViews = opencancerEvents.filter((e: { event_type: string; page_path: string }) =>
       e.event_type === 'page_view' && e.page_path === '/cancer-checklist'
     ).length
-    const trialsSearches = opencancerEvents.filter((e: { event_type: string }) => e.event_type === 'trial_search').length
 
     // Count actual users from auth.users (not profiles table which may be empty)
     // Filter out test accounts
