@@ -206,6 +206,23 @@ interface ActivityGraphData {
   }>
 }
 
+interface WinbackData {
+  total: number
+  totalReal: number
+  users: Array<{
+    id: string
+    email: string
+    created_at: string
+    last_sign_in: string | null
+    record_uploads: number
+  }>
+  summary: {
+    totalUploaders: number
+    totalCombatUsers: number
+    dropoffRate: number
+  }
+}
+
 interface EntityGraphData {
   stats: {
     patient_count: number
@@ -248,6 +265,7 @@ export default function AdminPage() {
   const [usageData, setUsageData] = useState<UsageData | null>(null)
   const [activityGraphData, setActivityGraphData] = useState<ActivityGraphData | null>(null)
   const [entityGraphData, setEntityGraphData] = useState<EntityGraphData | null>(null)
+  const [winbackData, setWinbackData] = useState<WinbackData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [adminKey, setAdminKey] = useState('')
@@ -284,6 +302,7 @@ export default function AdminPage() {
       fetchUsage(key, numDays)
       fetchActivityGraph(key, numDays)
       fetchEntityGraph(key)
+      fetchWinback(key)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
@@ -330,6 +349,20 @@ export default function AdminPage() {
       }
     } catch (err) {
       console.error('Error fetching activity graph:', err)
+    }
+  }
+
+  const fetchWinback = async (key: string) => {
+    try {
+      const res = await fetch('/api/admin/winback', {
+        headers: { 'x-admin-key': key }
+      })
+      if (res.ok) {
+        const json = await res.json()
+        setWinbackData(json)
+      }
+    } catch (err) {
+      console.error('Error fetching winback:', err)
     }
   }
 
@@ -457,7 +490,7 @@ export default function AdminPage() {
               </select>
             )}
             <button
-              onClick={() => { fetchAnalytics(adminKey, days); fetchProfiles(adminKey); fetchUsage(adminKey, days); fetchActivityGraph(adminKey, days); fetchEntityGraph(adminKey); }}
+              onClick={() => { fetchAnalytics(adminKey, days); fetchProfiles(adminKey); fetchUsage(adminKey, days); fetchActivityGraph(adminKey, days); fetchEntityGraph(adminKey); fetchWinback(adminKey); }}
               className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition"
             >
               Refresh
@@ -771,6 +804,53 @@ export default function AdminPage() {
                   <p className="text-xs text-slate-500">users who uploaded then ran combat</p>
                 </div>
               </div>
+            </div>
+
+            {/* Winback List - Users who uploaded but never ran Combat */}
+            <div className="bg-gradient-to-br from-orange-50 to-red-50 border border-orange-200 rounded-xl shadow p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900">🎯 Winback List</h2>
+                  <p className="text-xs text-slate-500">Users who uploaded records but never ran Combat</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-orange-600">{winbackData?.totalReal || 0}</p>
+                  <p className="text-xs text-slate-500">{winbackData?.summary?.dropoffRate || 0}% drop-off rate</p>
+                </div>
+              </div>
+
+              {!winbackData?.users?.length ? (
+                <p className="text-slate-500 text-sm">No winback users found</p>
+              ) : (
+                <>
+                  <div className="overflow-x-auto max-h-64 overflow-y-auto">
+                    <table className="w-full text-sm">
+                      <thead className="sticky top-0 bg-orange-50">
+                        <tr className="border-b border-orange-200">
+                          <th className="text-left py-2 px-2 font-medium text-slate-600">Email</th>
+                          <th className="text-right py-2 px-2 font-medium text-slate-600">Uploads</th>
+                          <th className="text-right py-2 px-2 font-medium text-slate-600">Signed Up</th>
+                          <th className="text-right py-2 px-2 font-medium text-slate-600">Last Active</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {winbackData.users.map((user) => (
+                          <tr key={user.id} className="border-b border-orange-100 hover:bg-white/50">
+                            <td className="py-2 px-2 text-slate-900">{user.email}</td>
+                            <td className="py-2 px-2 text-right font-semibold text-orange-600 tabular-nums">{user.record_uploads}</td>
+                            <td className="py-2 px-2 text-right text-slate-500 text-xs">{formatTimestamp(user.created_at)}</td>
+                            <td className="py-2 px-2 text-right text-slate-500 text-xs">{user.last_sign_in ? formatTimestamp(user.last_sign_in) : 'Never'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="mt-4 p-3 bg-white/80 rounded-lg">
+                    <p className="text-sm font-medium text-slate-700 mb-1">📧 Outreach Template:</p>
+                    <p className="text-xs text-slate-600 italic">&quot;You uploaded your records to OpenCancer but haven&apos;t tried Combat yet - it runs an AI tumor board analysis on your case in one click. Want to give it a shot?&quot;</p>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Activity Counts by Type */}
