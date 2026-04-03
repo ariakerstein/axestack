@@ -172,8 +172,9 @@ I can help you with:
     const text = messageText || input
     if (!text.trim() || isLoading) return
 
-    // Track the question being asked
+    // Track the question being asked (include full question text for admin insights)
     trackEvent('ask_question', {
+      question: text.trim(),
       question_length: text.trim().length,
       cancer_type: cancerType || null,
       is_suggested_question: !!messageText,
