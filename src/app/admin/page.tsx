@@ -311,13 +311,15 @@ export default function AdminPage() {
       'docetaxel', 'cabazitaxel', 'radiation', 'ebrt', 'external beam',
       'radical prostatectomy', 'prostatectomy', 'surgery',
       'sipuleucel-t', 'provenge', 'radium-223', 'xofigo',
-      'lutetium', 'pluvicto', 'psma'
+      'lutetium', 'pluvicto', 'psma',
+      'sbrt', 'stereotactic', // SBRT is SOC for localized/oligometastatic prostate
+      'olaparib', 'rucaparib', 'niraparib', 'talazoparib' // PARP inhibitors for BRCA+ mCRPC
     ],
     'breast': [
       'tamoxifen', 'letrozole', 'anastrozole', 'exemestane',
       'trastuzumab', 'herceptin', 'pertuzumab', 'perjeta',
       'paclitaxel', 'doxorubicin', 'cyclophosphamide',
-      'mastectomy', 'lumpectomy', 'radiation',
+      'mastectomy', 'lumpectomy', 'radiation', 'sbrt',
       'palbociclib', 'ribociclib', 'abemaciclib',
       'olaparib', 'talazoparib'
     ],
@@ -329,8 +331,69 @@ export default function AdminPage() {
     ],
     'default': [
       'chemotherapy', 'radiation', 'surgery', 'immunotherapy',
-      'hormone therapy'
+      'hormone therapy', 'sbrt'
     ]
+  }
+
+  // Clinical pattern detection - identify coherent clinical stories
+  const DNA_REPAIR_GENES = ['brca1', 'brca2', 'atm', 'chek2', 'palb2', 'rad51', 'fanca', 'nbn']
+
+  const detectClinicalPatterns = (biomarkers: Array<{name: string; count: number}>, treatments: Array<{name: string; count: number}>) => {
+    const patterns: Array<{type: string; description: string; recommendation: string; centers: string[]}> = []
+    const biomarkerNames = biomarkers.map(b => b.name.toLowerCase())
+
+    // DNA repair deficiency pattern
+    const dnaRepairMutations = biomarkerNames.filter(b =>
+      DNA_REPAIR_GENES.some(gene => b.includes(gene))
+    )
+    if (dnaRepairMutations.length >= 2) {
+      patterns.push({
+        type: 'DNA Repair Deficiency',
+        description: `${dnaRepairMutations.length} DNA repair pathway mutations detected (${dnaRepairMutations.slice(0, 3).join(', ')}). This profile suggests HRD (homologous recombination deficiency).`,
+        recommendation: 'Consider PARP inhibitor sensitivity panel if not already done. PARP inhibitors (olaparib, rucaparib) may be relevant.',
+        centers: ['MD Anderson Cancer Center', 'Memorial Sloan Kettering', 'Johns Hopkins Sidney Kimmel']
+      })
+    }
+
+    // AR-driven pattern for prostate
+    if (biomarkerNames.some(b => b.includes('ar ') || b.includes('androgen receptor'))) {
+      patterns.push({
+        type: 'AR-Driven Disease',
+        description: 'Androgen receptor involvement detected. May indicate sensitivity to next-gen AR pathway inhibitors.',
+        recommendation: 'Consider AR-V7 testing if on enzalutamide/abiraterone resistance.',
+        centers: ['Johns Hopkins', 'UCSF', 'Dana-Farber']
+      })
+    }
+
+    return patterns
+  }
+
+  // Recommended tests based on biomarker profile
+  const getRecommendedTests = (biomarkers: Array<{name: string; count: number}>) => {
+    const tests: Array<{test: string; reason: string}> = []
+    const biomarkerNames = biomarkers.map(b => b.name.toLowerCase())
+
+    // BRCA mutations → PARP sensitivity
+    if (biomarkerNames.some(b => b.includes('brca'))) {
+      tests.push({ test: 'PARP Inhibitor Sensitivity Panel', reason: 'BRCA mutation detected' })
+    }
+
+    // ATM mutations → ATR inhibitor eligibility
+    if (biomarkerNames.some(b => b.includes('atm'))) {
+      tests.push({ test: 'ATR Inhibitor Trial Eligibility', reason: 'ATM kinase mutation detected' })
+    }
+
+    // MSI/MMR status
+    if (biomarkerNames.some(b => b.includes('msi') || b.includes('mmr') || b.includes('mlh') || b.includes('msh'))) {
+      tests.push({ test: 'Pembrolizumab Eligibility (MSI-H)', reason: 'MMR/MSI marker detected' })
+    }
+
+    // If no specific biomarkers, suggest comprehensive testing
+    if (tests.length === 0 && biomarkers.length > 0) {
+      tests.push({ test: 'Comprehensive Genomic Profiling (Foundation/Tempus)', reason: 'Further characterization recommended' })
+    }
+
+    return tests
   }
 
   const isStandardOfCare = (treatment: string, diagnoses: string[]): boolean => {
@@ -1371,6 +1434,51 @@ export default function AdminPage() {
                       )}
                     </div>
                   </div>
+
+                  {/* Recommended Tests Section */}
+                  {getCoOccurringEntities()?.topBiomarkers && getRecommendedTests(getCoOccurringEntities()!.topBiomarkers).length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-blue-200">
+                      <p className="text-xs text-violet-700 mb-3 uppercase tracking-wide font-medium">🧪 Recommended Tests</p>
+                      <div className="space-y-2">
+                        {getRecommendedTests(getCoOccurringEntities()!.topBiomarkers).map((t, j) => (
+                          <div key={j} className="flex items-center justify-between bg-violet-50 rounded-lg px-3 py-2">
+                            <span className="text-violet-800 text-sm font-medium">{t.test}</span>
+                            <span className="text-violet-600 text-xs">{t.reason}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Clinical Pattern Detection */}
+                  {getCoOccurringEntities()?.topBiomarkers && detectClinicalPatterns(
+                    getCoOccurringEntities()!.topBiomarkers,
+                    getCoOccurringEntities()!.topTreatments
+                  ).length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-amber-200">
+                      <p className="text-xs text-amber-700 mb-3 uppercase tracking-wide font-medium">🔬 Clinical Pattern Detected</p>
+                      {detectClinicalPatterns(
+                        getCoOccurringEntities()!.topBiomarkers,
+                        getCoOccurringEntities()!.topTreatments
+                      ).map((pattern, j) => (
+                        <div key={j} className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="bg-amber-600 text-white text-xs px-2 py-0.5 rounded font-medium">{pattern.type}</span>
+                          </div>
+                          <p className="text-amber-900 text-sm mb-2">{pattern.description}</p>
+                          <p className="text-amber-800 text-sm font-medium mb-2">💡 {pattern.recommendation}</p>
+                          <div className="flex flex-wrap gap-2">
+                            <span className="text-xs text-amber-600 font-medium">Academic Centers:</span>
+                            {pattern.centers.map((center, k) => (
+                              <span key={k} className="text-xs bg-white text-amber-700 px-2 py-0.5 rounded border border-amber-300">
+                                {center}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1385,7 +1493,7 @@ export default function AdminPage() {
                     >
                       <div className="flex items-center justify-between mb-3">
                         <h3 className="font-semibold text-slate-900 capitalize text-sm">{row.diagnosis}</h3>
-                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{row.patientCount} pts</span>
+                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{row.patientCount} {row.patientCount === 1 ? 'patient' : 'patients'}</span>
                       </div>
                       <div className="flex gap-1 flex-wrap">
                         {row.topTreatments.slice(0, 3).map((t, j) => {
