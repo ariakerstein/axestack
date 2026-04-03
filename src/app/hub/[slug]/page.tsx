@@ -55,7 +55,7 @@ export default function HubViewPage() {
     setLoading(false)
   }, [slug])
 
-  const handlePostUpdate = () => {
+  const handlePostUpdate = async () => {
     if (!hub || !newUpdate.trim()) return
 
     const update: Update = {
@@ -79,6 +79,17 @@ export default function HubViewPage() {
 
     setHub(updatedHub)
     setNewUpdate('')
+
+    // Log hub update to activity (captures in knowledge graph)
+    logActivity({
+      activityType: 'hub_update',
+      metadata: {
+        hubSlug: slug,
+        hubName: hub.patientName,
+        updateId: update.id,
+        contentPreview: update.content.slice(0, 100),
+      },
+    })
   }
 
   const handleCopyLink = () => {

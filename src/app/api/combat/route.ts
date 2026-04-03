@@ -1,8 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
 // Use the same Supabase project as other AI calls
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://felofmlhqwcdpiyjgstx.supabase.co"
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlbG9mbWxocXdjZHBpeWpnc3R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA2NzQzODAsImV4cCI6MjA1NjI1MDM4MH0._kYA-prwPgxQWoKzWPzJDy2Bf95WgTF5_KnAPN2cGnQ"
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+
+function getSupabase() {
+  return createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+}
+
+// Fetch patient context from knowledge graph for personalization
+async function getPatientGraphContext(userId?: string, sessionId?: string): Promise<string | null> {
+  if (!userId && !sessionId) return null
+
+  const supabase = getSupabase()
+
+  // Fetch patient entities (diagnoses, treatments, biomarkers, etc.)
+  let query = supabase
+    .from('patient_entities')
+    .select('entity_type, entity_value, entity_status, entity_date, numeric_value, numeric_unit, confidence')
+    .order('created_at', { ascending: false })
+    .limit(100)
+
+  if (userId) {
+    query = query.eq('user_id', userId)
+  } else if (sessionId) {
+    query = query.eq('session_id', sessionId)
+  }
+
+  const { data: entities } = await query
+
+  if (!entities || entities.length === 0) return null
+
+  // Group by type for a clean summary
+  const grouped: Record<string, string[]> = {}
+  for (const e of entities) {
+    if (!grouped[e.entity_type]) grouped[e.entity_type] = []
+    let value = e.entity_value
+    if (e.entity_status) value += ` (${e.entity_status})`
+    if (e.entity_date) value += ` - ${new Date(e.entity_date).toLocaleDateString()}`
+    if (e.numeric_value && e.numeric_unit) value += `: ${e.numeric_value} ${e.numeric_unit}`
+    grouped[e.entity_type].push(value)
+  }
+
+  // Build context string
+  const lines = Object.entries(grouped).map(([type, values]) => {
+    const uniqueValues = [...new Set(values)] // Dedupe
+    return `${type.toUpperCase()}: ${uniqueValues.slice(0, 10).join(', ')}`
+  })
+
+  return lines.join('\n')
+}
 
 interface RecordInput {
   fileName: string
@@ -317,7 +366,7 @@ Focus on actionable insights for the patient's next doctor conversation.`
 
 export async function POST(request: NextRequest) {
   try {
-    const { phase, records, weights, userId } = await request.json()
+    const { phase, records, weights, userId, sessionId } = await request.json()
 
     if (!records || records.length === 0) {
       return NextResponse.json({ error: 'No records provided' }, { status: 400 })
@@ -330,7 +379,19 @@ export async function POST(request: NextRequest) {
       integrative: weights?.integrative ?? 50
     }
 
-    const caseContext = buildCaseContext(records)
+    // Fetch patient's knowledge graph context (treatments, diagnoses, biomarkers from all records)
+    const graphContext = await getPatientGraphContext(userId, sessionId)
+
+    // Build case context from current records + graph history
+    let caseContext = buildCaseContext(records)
+
+    if (graphContext) {
+      caseContext = `PATIENT HISTORY FROM KNOWLEDGE GRAPH:
+${graphContext}
+
+CURRENT RECORDS FOR ANALYSIS:
+${caseContext}`
+    }
 
     // Determine the question based on phase and case
     const cancerType = records[0]?.result?.cancer_specific?.cancer_type || 'this cancer'

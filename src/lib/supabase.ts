@@ -279,6 +279,12 @@ export async function saveProfile(data: {
       console.error('Error updating profile:', error)
       return null
     }
+
+    // Update profile entities in knowledge graph (async, non-blocking)
+    if (profile) {
+      saveProfileToGraph(profile, sessionId)
+    }
+
     return profile
   } else {
     // Create new profile
@@ -300,7 +306,69 @@ export async function saveProfile(data: {
       console.error('Error creating profile:', error)
       return null
     }
+
+    // Save profile entities to knowledge graph (async, non-blocking)
+    saveProfileToGraph(profile, sessionId)
+
     return profile
+  }
+}
+
+// Save profile data to the patient knowledge graph
+async function saveProfileToGraph(
+  profile: OpenCancerProfile,
+  sessionId: string | null
+): Promise<void> {
+  try {
+    const entities = []
+
+    // Cancer type entity
+    if (profile.cancer_type) {
+      entities.push({
+        user_id: null, // Will be linked via email
+        session_id: sessionId,
+        entity_type: 'cancer_type',
+        entity_value: profile.cancer_type,
+        entity_status: 'confirmed',
+        confidence: 1.0,
+        source_type: 'profile',
+        metadata: { email: profile.email, profile_id: profile.id },
+      })
+    }
+
+    // Stage entity
+    if (profile.stage) {
+      entities.push({
+        user_id: null,
+        session_id: sessionId,
+        entity_type: 'stage',
+        entity_value: profile.stage,
+        entity_status: 'confirmed',
+        confidence: 1.0,
+        source_type: 'profile',
+        metadata: { email: profile.email, profile_id: profile.id },
+      })
+    }
+
+    // Role entity (patient vs caregiver affects personalization)
+    if (profile.role) {
+      entities.push({
+        user_id: null,
+        session_id: sessionId,
+        entity_type: 'role',
+        entity_value: profile.role,
+        entity_status: 'active',
+        confidence: 1.0,
+        source_type: 'profile',
+        metadata: { email: profile.email, profile_id: profile.id },
+      })
+    }
+
+    if (entities.length > 0) {
+      await supabase.from('patient_entities').insert(entities)
+    }
+  } catch (err) {
+    console.error('Failed to save profile to graph:', err)
   }
 }
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useRef } from 'react'
 import { useAuth } from '@/lib/auth'
 
 // Get or create session ID for anonymous users
@@ -12,6 +12,18 @@ function getSessionId(): string {
     localStorage.setItem('opencancer-session-id', sessionId)
   }
   return sessionId
+}
+
+// Get the last action node ID for behavioral chains
+function getLastActionNodeId(): string | null {
+  if (typeof window === 'undefined') return null
+  return sessionStorage.getItem('opencancer-last-action-id')
+}
+
+// Store the last action node ID
+function setLastActionNodeId(actionId: string): void {
+  if (typeof window === 'undefined') return
+  sessionStorage.setItem('opencancer-last-action-id', actionId)
 }
 
 export type ActivityType =
@@ -37,6 +49,9 @@ export type ActivityType =
   | 'caregiver_invite'
   | 'caregiver_accept'
   | 'share_record'
+  | 'hub_update'
+  // Outcomes
+  | 'combat_outcome'
 
 interface LogActivityParams {
   activityType: ActivityType
@@ -61,7 +76,10 @@ export function useActivityLog() {
     if (!user?.id && !sessionId) return
 
     try {
-      await fetch('/api/activity/log', {
+      // Get previous action for behavioral chain
+      const previousActionId = getLastActionNodeId()
+
+      const response = await fetch('/api/activity/log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -72,8 +90,15 @@ export function useActivityLog() {
           sourcePage: sourcePage || (typeof window !== 'undefined' ? window.location.pathname : undefined),
           durationMs,
           metadata,
+          previousActionId, // For behavioral chains
         }),
       })
+
+      // Store this action's node ID for the next action in the chain
+      const data = await response.json()
+      if (data.actionNodeId) {
+        setLastActionNodeId(data.actionNodeId)
+      }
     } catch (err) {
       // Non-blocking - don't let logging failures affect UX
       console.error('Activity log failed:', err)

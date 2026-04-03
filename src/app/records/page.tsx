@@ -350,31 +350,44 @@ export default function RecordsVaultPage() {
         if (response.ok) {
           const { records } = await response.json()
           if (records && records.length > 0) {
-            // Merge cloud records with localStorage
+            // For authenticated users: cloud records are the source of truth
+            // Don't try to merge with localStorage - it has quota limits
+            const cloudRecords = records.map((r: { id: string; fileName: string; date: string; documentType: string; result: TranslationResult }) => ({
+              id: r.id,
+              fileName: r.fileName,
+              date: r.date,
+              documentType: r.documentType,
+            }))
+
+            // Get any local-only records (uploaded this session before sync)
             const localIndex = JSON.parse(localStorage.getItem('axestack-translations') || '[]')
-            const localIds = new Set(localIndex.map((t: { id: string }) => t.id))
+            const cloudIds = new Set(cloudRecords.map((r: { id: string }) => r.id))
+            const localOnlyRecords = localIndex.filter((r: { id: string }) => !cloudIds.has(r.id))
 
-            // Add cloud records that aren't in localStorage
-            const newRecords = records.filter((r: { id: string }) => !localIds.has(r.id))
-            if (newRecords.length > 0) {
-              const merged = [...newRecords, ...localIndex]
-              setSavedTranslations(merged)
-              localStorage.setItem('axestack-translations', JSON.stringify(merged))
+            // Cloud records first, then any local-only records
+            const allRecords = [...cloudRecords, ...localOnlyRecords]
+            setSavedTranslations(allRecords)
 
-              // Also save the full record data for cloud records
-              const existingData = JSON.parse(localStorage.getItem('axestack-translations-data') || '{}')
-              newRecords.forEach((r: { id: string; fileName: string; date: string; documentType: string; result: TranslationResult }) => {
-                existingData[r.id] = {
-                  id: r.id,
-                  fileName: r.fileName,
-                  date: r.date,
-                  documentType: r.documentType,
-                  result: r.result,
-                  documentText: '',
-                  chatMessages: [],
-                }
-              })
+            // Store cloud record data in memory (not localStorage) for viewing
+            const existingData = JSON.parse(localStorage.getItem('axestack-translations-data') || '{}')
+            records.forEach((r: { id: string; fileName: string; date: string; documentType: string; result: TranslationResult }) => {
+              // Only store in memory map, don't persist to localStorage
+              existingData[r.id] = {
+                id: r.id,
+                fileName: r.fileName,
+                date: r.date,
+                documentType: r.documentType,
+                result: r.result,
+                documentText: '',
+                chatMessages: [],
+              }
+            })
+            // Try to save but don't fail if quota exceeded
+            try {
               localStorage.setItem('axestack-translations-data', JSON.stringify(existingData))
+            } catch {
+              // localStorage full - that's OK, we have cloud records
+              console.log('localStorage full, using cloud records directly')
             }
           }
         }
@@ -567,31 +580,83 @@ export default function RecordsVaultPage() {
           chatMessages: [],
         }
 
-        // Save full translation data (with error handling for quota)
+        // For authenticated users: save to cloud FIRST (primary storage)
+        // For anonymous users: save to localStorage (with quota handling)
         const newEntry = { id: translationId, fileName: uploadedFile.file.name, date: translation.date, documentType: data.analysis?.document_type || 'Unknown' }
-        try {
-          const existingData = localStorage.getItem('axestack-translations-data') || '{}'
-          const translationData = JSON.parse(existingData)
-          translationData[translationId] = translation
-          localStorage.setItem('axestack-translations-data', JSON.stringify(translationData))
 
-          // Update index for quick listing
-          const existingIndex = JSON.parse(localStorage.getItem('axestack-translations') || '[]')
-          const updatedIndex = [newEntry, ...existingIndex]
-          localStorage.setItem('axestack-translations', JSON.stringify(updatedIndex))
-          setSavedTranslations(updatedIndex)
-        } catch (err) {
-          console.error('localStorage save failed (quota?):', err)
-          // Still update state so user sees the record this session
+        if (user) {
+          // AUTHENTICATED: Cloud is primary storage
+          try {
+            const { supabase } = await import('@/lib/supabase')
+            const { data: { session } } = await supabase.auth.getSession()
+            if (session?.access_token) {
+              const saveResponse = await fetch('/api/records/save', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${session.access_token}`,
+                },
+                body: JSON.stringify({
+                  fileName: uploadedFile.file.name,
+                  documentType: data.analysis?.document_type,
+                  result: data.analysis,
+                  documentText: data.documentText,
+                  chatMessages: [],
+                }),
+              })
+
+              if (saveResponse.ok) {
+                const saveData = await saveResponse.json()
+                // Use cloud ID if returned
+                if (saveData.id) {
+                  newEntry.id = saveData.id
+                  console.log('Record saved to cloud:', saveData.id)
+                }
+              } else {
+                // Log the actual error from the server
+                const errorData = await saveResponse.json().catch(() => ({}))
+                console.error('Cloud save failed:', saveResponse.status, errorData)
+              }
+            } else {
+              console.warn('No session token available for cloud save')
+            }
+          } catch (err) {
+            console.error('Cloud save exception:', err)
+          }
+
+          // Update state immediately (cloud is source of truth)
           setSavedTranslations(prev => [newEntry, ...prev])
-          // Warning will show if user isn't authenticated
-          if (!user) {
-            setStorageWarning('Local storage is full. Sign in to save records to the cloud.')
+
+          // Try to cache in localStorage but don't fail if full
+          try {
+            const existingData = localStorage.getItem('axestack-translations-data') || '{}'
+            const translationData = JSON.parse(existingData)
+            translationData[translationId] = translation
+            localStorage.setItem('axestack-translations-data', JSON.stringify(translationData))
+          } catch {
+            // localStorage full - that's fine, we have cloud
+          }
+        } else {
+          // ANONYMOUS: localStorage is primary (with quota handling)
+          try {
+            const existingData = localStorage.getItem('axestack-translations-data') || '{}'
+            const translationData = JSON.parse(existingData)
+            translationData[translationId] = translation
+            localStorage.setItem('axestack-translations-data', JSON.stringify(translationData))
+
+            const existingIndex = JSON.parse(localStorage.getItem('axestack-translations') || '[]')
+            const updatedIndex = [newEntry, ...existingIndex]
+            localStorage.setItem('axestack-translations', JSON.stringify(updatedIndex))
+            setSavedTranslations(updatedIndex)
+          } catch (err) {
+            console.error('localStorage save failed (quota?):', err)
+            setSavedTranslations(prev => [newEntry, ...prev])
+            setStorageWarning('Local storage is full. Sign in to save unlimited records to the cloud.')
             setTimeout(() => setStorageWarning(null), 8000)
           }
         }
 
-        // Track successful upload with user_id for records/profile analytics
+        // Track successful upload
         trackEvent('record_upload', {
           file_type: uploadedFile.file.type || 'unknown',
           file_size_kb: Math.round(uploadedFile.file.size / 1024),
@@ -603,34 +668,6 @@ export default function RecordsVaultPage() {
           bulk_total: uploadedFiles.length,
           user_id: user?.id || null,
         })
-
-        // Auto-save to cloud if user is authenticated (fire and forget)
-        if (user) {
-          (async () => {
-            try {
-              const { supabase } = await import('@/lib/supabase')
-              const { data: { session } } = await supabase.auth.getSession()
-              if (session?.access_token) {
-                await fetch('/api/records/save', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.access_token}`,
-                  },
-                  body: JSON.stringify({
-                    fileName: uploadedFile.file.name,
-                    documentType: data.analysis?.document_type,
-                    result: data.analysis,
-                    documentText: data.documentText,
-                    chatMessages: [],
-                  }),
-                })
-              }
-            } catch (err) {
-              console.error('Cloud sync failed:', err)
-            }
-          })()
-        }
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : 'Failed to process'
         console.error(`[Bulk] Failed: ${uploadedFile.file.name}`, err)
@@ -725,51 +762,54 @@ export default function RecordsVaultPage() {
         }
 
         const newEntry = { id: translationId, fileName: uploadedFile.file.name, date: translation.date, documentType: data.analysis?.document_type || 'Unknown' }
-        try {
-          const existingData = localStorage.getItem('axestack-translations-data') || '{}'
-          const translationData = JSON.parse(existingData)
-          translationData[translationId] = translation
-          localStorage.setItem('axestack-translations-data', JSON.stringify(translationData))
 
-          const existingIndex = JSON.parse(localStorage.getItem('axestack-translations') || '[]')
-          const updatedIndex = [newEntry, ...existingIndex]
-          localStorage.setItem('axestack-translations', JSON.stringify(updatedIndex))
-          setSavedTranslations(updatedIndex)
-        } catch (err) {
-          console.error('localStorage save failed (quota?):', err)
+        if (user) {
+          // AUTHENTICATED: Cloud is primary storage
+          try {
+            const { supabase } = await import('@/lib/supabase')
+            const { data: { session } } = await supabase.auth.getSession()
+            if (session?.access_token) {
+              const saveResponse = await fetch('/api/records/save', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${session.access_token}`,
+                },
+                body: JSON.stringify({
+                  fileName: uploadedFile.file.name,
+                  documentType: data.analysis?.document_type,
+                  result: data.analysis,
+                  documentText: data.documentText,
+                  chatMessages: [],
+                }),
+              })
+              if (saveResponse.ok) {
+                const saveData = await saveResponse.json()
+                if (saveData.id) newEntry.id = saveData.id
+              }
+            }
+          } catch (err) {
+            console.error('Cloud save failed:', err)
+          }
           setSavedTranslations(prev => [newEntry, ...prev])
-          if (!user) {
-            setStorageWarning('Local storage is full. Sign in to save records to the cloud.')
+        } else {
+          // ANONYMOUS: localStorage with quota handling
+          try {
+            const existingData = localStorage.getItem('axestack-translations-data') || '{}'
+            const translationData = JSON.parse(existingData)
+            translationData[translationId] = translation
+            localStorage.setItem('axestack-translations-data', JSON.stringify(translationData))
+
+            const existingIndex = JSON.parse(localStorage.getItem('axestack-translations') || '[]')
+            const updatedIndex = [newEntry, ...existingIndex]
+            localStorage.setItem('axestack-translations', JSON.stringify(updatedIndex))
+            setSavedTranslations(updatedIndex)
+          } catch (err) {
+            console.error('localStorage save failed (quota?):', err)
+            setSavedTranslations(prev => [newEntry, ...prev])
+            setStorageWarning('Local storage is full. Sign in to save unlimited records to the cloud.')
             setTimeout(() => setStorageWarning(null), 8000)
           }
-        }
-
-        // Auto-save to cloud if user is authenticated
-        if (user) {
-          (async () => {
-            try {
-              const { supabase } = await import('@/lib/supabase')
-              const { data: { session } } = await supabase.auth.getSession()
-              if (session?.access_token) {
-                await fetch('/api/records/save', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.access_token}`,
-                  },
-                  body: JSON.stringify({
-                    fileName: uploadedFile.file.name,
-                    documentType: data.analysis?.document_type,
-                    result: data.analysis,
-                    documentText: data.documentText,
-                    chatMessages: [],
-                  }),
-                })
-              }
-            } catch (err) {
-              console.error('Cloud sync failed:', err)
-            }
-          })()
         }
 
       } catch (err) {
@@ -1915,18 +1955,19 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
             {isBulkMode && uploadedFiles.length > 0 && (
               <div className="mt-5 space-y-3">
                 {/* Prominent progress indicator at TOP during processing */}
-                {isProcessing && bulkProgress.total > 0 && (
+                {/* Show when isProcessing OR when any file has 'processing' status (more robust) */}
+                {(isProcessing || uploadedFiles.some(f => f.status === 'processing')) && (
                   <div className="bg-gradient-to-r from-violet-600 to-purple-600 rounded-xl p-4 text-white shadow-lg">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       <span className="font-semibold">
-                        Processing file {bulkProgress.current} of {bulkProgress.total}
+                        Processing file {Math.max(bulkProgress.current, uploadedFiles.filter(f => f.status === 'completed' || f.status === 'error').length + 1)} of {bulkProgress.total || uploadedFiles.length}
                       </span>
                     </div>
                     <div className="w-full bg-white/30 rounded-full h-3">
                       <div
                         className="bg-white h-3 rounded-full transition-all duration-300"
-                        style={{ width: `${(bulkProgress.current / bulkProgress.total) * 100}%` }}
+                        style={{ width: `${((uploadedFiles.filter(f => f.status === 'completed' || f.status === 'error').length) / uploadedFiles.length) * 100}%` }}
                       />
                     </div>
                     <p className="text-sm text-white/80 mt-2">

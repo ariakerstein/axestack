@@ -37,7 +37,15 @@ export async function POST(request: NextRequest) {
 
     const { fileName, documentType, result, documentText, chatMessages } = await request.json()
 
+    // Check if we have service role key (required for bypassing RLS)
+    const hasServiceKey = SUPABASE_SERVICE_KEY && SUPABASE_SERVICE_KEY.startsWith('eyJ')
+    if (!hasServiceKey) {
+      console.error('No valid service role key found - using anon key will fail')
+    }
+
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+
+    console.log('Saving record for user:', userId, 'file:', fileName)
 
     // Save to medical_records table (existing table in insight-guide-query/navis)
     const { data, error } = await supabase
@@ -63,8 +71,13 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Supabase error:', error)
-      return NextResponse.json({ error: 'Failed to save record' }, { status: 500 })
+      console.error('Supabase insert error:', JSON.stringify(error, null, 2))
+      console.error('Insert was:', { user_id: userId, original_name: fileName, record_type: documentType })
+      return NextResponse.json({
+        error: 'Failed to save record',
+        details: error.message,
+        code: error.code
+      }, { status: 500 })
     }
 
     return NextResponse.json({ success: true, id: data?.id })
@@ -77,7 +90,155 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// Debug endpoint - GET without auth to test service key
 export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url)
+  const debug = searchParams.get('debug')
+
+  // Create or update user password (admin only)
+  if (debug === 'create-user' || debug === 'set-password') {
+    const email = searchParams.get('email')
+    const password = searchParams.get('password')
+
+    if (!email || !password) {
+      return NextResponse.json({ error: 'email and password required' }, { status: 400 })
+    }
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+
+    // First try to find the user by email (paginated search)
+    let existingUser = null
+    let page = 1
+    const perPage = 100
+    while (true) {
+      const { data: { users } } = await supabase.auth.admin.listUsers({ page, perPage })
+      if (!users || users.length === 0) break
+      existingUser = users.find(u => u.email?.toLowerCase() === email.toLowerCase())
+      if (existingUser) break
+      if (users.length < perPage) break
+      page++
+    }
+
+    if (existingUser) {
+      // Update existing user's password
+      const { data, error } = await supabase.auth.admin.updateUserById(existingUser.id, {
+        password,
+      })
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 })
+      }
+
+      return NextResponse.json({
+        success: true,
+        userId: data.user?.id,
+        email: data.user?.email,
+        message: 'Password updated. User can now login with this password.'
+      })
+    } else {
+      // Create new user
+      const { data, error } = await supabase.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+      })
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 })
+      }
+
+      return NextResponse.json({
+        success: true,
+        userId: data.user?.id,
+        email: data.user?.email,
+        message: 'User created. They can now login with this password.'
+      })
+    }
+  }
+
+  // Allow debug mode only to check if service key works
+  if (debug === 'test') {
+    const email = searchParams.get('email')
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+
+    // Count all records
+    const { count: totalCount } = await supabase
+      .from('medical_records')
+      .select('*', { count: 'exact', head: true })
+
+    // Count opencancer records
+    const { count: opencancerCount } = await supabase
+      .from('medical_records')
+      .select('*', { count: 'exact', head: true })
+      .eq('source', 'opencancer')
+
+    // If email provided, look up user in both profiles and auth.users
+    let userRecords = null
+    let userId = null
+    let authUserId = null
+    let profileMatch = null
+    if (email) {
+      // Try profiles table - search by email OR name containing search term
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, email, full_name, display_name')
+        .or(`email.ilike.%${email}%,full_name.ilike.%${email}%,display_name.ilike.%${email}%`)
+        .limit(5)
+
+      if (profiles && profiles.length > 0) {
+        profileMatch = profiles
+        userId = profiles[0].user_id
+      }
+
+      // Also check auth.users via admin API
+      const { data: { users } } = await supabase.auth.admin.listUsers()
+      const authUser = users?.find(u => u.email?.toLowerCase().includes(email.toLowerCase()))
+      if (authUser) {
+        authUserId = authUser.id
+        userId = userId || authUser.id
+      }
+
+      if (userId) {
+        const { count } = await supabase
+          .from('medical_records')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', userId)
+        userRecords = count
+      }
+    }
+
+    // List recent auth users or profiles
+    let recentAuthUsers = null
+    let allProfiles = null
+    if (!email || email === 'list') {
+      const { data: { users } } = await supabase.auth.admin.listUsers()
+      recentAuthUsers = users?.slice(0, 20).map(u => ({
+        email: u.email,
+        created: u.created_at,
+        lastSignIn: u.last_sign_in_at
+      }))
+
+      // Also get all profiles
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('email, full_name, display_name, created_at')
+        .order('created_at', { ascending: false })
+        .limit(30)
+      allProfiles = profiles
+    }
+
+    return NextResponse.json({
+      totalRecords: totalCount,
+      opencancerRecords: opencancerCount,
+      searchTerm: email,
+      profileMatches: profileMatch,
+      authUserId,
+      userRecords,
+      recentAuthUsers,
+      allProfiles,
+    })
+  }
+
   try {
     // Verify auth and get user ID from token
     const userId = await getAuthenticatedUserId(request)

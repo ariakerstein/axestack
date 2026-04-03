@@ -838,6 +838,11 @@ export default function CombatPage() {
   const [treatmentResult, setTreatmentResult] = useState<CombatResult | null>(null)
   const [expandedPerspectives, setExpandedPerspectives] = useState<Set<string>>(new Set())
 
+  // Outcome tracking - simple question after Combat
+  const [showOutcomeQuestion, setShowOutcomeQuestion] = useState(false)
+  const [outcomeAnswer, setOutcomeAnswer] = useState<string | null>(null)
+  const [lastCombatId, setLastCombatId] = useState<string | null>(null)
+
   // Load saved combat results from localStorage on mount
   useEffect(() => {
     try {
@@ -1162,9 +1167,18 @@ export default function CombatPage() {
             },
             evidenceStrength: calculateEvidenceStrength(),
           })
-        }).then(res => {
+        }).then(async res => {
           if (res.ok) {
             console.log('Combat analysis saved to Supabase')
+            const data = await res.json()
+            // Store combat ID for outcome linking
+            if (data.data?.id) {
+              setLastCombatId(data.data.id)
+            }
+            // Show outcome question after a brief delay
+            setTimeout(() => {
+              setShowOutcomeQuestion(true)
+            }, 2000)
           } else {
             console.error('Failed to save combat analysis')
           }
@@ -1195,6 +1209,39 @@ export default function CombatPage() {
     })
   }
 
+  // Save outcome to the knowledge graph
+  const saveOutcome = async (answer: string) => {
+    setOutcomeAnswer(answer)
+    setShowOutcomeQuestion(false)
+
+    // Save to graph as an outcome entity
+    try {
+      const sessionId = getSessionId()
+      await fetch('/api/activity/log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          activityType: 'combat_outcome',
+          userId: user?.id || null,
+          sessionId,
+          metadata: {
+            outcome: answer,
+            combatId: lastCombatId,
+            phase,
+            question: 'Did this change what you plan to discuss with your doctor?',
+          },
+        }),
+      })
+
+      trackEvent('combat_outcome_recorded', {
+        outcome: answer,
+        phase,
+      })
+    } catch (err) {
+      console.error('Failed to save outcome:', err)
+    }
+  }
+
   const currentResult = phase === 'diagnosis' ? diagnosisResult : treatmentResult
 
   if (loading) {
@@ -1207,6 +1254,41 @@ export default function CombatPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      {/* Outcome Question Modal - Simple, non-intrusive */}
+      {showOutcomeQuestion && (
+        <div className="fixed bottom-4 right-4 z-50 bg-white rounded-2xl shadow-2xl border border-slate-200 p-5 max-w-sm animate-in slide-in-from-bottom-4">
+          <p className="text-sm font-medium text-slate-900 mb-3">
+            Did this change what you plan to discuss with your doctor?
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => saveOutcome('yes')}
+              className="flex-1 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-sm font-medium transition-colors"
+            >
+              Yes
+            </button>
+            <button
+              onClick={() => saveOutcome('maybe')}
+              className="flex-1 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-medium transition-colors"
+            >
+              Maybe
+            </button>
+            <button
+              onClick={() => saveOutcome('no')}
+              className="flex-1 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-sm font-medium transition-colors"
+            >
+              No
+            </button>
+          </div>
+          <button
+            onClick={() => setShowOutcomeQuestion(false)}
+            className="mt-2 text-xs text-slate-400 hover:text-slate-600 w-full text-center"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       {/* Header - Clean & Refined */}
       <header className="border-b border-slate-200 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
