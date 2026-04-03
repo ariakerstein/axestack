@@ -6,6 +6,7 @@ import { CANCER_TYPES } from '@/lib/cancer-data'
 import { Search, Filter, MapPin, Phone, ExternalLink, Star, Building2 } from 'lucide-react'
 import { ShareButton } from '@/components/ShareButton'
 import { useAuth } from '@/lib/auth'
+import { useActivityLog } from '@/hooks/useActivityLog'
 
 interface CancerCenter {
   id: string
@@ -171,6 +172,8 @@ export default function OncologistsPage() {
   const [selectedSpecialty, setSelectedSpecialty] = useState('All Specialties')
   const [showTopOnly, setShowTopOnly] = useState(false)
 
+  const { logOncologistSearch, logActivity } = useActivityLog()
+
   // Load profile - prefer Supabase for authenticated users
   useEffect(() => {
     if (authLoading) return
@@ -230,6 +233,30 @@ export default function OncologistsPage() {
     selectedSpecialty !== 'All Specialties',
     showTopOnly,
   ].filter(Boolean).length
+
+  // Log search activity when filters change
+  useEffect(() => {
+    // Only log if there's some filter applied (not initial load)
+    if (selectedRegion !== 'All Regions' || selectedSpecialty !== 'All Specialties' || searchTerm) {
+      logOncologistSearch({
+        specialty: selectedSpecialty !== 'All Specialties' ? selectedSpecialty : undefined,
+        location: selectedRegion !== 'All Regions' ? selectedRegion : undefined,
+        resultsCount: filteredCenters.length,
+      })
+    }
+  }, [selectedRegion, selectedSpecialty, searchTerm, filteredCenters.length, logOncologistSearch])
+
+  // Log when user clicks on a center
+  const handleCenterClick = (center: CancerCenter) => {
+    logActivity({
+      activityType: 'oncologist_view',
+      metadata: {
+        centerId: center.id,
+        centerName: center.name,
+        location: center.location,
+      },
+    })
+  }
 
   return (
     <main className="min-h-screen bg-white">
@@ -377,6 +404,7 @@ export default function OncologistsPage() {
                 href={center.website}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => handleCenterClick(center)}
                 className="block bg-white border border-slate-200 rounded-xl p-4 hover:border-violet-300 hover:shadow-md transition-all group"
               >
                 <div className="flex items-start justify-between gap-4">

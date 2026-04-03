@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAnalytics } from '@/hooks/useAnalytics'
+import { useActivityLog } from '@/hooks/useActivityLog'
 
 export default function HubPage() {
   const router = useRouter()
@@ -12,6 +13,7 @@ export default function HubPage() {
   const [creating, setCreating] = useState(false)
 
   const { trackEvent } = useAnalytics()
+  const { logActivity } = useActivityLog()
 
   const handleCreate = async () => {
     if (!patientName.trim()) return
@@ -44,6 +46,15 @@ export default function HubPage() {
     trackEvent('hub_created', {
       hub_slug: slug,
       total_hubs: existingHubs.length,
+    })
+
+    // Log to patient graph - CareCircle creation is a caregiver invite activity
+    logActivity({
+      activityType: 'caregiver_invite',
+      metadata: {
+        hubSlug: slug,
+        hubName: patientName.trim(),
+      },
     })
 
     // Navigate to the new hub

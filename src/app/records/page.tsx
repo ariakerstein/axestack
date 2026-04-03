@@ -207,6 +207,7 @@ export default function RecordsVaultPage() {
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [isSavingToCloud, setIsSavingToCloud] = useState(false)
   const [cloudSaveError, setCloudSaveError] = useState<string | null>(null)
+  const [storageWarning, setStorageWarning] = useState<string | null>(null)
 
   // @opencancer.ai email state
   const [showEmailModal, setShowEmailModal] = useState(false)
@@ -1156,32 +1157,40 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
       chatMessages,
     }
 
-    // Save full translation data
-    const existingData = localStorage.getItem('axestack-translations-data') || '{}'
-    const data = JSON.parse(existingData)
-    data[id] = translation
-    localStorage.setItem('axestack-translations-data', JSON.stringify(data))
+    // Try to save to localStorage (may fail if storage is full)
+    let localSaveSucceeded = true
+    try {
+      const existingData = localStorage.getItem('axestack-translations-data') || '{}'
+      const data = JSON.parse(existingData)
+      data[id] = translation
+      localStorage.setItem('axestack-translations-data', JSON.stringify(data))
 
-    // Update index for quick listing
-    const newEntry = { id, fileName: file.name, date: translation.date, documentType: result.document_type }
-    const updatedList = [newEntry, ...savedTranslations]
-    setSavedTranslations(updatedList)
-    localStorage.setItem('axestack-translations', JSON.stringify(updatedList))
+      // Update index for quick listing
+      const newEntry = { id, fileName: file.name, date: translation.date, documentType: result.document_type }
+      const updatedList = [newEntry, ...savedTranslations]
+      setSavedTranslations(updatedList)
+      localStorage.setItem('axestack-translations', JSON.stringify(updatedList))
+    } catch (err) {
+      // localStorage is full (QuotaExceededError)
+      localSaveSucceeded = false
+      console.error('localStorage save failed:', err)
 
-    setSaveSuccess(true)
-    setTimeout(() => {
-      setSaveSuccess(false)
-      setShowSaveModal(false)
-    }, 1500)
+      if (user) {
+        setStorageWarning('Local storage is full, but your record was saved to the cloud. Sign in on any device to access all your records.')
+      } else {
+        setStorageWarning('Local storage is full. Sign in to save unlimited records to the cloud.')
+      }
+      setTimeout(() => setStorageWarning(null), 8000)
+    }
 
-    // Auto-save to cloud if user is authenticated (fire and forget)
+    // Auto-save to cloud if user is authenticated
     if (user) {
       (async () => {
         try {
           const { supabase } = await import('@/lib/supabase')
           const { data: { session } } = await supabase.auth.getSession()
           if (session?.access_token) {
-            await fetch('/api/records/save', {
+            const response = await fetch('/api/records/save', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -1195,11 +1204,31 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 chatMessages,
               }),
             })
+
+            if (response.ok) {
+              // Cloud save succeeded
+              setSaveSuccess(true)
+              setTimeout(() => {
+                setSaveSuccess(false)
+                setShowSaveModal(false)
+              }, 1500)
+            } else {
+              throw new Error('Cloud save failed')
+            }
           }
         } catch (err) {
           console.error('Cloud sync failed:', err)
+          if (!localSaveSucceeded) {
+            setStorageWarning('Failed to save record. Please try again.')
+          }
         }
       })()
+    } else if (localSaveSucceeded) {
+      setSaveSuccess(true)
+      setTimeout(() => {
+        setSaveSuccess(false)
+        setShowSaveModal(false)
+      }, 1500)
     }
   }
 
@@ -2043,6 +2072,16 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
             )}
 
             {error && <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+
+            {storageWarning && (
+              <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-sm flex items-start gap-2">
+                <span className="text-lg">⚠️</span>
+                <div>
+                  <p className="font-medium">Storage limit reached</p>
+                  <p>{storageWarning}</p>
+                </div>
+              </div>
+            )}
 
             {/* Social proof */}
             <div className="mt-6 flex items-center justify-center gap-2 text-sm">

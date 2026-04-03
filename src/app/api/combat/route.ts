@@ -199,6 +199,7 @@ Be specific to THIS patient's case. Reference their actual biomarkers, stage, an
         model: 'claude-sonnet-4-20250514',
         temperature: 0.3,
         skipRAG: true, // Don't use NCCN RAG for this - personas handle guidelines
+        userId, // Pass userId for response_evaluations tracking
       }),
     })
 
@@ -277,6 +278,7 @@ Focus on actionable insights for the patient's next doctor conversation.`
         model: 'claude-sonnet-4-20250514',
         temperature: 0.2,
         skipRAG: true,
+        userId, // Pass userId for response_evaluations tracking
       }),
     })
 
@@ -313,7 +315,7 @@ Focus on actionable insights for the patient's next doctor conversation.`
 
 export async function POST(request: NextRequest) {
   try {
-    const { phase, records, weights } = await request.json()
+    const { phase, records, weights, userId } = await request.json()
 
     if (!records || records.length === 0) {
       return NextResponse.json({ error: 'No records provided' }, { status: 400 })

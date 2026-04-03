@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { CANCER_TYPES } from '@/lib/cancer-data'
 import { useAnalytics } from '@/hooks/useAnalytics'
+import { useActivityLog } from '@/hooks/useActivityLog'
 import { ShareButton } from '@/components/ShareButton'
 import { useAuth } from '@/lib/auth'
 import { X, ExternalLink, MapPin, Building2, FlaskConical, CheckCircle2 } from 'lucide-react'
@@ -39,6 +40,7 @@ export default function TrialsPage() {
   const [selectedTrial, setSelectedTrial] = useState<Trial | null>(null)
 
   const { trackEvent } = useAnalytics()
+  const { logTrialSearch, logTrialView } = useActivityLog()
 
   useEffect(() => {
     if (authLoading) return
@@ -92,6 +94,13 @@ export default function TrialsPage() {
         stage: profile.stage || null,
         location: profile.location || null,
         results_count: data.trials?.length || 0,
+      })
+
+      // Log to patient graph
+      logTrialSearch({
+        query: profile.cancerType,
+        filters: { stage: profile.stage, location: profile.location },
+        resultsCount: data.trials?.length || 0,
       })
     } catch (err) {
       console.error('Trial search error:', err)
@@ -280,7 +289,13 @@ export default function TrialsPage() {
                         <span>{trial.location}</span>
                       </div>
                       <button
-                        onClick={() => setSelectedTrial(trial)}
+                        onClick={() => {
+                          setSelectedTrial(trial)
+                          logTrialView({
+                            trialId: trial.id,
+                            trialTitle: trial.title,
+                          })
+                        }}
                         className="text-xs text-blue-600 hover:text-blue-800 font-medium"
                       >
                         View Details →

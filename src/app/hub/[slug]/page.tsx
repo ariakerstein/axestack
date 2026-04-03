@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
+import { useActivityLog } from '@/hooks/useActivityLog'
 
 interface Update {
   id: string
@@ -22,6 +23,8 @@ interface Hub {
 export default function HubViewPage() {
   const params = useParams()
   const slug = params.slug as string
+
+  const { logActivity } = useActivityLog()
 
   const [hub, setHub] = useState<Hub | null>(null)
   const [loading, setLoading] = useState(true)
@@ -97,6 +100,15 @@ export default function HubViewPage() {
     setHub(updatedHub)
     setSubscribed(true)
     setShowSubscribe(false)
+
+    // Log caregiver accepting invite (subscribing)
+    logActivity({
+      activityType: 'caregiver_accept',
+      metadata: {
+        hubSlug: slug,
+        hubName: hub.patientName,
+      },
+    })
   }
 
   const formatDate = (dateString: string) => {

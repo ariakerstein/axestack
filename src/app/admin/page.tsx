@@ -163,16 +163,59 @@ interface UserStats {
   }>
 }
 
+interface ActivityGraphData {
+  period: string
+  summary: {
+    totalActivities: number
+    uniqueUsers: number
+    activityTypes: number
+  }
+  activityCounts: Array<{ type: string; count: number }>
+  funnel: {
+    recordUploaders: number
+    askers: number
+    combatUsers: number
+    feedbackGivers: number
+    recordThenAsk: number
+    recordThenCombat: number
+  }
+  behavioralPatterns: Array<{
+    from: string
+    to: string
+    connection_count: number
+    avg_time_hours: number
+  }>
+  highIntentPatients: Array<{
+    user_id: string
+    total_activities: number
+    distinct_activity_types: number
+    first_activity: string
+    last_activity: string
+  }>
+  dailyBreakdown: Array<{
+    date: string
+    total: number
+    [key: string]: string | number
+  }>
+  recentActivities: Array<{
+    type: string
+    user: string
+    timestamp: string
+    metadata?: Record<string, unknown>
+  }>
+}
+
 export default function AdminPage() {
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [profilesData, setProfilesData] = useState<ProfilesData | null>(null)
   const [usageData, setUsageData] = useState<UsageData | null>(null)
+  const [activityGraphData, setActivityGraphData] = useState<ActivityGraphData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [adminKey, setAdminKey] = useState('')
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [days, setDays] = useState(30)
-  const [activeTab, setActiveTab] = useState<'analytics' | 'profiles' | 'usage'>('analytics')
+  const [activeTab, setActiveTab] = useState<'analytics' | 'profiles' | 'usage' | 'activity'>('analytics')
   const [selectedProfile, setSelectedProfile] = useState<ProfileData | null>(null)
   const [userStats, setUserStats] = useState<UserStats | null>(null)
   const [loadingUserStats, setLoadingUserStats] = useState(false)
@@ -198,9 +241,10 @@ export default function AdminPage() {
       setIsAuthenticated(true)
       // Save key to localStorage for convenience
       localStorage.setItem('opencancer_admin_key', key)
-      // Also fetch profiles and usage
+      // Also fetch profiles, usage, and activity graph
       fetchProfiles(key)
       fetchUsage(key, numDays)
+      fetchActivityGraph(key, numDays)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
@@ -233,6 +277,20 @@ export default function AdminPage() {
       }
     } catch (err) {
       console.error('Error fetching usage:', err)
+    }
+  }
+
+  const fetchActivityGraph = async (key: string, numDays: number) => {
+    try {
+      const res = await fetch(`/api/admin/activity-graph?days=${numDays}`, {
+        headers: { 'x-admin-key': key }
+      })
+      if (res.ok) {
+        const json = await res.json()
+        setActivityGraphData(json)
+      }
+    } catch (err) {
+      console.error('Error fetching activity graph:', err)
     }
   }
 
@@ -327,11 +385,12 @@ export default function AdminPage() {
             <p className="text-slate-600 mt-1">{
               activeTab === 'analytics' ? (data?.period || `Last ${days} days`) :
               activeTab === 'usage' ? `API cost: $${usageData?.summary?.estimatedCostUsd || '0.00'} (${days} days)` :
+              activeTab === 'activity' ? `${activityGraphData?.summary?.totalActivities || 0} activities from ${activityGraphData?.summary?.uniqueUsers || 0} users` :
               `${profilesData?.total || 0} profiles`
             }</p>
           </div>
           <div className="flex items-center gap-4">
-            {activeTab === 'analytics' && (
+            {(activeTab === 'analytics' || activeTab === 'activity') && (
               <select
                 value={days}
                 onChange={(e) => handleDaysChange(Number(e.target.value))}
@@ -345,7 +404,7 @@ export default function AdminPage() {
               </select>
             )}
             <button
-              onClick={() => { fetchAnalytics(adminKey, days); fetchProfiles(adminKey); fetchUsage(adminKey, days); }}
+              onClick={() => { fetchAnalytics(adminKey, days); fetchProfiles(adminKey); fetchUsage(adminKey, days); fetchActivityGraph(adminKey, days); }}
               className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition"
             >
               Refresh
@@ -390,6 +449,16 @@ export default function AdminPage() {
             }`}
           >
             API Usage {usageData?.summary?.totalCalls ? `($${usageData.summary.estimatedCostUsd})` : ''}
+          </button>
+          <button
+            onClick={() => setActiveTab('activity')}
+            className={`px-4 py-2 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
+              activeTab === 'activity'
+                ? 'text-violet-600 border-violet-600'
+                : 'text-slate-500 border-transparent hover:text-slate-700'
+            }`}
+          >
+            🔥 Activity Graph {activityGraphData?.summary?.totalActivities ? `(${activityGraphData.summary.totalActivities})` : ''}
           </button>
           <a
             href="/admin/graph"
@@ -589,6 +658,177 @@ export default function AdminPage() {
                       ))}
                     </tbody>
                   </table>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : activeTab === 'activity' ? (
+          /* Activity Graph Tab */
+          <div className="space-y-6">
+            {/* Summary Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+              <div className="bg-white rounded-xl shadow p-4">
+                <p className="text-2xl font-bold text-slate-900">{activityGraphData?.summary?.totalActivities || 0}</p>
+                <p className="text-xs text-slate-500">Total Activities</p>
+              </div>
+              <div className="bg-white rounded-xl shadow p-4">
+                <p className="text-2xl font-bold text-violet-600">{activityGraphData?.summary?.uniqueUsers || 0}</p>
+                <p className="text-xs text-slate-500">Unique Users</p>
+              </div>
+              <div className="bg-white rounded-xl shadow p-4">
+                <p className="text-2xl font-bold text-blue-600">{activityGraphData?.funnel?.recordUploaders || 0}</p>
+                <p className="text-xs text-slate-500">Record Uploaders</p>
+              </div>
+              <div className="bg-white rounded-xl shadow p-4">
+                <p className="text-2xl font-bold text-emerald-600">{activityGraphData?.funnel?.askers || 0}</p>
+                <p className="text-xs text-slate-500">Question Askers</p>
+              </div>
+              <div className="bg-white rounded-xl shadow p-4">
+                <p className="text-2xl font-bold text-orange-600">{activityGraphData?.funnel?.combatUsers || 0}</p>
+                <p className="text-xs text-slate-500">Combat Users</p>
+              </div>
+              <div className="bg-white rounded-xl shadow p-4">
+                <p className="text-2xl font-bold text-pink-600">{activityGraphData?.funnel?.feedbackGivers || 0}</p>
+                <p className="text-xs text-slate-500">Feedback Givers</p>
+              </div>
+            </div>
+
+            {/* Conversion Funnel */}
+            <div className="bg-gradient-to-br from-violet-50 to-fuchsia-50 border border-violet-200 rounded-xl shadow p-6">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4">📊 User Journey Conversions</h2>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="bg-white/80 rounded-lg p-4">
+                  <p className="text-sm text-slate-600 mb-1">Record Upload → Question</p>
+                  <p className="text-2xl font-bold text-violet-700">{activityGraphData?.funnel?.recordThenAsk || 0}</p>
+                  <p className="text-xs text-slate-500">users who uploaded then asked</p>
+                </div>
+                <div className="bg-white/80 rounded-lg p-4">
+                  <p className="text-sm text-slate-600 mb-1">Record Upload → Combat</p>
+                  <p className="text-2xl font-bold text-orange-700">{activityGraphData?.funnel?.recordThenCombat || 0}</p>
+                  <p className="text-xs text-slate-500">users who uploaded then ran combat</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Activity Counts by Type */}
+            <div className="grid lg:grid-cols-2 gap-6">
+              <div className="bg-white rounded-xl shadow p-6">
+                <h2 className="text-lg font-semibold text-slate-900 mb-4">Activity by Type</h2>
+                {!activityGraphData?.activityCounts?.length ? (
+                  <p className="text-slate-500 text-sm">No activity data yet</p>
+                ) : (
+                  <div className="space-y-3">
+                    {activityGraphData.activityCounts.map((item) => (
+                      <div key={item.type} className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className={`w-2 h-2 rounded-full ${
+                            item.type === 'record_upload' ? 'bg-emerald-500' :
+                            item.type === 'ask_question' ? 'bg-blue-500' :
+                            item.type === 'combat_run' ? 'bg-orange-500' :
+                            item.type === 'thumbs_up' ? 'bg-green-500' :
+                            item.type === 'thumbs_down' ? 'bg-red-500' :
+                            'bg-slate-400'
+                          }`} />
+                          <span className="text-sm text-slate-700">{formatEventType(item.type)}</span>
+                        </div>
+                        <span className="text-sm font-semibold text-slate-900 tabular-nums">{item.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Behavioral Patterns */}
+              <div className="bg-white rounded-xl shadow p-6">
+                <h2 className="text-lg font-semibold text-slate-900 mb-4">🔗 Behavioral Patterns</h2>
+                <p className="text-xs text-slate-500 mb-3">Activity sequences within 48 hours</p>
+                {!activityGraphData?.behavioralPatterns?.length ? (
+                  <p className="text-slate-500 text-sm">No patterns detected yet</p>
+                ) : (
+                  <div className="space-y-2">
+                    {activityGraphData.behavioralPatterns.slice(0, 8).map((p, i) => (
+                      <div key={i} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2">
+                        <div className="flex items-center gap-1 text-xs">
+                          <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded">{formatEventType(p.from)}</span>
+                          <span className="text-slate-400">→</span>
+                          <span className="px-1.5 py-0.5 bg-violet-100 text-violet-700 rounded">{formatEventType(p.to)}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-sm font-semibold text-slate-900">{p.connection_count}</span>
+                          <span className="text-xs text-slate-400 ml-1">({p.avg_time_hours}h avg)</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* High Intent Patients */}
+            <div className="bg-white rounded-xl shadow p-6">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4">🔥 High Intent Patients</h2>
+              <p className="text-xs text-slate-500 mb-3">Users with multiple activity types (most engaged)</p>
+              {!activityGraphData?.highIntentPatients?.length ? (
+                <p className="text-slate-500 text-sm">No high-intent patients detected yet</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-200">
+                        <th className="text-left py-2 px-2 font-medium text-slate-600">User</th>
+                        <th className="text-right py-2 px-2 font-medium text-slate-600">Activities</th>
+                        <th className="text-right py-2 px-2 font-medium text-slate-600">Types</th>
+                        <th className="text-right py-2 px-2 font-medium text-slate-600">First Seen</th>
+                        <th className="text-right py-2 px-2 font-medium text-slate-600">Last Active</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {activityGraphData.highIntentPatients.slice(0, 20).map((p, i) => (
+                        <tr key={i} className="border-b border-slate-100 hover:bg-slate-50">
+                          <td className="py-2 px-2 font-mono text-xs text-slate-600">{p.user_id}</td>
+                          <td className="py-2 px-2 text-right font-semibold text-slate-900 tabular-nums">{p.total_activities}</td>
+                          <td className="py-2 px-2 text-right">
+                            <span className={`px-1.5 py-0.5 text-xs rounded ${
+                              p.distinct_activity_types >= 4 ? 'bg-orange-100 text-orange-700' :
+                              p.distinct_activity_types >= 3 ? 'bg-amber-100 text-amber-700' :
+                              'bg-slate-100 text-slate-700'
+                            }`}>
+                              {p.distinct_activity_types} types
+                            </span>
+                          </td>
+                          <td className="py-2 px-2 text-right text-slate-500 text-xs">{formatTimestamp(p.first_activity)}</td>
+                          <td className="py-2 px-2 text-right text-slate-500 text-xs">{formatTimestamp(p.last_activity)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Recent Activities */}
+            <div className="bg-white rounded-xl shadow p-6">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4">Recent Activity Stream</h2>
+              {!activityGraphData?.recentActivities?.length ? (
+                <p className="text-slate-500 text-sm">No recent activities</p>
+              ) : (
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {activityGraphData.recentActivities.map((activity, i) => (
+                    <div key={i} className="flex items-center gap-4 py-2 border-b border-slate-100 last:border-0">
+                      <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                        activity.type === 'record_upload' ? 'bg-emerald-100 text-emerald-700' :
+                        activity.type === 'ask_question' ? 'bg-blue-100 text-blue-700' :
+                        activity.type === 'combat_run' ? 'bg-orange-100 text-orange-700' :
+                        activity.type === 'thumbs_up' ? 'bg-green-100 text-green-700' :
+                        activity.type === 'thumbs_down' ? 'bg-red-100 text-red-700' :
+                        'bg-violet-100 text-violet-700'
+                      }`}>
+                        {formatEventType(activity.type)}
+                      </span>
+                      <span className="text-xs text-slate-500 font-mono">{activity.user}</span>
+                      <span className="text-xs text-slate-400 ml-auto">{formatTimestamp(activity.timestamp)}</span>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

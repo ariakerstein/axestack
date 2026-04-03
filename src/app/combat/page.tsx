@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 import { FileText, Shield, FlaskConical, Leaf, ChevronDown, ChevronUp, Swords, ArrowRight, Sparkles, Target, CheckCircle2, Download, Share2, Trophy, Star, Play, Mail, Users, Sliders } from 'lucide-react'
 import { TypewriterMarkdown } from '@/components/TypewriterMarkdown'
 import { useAnalytics } from '@/hooks/useAnalytics'
+import { useActivityLog } from '@/hooks/useActivityLog'
 import { useAuth } from '@/lib/auth'
 import { getSessionId } from '@/lib/supabase'
 import { ShareModal } from '@/components/ShareModal'
@@ -878,6 +879,8 @@ export default function CombatPage() {
     integrative: 50
   })
 
+  const { logCombatRun } = useActivityLog()
+
   const handleShareClick = (type: 'oncologist' | 'family' | 'self') => {
     setShareType(type)
     setShareModalOpen(true)
@@ -1091,7 +1094,8 @@ export default function CombatPage() {
             documentText: r.documentText?.slice(0, 5000) // Limit text size
           })),
           previousDiagnosis: targetPhase === 'treatment' ? diagnosisResult : null,
-          weights: weights // Pass perspective tuning weights
+          weights: weights, // Pass perspective tuning weights
+          userId: user?.id // Pass userId for response_evaluations tracking
         })
       })
 
@@ -1125,6 +1129,13 @@ export default function CombatPage() {
         trackEvent('combat_completed', {
           phase: targetPhase,
           records_count: records.length
+        })
+
+        // Log activity for patient graph
+        logCombatRun({
+          phase: targetPhase,
+          recordsCount: records.length,
+          evidenceStrength: calculateEvidenceStrength(),
         })
 
         // Save to Supabase

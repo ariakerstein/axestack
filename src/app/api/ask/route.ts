@@ -230,6 +230,8 @@ ${enrichedQuestion}`
         communicationStyle: conciseMode ? 'concise' : 'balanced',
         // Override system prompt for concise mode
         ...(conciseMode && { systemPromptOverride: CONCISE_SYSTEM_PROMPT }),
+        // Pass userId for response_evaluations tracking
+        userId,
       }),
     })
 
@@ -266,6 +268,8 @@ ${enrichedQuestion}`
           communicationStyle: 'balanced',
           skipRAG: true, // Skip NCCN guidelines, use general knowledge
           systemPrompt: SYMPTOM_SYSTEM_PROMPT,
+          // Pass userId for response_evaluations tracking
+          userId,
         }),
       })
 
