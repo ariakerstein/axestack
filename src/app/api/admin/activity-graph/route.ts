@@ -70,12 +70,14 @@ export async function GET(request: Request) {
     }> = []
 
     if (!connectionsError && connections) {
-      behavioralPatterns = connections.map(c => ({
-        from: c.from_activity,
-        to: c.to_activity,
-        connection_count: c.connection_count,
-        avg_time_hours: Math.round(c.avg_time_between_hours * 10) / 10
-      }))
+      behavioralPatterns = connections
+        .filter(c => c.from_activity && c.to_activity) // Filter out incomplete data
+        .map(c => ({
+          from: c.from_activity || 'unknown',
+          to: c.to_activity || 'unknown',
+          connection_count: c.connection_count || 0,
+          avg_time_hours: c.avg_time_between_hours ? Math.round(c.avg_time_between_hours * 10) / 10 : 0
+        }))
     }
 
     // Get high intent patients

@@ -1661,7 +1661,8 @@ function SummaryCard({ label, value, icon, subtext, onClick, clickable }: { labe
   )
 }
 
-function formatEventType(type: string): string {
+function formatEventType(type: string | undefined | null): string {
+  if (!type) return 'Unknown'
   return type
     .replace(/_/g, ' ')
     .replace(/\b\w/g, (c) => c.toUpperCase())
