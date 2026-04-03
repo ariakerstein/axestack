@@ -239,6 +239,12 @@ interface EntityGraphData {
     biomarkers: Array<{ name: string; count: number }>
     treatments: Array<{ name: string; count: number }>
   }
+  crossTab: Array<{
+    diagnosis: string
+    patientCount: number
+    topBiomarkers: Array<{ name: string; count: number }>
+    topTreatments: Array<{ name: string; count: number }>
+  }>
   cooccurrence: Array<{
     entity_a: string
     entity_b: string
@@ -1013,6 +1019,58 @@ export default function AdminPage() {
                 <p className="text-2xl font-bold text-amber-600">{entityGraphData?.stats?.similar_patient_pairs || 0}</p>
                 <p className="text-xs text-slate-500">Similar Pairs</p>
               </div>
+            </div>
+
+            {/* Cross-Tab View: Diagnosis → Biomarkers → Treatments */}
+            <div className="bg-gradient-to-br from-blue-50 to-violet-50 border border-blue-200 rounded-xl shadow p-6">
+              <div className="mb-4">
+                <h2 className="text-lg font-semibold text-slate-900">🧬 Clinical Intelligence Cross-Tab</h2>
+                <p className="text-xs text-slate-500">For each diagnosis: associated biomarkers and treatments from patient records</p>
+              </div>
+              {!entityGraphData?.crossTab?.length ? (
+                <p className="text-slate-500 text-sm">No cross-tab data yet</p>
+              ) : (
+                <div className="space-y-4">
+                  {entityGraphData.crossTab.map((row, i) => (
+                    <div key={i} className="bg-white/80 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-semibold text-slate-900 capitalize">{row.diagnosis}</h3>
+                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{row.patientCount} patients</span>
+                      </div>
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-xs font-medium text-emerald-700 mb-2">Top Biomarkers</p>
+                          {row.topBiomarkers.length === 0 ? (
+                            <p className="text-xs text-slate-400">None extracted</p>
+                          ) : (
+                            <div className="flex flex-wrap gap-1">
+                              {row.topBiomarkers.map((b, j) => (
+                                <span key={j} className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">
+                                  {b.name} ({b.count})
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-orange-700 mb-2">Top Treatments</p>
+                          {row.topTreatments.length === 0 ? (
+                            <p className="text-xs text-slate-400">None extracted</p>
+                          ) : (
+                            <div className="flex flex-wrap gap-1">
+                              {row.topTreatments.map((t, j) => (
+                                <span key={j} className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded">
+                                  {t.name} ({t.count})
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Top Entities */}

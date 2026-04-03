@@ -129,6 +129,71 @@ export async function GET(request: Request) {
       .order('similarity_score', { ascending: false })
       .limit(10)
 
+    // Build cross-tab: Diagnosis → Biomarkers → Treatments
+    // Reuse already-fetched data (topDiagnoses, topBiomarkers, topTreatments all have user_id)
+    const allEntitiesForCrossTab = [
+      ...(topDiagnoses || []).map(d => ({ ...d, entity_type: 'diagnosis' })),
+      ...(topBiomarkers || []).map(b => ({ ...b, entity_type: 'biomarker' })),
+      ...(topTreatments || []).map(t => ({ ...t, entity_type: 'treatment' }))
+    ]
+
+    // Group by user to build cross-tab
+    const userEntities: Record<string, { diagnoses: string[], biomarkers: string[], treatments: string[] }> = {}
+    allEntitiesForCrossTab.forEach(e => {
+      if (!e.user_id) return
+      if (!userEntities[e.user_id]) {
+        userEntities[e.user_id] = { diagnoses: [], biomarkers: [], treatments: [] }
+      }
+      const value = e.entity_value.toLowerCase()
+      if (e.entity_type === 'diagnosis') {
+        if (!userEntities[e.user_id].diagnoses.includes(value)) {
+          userEntities[e.user_id].diagnoses.push(value)
+        }
+      } else if (e.entity_type === 'biomarker') {
+        if (!userEntities[e.user_id].biomarkers.includes(value)) {
+          userEntities[e.user_id].biomarkers.push(value)
+        }
+      } else if (e.entity_type === 'treatment') {
+        if (!userEntities[e.user_id].treatments.includes(value)) {
+          userEntities[e.user_id].treatments.push(value)
+        }
+      }
+    })
+
+    // Build cross-tab by diagnosis
+    const crossTab: Record<string, { biomarkers: Record<string, number>, treatments: Record<string, number>, patientCount: number }> = {}
+    Object.values(userEntities).forEach(user => {
+      user.diagnoses.forEach(diag => {
+        if (!crossTab[diag]) {
+          crossTab[diag] = { biomarkers: {}, treatments: {}, patientCount: 0 }
+        }
+        crossTab[diag].patientCount++
+        user.biomarkers.forEach(b => {
+          crossTab[diag].biomarkers[b] = (crossTab[diag].biomarkers[b] || 0) + 1
+        })
+        user.treatments.forEach(t => {
+          crossTab[diag].treatments[t] = (crossTab[diag].treatments[t] || 0) + 1
+        })
+      })
+    })
+
+    // Format cross-tab for API response
+    const crossTabData = Object.entries(crossTab)
+      .sort((a, b) => b[1].patientCount - a[1].patientCount)
+      .slice(0, 10)
+      .map(([diagnosis, data]) => ({
+        diagnosis,
+        patientCount: data.patientCount,
+        topBiomarkers: Object.entries(data.biomarkers)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5)
+          .map(([name, count]) => ({ name, count })),
+        topTreatments: Object.entries(data.treatments)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5)
+          .map(([name, count]) => ({ name, count }))
+      }))
+
     // Get recent edges (relationships formed)
     const { data: recentEdges } = await supabase
       .from('patient_graph_edges_derived')
@@ -196,6 +261,7 @@ export async function GET(request: Request) {
         treatments: sortedTreatments
       },
       cooccurrence: cooccurrence || [],
+      crossTab: crossTabData,
       similarPatients: (similarPatients || []).map(sp => ({
         patientA: sp.patient_a?.substring(0, 8) + '...',
         patientB: sp.patient_b?.substring(0, 8) + '...',
