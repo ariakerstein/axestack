@@ -129,6 +129,119 @@ export async function GET(request: Request) {
     // Users who did record_upload AND combat
     const recordThenCombat = [...recordUploaders].filter(u => combatUsers.has(u)).length
 
+    // Build full funnel with drop-off rates
+    const funnelSteps = [
+      { name: 'Unique Users', count: uniqueUsers.size },
+      { name: 'Record Upload', count: recordUploaders.size },
+      { name: 'Ask Question', count: askers.size },
+      { name: 'Combat Run', count: combatUsers.size },
+      { name: 'Gave Feedback', count: feedbackGivers.size }
+    ]
+
+    // Calculate drop-off between each step
+    const funnelWithDropoff = funnelSteps.map((step, i) => {
+      const prevCount = i === 0 ? step.count : funnelSteps[i - 1].count
+      const dropoffRate = prevCount > 0 ? Math.round((1 - step.count / prevCount) * 100) : 0
+      const conversionRate = prevCount > 0 ? Math.round((step.count / prevCount) * 100) : 0
+      return {
+        ...step,
+        dropoffRate: i === 0 ? 0 : dropoffRate,
+        conversionRate: i === 0 ? 100 : conversionRate,
+        percentOfTotal: uniqueUsers.size > 0 ? Math.round((step.count / uniqueUsers.size) * 100) : 0
+      }
+    })
+
+    // Calculate time-to-action metrics
+    // Group activities by user with timestamps
+    const userTimelines: Record<string, Array<{ type: string; time: Date }>> = {}
+    activities?.forEach(a => {
+      if (!a.user_id || !a.created_at || !a.activity_type) return
+      if (!userTimelines[a.user_id]) userTimelines[a.user_id] = []
+      userTimelines[a.user_id].push({
+        type: a.activity_type,
+        time: new Date(a.created_at)
+      })
+    })
+
+    // Sort each user's timeline
+    Object.values(userTimelines).forEach(timeline => {
+      timeline.sort((a, b) => a.time.getTime() - b.time.getTime())
+    })
+
+    // Calculate average time between key actions
+    const uploadToQuestion: number[] = []
+    const questionToCombat: number[] = []
+    const uploadToCombat: number[] = []
+
+    Object.values(userTimelines).forEach(timeline => {
+      let firstUpload: Date | undefined
+      let firstQuestion: Date | undefined
+      let firstCombat: Date | undefined
+
+      timeline.forEach(event => {
+        if (event.type === 'record_upload' && !firstUpload) firstUpload = event.time
+        if (event.type === 'ask_question' && !firstQuestion) firstQuestion = event.time
+        if (event.type === 'combat_run' && !firstCombat) firstCombat = event.time
+      })
+
+      if (firstUpload && firstQuestion) {
+        const hours = (firstQuestion.getTime() - firstUpload.getTime()) / (1000 * 60 * 60)
+        if (hours >= 0 && hours < 720) uploadToQuestion.push(hours) // Cap at 30 days
+      }
+      if (firstQuestion && firstCombat) {
+        const hours = (firstCombat.getTime() - firstQuestion.getTime()) / (1000 * 60 * 60)
+        if (hours >= 0 && hours < 720) questionToCombat.push(hours)
+      }
+      if (firstUpload && firstCombat) {
+        const hours = (firstCombat.getTime() - firstUpload.getTime()) / (1000 * 60 * 60)
+        if (hours >= 0 && hours < 720) uploadToCombat.push(hours)
+      }
+    })
+
+    const avgTime = (arr: number[]) => arr.length > 0 ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length * 10) / 10 : null
+
+    const timeToAction = {
+      uploadToQuestion: {
+        avgHours: avgTime(uploadToQuestion),
+        sampleSize: uploadToQuestion.length
+      },
+      questionToCombat: {
+        avgHours: avgTime(questionToCombat),
+        sampleSize: questionToCombat.length
+      },
+      uploadToCombat: {
+        avgHours: avgTime(uploadToCombat),
+        sampleSize: uploadToCombat.length
+      }
+    }
+
+    // Find users idle >24h after upload (intervention targets)
+    const now = new Date()
+    const idleUsers: string[] = []
+    Object.entries(userTimelines).forEach(([userId, timeline]) => {
+      const hasUpload = timeline.some(e => e.type === 'record_upload')
+      const hasCombat = timeline.some(e => e.type === 'combat_run')
+      if (hasUpload && !hasCombat) {
+        const lastActivity = timeline[timeline.length - 1]
+        const hoursSinceLastActivity = (now.getTime() - lastActivity.time.getTime()) / (1000 * 60 * 60)
+        if (hoursSinceLastActivity > 24) {
+          idleUsers.push(userId)
+        }
+      }
+    })
+
+    // Paths that lead to Combat
+    const pathsToCombat: Record<string, number> = {}
+    Object.values(userTimelines).forEach(timeline => {
+      const combatIndex = timeline.findIndex(e => e.type === 'combat_run')
+      if (combatIndex > 0) {
+        // Get the activity right before combat
+        const prevActivity = timeline[combatIndex - 1].type
+        const path = `${prevActivity} → combat_run`
+        pathsToCombat[path] = (pathsToCombat[path] || 0) + 1
+      }
+    })
+
     // Daily breakdown formatted
     const dailyBreakdown = Object.entries(dailyActivity)
       .map(([date, counts]) => ({
@@ -164,6 +277,12 @@ export async function GET(request: Request) {
         recordThenAsk,
         recordThenCombat
       },
+      funnelSteps: funnelWithDropoff,
+      timeToAction,
+      idleUsersCount: idleUsers.length,
+      pathsToCombat: Object.entries(pathsToCombat)
+        .sort((a, b) => b[1] - a[1])
+        .map(([path, count]) => ({ path, count })),
       behavioralPatterns: behavioralPatterns
         .sort((a, b) => b.connection_count - a.connection_count)
         .slice(0, 15),

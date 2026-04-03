@@ -179,6 +179,20 @@ interface ActivityGraphData {
     recordThenAsk: number
     recordThenCombat: number
   }
+  funnelSteps: Array<{
+    name: string
+    count: number
+    dropoffRate: number
+    conversionRate: number
+    percentOfTotal: number
+  }>
+  timeToAction: {
+    uploadToQuestion: { avgHours: number | null; sampleSize: number }
+    questionToCombat: { avgHours: number | null; sampleSize: number }
+    uploadToCombat: { avgHours: number | null; sampleSize: number }
+  }
+  idleUsersCount: number
+  pathsToCombat: Array<{ path: string; count: number }>
   behavioralPatterns: Array<{
     from: string
     to: string
@@ -767,48 +781,158 @@ export default function AdminPage() {
         ) : activeTab === 'activity' ? (
           /* Activity Graph Tab */
           <div className="space-y-6">
-            {/* Summary Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-              <div className="bg-white rounded-xl shadow p-4">
-                <p className="text-2xl font-bold text-slate-900">{activityGraphData?.summary?.totalActivities || 0}</p>
-                <p className="text-xs text-slate-500">Total Activities</p>
+            {/* FUNNEL VIEW - The Main Event */}
+            <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl shadow-xl p-6 text-white">
+              <h2 className="text-lg font-semibold mb-1">📊 Conversion Funnel</h2>
+              <p className="text-xs text-slate-400 mb-6">Your daily health metric — where users drop off</p>
+
+              {/* Funnel Steps */}
+              <div className="flex flex-col sm:flex-row items-stretch gap-2 mb-6">
+                {activityGraphData?.funnelSteps?.map((step, i) => (
+                  <div key={step.name} className="flex-1 flex flex-col items-center">
+                    {/* Step */}
+                    <div className={`w-full rounded-lg p-4 text-center ${
+                      i === 0 ? 'bg-violet-600' :
+                      i === 1 ? 'bg-blue-600' :
+                      i === 2 ? 'bg-emerald-600' :
+                      i === 3 ? 'bg-orange-600' :
+                      'bg-pink-600'
+                    }`} style={{
+                      width: `${Math.max(40, step.percentOfTotal)}%`,
+                      minWidth: '100%'
+                    }}>
+                      <p className="text-2xl font-bold">{step.count}</p>
+                      <p className="text-xs opacity-90">{step.name}</p>
+                      <p className="text-xs opacity-70">{step.percentOfTotal}% of total</p>
+                    </div>
+                    {/* Arrow and drop-off */}
+                    {i < (activityGraphData?.funnelSteps?.length || 0) - 1 && (
+                      <div className="flex items-center gap-1 my-2 sm:hidden">
+                        <span className="text-slate-500">↓</span>
+                        <span className={`text-xs font-medium ${step.dropoffRate > 50 ? 'text-red-400' : 'text-slate-400'}`}>
+                          -{activityGraphData?.funnelSteps?.[i + 1]?.dropoffRate || 0}%
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
-              <div className="bg-white rounded-xl shadow p-4">
-                <p className="text-2xl font-bold text-violet-600">{activityGraphData?.summary?.uniqueUsers || 0}</p>
-                <p className="text-xs text-slate-500">Unique Users</p>
+
+              {/* Drop-off indicators (desktop) */}
+              <div className="hidden sm:flex justify-between px-8 -mt-2 mb-4">
+                {activityGraphData?.funnelSteps?.slice(1).map((step, i) => (
+                  <div key={i} className="text-center flex-1">
+                    <span className={`text-sm font-semibold ${step.dropoffRate > 50 ? 'text-red-400' : step.dropoffRate > 25 ? 'text-yellow-400' : 'text-emerald-400'}`}>
+                      ↓ {step.dropoffRate}% drop
+                    </span>
+                  </div>
+                ))}
               </div>
-              <div className="bg-white rounded-xl shadow p-4">
-                <p className="text-2xl font-bold text-blue-600">{activityGraphData?.funnel?.recordUploaders || 0}</p>
-                <p className="text-xs text-slate-500">Record Uploaders</p>
+
+              {/* The Problem Callout */}
+              {activityGraphData?.funnelSteps && activityGraphData.funnelSteps.length >= 4 && (
+                <div className="bg-red-500/20 border border-red-500/40 rounded-lg p-4 mt-4">
+                  <p className="text-sm">
+                    <span className="font-bold text-red-400">🚨 96% drop-off</span>
+                    <span className="text-slate-300 ml-2">
+                      from Upload ({activityGraphData.funnelSteps[1]?.count}) → Combat ({activityGraphData.funnelSteps[3]?.count})
+                    </span>
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    {activityGraphData.idleUsersCount || 0} users idle &gt;24h after upload — intervention targets
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Time to Action + Paths to Combat */}
+            <div className="grid lg:grid-cols-2 gap-6">
+              {/* Time to Action */}
+              <div className="bg-white rounded-xl shadow p-6">
+                <h2 className="text-lg font-semibold text-slate-900 mb-1">⏱️ Time to Action</h2>
+                <p className="text-xs text-slate-500 mb-4">Average hours between key steps — your intervention windows</p>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                    <div>
+                      <p className="text-sm font-medium text-slate-700">Upload → Question</p>
+                      <p className="text-xs text-slate-500">n={activityGraphData?.timeToAction?.uploadToQuestion?.sampleSize || 0}</p>
+                    </div>
+                    <p className="text-2xl font-bold text-blue-600">
+                      {activityGraphData?.timeToAction?.uploadToQuestion?.avgHours != null
+                        ? `${activityGraphData.timeToAction.uploadToQuestion.avgHours}h`
+                        : '—'}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                    <div>
+                      <p className="text-sm font-medium text-slate-700">Question → Combat</p>
+                      <p className="text-xs text-slate-500">n={activityGraphData?.timeToAction?.questionToCombat?.sampleSize || 0}</p>
+                    </div>
+                    <p className="text-2xl font-bold text-orange-600">
+                      {activityGraphData?.timeToAction?.questionToCombat?.avgHours != null
+                        ? `${activityGraphData.timeToAction.questionToCombat.avgHours}h`
+                        : '—'}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg border border-orange-200">
+                    <div>
+                      <p className="text-sm font-medium text-slate-700">Upload → Combat (direct)</p>
+                      <p className="text-xs text-slate-500">n={activityGraphData?.timeToAction?.uploadToCombat?.sampleSize || 0}</p>
+                    </div>
+                    <p className="text-2xl font-bold text-orange-700">
+                      {activityGraphData?.timeToAction?.uploadToCombat?.avgHours != null
+                        ? `${activityGraphData.timeToAction.uploadToCombat.avgHours}h`
+                        : '—'}
+                    </p>
+                  </div>
+                  <p className="text-xs text-slate-400 italic">⚠️ Nudge window: If no action in 24h, they probably won&apos;t act without intervention</p>
+                </div>
               </div>
-              <div className="bg-white rounded-xl shadow p-4">
-                <p className="text-2xl font-bold text-emerald-600">{activityGraphData?.funnel?.askers || 0}</p>
-                <p className="text-xs text-slate-500">Question Askers</p>
-              </div>
-              <div className="bg-white rounded-xl shadow p-4">
-                <p className="text-2xl font-bold text-orange-600">{activityGraphData?.funnel?.combatUsers || 0}</p>
-                <p className="text-xs text-slate-500">Combat Users</p>
-              </div>
-              <div className="bg-white rounded-xl shadow p-4">
-                <p className="text-2xl font-bold text-pink-600">{activityGraphData?.funnel?.feedbackGivers || 0}</p>
-                <p className="text-xs text-slate-500">Feedback Givers</p>
+
+              {/* Paths to Combat */}
+              <div className="bg-white rounded-xl shadow p-6">
+                <h2 className="text-lg font-semibold text-slate-900 mb-1">🎯 Paths to Combat</h2>
+                <p className="text-xs text-slate-500 mb-4">What activity precedes Combat? This is the behavior to engineer.</p>
+                {!activityGraphData?.pathsToCombat?.length ? (
+                  <p className="text-slate-500 text-sm">No Combat runs yet — this is the problem</p>
+                ) : (
+                  <div className="space-y-2">
+                    {activityGraphData.pathsToCombat.map((p, i) => (
+                      <div key={i} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2">
+                        <span className="text-sm text-slate-700">{p.path.replace('_', ' ')}</span>
+                        <span className="text-sm font-semibold text-orange-600">{p.count}x</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Conversion Funnel */}
-            <div className="bg-gradient-to-br from-violet-50 to-fuchsia-50 border border-violet-200 rounded-xl shadow p-6">
-              <h2 className="text-lg font-semibold text-slate-900 mb-4">📊 User Journey Conversions</h2>
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="bg-white/80 rounded-lg p-4">
-                  <p className="text-sm text-slate-600 mb-1">Record Upload → Question</p>
-                  <p className="text-2xl font-bold text-violet-700">{activityGraphData?.funnel?.recordThenAsk || 0}</p>
-                  <p className="text-xs text-slate-500">users who uploaded then asked</p>
-                </div>
-                <div className="bg-white/80 rounded-lg p-4">
-                  <p className="text-sm text-slate-600 mb-1">Record Upload → Combat</p>
-                  <p className="text-2xl font-bold text-orange-700">{activityGraphData?.funnel?.recordThenCombat || 0}</p>
-                  <p className="text-xs text-slate-500">users who uploaded then ran combat</p>
-                </div>
+            {/* Original Summary Cards (condensed) */}
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+              <div className="bg-white rounded-lg shadow p-3">
+                <p className="text-lg font-bold text-slate-900">{activityGraphData?.summary?.totalActivities || 0}</p>
+                <p className="text-xs text-slate-500">Activities</p>
+              </div>
+              <div className="bg-white rounded-lg shadow p-3">
+                <p className="text-lg font-bold text-violet-600">{activityGraphData?.summary?.uniqueUsers || 0}</p>
+                <p className="text-xs text-slate-500">Users</p>
+              </div>
+              <div className="bg-white rounded-lg shadow p-3">
+                <p className="text-lg font-bold text-blue-600">{activityGraphData?.funnel?.recordUploaders || 0}</p>
+                <p className="text-xs text-slate-500">Uploaders</p>
+              </div>
+              <div className="bg-white rounded-lg shadow p-3">
+                <p className="text-lg font-bold text-emerald-600">{activityGraphData?.funnel?.askers || 0}</p>
+                <p className="text-xs text-slate-500">Askers</p>
+              </div>
+              <div className="bg-white rounded-lg shadow p-3">
+                <p className="text-lg font-bold text-orange-600">{activityGraphData?.funnel?.combatUsers || 0}</p>
+                <p className="text-xs text-slate-500">Combat</p>
+              </div>
+              <div className="bg-white rounded-lg shadow p-3">
+                <p className="text-lg font-bold text-pink-600">{activityGraphData?.funnel?.feedbackGivers || 0}</p>
+                <p className="text-xs text-slate-500">Feedback</p>
               </div>
             </div>
 
