@@ -437,15 +437,20 @@ function HomeContent() {
                     <img src="/ari.png" alt="Ari" className="w-8 h-8 rounded-full object-cover" />
                     <p className="text-xs text-slate-500"><span className="font-medium text-slate-700">Built by a cancer survivor</span></p>
                   </Link>
-                  <button
-                    onClick={() => { setShowWizardModal(true); setWizardStep(1); setWizardRole(null); }}
-                    className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold px-6 py-3 rounded-xl transition-all shadow-lg shadow-orange-500/25 hover:shadow-xl min-h-[44px]"
-                  >
-                    Get Started Free →
-                  </button>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="text-[10px] font-bold text-orange-600 uppercase tracking-wider animate-pulse">
+                      ↓ Start Here
+                    </span>
+                    <button
+                      onClick={() => { setShowWizardModal(true); setWizardStep(1); setWizardRole(null); }}
+                      className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold px-6 py-3 rounded-xl transition-all shadow-lg shadow-orange-500/25 hover:shadow-xl hover:scale-105 min-h-[44px]"
+                    >
+                      Get Started Free →
+                    </button>
+                  </div>
                 </div>
                 <p className="text-xs text-slate-500 mt-2 text-center">
-                  Works for 200+ cancer types
+                  60 seconds • We'll guide you • 200+ cancer types
                 </p>
               </div>
             </div>
@@ -793,7 +798,15 @@ function HomeContent() {
           ) : (
             <>
               <h2 className="text-2xl font-bold text-center mb-2 text-slate-900">Patient Tools</h2>
-              <p className="text-slate-500 text-center mb-6 text-sm">AI-powered navigation for your cancer journey</p>
+              <p className="text-slate-500 text-center mb-4 text-sm">AI-powered navigation for your cancer journey</p>
+              <p className="text-center mb-6">
+                <button
+                  onClick={() => { setShowWizardModal(true); setWizardStep(1); setWizardRole(null); }}
+                  className="text-sm text-violet-600 hover:text-violet-700 font-medium underline underline-offset-2"
+                >
+                  Overwhelmed? Let us guide you →
+                </button>
+              </p>
             </>
           )}
 
