@@ -10,25 +10,43 @@ The UI acts as a **life vest**: transitioning users from overwhelm to confident 
 
 ## The CTA Isolation Rule
 
-**#EA580C (Orange-600) is EXCLUSIVELY for clickable elements.**
+**#EA580C (Orange-600) signals what matters most RIGHT NOW.**
 
-If a user sees orange, they must know with 100% certainty it is clickable and they should click it.
+Orange draws the eye. It marks the thing the user should focus on — the action they need to take, the information that answers their question, the element that moves them forward in their journey.
 
 ### Orange IS for:
 - Primary buttons (solid orange background, white text)
 - Secondary buttons (orange outline or orange text link)
 - Active tab indicators
 - Interactive chevrons/arrows that trigger actions
+- Key information that directly serves the user's JTBD (e.g., "3 tests missing" in a care gap card)
+- The single most important element on screen that answers "what should I do next?"
 
 ### Orange is NEVER for:
-- Headers or body text
+- Decorative use — orange must always earn its place
 - Background colors or section fills
 - Decorative icons or illustrations
-- Badges, tags, or status indicators
-- Borders on non-interactive elements
-- Hover highlights on non-clickable items
+- Multiple competing elements (if everything is orange, nothing is)
+- Borders on passive elements
+- Generic emphasis — use bold or layout hierarchy instead
 
-**Test**: Point at any orange element. Can the user click it and something happens? If no, remove the orange.
+**Test**: Point at any orange element. Does it serve the user's current job-to-be-done? Is it the thing they came here to find or do? If no, remove the orange.
+
+---
+
+## Monochrome by Default
+
+The UI is black, white, and gray. Color appears ONLY when it carries meaning:
+
+- **Orange** = this matters most right now — the action to take, the answer to their question, the thing that moves them forward
+- **Green** = this is good / done / valid
+- **Red** = this is bad / error / urgent
+- **Blue** = this needs info / attention (not urgent)
+- **Violet** = this is a person (care circle)
+
+Everything else is grayscale. Headers, body text, borders, backgrounds, cards — all neutral. No slate tints, no blue hues in grays. Pure neutral like Next.js.
+
+This is not minimalism for aesthetics. It's clarity for people in crisis. When color is rare, it commands attention. When everything is colorful, nothing stands out. Orange earns its place by serving the user's job-to-be-done — not by being decorative.
 
 ---
 

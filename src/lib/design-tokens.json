@@ -1,0 +1,129 @@
+{
+  "colors": {
+    "primary": {
+      "50": "#EBF9F1",
+      "100": "#C7F0D6",
+      "200": "#9FE5BB",
+      "300": "#6EDB9C",
+      "400": "#41CF83",
+      "500": "#22A252",
+      "600": "#1D8F49",
+      "700": "#176C39",
+      "800": "#124F2C",
+      "900": "#0C341F"
+    },
+    "action": {
+      "500": "#3B82F6",
+      "600": "#2563EB"
+    },
+    "surface": {
+      "900": "#0F172A",
+      "800": "#162033",
+      "700": "#1E293B",
+      "600": "#334155",
+      "50": "#FFFFFF",
+      "100": "#F8FAFC"
+    },
+    "text": {
+      "high": "#F8FAFC",
+      "med": "#CBD5E1",
+      "low": "#94A3B8",
+      "dark": "#0F172A"
+    },
+    "status": {
+      "success": "#10B981",
+      "warning": "#FBBF24",
+      "error": "#EF4444",
+      "info": "#0EA5E9"
+    }
+  },
+  "typography": {
+    "fontFamily": "Inter, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif",
+    "fontSizes": {
+      "xs": "12px",
+      "sm": "14px",
+      "base": "16px",
+      "lg": "18px",
+      "xl": "20px",
+      "2xl": "24px",
+      "3xl": "32px"
+    },
+    "lineHeights": {
+      "xs": "18px",
+      "sm": "20px",
+      "base": "24px",
+      "lg": "28px",
+      "xl": "30px",
+      "2xl": "32px",
+      "3xl": "40px"
+    },
+    "fontWeights": {
+      "normal": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    }
+  },
+  "spacing": {
+    "grid": "4px",
+    "1": "4px",
+    "2": "8px",
+    "3": "12px",
+    "4": "16px",
+    "5": "20px",
+    "6": "24px",
+    "8": "32px",
+    "10": "40px",
+    "11": "44px",
+    "12": "48px",
+    "16": "64px",
+    "20": "80px",
+    "24": "96px"
+  },
+  "components": {
+    "card": {
+      "background": "surface-800",
+      "hoverBackground": "surface-700",
+      "borderRadius": "12px",
+      "shadow": "0 2px 4px rgba(0,0,0,0.25)",
+      "padding": "16px"
+    },
+    "button": {
+      "background": "action-500",
+      "hoverBackground": "action-600",
+      "textColor": "#FFFFFF",
+      "borderRadius": "8px",
+      "minHeight": "44px"
+    },
+    "chip": {
+      "border": "surface-600",
+      "hoverBackground": "surface-700",
+      "borderRadius": "9999px"
+    },
+    "searchField": {
+      "background": "surface-700",
+      "focusRing": "primary-400",
+      "focusRingWidth": "1px"
+    },
+    "statusBadge": {
+      "textColor": "text-high",
+      "fontSize": "xs",
+      "fontWeight": "bold",
+      "textTransform": "uppercase"
+    },
+    "icon": {
+      "size": "24px",
+      "touchArea": "44px"
+    },
+    "container": {
+      "maxWidth": "1200px",
+      "padding": "16px"
+    }
+  },
+  "accessibility": {
+    "minContrastRatio": 4.5,
+    "minTouchTarget": "44px",
+    "focusRingWidth": "2px",
+    "focusRingColor": "action-500"
+  }
+} 
