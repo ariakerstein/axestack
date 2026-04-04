@@ -147,6 +147,11 @@ export default function ProfilePage() {
       <Navbar />
 
       <div className="max-w-lg mx-auto px-4 py-8">
+        {/* Page Heading */}
+        <h1 className="text-2xl font-bold text-slate-900 mb-6">
+          {profile ? 'Your Profile' : 'Create Your Profile'}
+        </h1>
+
         {/* Info */}
         <div className={`border rounded-lg p-4 mb-6 ${user ? 'bg-green-50 border-green-200' : 'bg-slate-50 border-slate-200'}`}>
           <p className={`text-sm ${user ? 'text-green-800' : 'text-slate-700'}`}>
