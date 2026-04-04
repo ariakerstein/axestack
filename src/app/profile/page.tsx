@@ -351,9 +351,9 @@ export default function ProfilePage() {
           <button
             onClick={handleSave}
             disabled={!canSave}
-            className={`w-full py-3 rounded-lg font-medium transition-all ${
+            className={`w-full py-3 rounded-xl font-semibold transition-all ${
               canSave
-                ? 'bg-orange-600 text-white hover:bg-orange-700'
+                ? 'bg-[#C66B4A] text-white hover:bg-[#B35E40] shadow-lg shadow-[#C66B4A]/25'
                 : 'bg-slate-200 text-slate-400 cursor-not-allowed'
             }`}
           >
