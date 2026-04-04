@@ -34,19 +34,37 @@ Orange draws the eye. It marks the thing the user should focus on — the action
 
 ---
 
-## Monochrome by Default
+## Optimistic Foundation
 
-The UI is black, white, and gray. Color appears ONLY when it carries meaning:
+The UI is mostly neutral — but it isn't cold. Subtle violet-to-teal gradients run through the product as a signature warmth layer: behind hero sections, on background orbs, as soft washes on cards and section backgrounds. This isn't decoration for its own sake — it's emotional design. A cancer patient landing on a page that feels warm and alive is more likely to trust it than one that feels like a hospital terminal.
+
+### Functional color still has ONE job each:
 
 - **Orange** = this matters most right now — the action to take, the answer to their question, the thing that moves them forward
 - **Green** = this is good / done / valid
 - **Red** = this is bad / error / urgent
 - **Blue** = this needs info / attention (not urgent)
-- **Violet** = this is a person (care circle)
+- **Violet** = people (care circle) AND ambient warmth (gradients)
 
-Everything else is grayscale. Headers, body text, borders, backgrounds, cards — all neutral. No slate tints, no blue hues in grays. Pure neutral like Next.js.
+### The gradient layer:
 
-This is not minimalism for aesthetics. It's clarity for people in crisis. When color is rare, it commands attention. When everything is colorful, nothing stands out. Orange earns its place by serving the user's job-to-be-done — not by being decorative.
+Violet-to-teal gradients are the product's visual signature. They add optimism without competing with functional color.
+
+**Where gradients belong:**
+- Hero section backgrounds (`from-violet-50 via-white to-teal-50`)
+- Decorative background orbs (`bg-violet-400/20`, `bg-teal-400/10`)
+- Card hover/highlight washes (`from-violet-50/50`)
+- Section divider lines (`from-transparent via-violet-400/50 to-transparent`)
+- Text gradients on marketing headings (`from-violet-600 via-fuchsia-500 to-orange-500`)
+- Button shadows on primary actions (`shadow-violet-500/25`)
+
+**Where gradients do NOT belong:**
+- On or near orange CTAs (don't compete with the action color)
+- On text that needs to be read (body copy, labels, data)
+- On form elements or interactive controls
+- Layered so thick they obscure content
+
+**Rule:** Gradients are ambient. They set mood, not meaning. If you removed every gradient, the UI should still be perfectly usable and clear. They're the warmth in the room, not the signage.
 
 ---
 
@@ -201,7 +219,7 @@ The design system has two representations: markdown docs (`design-system/`) and 
 
 ## Anti-Patterns (NEVER)
 
-- Rainbow buttons or gradient CTAs
+- Rainbow buttons or gradient CTAs (gradients are ambient, not interactive)
 - More than 2 prominent CTAs per viewport
 - ALL CAPS labels
 - Icon soup (more than 2 decorative icons per card)
@@ -209,6 +227,8 @@ The design system has two representations: markdown docs (`design-system/`) and 
 - Cramped spacing (less than 16px between interactive elements)
 - Generic placeholder copy ("Lorem ipsum", "Click here", "Learn more")
 - Orange on anything non-clickable
+- Violet/teal on anything clickable (ambient warmth stays non-interactive)
+- Gradients so heavy they feel like a christmas tree — keep them subtle and atmospheric
 
 ---
 

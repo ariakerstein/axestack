@@ -4,9 +4,9 @@
 
 ---
 
-## Monochrome by Default
+## Neutral Foundation, Optimistic Accents
 
-The UI is black, white, and gray. Color appears ONLY when it carries meaning. Everything else is neutral grayscale — headers, body text, borders, backgrounds, cards. This is not minimalism for aesthetics. It's clarity for people in crisis.
+The UI is mostly neutral — but not cold. Headers, body text, borders, and cards stay grayscale so functional color (orange, green, red) commands attention. But non-interactive elements can carry subtle violet/teal warmth: background washes, decorative orbs, section gradients, card highlights. This keeps the product feeling alive and hopeful without becoming a christmas tree.
 
 ---
 
@@ -37,6 +37,23 @@ Every color has ONE job. No color serves double duty.
 | **Error** | `#DC2626` | `red-600` | Errors, destructive actions, urgent warnings | Problems requiring action |
 | **Info** | `#2563EB` | `blue-600` | Informational, non-CTA links, mild warnings | FYI-level communication |
 | **Care Circle** | `#8B5CF6` | `violet-500` | People, avatars, relationships | Human/social elements |
+
+### Ambient Warmth (non-interactive only)
+
+| Token | Hex | Tailwind | Role | Rule |
+|-------|-----|----------|------|------|
+| **Violet Wash** | `#8B5CF6` | `violet-500` | Background orbs, gradient starts | Never on clickable elements or text |
+| **Violet Light** | `#EDE9FE` | `violet-50` | Soft card/section backgrounds | Subtle — never saturated enough to compete with CTA |
+| **Teal Wash** | `#14B8A6` | `teal-500` | Gradient endpoints, decorative accents | Pairs with violet for signature gradient |
+| **Teal Light** | `#F0FDFA` | `teal-50` | Soft section backgrounds | Complementary to violet washes |
+
+**Gradient signatures:**
+- Hero backgrounds: `from-violet-50 via-white to-teal-50`
+- Background orbs: `bg-violet-400/20` or `bg-teal-400/10`
+- Text gradients (marketing only): `from-violet-600 via-fuchsia-500 to-orange-500`
+- Divider accents: `from-transparent via-violet-400/50 to-transparent`
+
+**Rule:** These are atmospheric. They add optimism to non-interactive surfaces. If it's clickable, it's orange. If it's ambient, violet/teal gradients are welcome.
 
 ### No Warning Color
 
@@ -69,6 +86,12 @@ Two buckets. No ambiguity.
   --cta-foreground: 0 0% 100%;     /* white text on CTA */
   --cta-light: 33 100% 96%;        /* #FFF7ED */
 
+  /* Ambient warmth — non-interactive */
+  --violet-wash: 258 58% 66%;      /* #8B5CF6 */
+  --violet-light: 263 70% 96%;     /* #EDE9FE */
+  --teal-wash: 168 76% 40%;        /* #14B8A6 */
+  --teal-light: 166 76% 97%;       /* #F0FDFA */
+
   --success: 142 71% 35%;          /* #16A34A */
   --error: 0 72% 51%;              /* #DC2626 */
   --info: 217 91% 60%;             /* #2563EB */
@@ -91,6 +114,12 @@ Auto-detect via `prefers-color-scheme`. User override stored in `localStorage('n
   --surface: 0 0% 9%;              /* #171717 */
   --surface-alt: 0 0% 15%;         /* #262626 */
   --border: 0 0% 25%;              /* #404040 */
+
+  /* Ambient warmth — subtler on dark */
+  --violet-wash: 258 58% 72%;
+  --violet-light: 263 50% 12%;
+  --teal-wash: 168 76% 50%;
+  --teal-light: 166 40% 10%;
 
   /* Semantic — slightly brighter for dark bg */
   --cta: 24 95% 53%;
@@ -115,6 +144,8 @@ Auto-detect via `prefers-color-scheme`. User override stored in `localStorage('n
 - Amber/yellow for any purpose (too close to CTA)
 - Red for non-error states (red = something is wrong)
 - Green for non-success states (green = something is confirmed/good)
+- Violet/teal on clickable elements (ambient warmth is non-interactive only — clickable = orange)
+- Gradients so saturated they compete with the CTA or make text hard to read
 - Using `primary`, `secondary`, `accent` CSS variables from old theme — migrate to new tokens
 
 ---
