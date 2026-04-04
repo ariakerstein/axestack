@@ -143,7 +143,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-[#f5f3ee]">
       <Navbar />
 
       <div className="max-w-lg mx-auto px-4 py-8">
@@ -269,7 +269,7 @@ export default function ProfilePage() {
                       setCancerType(key)
                       setCancerSearch('')
                     }}
-                    className="text-left px-3 py-2 rounded-lg text-sm transition-all bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 border border-slate-200"
+                    className="text-left px-3 py-2 min-h-[44px] rounded-lg text-sm transition-all bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 border border-slate-200"
                   >
                     {label}
                   </button>
