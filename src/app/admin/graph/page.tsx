@@ -1,7 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Network, RefreshCw, Search, Filter, Download } from 'lucide-react'
+import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
+import Link from 'next/link'
+import { Network, RefreshCw, Search, Download, ArrowLeft, Loader2 } from 'lucide-react'
 
 const ENTITY_COLORS: Record<string, string> = {
   diagnosis: '#ef4444',
@@ -37,24 +39,31 @@ interface Relationship {
   confidence: number
 }
 
-export default function AdminGraphPage() {
+function AdminGraphContent() {
+  const searchParams = useSearchParams()
+  const patientId = searchParams.get('patientId')
+
   const [entities, setEntities] = useState<Entity[]>([])
   const [relationships, setRelationships] = useState<Relationship[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedType, setSelectedType] = useState<string | null>(null)
   const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null)
+  const [patientEmail, setPatientEmail] = useState<string | null>(null)
   const [stats, setStats] = useState({ totalEntities: 0, totalRelationships: 0, uniquePatients: 0 })
 
   useEffect(() => {
     fetchGraphData()
-  }, [])
+  }, [patientId])
 
   const fetchGraphData = async () => {
     setLoading(true)
     try {
-      // Fetch all entities (admin view)
-      const entitiesRes = await fetch('/api/admin/graph/entities')
+      // Fetch entities (filtered by patient if specified)
+      const entitiesUrl = patientId
+        ? `/api/admin/graph/entities?patientId=${patientId}`
+        : '/api/admin/graph/entities'
+      const entitiesRes = await fetch(entitiesUrl)
       const entitiesData = await entitiesRes.json()
 
       // Fetch all relationships
@@ -62,11 +71,12 @@ export default function AdminGraphPage() {
       const relsData = await relsRes.json()
 
       setEntities(entitiesData.entities || [])
+      setPatientEmail(entitiesData.patientEmail || null)
       setRelationships(relsData.relationships || [])
       setStats({
         totalEntities: entitiesData.entities?.length || 0,
         totalRelationships: relsData.relationships?.length || 0,
-        uniquePatients: new Set([
+        uniquePatients: patientId ? 1 : new Set([
           ...(entitiesData.entities || []).map((e: Entity) => e.user_id || e.session_id)
         ]).size
       })
@@ -133,12 +143,27 @@ export default function AdminGraphPage() {
       <div className="bg-white border-b border-slate-200 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
+            {patientId && (
+              <Link
+                href="/admin"
+                className="flex items-center gap-1 text-slate-500 hover:text-slate-700 mr-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back
+              </Link>
+            )}
             <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-xl flex items-center justify-center">
               <Network className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-900">Patient Knowledge Graph</h1>
-              <p className="text-sm text-slate-500">Admin visualization of extracted entities</p>
+              <h1 className="text-xl font-bold text-slate-900">
+                {patientId ? 'Patient Entity Detail' : 'Patient Knowledge Graph'}
+              </h1>
+              <p className="text-sm text-slate-500">
+                {patientId
+                  ? patientEmail || `Patient ${patientId.substring(0, 8)}...`
+                  : 'Admin visualization of extracted entities'}
+              </p>
             </div>
           </div>
 
@@ -330,5 +355,17 @@ export default function AdminGraphPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function AdminGraphPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-violet-600 animate-spin" />
+      </div>
+    }>
+      <AdminGraphContent />
+    </Suspense>
   )
 }

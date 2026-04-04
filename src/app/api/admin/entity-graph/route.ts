@@ -586,7 +586,9 @@ export async function GET(request: Request) {
       crossTab: crossTabData,
       similarPatients: (similarPatients || []).map(sp => ({
         patientA: sp.patient_a?.substring(0, 8) + '...',
+        patientAId: sp.patient_a,
         patientB: sp.patient_b?.substring(0, 8) + '...',
+        patientBId: sp.patient_b,
         sharedEntities: sp.shared_entities,
         sharedValues: sp.shared_values?.slice(0, 5),
         similarity: Math.round((sp.similarity_score || 0) * 100) / 100

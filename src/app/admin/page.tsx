@@ -266,7 +266,9 @@ interface EntityGraphData {
   }>
   similarPatients: Array<{
     patientA: string
+    patientAId: string
     patientB: string
+    patientBId: string
     sharedEntities: number
     sharedValues: string[]
     similarity: number
@@ -2028,9 +2030,19 @@ export default function AdminPage() {
                       <div key={i} className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-3">
                         <div className="flex justify-between items-center mb-2">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs text-slate-600">{sp.patientA}</span>
+                            <a
+                              href={`/admin/graph?patientId=${sp.patientAId}`}
+                              className="font-mono text-xs text-violet-600 hover:text-violet-800 hover:underline"
+                            >
+                              {sp.patientA}
+                            </a>
                             <span className="text-amber-500">↔</span>
-                            <span className="font-mono text-xs text-slate-600">{sp.patientB}</span>
+                            <a
+                              href={`/admin/graph?patientId=${sp.patientBId}`}
+                              className="font-mono text-xs text-violet-600 hover:text-violet-800 hover:underline"
+                            >
+                              {sp.patientB}
+                            </a>
                           </div>
                           <span className="text-sm font-bold text-amber-700">{Math.round(sp.similarity * 100)}%</span>
                         </div>

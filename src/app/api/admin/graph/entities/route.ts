@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://felofmlhqwcdpiyjgstx.supabase.co"
@@ -8,19 +8,43 @@ function getSupabase() {
   return createClient(SUPABASE_URL, SUPABASE_KEY)
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const supabase = getSupabase()
+  const { searchParams } = new URL(request.url)
+  const patientId = searchParams.get('patientId')
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('patient_entities')
     .select('*')
     .order('created_at', { ascending: false })
-    .limit(1000)
+
+  // Filter by patient if specified
+  if (patientId) {
+    query = query.eq('user_id', patientId)
+  }
+
+  const { data, error } = await query.limit(1000)
 
   if (error) {
     console.error('Error fetching entities:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ entities: data })
+  // Get patient email if filtering by patient
+  let patientEmail: string | null = null
+  if (patientId) {
+    try {
+      const { data: authData } = await supabase.auth.admin.listUsers({ perPage: 1000 })
+      const user = authData?.users?.find(u => u.id === patientId)
+      patientEmail = user?.email || null
+    } catch {
+      // Ignore auth errors
+    }
+  }
+
+  return NextResponse.json({
+    entities: data,
+    patientId,
+    patientEmail
+  })
 }

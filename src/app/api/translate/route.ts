@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import mammoth from 'mammoth'
 import { createClient } from '@supabase/supabase-js'
 
+// Extend Vercel function timeout to 60 seconds (default is 10s)
+export const maxDuration = 60
+
 // Use Navis Supabase for AI calls (reuse existing infrastructure)
 const SUPABASE_URL = "https://felofmlhqwcdpiyjgstx.supabase.co"
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlbG9mbWxocXdjZHBpeWpnc3R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA2NzQzODAsImV4cCI6MjA1NjI1MDM4MH0._kYA-prwPgxQWoKzWPzJDy2Bf95WgTF5_KnAPN2cGnQ"
@@ -140,20 +143,39 @@ export async function POST(request: NextRequest) {
     const isTextBased = isText || isWord
 
     // Call Navis Supabase edge function (reuses existing Claude API key)
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/axestack-translate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'apikey': SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify({
-        base64Data: isTextBased ? undefined : base64Data,
-        mediaType,
-        isText: isTextBased,
-        documentText: isTextBased ? documentText : undefined
-      }),
-    })
+    // Add 55-second timeout (just under Vercel's 60s limit)
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 55000)
+
+    let response: Response
+    try {
+      response = await fetch(`${SUPABASE_URL}/functions/v1/axestack-translate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'apikey': SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({
+          base64Data: isTextBased ? undefined : base64Data,
+          mediaType,
+          isText: isTextBased,
+          documentText: isTextBased ? documentText : undefined
+        }),
+        signal: controller.signal,
+      })
+    } catch (fetchError: unknown) {
+      clearTimeout(timeoutId)
+      if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+        console.error(`Timeout processing file: ${fileName}`)
+        return NextResponse.json(
+          { error: 'Processing took too long. Please try a smaller file or try again.' },
+          { status: 504 }
+        )
+      }
+      throw fetchError
+    }
+    clearTimeout(timeoutId)
 
     if (!response.ok) {
       const errorText = await response.text()
