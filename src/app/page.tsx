@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { Navbar } from '@/components/Navbar'
 import { ThinkingIndicator } from '@/components/ThinkingIndicator'
+import { StepIndicator } from '@/design/components'
 
 // Cancer types for profile display
 const CANCER_TYPES: Record<string, string> = {
@@ -261,7 +262,7 @@ function HomeContent() {
       {showSuccess && (
         <div
           className="fixed top-4 left-1/2 z-50 bg-slate-900 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3"
-          style={{ transform: 'translateX(-50%)', animation: 'slideDown 0.3s ease-out' }}
+          style={{ transform: 'translateX(-50%)', animation: 'slideDown 50ms ease-out' }}
         >
           <Check className="w-5 h-5" />
           <div>
@@ -283,7 +284,7 @@ function HomeContent() {
             <>
               {/* Patient name is the hero - most important element on page */}
               <h1 className="text-4xl md:text-5xl font-bold mb-3">
-                Welcome back, <span className="text-[#C66B4A]">{profile.name.split(' ')[0]}</span>
+                Welcome back, {profile.name.split(' ')[0]}
               </h1>
 
               {/* Personalization row - all in one clean line */}
@@ -300,7 +301,7 @@ function HomeContent() {
                   </>
                 )}
                 <span className="text-slate-300">·</span>
-                <Link href="/profile" className="text-slate-900 hover:text-[#C66B4A] text-sm font-medium underline underline-offset-2">
+                <Link href="/profile" className="text-slate-900 hover:text-orange-600 text-sm font-medium underline underline-offset-2">
                   Edit
                 </Link>
               </div>
@@ -308,12 +309,12 @@ function HomeContent() {
           ) : (
             <>
               <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
-                Navigate your diagnosis<br />
-                <span className="font-normal">with clarity</span>
+                Don&apos;t miss anything<br />
+                <span className="font-normal">in your cancer treatment</span>
               </h1>
 
               <p className="text-xl text-slate-600 mb-6 max-w-lg mx-auto">
-                Free AI tools for cancer patients and caregivers. Built by a survivor.
+                Find what your treatment plan might be missing — in minutes, not weeks. Free tools built by a survivor.
               </p>
 
             </>
@@ -371,7 +372,7 @@ function HomeContent() {
                   </Link>
                   <button
                     onClick={() => { setShowWizardModal(true); setWizardStep(1); setWizardRole(null); }}
-                    className="bg-[#C66B4A] hover:bg-[#B35E40] text-white font-semibold px-4 sm:px-8 py-3 rounded-xl transition-all shadow-lg shadow-[#C66B4A]/25 hover:shadow-xl min-h-[44px] whitespace-nowrap flex-shrink-0"
+                    className="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-4 sm:px-8 py-3 rounded-xl transition-all shadow-lg shadow-orange-600/25 hover:shadow-xl min-h-[44px] whitespace-nowrap flex-shrink-0"
                   >
                     Start Here →
                   </button>
@@ -395,7 +396,7 @@ function HomeContent() {
           />
 
           {/* Modal */}
-          <div className="relative w-full max-w-xl mx-4 mb-0 sm:mb-0 bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom duration-300">
+          <div className="relative w-full max-w-xl mx-4 mb-0 sm:mb-0 bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom">
             {/* Close button */}
             <button
               onClick={() => { setShowWizardModal(false); setWizardEmailSent(false); }}
@@ -410,26 +411,16 @@ function HomeContent() {
             {/* Header with value prop - always visible */}
             <div className="bg-slate-900 px-6 py-5 text-white text-center">
               <h2 className="text-xl font-bold">Get Personalized Guidance</h2>
-              <p className="text-slate-400 text-sm mt-1">60 seconds to AI insights tailored to your diagnosis</p>
+              <p className="text-slate-400 text-sm mt-1">In 60 seconds, know what to ask your doctor</p>
             </div>
 
             <div className="p-6 sm:p-8">
               {/* Progress indicator */}
-              <div className="flex items-center justify-center gap-2 mb-6">
-                {[1, 2, 3].map((step) => (
-                  <div key={step} className="flex items-center">
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
-                      wizardStep >= step
-                        ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/30'
-                        : 'bg-slate-100 text-slate-400'
-                    }`}>
-                      {wizardStep > step ? <Check className="w-5 h-5" /> : step}
-                    </div>
-                    {step < 3 && (
-                      <div className={`w-12 h-1 rounded ${wizardStep > step ? 'bg-slate-900' : 'bg-slate-200'}`} />
-                    )}
-                  </div>
-                ))}
+              <div className="flex justify-center mb-6">
+                <StepIndicator
+                  steps={['Role', 'Details', 'Cancer Type']}
+                  currentStep={wizardStep - 1}
+                />
               </div>
 
               {/* Step 1: Role */}
@@ -457,7 +448,7 @@ function HomeContent() {
                         <Heart className="w-9 h-9 text-slate-700" />
                       </div>
                       <span className="font-bold text-slate-900 text-lg block">I'm a Caregiver</span>
-                      <span className="text-sm text-slate-500 mt-1 block">Supporting a loved one</span>
+                      <span className="text-sm text-slate-500 mt-1 block">Supporting someone with cancer</span>
                     </button>
                   </div>
 
@@ -500,7 +491,7 @@ function HomeContent() {
                     ← Back
                   </button>
                   <h3 className="text-xl font-bold text-slate-900 mb-2">
-                    {wizardRole === 'caregiver' ? "Tell us about your loved one" : "Tell us about yourself"}
+                    {wizardRole === 'caregiver' ? "Tell us about the patient" : "Tell us about yourself"}
                   </h3>
                   <p className="text-slate-500 text-sm mb-6">So we can personalize your tools</p>
                   <div className="space-y-4">
@@ -564,7 +555,7 @@ function HomeContent() {
                         setWizardEmailSent(false)
                         router.push('/records')
                       }}
-                      className="text-sm text-slate-500 hover:text-[#C66B4A] underline"
+                      className="text-sm text-slate-500 hover:text-orange-600 underline"
                     >
                       Continue without signing in →
                     </button>
@@ -748,7 +739,7 @@ function HomeContent() {
           <div className="grid md:grid-cols-3 gap-4 mb-8">
             {/* AI Case Review - Most Popular */}
             <Link href="/records" className="group bg-white border-2 border-slate-900 rounded-xl p-5 hover:shadow-lg transition-all relative">
-              <span className="absolute -top-2.5 left-4 bg-[#C66B4A] text-white text-[10px] font-medium px-2.5 py-1 rounded">
+              <span className="absolute -top-2.5 left-4 bg-slate-900 text-white text-[10px] font-medium px-2.5 py-1 rounded">
                 Most popular
               </span>
               <div className="mb-3 mt-1">
@@ -764,7 +755,7 @@ function HomeContent() {
 
             {/* Combat - Trending */}
             <Link href="/combat" className="group bg-white border-2 border-slate-900 rounded-xl p-5 hover:shadow-lg transition-all relative">
-              <span className="absolute -top-2.5 left-4 bg-[#C66B4A] text-white text-[10px] font-medium px-2.5 py-1 rounded">
+              <span className="absolute -top-2.5 left-4 bg-slate-900 text-white text-[10px] font-medium px-2.5 py-1 rounded">
                 Trending
               </span>
               <div className="mb-3 mt-1">
@@ -885,18 +876,18 @@ function HomeContent() {
             <Link href="/expert-review" className="group bg-gradient-to-br from-orange-50/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="flex items-center gap-2 mb-2">
                 <UserCheck className="w-6 h-6 text-slate-600" />
-                <h3 className="font-bold text-slate-900 group-hover:text-[#C66B4A]">Expert Review</h3>
+                <h3 className="font-bold text-slate-900 ">Expert Review</h3>
               </div>
               <p className="text-slate-600 text-sm">Get your case reviewed by oncology experts.</p>
               <p className="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1">
-                Partnered with <a href="https://cancercommons.org" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="font-semibold text-slate-600 hover:text-[#C66B4A]">Cancer Commons</a>
+                Partnered with <a href="https://cancercommons.org" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="font-semibold text-slate-600 hover:text-orange-600">Cancer Commons</a>
               </p>
             </Link>
 
             <a href="https://community.cancerpatientlab.org/" target="_blank" rel="noopener noreferrer" className="group bg-gradient-to-br from-green-50/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="flex items-center gap-2 mb-2">
                 <Users className="w-6 h-6 text-slate-600" />
-                <h3 className="font-bold text-slate-900 group-hover:text-[#C66B4A]">Community</h3>
+                <h3 className="font-bold text-slate-900 ">Community</h3>
               </div>
               <p className="text-slate-600 text-sm">Connect with patients and caregivers.</p>
               <p className="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1">
@@ -907,7 +898,7 @@ function HomeContent() {
             <Link href="/profile" className="group bg-gradient-to-br from-slate-100/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="flex items-center gap-2 mb-2">
                 <UserRound className="w-6 h-6 text-slate-600" />
-                <h3 className="font-bold text-slate-900 group-hover:text-[#C66B4A]">My Profile</h3>
+                <h3 className="font-bold text-slate-900 ">My Profile</h3>
               </div>
               <p className="text-slate-600 text-sm">Personalize your tools and save your diagnosis.</p>
             </Link>
@@ -924,7 +915,7 @@ function HomeContent() {
               <span className="text-slate-600">Caregiver Tools:</span> Supporting someone with cancer?
             </h2>
             <p className="text-slate-600 max-w-2xl mx-auto">
-              93% of caregivers say understanding the diagnosis is their biggest challenge. These tools help you be the advocate your loved one needs.
+              93% of caregivers say understanding the diagnosis is their biggest challenge. These tools help you be the advocate they need.
             </p>
           </div>
 
@@ -938,7 +929,7 @@ function HomeContent() {
                 <div>
                   <h3 className="font-semibold text-slate-900 mb-1">Understand the diagnosis</h3>
                   <p className="text-sm text-slate-600 mb-2">Translate medical jargon into plain English with our Records Vault.</p>
-                  <Link href="/records" onClick={() => trackEvent('caregiver_need_click', { need: 'understand_diagnosis', tool: 'records' })} className="inline-flex items-center text-sm text-slate-900 hover:text-[#C66B4A] font-medium min-h-[44px]">
+                  <Link href="/records" onClick={() => trackEvent('caregiver_need_click', { need: 'understand_diagnosis', tool: 'records' })} className="inline-flex items-center text-sm text-slate-900 hover:text-orange-600 font-medium min-h-[44px]">
                     Upload records →
                   </Link>
                 </div>
@@ -953,7 +944,7 @@ function HomeContent() {
                 <div>
                   <h3 className="font-semibold text-slate-900 mb-1">Explore treatment options</h3>
                   <p className="text-sm text-slate-600 mb-2">Get a comprehensive case review and understand all the options.</p>
-                  <Link href="/records/case-review" onClick={() => trackEvent('caregiver_need_click', { need: 'treatment_options', tool: 'case_review' })} className="inline-flex items-center text-sm text-slate-900 hover:text-[#C66B4A] font-medium min-h-[44px]">
+                  <Link href="/records/case-review" onClick={() => trackEvent('caregiver_need_click', { need: 'treatment_options', tool: 'case_review' })} className="inline-flex items-center text-sm text-slate-900 hover:text-orange-600 font-medium min-h-[44px]">
                     Start case review →
                   </Link>
                 </div>
@@ -968,7 +959,7 @@ function HomeContent() {
                 <div>
                   <h3 className="font-semibold text-slate-900 mb-1">Prepare for appointments</h3>
                   <p className="text-sm text-slate-600 mb-2">Know exactly what to ask the oncologist with our question generator.</p>
-                  <Link href="/cancer-checklist" onClick={() => trackEvent('caregiver_need_click', { need: 'appointment_prep', tool: 'checklist' })} className="inline-flex items-center text-sm text-slate-900 hover:text-[#C66B4A] font-medium min-h-[44px]">
+                  <Link href="/cancer-checklist" onClick={() => trackEvent('caregiver_need_click', { need: 'appointment_prep', tool: 'checklist' })} className="inline-flex items-center text-sm text-slate-900 hover:text-orange-600 font-medium min-h-[44px]">
                     Build question list →
                   </Link>
                 </div>
@@ -983,7 +974,7 @@ function HomeContent() {
                 <div>
                   <h3 className="font-semibold text-slate-900 mb-1">Coordinate the care team</h3>
                   <p className="text-sm text-slate-600 mb-2">Share updates without repeating yourself. Keep everyone informed.</p>
-                  <Link href="/hub" onClick={() => trackEvent('caregiver_need_click', { need: 'coordinate_care', tool: 'carecircle' })} className="inline-flex items-center text-sm text-slate-900 hover:text-[#C66B4A] font-medium min-h-[44px]">
+                  <Link href="/hub" onClick={() => trackEvent('caregiver_need_click', { need: 'coordinate_care', tool: 'carecircle' })} className="inline-flex items-center text-sm text-slate-900 hover:text-orange-600 font-medium min-h-[44px]">
                     Create CareCircle →
                   </Link>
                 </div>
@@ -1000,7 +991,7 @@ function HomeContent() {
                 setWizardStep(1)
                 setWizardRole('caregiver')
               }}
-              className="inline-flex items-center gap-2 bg-[#C66B4A] hover:bg-[#B35E40] text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-[#C66B4A]/25 hover:shadow-xl transition-all min-h-[44px]"
+              className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-orange-600/25 hover:shadow-xl transition-all min-h-[44px]"
             >
               <Heart className="w-5 h-5" />
               Get Started as a Caregiver
@@ -1038,7 +1029,7 @@ function HomeContent() {
               </button>
               <a
                 href="sms:?body=I thought these free cancer tools might help: https://opencancer.ai - built by a survivor, NCCN-informed"
-                className="inline-flex items-center gap-2 bg-[#C66B4A] hover:bg-[#B35E40] text-white font-medium px-5 py-2.5 rounded-lg transition-all"
+                className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-medium px-5 py-2.5 rounded-lg transition-all"
               >
                 <Share2 className="w-4 h-4" />
                 Text a Friend
@@ -1114,6 +1105,11 @@ function HomeContent() {
           .testimonial-scroll:hover {
             animation-play-state: paused;
           }
+          @media (prefers-reduced-motion: reduce) {
+            .testimonial-scroll {
+              animation: none;
+            }
+          }
         `}</style>
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-slate-900">What Patients & Experts Say</h2>
@@ -1163,14 +1159,14 @@ function HomeContent() {
                   className="w-20 h-20 rounded-full object-cover mx-auto mb-3 ring-2 ring-stone-200 shadow-md"
                 />
                 <p className="text-sm font-semibold text-slate-900 leading-tight">{person.name}</p>
-                <p className="text-xs text-[#C66B4A] font-medium">{person.title}</p>
+                <p className="text-xs text-slate-600 font-medium">{person.title}</p>
                 <p className="text-[10px] text-slate-500">{person.subtitle}</p>
               </div>
             ))}
           </div>
 
           <div className="text-center mt-8">
-            <a href="https://cancerhackerlab.com" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-900 hover:text-[#C66B4A] font-medium underline underline-offset-2">
+            <a href="https://cancerhackerlab.com" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-900 hover:text-orange-600 font-medium underline underline-offset-2">
               View all advisors →
             </a>
           </div>
@@ -1183,7 +1179,7 @@ function HomeContent() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <h2 className="text-xl font-bold text-slate-900">Upcoming Events</h2>
-              <a href="https://www.cancerpatientlab.org/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs text-slate-500 hover:text-[#C66B4A] transition-colors">
+              <a href="https://www.cancerpatientlab.org/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs text-slate-500 hover:text-orange-600 transition-colors">
                 <span>Partnered with</span>
                 <img src="/cpl-logo.avif" alt="Cancer Patient Lab" className="h-6 object-contain" />
               </a>
@@ -1192,7 +1188,7 @@ function HomeContent() {
               href="https://community.cancerpatientlab.org/c/events/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-slate-900 hover:text-[#C66B4A] font-medium underline underline-offset-2"
+              className="text-sm text-slate-900 hover:text-orange-600 font-medium underline underline-offset-2"
             >
               View all →
             </a>
@@ -1208,10 +1204,10 @@ function HomeContent() {
                 className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-900 hover:shadow-md transition-all"
               >
                 <div className="flex items-center gap-3 mb-2">
-                  <span className="text-sm font-bold text-[#C66B4A] bg-[#C66B4A]/10 px-2 py-1 rounded">{event.date}</span>
+                  <span className="text-sm font-bold text-slate-900 bg-slate-100 px-2 py-1 rounded">{event.date}</span>
                   <span className="text-xs text-slate-500">{event.time}</span>
                 </div>
-                <h3 className="font-semibold text-slate-900 group-hover:text-[#C66B4A] mb-1 line-clamp-2">{event.title}</h3>
+                <h3 className="font-semibold text-slate-900 mb-1 line-clamp-2">{event.title}</h3>
                 {event.speaker && (
                   <p className="text-sm text-slate-500">{event.speaker}</p>
                 )}
