@@ -169,16 +169,16 @@ export default function ProfilePage() {
           {/* Caregiver Mode Toggle - Prominent */}
           <div className={`rounded-xl p-4 border-2 transition-all ${
             role === 'caregiver'
-              ? 'bg-gradient-to-r from-pink-50 to-rose-50 border-pink-300'
+              ? 'bg-stone-100 border-[#C66B4A]'
               : 'bg-slate-50 border-slate-200'
           }`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  role === 'caregiver' ? 'bg-pink-200' : 'bg-slate-200'
+                  role === 'caregiver' ? 'bg-[#C66B4A]/10' : 'bg-slate-200'
                 }`}>
                   {role === 'caregiver' ? (
-                    <Heart className="w-5 h-5 text-pink-600" />
+                    <Heart className="w-5 h-5 text-[#C66B4A]" />
                   ) : (
                     <Ribbon className="w-5 h-5 text-slate-600" />
                   )}
@@ -197,10 +197,10 @@ export default function ProfilePage() {
               <button
                 type="button"
                 onClick={() => setRole(role === 'caregiver' ? 'patient' : 'caregiver')}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 min-h-[44px] min-w-[44px]"
               >
                 {role === 'caregiver' ? (
-                  <ToggleRight className="w-10 h-10 text-pink-500" />
+                  <ToggleRight className="w-10 h-10 text-[#C66B4A]" />
                 ) : (
                   <ToggleLeft className="w-10 h-10 text-slate-400" />
                 )}
@@ -208,9 +208,9 @@ export default function ProfilePage() {
             </div>
 
             {role === 'caregiver' && (
-              <div className="mt-3 pt-3 border-t border-pink-200">
-                <p className="text-xs text-pink-700 font-medium mb-2">✨ Caregiver features enabled:</p>
-                <ul className="text-xs text-pink-600 space-y-1">
+              <div className="mt-3 pt-3 border-t border-stone-200">
+                <p className="text-xs text-[#C66B4A] font-medium mb-2">Caregiver features enabled:</p>
+                <ul className="text-xs text-slate-600 space-y-1">
                   <li>• Tailored tools for understanding the diagnosis</li>
                   <li>• Appointment prep questions for caregivers</li>
                   <li>• CareCircle to coordinate with family</li>
