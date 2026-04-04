@@ -396,30 +396,111 @@ export default function AdminPage() {
   // Clinical pattern detection - identify coherent clinical stories
   const DNA_REPAIR_GENES = ['brca1', 'brca2', 'atm', 'chek2', 'palb2', 'rad51', 'fanca', 'nbn']
 
-  const detectClinicalPatterns = (biomarkers: Array<{name: string; count: number}>, treatments: Array<{name: string; count: number}>) => {
-    const patterns: Array<{type: string; description: string; recommendation: string; centers: string[]}> = []
+  interface ClinicalPattern {
+    type: string
+    description: string
+    recommendation: string
+    confidence: 'High' | 'Moderate' | 'Suggestive'
+    confidenceReason: string
+    centers: Array<{ name: string; program: string }>
+    trials: Array<{ nct: string; name: string; phase: string }>
+  }
+
+  const detectClinicalPatterns = (biomarkers: Array<{name: string; count: number}>, treatments: Array<{name: string; count: number}>): ClinicalPattern[] => {
+    const patterns: ClinicalPattern[] = []
     const biomarkerNames = biomarkers.map(b => b.name.toLowerCase())
 
     // DNA repair deficiency pattern
     const dnaRepairMutations = biomarkerNames.filter(b =>
       DNA_REPAIR_GENES.some(gene => b.includes(gene))
     )
-    if (dnaRepairMutations.length >= 2) {
+    if (dnaRepairMutations.length >= 1) {
+      // Confidence based on number of supporting biomarkers
+      const hasBRCA = dnaRepairMutations.some(m => m.includes('brca'))
+      const mutationCount = dnaRepairMutations.length
+      let confidence: 'High' | 'Moderate' | 'Suggestive' = 'Suggestive'
+      let confidenceReason = '1 DNA repair gene detected — confirm with dedicated HRD assay'
+
+      if (mutationCount >= 3 || (hasBRCA && mutationCount >= 2)) {
+        confidence = 'High'
+        confidenceReason = `${mutationCount} DNA repair genes detected including ${hasBRCA ? 'BRCA' : 'multiple pathway components'}`
+      } else if (mutationCount >= 2) {
+        confidence = 'Moderate'
+        confidenceReason = `${mutationCount} DNA repair genes detected — HRD likely, confirm with comprehensive testing`
+      }
+
       patterns.push({
         type: 'DNA Repair Deficiency',
-        description: `${dnaRepairMutations.length} DNA repair pathway mutations detected (${dnaRepairMutations.slice(0, 3).join(', ')}). This profile suggests HRD (homologous recombination deficiency).`,
-        recommendation: 'Consider PARP inhibitor sensitivity panel if not already done. PARP inhibitors (olaparib, rucaparib) may be relevant.',
-        centers: ['MD Anderson Cancer Center', 'Memorial Sloan Kettering', 'Johns Hopkins Sidney Kimmel']
+        description: `${dnaRepairMutations.length} DNA repair pathway mutation(s) detected (${dnaRepairMutations.slice(0, 3).join(', ')}). This profile is ${confidence === 'High' ? 'consistent with' : confidence === 'Moderate' ? 'suggestive of' : 'potentially indicative of'} HRD (homologous recombination deficiency).`,
+        recommendation: 'Consider PARP inhibitor sensitivity panel if not already done. PARP inhibitors (olaparib, rucaparib) have FDA approval for HRD+ mPC.',
+        confidence,
+        confidenceReason,
+        centers: [
+          { name: 'MD Anderson', program: 'Prostate Cancer Moon Shot' },
+          { name: 'Memorial Sloan Kettering', program: 'Precision Oncology' },
+          { name: 'Dana-Farber', program: 'BRCA/DNA Repair Program' }
+        ],
+        trials: [
+          { nct: 'NCT03732820', name: 'PROpel', phase: 'Phase III' },
+          { nct: 'NCT02975934', name: 'TRITON3', phase: 'Phase III' },
+          { nct: 'NCT03395197', name: 'TALAPRO-2', phase: 'Phase III' },
+          { nct: 'NCT03834519', name: 'MAGNITUDE', phase: 'Phase III' }
+        ]
       })
     }
 
     // AR-driven pattern for prostate
-    if (biomarkerNames.some(b => b.includes('ar ') || b.includes('androgen receptor'))) {
+    if (biomarkerNames.some(b => b.includes('ar ') || b.includes('androgen receptor') || b === 'ar')) {
+      const hasARV7 = biomarkerNames.some(b => b.includes('ar-v7'))
+      const hasARAmplification = biomarkerNames.some(b => b.includes('ar amplification') || b.includes('ar gain'))
+
+      let confidence: 'High' | 'Moderate' | 'Suggestive' = 'Moderate'
+      let confidenceReason = 'AR expression detected — common in prostate cancer'
+
+      if (hasARV7 || hasARAmplification) {
+        confidence = 'High'
+        confidenceReason = hasARV7 ? 'AR-V7 splice variant detected — resistance mechanism confirmed' : 'AR amplification detected'
+      }
+
       patterns.push({
         type: 'AR-Driven Disease',
-        description: 'Androgen receptor involvement detected. May indicate sensitivity to next-gen AR pathway inhibitors.',
-        recommendation: 'Consider AR-V7 testing if on enzalutamide/abiraterone resistance.',
-        centers: ['Johns Hopkins', 'UCSF', 'Dana-Farber']
+        description: 'Androgen receptor pathway involvement detected. May indicate sensitivity to next-gen AR pathway inhibitors.',
+        recommendation: hasARV7 ? 'AR-V7+ suggests resistance to enzalutamide/abiraterone. Consider taxanes or clinical trials.' : 'Consider AR-V7 testing if on enzalutamide/abiraterone with progression.',
+        confidence,
+        confidenceReason,
+        centers: [
+          { name: 'Johns Hopkins', program: 'Prostate Cancer Program' },
+          { name: 'UCSF', program: 'GU Oncology' },
+          { name: 'Dana-Farber', program: 'Lank Center' }
+        ],
+        trials: [
+          { nct: 'NCT02799602', name: 'ARAMIS', phase: 'Phase III' },
+          { nct: 'NCT03395197', name: 'TALAPRO-2', phase: 'Phase III' },
+          { nct: 'NCT04136353', name: 'ARASENS', phase: 'Phase III' }
+        ]
+      })
+    }
+
+    // Immunotherapy eligibility pattern
+    if (biomarkerNames.some(b => b.includes('msi-h') || b.includes('tmb') || b.includes('pd-l1'))) {
+      const hasMSIH = biomarkerNames.some(b => b.includes('msi-h') || b.includes('msi high'))
+      const hasTMBHigh = biomarkerNames.some(b => b.includes('tmb-h') || b.includes('tmb high'))
+
+      patterns.push({
+        type: 'Immunotherapy Candidate',
+        description: `${hasMSIH ? 'MSI-H' : ''}${hasMSIH && hasTMBHigh ? ' and ' : ''}${hasTMBHigh ? 'TMB-High' : ''} detected. This tumor may respond to checkpoint inhibitors.`,
+        recommendation: 'Pembrolizumab has FDA approval for MSI-H/dMMR solid tumors regardless of site.',
+        confidence: hasMSIH ? 'High' : 'Moderate',
+        confidenceReason: hasMSIH ? 'MSI-H is a validated predictive biomarker' : 'TMB is emerging as predictive marker',
+        centers: [
+          { name: 'MD Anderson', program: 'Immunotherapy Platform' },
+          { name: 'Memorial Sloan Kettering', program: 'Immunotherapy' },
+          { name: 'UCLA', program: 'Jonsson Cancer Center' }
+        ],
+        trials: [
+          { nct: 'NCT02628067', name: 'KEYNOTE-158', phase: 'Phase II' },
+          { nct: 'NCT03668119', name: 'KEYNOTE-966', phase: 'Phase III' }
+        ]
       })
     }
 
@@ -1606,16 +1687,48 @@ export default function AdminPage() {
                         <div key={j} className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-3">
                           <div className="flex items-center gap-2 mb-2">
                             <span className="bg-amber-600 text-white text-xs px-2 py-0.5 rounded font-medium">{pattern.type}</span>
+                            <span className={`text-xs px-2 py-0.5 rounded font-medium ${
+                              pattern.confidence === 'High' ? 'bg-green-100 text-green-700 border border-green-300' :
+                              pattern.confidence === 'Moderate' ? 'bg-yellow-100 text-yellow-700 border border-yellow-300' :
+                              'bg-slate-100 text-slate-600 border border-slate-300'
+                            }`}>
+                              {pattern.confidence} Confidence
+                            </span>
                           </div>
+                          <p className="text-xs text-amber-600 mb-2 italic">{pattern.confidenceReason}</p>
                           <p className="text-amber-900 text-sm mb-2">{pattern.description}</p>
-                          <p className="text-amber-800 text-sm font-medium mb-2">💡 {pattern.recommendation}</p>
-                          <div className="flex flex-wrap gap-2">
-                            <span className="text-xs text-amber-600 font-medium">Academic Centers:</span>
-                            {pattern.centers.map((center, k) => (
-                              <span key={k} className="text-xs bg-white text-amber-700 px-2 py-0.5 rounded border border-amber-300">
-                                {center}
-                              </span>
-                            ))}
+                          <p className="text-amber-800 text-sm font-medium mb-3">💡 {pattern.recommendation}</p>
+
+                          {/* Academic Centers */}
+                          <div className="mb-3">
+                            <span className="text-xs text-amber-700 font-medium block mb-1">🏥 Academic Centers:</span>
+                            <div className="flex flex-wrap gap-2">
+                              {pattern.centers.map((center, k) => (
+                                <span key={k} className="text-xs bg-white text-amber-700 px-2 py-1 rounded border border-amber-300">
+                                  <span className="font-medium">{center.name}</span>
+                                  <span className="text-amber-500"> — {center.program}</span>
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Relevant Clinical Trials */}
+                          <div>
+                            <span className="text-xs text-amber-700 font-medium block mb-1">🔬 Relevant Trials:</span>
+                            <div className="flex flex-wrap gap-2">
+                              {pattern.trials.slice(0, 4).map((trial, k) => (
+                                <a
+                                  key={k}
+                                  href={`https://clinicaltrials.gov/study/${trial.nct}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-200 hover:bg-blue-100 transition-colors"
+                                >
+                                  <span className="font-mono">{trial.nct}</span>
+                                  <span className="text-blue-500"> {trial.name} ({trial.phase})</span>
+                                </a>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       ))}
