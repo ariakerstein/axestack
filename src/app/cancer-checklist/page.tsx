@@ -605,7 +605,7 @@ ${ragContext}
   const emergingTests = tests.filter((t) => t.priority === 'emerging')
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-rose-50/30 to-white text-slate-900">
+    <main className="min-h-screen bg-white text-slate-900">
       <Navbar />
 
       {/* Hero - Simplified */}

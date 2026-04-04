@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
-import { FileText, Shield, FlaskConical, Leaf, ChevronDown, ChevronUp, Swords, ArrowRight, Sparkles, Target, CheckCircle2, Download, Share2, Trophy, Star, Play, Mail, Users, Sliders } from 'lucide-react'
+import { FileText, Shield, FlaskConical, Leaf, ChevronDown, ChevronUp, Swords, ArrowRight, Sparkles, Target, CheckCircle2, Download, Share2, Trophy, Star, Play, Mail, Users, Sliders, Clock } from 'lucide-react'
 import { TypewriterMarkdown } from '@/components/TypewriterMarkdown'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { useActivityLog } from '@/hooks/useActivityLog'
@@ -13,46 +13,40 @@ import { PerspectiveTuner, PerspectiveWeights } from '@/components/PerspectiveTu
 import { UpgradeModal } from '@/components/UpgradeModal'
 import { Navbar } from '@/components/Navbar'
 
-// Animated AI Trio Component - Three AI perspectives visualized
-function AITrioAnimation({ isActive, activePerspective }: { isActive: boolean, activePerspective?: 'guidelines' | 'research' | 'integrative' | null }) {
+// 5 Perspective Types
+type PerspectiveKey = 'guidelines' | 'aggressive' | 'precision' | 'conservative' | 'integrative'
+
+// Animated AI Five Component - Five AI perspectives visualized
+function AIFiveAnimation({ isActive, activePerspective }: { isActive: boolean, activePerspective?: PerspectiveKey | null }) {
+  const perspectives = [
+    { key: 'guidelines' as const, icon: Shield, label: 'Guidelines', gradient: 'from-blue-400 to-blue-600', shadow: 'shadow-blue-500/30', text: 'text-blue-600', activeText: 'text-blue-700', ring: 'ring-blue-400/50' },
+    { key: 'aggressive' as const, icon: Swords, label: 'Aggressive', gradient: 'from-red-400 to-red-600', shadow: 'shadow-red-500/30', text: 'text-red-600', activeText: 'text-red-700', ring: 'ring-red-400/50' },
+    { key: 'precision' as const, icon: Target, label: 'Precision', gradient: 'from-violet-400 to-violet-600', shadow: 'shadow-violet-500/30', text: 'text-violet-600', activeText: 'text-violet-700', ring: 'ring-violet-400/50' },
+    { key: 'conservative' as const, icon: Clock, label: 'Conservative', gradient: 'from-amber-400 to-amber-600', shadow: 'shadow-amber-500/30', text: 'text-amber-600', activeText: 'text-amber-700', ring: 'ring-amber-400/50' },
+    { key: 'integrative' as const, icon: Leaf, label: 'Integrative', gradient: 'from-green-400 to-teal-500', shadow: 'shadow-green-500/30', text: 'text-green-600', activeText: 'text-green-700', ring: 'ring-green-400/50' },
+  ]
+
   return (
-    <div className="relative h-32 flex items-center justify-center gap-6">
-      {/* NCCN Guidelines - Shield */}
-      <div className={`flex flex-col items-center transition-all duration-500 ${activePerspective === 'guidelines' ? 'scale-110' : ''}`}>
-        <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30 transition-all duration-500 ${
-          activePerspective === 'guidelines' ? 'ring-4 ring-blue-400/50 ring-offset-2' :
-          isActive ? 'opacity-70' : ''
-        }`}>
-          <Shield className="w-8 h-8 text-white" />
-        </div>
-        <span className={`mt-2 text-xs font-semibold transition-all ${activePerspective === 'guidelines' ? 'text-blue-700' : 'text-blue-600'}`}>Guidelines</span>
-      </div>
-
-      {/* Emerging Research - Flask */}
-      <div className={`flex flex-col items-center transition-all duration-500 ${activePerspective === 'research' ? 'scale-110' : ''}`}>
-        <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-400 to-slate-500 flex items-center justify-center shadow-lg shadow-slate-500/30 transition-all duration-500 ${
-          activePerspective === 'research' ? 'ring-4 ring-slate-400/50 ring-offset-2' :
-          isActive ? 'opacity-70' : ''
-        }`}>
-          <FlaskConical className="w-10 h-10 text-white" />
-        </div>
-        <span className={`mt-2 text-xs font-semibold transition-all ${activePerspective === 'research' ? 'text-slate-700' : 'text-slate-600'}`}>Research</span>
-      </div>
-
-      {/* Integrative - Leaf */}
-      <div className={`flex flex-col items-center transition-all duration-500 ${activePerspective === 'integrative' ? 'scale-110' : ''}`}>
-        <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br from-green-400 to-teal-500 flex items-center justify-center shadow-lg shadow-green-500/30 transition-all duration-500 ${
-          activePerspective === 'integrative' ? 'ring-4 ring-green-400/50 ring-offset-2' :
-          isActive ? 'opacity-70' : ''
-        }`}>
-          <Leaf className="w-8 h-8 text-white" />
-        </div>
-        <span className={`mt-2 text-xs font-semibold transition-all ${activePerspective === 'integrative' ? 'text-green-700' : 'text-green-600'}`}>Integrative</span>
-      </div>
+    <div className="relative flex items-center justify-center gap-3 py-4">
+      {perspectives.map((p) => {
+        const Icon = p.icon
+        const isActiveP = activePerspective === p.key
+        return (
+          <div key={p.key} className={`flex flex-col items-center transition-all duration-500 ${isActiveP ? 'scale-110' : ''}`}>
+            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${p.gradient} flex items-center justify-center shadow-lg ${p.shadow} transition-all duration-500 ${
+              isActiveP ? `ring-4 ${p.ring} ring-offset-2` :
+              isActive ? 'opacity-70' : ''
+            }`}>
+              <Icon className="w-6 h-6 text-white" />
+            </div>
+            <span className={`mt-1.5 text-[10px] font-semibold transition-all ${isActiveP ? p.activeText : p.text}`}>{p.label}</span>
+          </div>
+        )
+      })}
 
       {/* Connecting line when active */}
       {isActive && (
-        <div className="absolute top-1/2 left-1/4 w-1/2 h-0.5 bg-gradient-to-r from-blue-400 via-slate-400 to-green-400 rounded-full opacity-50" />
+        <div className="absolute top-1/2 left-[15%] w-[70%] h-0.5 bg-gradient-to-r from-blue-400 via-violet-400 to-green-400 rounded-full opacity-30" />
       )}
     </div>
   )
@@ -112,7 +106,7 @@ function DeliberationTheater({
   deliberationLog,
   records
 }: {
-  activePerspective: 'guidelines' | 'research' | 'integrative' | null,
+  activePerspective: PerspectiveKey | null,
   deliberationLog: { perspective: string, thought: string }[],
   records?: { fileName: string, documentType: string }[]
 }) {
@@ -129,9 +123,11 @@ function DeliberationTheater({
   }, [deliberationLog.length])
 
   const perspectiveConfig = {
-    guidelines: { icon: Shield, gradient: 'from-blue-500 to-blue-600', bgGradient: 'from-blue-50 to-blue-100/50', borderColor: 'border-blue-200', textColor: 'text-blue-700', label: 'NCCN Guidelines' },
-    research: { icon: FlaskConical, gradient: 'from-slate-500 to-slate-500', bgGradient: 'from-slate-50 to-slate-50', borderColor: 'border-slate-200', textColor: 'text-slate-700', label: 'Emerging Research' },
-    integrative: { icon: Leaf, gradient: 'from-green-500 to-teal-500', bgGradient: 'from-green-50 to-teal-50', borderColor: 'border-green-200', textColor: 'text-green-700', label: 'Integrative Oncology' },
+    guidelines: { icon: Shield, gradient: 'from-blue-500 to-blue-600', bgGradient: 'from-blue-50 to-blue-100/50', borderColor: 'border-blue-200', textColor: 'text-blue-700', label: 'Guidelines Board' },
+    aggressive: { icon: Swords, gradient: 'from-red-500 to-red-600', bgGradient: 'from-red-50 to-red-100/50', borderColor: 'border-red-200', textColor: 'text-red-700', label: 'Aggressive Board' },
+    precision: { icon: Target, gradient: 'from-violet-500 to-violet-600', bgGradient: 'from-violet-50 to-violet-100/50', borderColor: 'border-violet-200', textColor: 'text-violet-700', label: 'Precision Medicine' },
+    conservative: { icon: Clock, gradient: 'from-amber-500 to-amber-600', bgGradient: 'from-amber-50 to-amber-100/50', borderColor: 'border-amber-200', textColor: 'text-amber-700', label: 'Conservative Board' },
+    integrative: { icon: Leaf, gradient: 'from-green-500 to-teal-500', bgGradient: 'from-green-50 to-teal-50', borderColor: 'border-green-200', textColor: 'text-green-700', label: 'Integrative Board' },
   }
 
   return (
@@ -238,7 +234,7 @@ interface SavedTranslation {
 
 interface Perspective {
   name: string
-  icon: 'shield' | 'flask' | 'leaf'
+  icon: 'shield' | 'swords' | 'target' | 'clock' | 'leaf' | 'flask'
   color: string
   argument: string
   evidence: string[]
@@ -374,17 +370,23 @@ function PerspectiveCard({ perspective, isExpanded, onToggle }: {
   isExpanded: boolean
   onToggle: () => void
 }) {
-  const iconMap = {
+  const iconMap: Record<string, typeof Shield> = {
     shield: Shield,
-    flask: FlaskConical,
-    leaf: Leaf
+    swords: Swords,
+    target: Target,
+    clock: Clock,
+    leaf: Leaf,
+    flask: FlaskConical, // Legacy support
   }
-  const Icon = iconMap[perspective.icon]
+  const Icon = iconMap[perspective.icon] || Shield
 
   const colorMap: Record<string, { bgGradient: string, border: string, text: string, iconGradient: string }> = {
     blue: { bgGradient: 'from-blue-50 to-blue-100/50', border: 'border-blue-200', text: 'text-blue-800', iconGradient: 'from-blue-500 to-blue-600' },
-    purple: { bgGradient: 'from-slate-50 to-slate-50', border: 'border-slate-200', text: 'text-slate-800', iconGradient: 'from-slate-500 to-slate-500' },
-    green: { bgGradient: 'from-green-50 to-teal-50', border: 'border-green-200', text: 'text-green-800', iconGradient: 'from-green-500 to-teal-500' }
+    red: { bgGradient: 'from-red-50 to-red-100/50', border: 'border-red-200', text: 'text-red-800', iconGradient: 'from-red-500 to-red-600' },
+    violet: { bgGradient: 'from-violet-50 to-violet-100/50', border: 'border-violet-200', text: 'text-violet-800', iconGradient: 'from-violet-500 to-violet-600' },
+    amber: { bgGradient: 'from-amber-50 to-amber-100/50', border: 'border-amber-200', text: 'text-amber-800', iconGradient: 'from-amber-500 to-amber-600' },
+    green: { bgGradient: 'from-green-50 to-teal-50', border: 'border-green-200', text: 'text-green-800', iconGradient: 'from-green-500 to-teal-500' },
+    purple: { bgGradient: 'from-slate-50 to-slate-50', border: 'border-slate-200', text: 'text-slate-800', iconGradient: 'from-slate-500 to-slate-500' }, // Legacy
   }
   const colors = colorMap[perspective.color] || colorMap.blue
 
@@ -864,7 +866,7 @@ export default function CombatPage() {
   const { user, loading: authLoading } = useAuth()
 
   // Deliberation theater state
-  const [activePerspective, setActivePerspective] = useState<'guidelines' | 'research' | 'integrative' | null>(null)
+  const [activePerspective, setActivePerspective] = useState<PerspectiveKey | null>(null)
   const [deliberationLog, setDeliberationLog] = useState<{ perspective: string, thought: string }[]>([])
 
   // Expert modal state
@@ -878,10 +880,12 @@ export default function CombatPage() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [isPremium] = useState(false) // TODO: Check actual premium status from user profile
 
-  // Perspective weights for tuning
+  // Perspective weights for tuning (5 perspectives)
   const [weights, setWeights] = useState<PerspectiveWeights>({
     guidelines: 50,
-    research: 50,
+    aggressive: 50,
+    precision: 50,
+    conservative: 50,
     integrative: 50
   })
 
@@ -933,15 +937,19 @@ export default function CombatPage() {
     return missing
   }
 
-  // Simulate deliberation progression
+  // Simulate deliberation progression with 5 perspectives
   const simulateDeliberation = () => {
     const deliberations = [
       { perspective: 'guidelines', thought: 'Reviewing NCCN guidelines for this cancer type and stage...' },
       { perspective: 'guidelines', thought: 'Cross-referencing with standard-of-care protocols...' },
-      { perspective: 'research', thought: 'Searching recent clinical trial data from 2024-2025...' },
-      { perspective: 'research', thought: 'Analyzing emerging biomarker-targeted therapies...' },
-      { perspective: 'integrative', thought: 'Evaluating quality-of-life considerations...' },
-      { perspective: 'integrative', thought: 'Reviewing supportive care and complementary approaches...' },
+      { perspective: 'aggressive', thought: 'Evaluating maximum intervention strategies...' },
+      { perspective: 'aggressive', thought: 'Assessing high-intensity combination regimens...' },
+      { perspective: 'precision', thought: 'Analyzing genomic profile and actionable mutations...' },
+      { perspective: 'precision', thought: 'Matching targeted therapies to biomarkers...' },
+      { perspective: 'conservative', thought: 'Evaluating active surveillance options...' },
+      { perspective: 'conservative', thought: 'Assessing treatment de-escalation possibilities...' },
+      { perspective: 'integrative', thought: 'Reviewing quality-of-life considerations...' },
+      { perspective: 'integrative', thought: 'Analyzing supportive care and whole-person approaches...' },
     ]
 
     setDeliberationLog([])
@@ -950,10 +958,10 @@ export default function CombatPage() {
     const addNext = () => {
       if (index < deliberations.length) {
         const entry = deliberations[index]
-        setActivePerspective(entry.perspective as 'guidelines' | 'research' | 'integrative')
+        setActivePerspective(entry.perspective as PerspectiveKey)
         setDeliberationLog(prev => [...prev, entry])
         index++
-        setTimeout(addNext, 2000 + Math.random() * 1500)
+        setTimeout(addNext, 1500 + Math.random() * 1000) // Slightly faster for 5 perspectives
       } else {
         setActivePerspective(null)
       }
@@ -1247,14 +1255,14 @@ export default function CombatPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-green-50/50 to-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="animate-pulse text-slate-400">Loading...</div>
       </div>
     )
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-green-50/50 to-slate-50">
+    <main className="min-h-screen bg-white">
       {/* Outcome Question Modal - Simple, non-intrusive */}
       {showOutcomeQuestion && (
         <div className="fixed bottom-4 right-4 z-50 bg-white rounded-2xl shadow-2xl border border-slate-200 p-5 max-w-sm animate-in slide-in-from-bottom-4">
@@ -1301,8 +1309,8 @@ export default function CombatPage() {
             </div>
             <h2 className="text-2xl font-bold text-slate-900 mb-3">Upload Records to Begin</h2>
             <p className="text-slate-600 mb-6 max-w-md mx-auto leading-relaxed">
-              CancerCombat analyzes your medical records from three expert perspectives:
-              NCCN Guidelines, Emerging Research, and Integrative Oncology.
+              CancerCombat analyzes your medical records from five expert perspectives:
+              Guidelines, Aggressive, Precision, Conservative, and Integrative.
             </p>
 
             <Link
@@ -1339,7 +1347,7 @@ export default function CombatPage() {
                 <h1 className="text-2xl font-bold text-slate-900">
                   Cancer<span className="text-[#C66B4A]">Combat</span>
                 </h1>
-                <p className="text-sm text-slate-500 mt-0.5">Three AI perspectives debate your case</p>
+                <p className="text-sm text-slate-500 mt-0.5">Five AI perspectives debate your case</p>
               </div>
               {/* Progress indicator */}
               <div className="flex items-center gap-2">
@@ -1415,8 +1423,8 @@ export default function CombatPage() {
                 </div>
                 <p className="text-white/80 text-sm mt-2">
                   {diagnosisResult
-                    ? 'Explore all treatment options with three expert perspectives'
-                    : 'Get three expert perspectives on your diagnosis'
+                    ? 'Explore all treatment options with five expert perspectives'
+                    : 'Get five expert perspectives on your diagnosis'
                   }
                 </p>
               </button>
@@ -1470,7 +1478,7 @@ export default function CombatPage() {
                   </button>
                   <button
                     onClick={() => {
-                      const shareText = `I just analyzed my ${phase} with CancerCombat - 3 AI perspectives (NCCN Guidelines, Research, Integrative) reviewed my case.`
+                      const shareText = `I just analyzed my ${phase} with CancerCombat - 5 AI perspectives (Guidelines, Aggressive, Precision, Conservative, Integrative) reviewed my case.`
                       if (navigator.share) {
                         navigator.share({ title: 'CancerCombat Analysis', text: shareText, url: 'https://opencancer.ai/combat' })
                       } else {
@@ -1485,11 +1493,11 @@ export default function CombatPage() {
                   </button>
                 </div>
 
-                {/* Three Perspectives */}
+                {/* Five Perspectives */}
                 <div className="space-y-4">
                   <h3 className="font-semibold text-slate-900 flex items-center gap-2">
                     <Swords className="w-5 h-5 text-[#C66B4A]" />
-                    Three Perspectives
+                    Five Perspectives
                   </h3>
 
                   {currentResult.perspectives.map((p) => (
@@ -1597,7 +1605,7 @@ export default function CombatPage() {
                         <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-2">
                           <Swords className="w-5 h-5 text-slate-700" />
                         </div>
-                        <p className="text-2xl font-bold text-slate-900">6</p>
+                        <p className="text-2xl font-bold text-slate-900">10</p>
                         <p className="text-xs text-slate-500">AI Perspectives</p>
                       </div>
                       <div className="bg-stone-50 rounded-xl p-4 text-center border border-stone-200">
@@ -1674,7 +1682,7 @@ Generated by CancerCombat at opencancer.ai
                       </button>
                       <button
                         onClick={() => {
-                          const shareText = `I just completed CancerCombat on opencancer.ai - explored 6 AI perspectives on my diagnosis and treatment options. Highly recommend for anyone navigating cancer.`
+                          const shareText = `I just completed CancerCombat on opencancer.ai - explored 10 AI perspectives on my diagnosis and treatment options. Highly recommend for anyone navigating cancer.`
                           if (navigator.share) {
                             navigator.share({
                               title: 'CancerCombat Complete',

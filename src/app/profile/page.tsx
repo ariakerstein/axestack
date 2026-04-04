@@ -143,7 +143,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-50/50 to-white">
+    <main className="min-h-screen bg-white">
       <Navbar />
 
       <div className="max-w-lg mx-auto px-4 py-8">

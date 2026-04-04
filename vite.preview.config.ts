@@ -14,7 +14,7 @@ export default defineConfig({
     },
   },
   server: {
-    port: 5174,
+    port: 5174, // Different port from main app (8080)
     open: true,
   },
 });

@@ -73,9 +73,11 @@ interface RecordInput {
 }
 
 interface PerspectiveWeights {
-  guidelines: number  // 0-100
-  research: number    // 0-100
-  integrative: number // 0-100
+  guidelines: number    // 0-100 - Standard of care
+  aggressive: number    // 0-100 - Maximum intervention
+  precision: number     // 0-100 - Biomarker-driven
+  conservative: number  // 0-100 - Watch & wait
+  integrative: number   // 0-100 - Whole person
 }
 
 // Get weight modifier text based on user's tuning
@@ -87,10 +89,10 @@ function getWeightModifier(weight: number): string {
   return 'Provide only essential safety considerations from your specialty.'
 }
 
-// Three specialist perspectives - your tumor board
+// Five specialist perspectives - your expanded tumor board
 const PERSONAS = {
-  nccn: {
-    name: 'Tumor Board: Guidelines',
+  guidelines: {
+    name: 'Guidelines Board',
     icon: 'shield',
     color: 'blue',
     specialists: ['Medical Oncologist', 'Radiation Oncologist', 'Surgical Oncologist'],
@@ -101,8 +103,8 @@ Your panel includes:
 - A Surgical Oncologist assessing surgical intervention options
 
 Your perspective:
-- Evidence-based medicine from Phase III trials
-- Standard of care protocols that have saved millions of lives
+- Evidence-based medicine from Phase III randomized trials
+- Standard of care protocols proven to save millions of lives
 - FDA-approved therapies with established safety profiles
 - Treatment sequencing based on proven algorithms
 - Consider treatment toxicity within established risk/benefit frameworks
@@ -112,31 +114,82 @@ ${getWeightModifier(weight)}
 Cite specific NCCN guideline categories when possible. Speak as a unified tumor board consensus.`
   },
 
-  emerging: {
-    name: 'Tumor Board: Cutting Edge',
-    icon: 'flask',
-    color: 'purple',
-    specialists: ['Molecular Pathologist', 'Immunotherapy Specialist', 'Clinical Trial Investigator'],
-    getSystemContext: (weight: number) => `You represent a tumor board at an NCI-designated cancer center focused on precision medicine.
+  aggressive: {
+    name: 'Aggressive Treatment Board',
+    icon: 'swords',
+    color: 'red',
+    specialists: ['High-Dose Chemotherapy Specialist', 'Interventional Oncologist', 'Transplant Specialist'],
+    getSystemContext: (weight: number) => `You represent a tumor board focused on maximum intervention to achieve the best possible outcome.
 Your panel includes:
-- A Molecular Pathologist analyzing genetic and biomarker profiles
-- An Immunotherapy Specialist evaluating checkpoint inhibitors and cell therapies
-- A Clinical Trial Investigator aware of emerging Phase I/II opportunities
+- A High-Dose Chemotherapy Specialist experienced in intensive regimens
+- An Interventional Oncologist evaluating aggressive local treatments
+- A Transplant Specialist (when applicable) for consolidation approaches
 
 Your perspective:
-- Molecular profiling reveals targetable alterations standard panels miss
-- Clinical trials may offer access to promising therapies
-- Combination approaches exploring synergistic mechanisms
-- Biomarker-driven treatment selection
-- Novel drug targets and pathways
+- Maximum tumor kill should be the priority for curative intent
+- Dose-intensive regimens often outperform standard dosing
+- Multi-modality approaches (surgery + chemo + radiation) when feasible
+- Aggressive debulking before systemic therapy when possible
+- Willing to accept higher toxicity for higher chance of cure/long-term control
 
 ${getWeightModifier(weight)}
 
-Reference specific trials (NCT numbers when relevant), recent publications, and emerging targets. Be enthusiastic but honest about evidence levels.`
+Focus on response rates, survival statistics, and aggressive protocols from major cancer centers.
+Be realistic about toxicities but emphasize that well-managed side effects are worth the potential gain.
+This approach is best for young, fit patients who can tolerate intensive treatment.`
+  },
+
+  precision: {
+    name: 'Precision Medicine Board',
+    icon: 'target',
+    color: 'purple',
+    specialists: ['Molecular Pathologist', 'Genomics Expert', 'Targeted Therapy Specialist'],
+    getSystemContext: (weight: number) => `You represent a tumor board at an NCI-designated cancer center focused on precision medicine.
+Your panel includes:
+- A Molecular Pathologist analyzing genetic and biomarker profiles
+- A Genomics/Bioinformatics Expert interpreting complex sequencing data
+- A Targeted Therapy Specialist matching mutations to drugs
+
+Your perspective:
+- Every tumor is unique at the molecular level - treatment should match biology
+- Comprehensive genomic profiling (CGP) often reveals actionable alterations
+- Liquid biopsy and ctDNA can track response and resistance
+- MRD (minimal residual disease) testing guides treatment duration
+- Clinical trials may offer access to drugs matching specific mutations
+
+${getWeightModifier(weight)}
+
+Reference specific mutations (EGFR, ALK, BRAF, HER2, MSI-H, TMB), companion diagnostics, and matching targeted therapies.
+Cite NCT numbers for relevant trials. Be enthusiastic about personalized approaches but honest about evidence levels.`
+  },
+
+  conservative: {
+    name: 'Conservative/Surveillance Board',
+    icon: 'clock',
+    color: 'amber',
+    specialists: ['Active Surveillance Expert', 'Long-term Toxicity Specialist', 'Geriatric Oncologist'],
+    getSystemContext: (weight: number) => `You represent a tumor board focused on avoiding overtreatment and optimizing long-term outcomes.
+Your panel includes:
+- An Active Surveillance Expert experienced in monitoring low-risk cancers
+- A Long-term Toxicity Specialist aware of late effects of treatment
+- A Geriatric Oncologist considering competing comorbidities and life expectancy
+
+Your perspective:
+- Sometimes less is more - avoid overtreatment when possible
+- Active surveillance is appropriate for many low-risk cancers
+- Consider long-term quality of life, not just short-term tumor response
+- Treatment holidays and de-escalation when disease is controlled
+- For elderly or frail patients, aggressive treatment may do more harm than good
+
+${getWeightModifier(weight)}
+
+Reference surveillance data, de-escalation trials, and long-term survivorship outcomes.
+Discuss quality-adjusted life years (QALYs) and competing risks.
+Be the voice of caution - not every cancer needs maximum treatment.`
   },
 
   integrative: {
-    name: 'Tumor Board: Whole Person',
+    name: 'Integrative/Whole Person Board',
     icon: 'leaf',
     color: 'green',
     specialists: ['Integrative Oncologist', 'Oncology Nutritionist', 'Palliative Care Specialist'],
@@ -199,7 +252,7 @@ function buildCaseContext(records: RecordInput[]): string {
 }
 
 async function getPersonaPerspective(
-  persona: typeof PERSONAS.nccn,
+  persona: typeof PERSONAS.guidelines,
   caseContext: string,
   phase: 'diagnosis' | 'treatment',
   question: string,
@@ -303,17 +356,18 @@ async function synthesizePerspectives(
     .map(p => `${p.name}: ${p.argument}\nRecommendation: ${p.recommendation}`)
     .join('\n\n')
 
-  const synthesisPrompt = `Three oncology perspectives have analyzed a cancer case:
+  const synthesisPrompt = `Five oncology perspectives have analyzed a cancer case:
 
 ${perspectiveSummary}
 
 Synthesize these perspectives. Respond in this exact JSON format:
 {
   "synthesis": "A 2-3 sentence synthesis of the key takeaways for the patient",
-  "consensus": ["Point where all three agree", "Another point of agreement"],
-  "divergence": ["Point where they disagree", "Another area of disagreement"]
+  "consensus": ["Point where most/all perspectives agree", "Another point of agreement"],
+  "divergence": ["Key disagreement between perspectives", "Another area where they diverge"]
 }
 
+The divergence section is especially important - highlight where aggressive vs conservative approaches differ, where precision medicine suggests something guidelines don't, etc.
 Focus on actionable insights for the patient's next doctor conversation.`
 
   try {
@@ -372,10 +426,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No records provided' }, { status: 400 })
     }
 
-    // Default weights if not provided
+    // Default weights if not provided (balanced = 50 for all)
     const perspectiveWeights: PerspectiveWeights = {
       guidelines: weights?.guidelines ?? 50,
-      research: weights?.research ?? 50,
+      aggressive: weights?.aggressive ?? 50,
+      precision: weights?.precision ?? 50,
+      conservative: weights?.conservative ?? 50,
       integrative: weights?.integrative ?? 50
     }
 
@@ -401,16 +457,20 @@ ${caseContext}`
       ? `Is the diagnosis of ${cancerType}${stage ? ` (${stage})` : ''} correct and complete? What should be confirmed or explored?`
       : `What are the best treatment options for ${cancerType}${stage ? ` ${stage}` : ''}?`
 
-    // Get all three perspectives in parallel, passing their respective weights
-    const [nccnResponse, emergingResponse, integrativeResponse] = await Promise.all([
-      getPersonaPerspective(PERSONAS.nccn, caseContext, phase, question, perspectiveWeights.guidelines, userId),
-      getPersonaPerspective(PERSONAS.emerging, caseContext, phase, question, perspectiveWeights.research, userId),
+    // Get all five perspectives in parallel, passing their respective weights
+    const [guidelinesResponse, aggressiveResponse, precisionResponse, conservativeResponse, integrativeResponse] = await Promise.all([
+      getPersonaPerspective(PERSONAS.guidelines, caseContext, phase, question, perspectiveWeights.guidelines, userId),
+      getPersonaPerspective(PERSONAS.aggressive, caseContext, phase, question, perspectiveWeights.aggressive, userId),
+      getPersonaPerspective(PERSONAS.precision, caseContext, phase, question, perspectiveWeights.precision, userId),
+      getPersonaPerspective(PERSONAS.conservative, caseContext, phase, question, perspectiveWeights.conservative, userId),
       getPersonaPerspective(PERSONAS.integrative, caseContext, phase, question, perspectiveWeights.integrative, userId)
     ])
 
     const perspectives = [
-      { name: PERSONAS.nccn.name, icon: 'shield' as const, color: 'blue', weight: perspectiveWeights.guidelines, ...nccnResponse },
-      { name: PERSONAS.emerging.name, icon: 'flask' as const, color: 'purple', weight: perspectiveWeights.research, ...emergingResponse },
+      { name: PERSONAS.guidelines.name, icon: 'shield' as const, color: 'blue', weight: perspectiveWeights.guidelines, ...guidelinesResponse },
+      { name: PERSONAS.aggressive.name, icon: 'swords' as const, color: 'red', weight: perspectiveWeights.aggressive, ...aggressiveResponse },
+      { name: PERSONAS.precision.name, icon: 'target' as const, color: 'purple', weight: perspectiveWeights.precision, ...precisionResponse },
+      { name: PERSONAS.conservative.name, icon: 'clock' as const, color: 'amber', weight: perspectiveWeights.conservative, ...conservativeResponse },
       { name: PERSONAS.integrative.name, icon: 'leaf' as const, color: 'green', weight: perspectiveWeights.integrative, ...integrativeResponse }
     ]
 

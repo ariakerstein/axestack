@@ -1,0 +1,1176 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   DYNAMIC TYPE SUPPORT (2026 Best Practice)
+   Respects user's system text size preferences
+   ============================================ */
+
+html {
+  /* Allow user to scale text via browser/OS settings */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+
+  /* Smooth font rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer base {
+  :root {
+    /* Astra Theme - Professional Blue Palette (Light Mode) */
+    /* Base: Light blue-tinted surface (#F6F8FF) */
+    --background: 226 100% 98%; /* #F6F8FF - bg.canvas */
+    --foreground: 224 43% 7%; /* #0B1020 - ink/fg.default */
+
+    /* Cards & Surfaces */
+    --card: 226 100% 97%; /* #EEF2FF - surfaceAlt/bg.surface */
+    --card-foreground: 224 43% 7%;
+
+    --popover: 226 100% 97%;
+    --popover-foreground: 224 43% 7%;
+
+    /* Primary: Deep blue (#1E40AF) - trust + professionalism */
+    --primary: 224 64% 40%; /* #1E40AF - brand.primary */
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: Cyan (#06B6D4) - modern, fresh */
+    --secondary: 187 92% 43%; /* #06B6D4 - brand.secondary/cta.bg */
+    --secondary-foreground: 0 0% 100%;
+
+    /* Muted backgrounds */
+    --muted: 226 100% 97%; /* #EEF2FF - surfaceAlt */
+    --muted-foreground: 215 14% 46%; /* #6B7785 - muted/fg.muted */
+
+    /* Accent: Warm coral (#FF7A59) - energy, warmth */
+    --accent: 9 100% 67%; /* #FF7A59 - accentWarm */
+    --accent-foreground: 0 0% 100%;
+
+    /* Success/Error/Warning - Astra semantic colors */
+    --destructive: 0 72% 51%; /* #DC2626 - error */
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders & Inputs */
+    --border: 199 27% 86%; /* #D6E3E8 - border.subtle */
+    --input: 199 27% 86%;
+    --ring: 187 92% 43%; /* Cyan focus ring */
+
+    --radius: 0.75rem;
+
+    /* Vault-specific semantic tokens - Astra theme */
+    --vault-background: 226 100% 98%; /* bg.canvas */
+    --vault-card: 226 100% 97%; /* bg.surface */
+    --vault-card-hover: 226 100% 95%;
+    --vault-border: 199 27% 86%; /* border.subtle */
+    --vault-text-primary: 224 43% 7%; /* ink */
+    --vault-text-secondary: 215 14% 46%; /* muted */
+    --vault-text-muted: 215 14% 56%;
+    --vault-tab-active: 187 92% 43%; /* cyan */
+    --vault-tab-inactive: 226 100% 97%;
+    --vault-status-success: 142 71% 35%; /* #16A34A - success */
+    --vault-status-warning: 38 92% 48%; /* #F59E0B - warning */
+    --vault-status-error: 0 72% 51%; /* #DC2626 - error */
+    --vault-status-info: 217 91% 60%; /* #3B82F6 - info */
+
+    /* Healthcare-specific color tokens - Astra palette */
+    --healthcare-trust: 224 64% 40%; /* Deep blue - trust, medical */
+    --healthcare-caregiver: 9 100% 67%; /* Coral - warmth, action */
+    --healthcare-patient: 217 91% 60%; /* Blue - calm, patient */
+    --healthcare-success: 142 71% 35%; /* Green - health, healing */
+    --healthcare-calm: 187 92% 43%; /* Cyan - peace, support */
+  }
+
+  .dark {
+    /* Astra Theme - Dark Mode */
+    /* Base: Deep navy background (#0B1220) */
+    --background: 220 44% 8%; /* #0B1220 */
+    --foreground: 210 40% 93%; /* #EEF3F6 - light text */
+
+    /* Cards & Surfaces */
+    --card: 220 30% 11%; /* #0F1B2A - slightly lighter than bg */
+    --card-foreground: 210 40% 93%;
+
+    --popover: 220 30% 11%;
+    --popover-foreground: 210 40% 93%;
+
+    /* Primary: Lighter blue for dark mode */
+    --primary: 217 91% 60%; /* #3B82F6 - brighter blue */
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: Bright cyan */
+    --secondary: 187 92% 50%; /* #06D6F4 - brighter cyan */
+    --secondary-foreground: 220 44% 8%;
+
+    /* Muted backgrounds */
+    --muted: 220 25% 15%; /* #1E2A3A - muted surface */
+    --muted-foreground: 215 20% 62%; /* #9CB0BD - muted text */
+
+    /* Accent: Warm coral (same) */
+    --accent: 9 100% 67%; /* #FF7A59 */
+    --accent-foreground: 0 0% 100%;
+
+    /* Success/Error/Warning */
+    --destructive: 0 72% 51%; /* #DC2626 */
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders & Inputs */
+    --border: 220 25% 20%; /* #243445 - subtle border */
+    --input: 220 25% 20%;
+    --ring: 187 92% 50%; /* Bright cyan focus ring */
+
+    /* Vault-specific dark mode tokens */
+    --vault-background: 220 44% 8%;
+    --vault-card: 220 30% 11%;
+    --vault-card-hover: 220 30% 14%;
+    --vault-border: 220 25% 20%;
+    --vault-text-primary: 210 40% 93%;
+    --vault-text-secondary: 215 20% 62%;
+    --vault-text-muted: 215 20% 52%;
+    --vault-tab-active: 187 92% 50%;
+    --vault-tab-inactive: 220 25% 15%;
+    --vault-status-success: 142 71% 45%; /* Brighter green */
+    --vault-status-warning: 38 92% 55%; /* Brighter yellow */
+    --vault-status-error: 0 72% 60%; /* Brighter red */
+    --vault-status-info: 217 91% 60%; /* Bright blue */
+
+    /* Healthcare-specific dark mode tokens */
+    --healthcare-trust: 217 91% 60%;
+    --healthcare-caregiver: 9 100% 67%;
+    --healthcare-patient: 217 91% 60%;
+    --healthcare-success: 142 71% 45%;
+    --healthcare-calm: 187 92% 50%;
+  }
+}
+ 
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    position: relative;
+    /* Prevent horizontal overflow at body level - pages use viewport-lock for proper containment */
+    overflow-x: clip;
+  }
+  h1 {
+    @apply text-3xl font-bold;
+  }
+  h2 {
+    @apply text-2xl font-bold;
+  }
+  h3 {
+    @apply text-xl font-semibold;
+  }
+  h4 {
+    @apply text-lg font-semibold;
+  }
+  h5 {
+    @apply text-base font-semibold;
+  }
+  h6 {
+    @apply text-sm font-semibold;
+  }
+  button, 
+  [role="button"],
+  .btn {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  /* Exception for switch toggles - they need custom dimensions */
+  button[role="switch"] {
+    min-height: unset;
+    min-width: unset;
+  }
+  input,
+  select,
+  textarea {
+    @apply min-h-[44px];
+  }
+  svg {
+    @apply w-6 h-6; /* 24px standard icon size */
+  }
+}
+
+/* Citation styling */
+.citation-ref {
+  @apply text-blue-400 font-mono text-xs px-1 align-super;
+}
+
+blockquote {
+  @apply italic text-blue-200 border-l-4 border-blue-500/50 pl-3 py-1 my-3;
+}
+
+/* Override h3 styling from above */
+h3.custom-style {
+  @apply text-xl font-semibold text-blue-300 mt-4 mb-2;
+}
+
+ul {
+  @apply pl-5 my-2 space-y-1;
+}
+
+li {
+  @apply list-disc list-outside;
+}
+
+/* Cancer Dashboard Styles */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.container > header {
+  background-color: #305496;
+  color: white;
+  padding: 16px;
+  text-align: center;
+  border-radius: 8px 8px 0 0;
+  margin-bottom: 16px;
+}
+
+.container > header h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.card-header {
+  background-color: #4472C4;
+  color: white;
+  padding: 12px 16px;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.card-body {
+  padding: 16px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+th {
+  background-color: #f0f5ff;
+  font-weight: 600;
+  color: #1f2937; /* gray-800 - ensure dark text on light bg */
+}
+
+.dark th {
+  background-color: rgb(31 41 55); /* gray-800 */
+  color: #ffffff; /* white text for contrast */
+}
+
+.dark td {
+  color: #f3f4f6; /* gray-100 - light text on dark bg */
+}
+
+tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.dark tr:nth-child(even) {
+  background-color: rgb(55 65 81); /* gray-700 - visible alternating */
+}
+
+.dark tr:nth-child(odd) {
+  background-color: rgb(31 41 55); /* gray-800 */
+}
+
+.biomarker-category {
+  background-color: #e6eeff;
+  font-weight: bold;
+  color: #305496;
+}
+
+.chart-container {
+  height: 300px;
+  position: relative;
+}
+
+.stage-indicator {
+  display: flex;
+  justify-content: space-between;
+  margin: 16px 0;
+}
+
+.stage {
+  flex: 1;
+  text-align: center;
+  padding: 8px;
+  background-color: #dae3f3;
+  margin: 0 4px;
+  border-radius: 4px;
+  position: relative;
+  cursor: pointer;
+}
+
+.stage.active {
+  background-color: #4472C4;
+  color: white;
+  font-weight: bold;
+}
+
+.stage::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -8px;
+  border-width: 8px;
+  border-style: solid;
+  border-color: transparent;
+}
+
+.stage.active::after {
+  border-top-color: #4472C4;
+}
+
+.stage-details {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f0f5ff;
+  border-radius: 4px;
+}
+
+.footer {
+  text-align: center;
+  margin-top: 20px;
+  padding: 10px;
+  font-size: 12px;
+  color: #666;
+}
+
+.survival-chart {
+  display: flex;
+  align-items: flex-end;
+  height: 200px;
+  margin-top: 15px;
+}
+
+.bar {
+  flex: 1;
+  margin: 0 10px;
+  background-color: #4472C4;
+  position: relative;
+  transition: height 0.3s ease;
+}
+
+.bar-label {
+  position: absolute;
+  bottom: -25px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 12px;
+}
+
+.bar-value {
+  position: absolute;
+  top: -25px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-weight: bold;
+  color: #305496;
+}
+
+.toggle-btn {
+  display: block;
+  margin: 15px auto;
+  padding: 8px 16px;
+  background-color: #4472C4;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.toggle-btn:hover {
+  background-color: #305496;
+}
+
+.lymphoma-types {
+  display: none;
+}
+
+.lymphoma-types.show {
+  display: block;
+}
+
+.risk-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 15px;
+}
+
+@media (max-width: 640px) {
+  .risk-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.risk-box {
+  text-align: center;
+  padding: 15px 10px;
+  border-radius: 5px;
+}
+
+.risk-box h4 {
+  margin: 0 0 10px 0;
+}
+
+.risk-low {
+  background-color: #c6e0b4;
+}
+
+.risk-int {
+  background-color: #ffe699;
+}
+
+.risk-high {
+  background-color: #f8cbad;
+}
+
+.diagnostic-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+@media (max-width: 640px) {
+  .diagnostic-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.diagnostic-box {
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 15px;
+}
+
+.diagnostic-box h3 {
+  margin-top: 0;
+  color: #305496;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 5px;
+}
+
+.diagnostic-comparison {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 15px;
+}
+
+.diagnostic-comparison th,
+.diagnostic-comparison td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+.diagnostic-comparison th {
+  background-color: #e6eeff;
+}
+
+.test-tabs {
+  display: flex;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #ddd;
+}
+
+@media (max-width: 520px) {
+  .test-tabs {
+    flex-direction: column;
+  }
+}
+
+.test-tab {
+  padding: 8px 15px;
+  cursor: pointer;
+  background-color: #f0f5ff;
+  border: 1px solid #ddd;
+  border-bottom: none;
+  border-radius: 5px 5px 0 0;
+  margin-right: 5px;
+}
+
+.test-tab.active {
+  background-color: #4472C4;
+  color: white;
+}
+
+.test-content {
+  display: none;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-top: none;
+}
+
+.test-content.active {
+  display: block;
+}
+
+.advantage {
+  color: green;
+}
+
+.limitation {
+  color: #c25450;
+}
+
+.back-button-container {
+  margin-top: 30px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Additional Cancer Dashboard Styles */
+.biomarker-table {
+  margin-top: 15px;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.biomarker-table th,
+.biomarker-table td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.biomarker-table th {
+  background-color: #f0f5ff;
+  color: #305496;
+  font-weight: 600;
+}
+
+.show-more-btn {
+  background-color: transparent;
+  color: #4472C4;
+  border: 1px solid #4472C4;
+  padding: 5px 10px;
+  border-radius: 4px;
+  margin-top: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.show-more-btn:hover {
+  background-color: #4472C4;
+  color: white;
+}
+
+/* Classification diagram styles */
+.classification-diagram {
+  width: 100%;
+  max-width: 550px;
+  margin: 20px auto;
+  display: block;
+}
+
+/* Mobile-friendly touch targets */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Enhanced touch target with visual feedback */
+.touch-target-enhanced {
+  min-height: 44px;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.touch-target-enhanced:active {
+  background-color: rgba(0,0,0,0.1);
+}
+
+.touch-target-enhanced:hover {
+  background-color: rgba(0,0,0,0.05);
+}
+
+/* Prevent text selection on interactive elements */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Smooth scrolling for anchor links */
+.smooth-scroll {
+  scroll-behavior: smooth;
+  scroll-padding-top: 16px;
+}
+
+/* Responsive typography */
+.text-mobile-responsive {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.text-mobile-responsive-lg {
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.text-mobile-responsive-xl {
+  font-size: 18px;
+  line-height: 28px;
+}
+
+/* Responsive padding utility */
+.mobile-padding {
+  padding: 12px;
+}
+
+@media (min-width: 480px) {
+  .mobile-padding {
+    padding: 16px;
+  }
+}
+
+@media (min-width: 640px) {
+  .mobile-padding {
+    padding: 16px;
+  }
+}
+
+@media (min-width: 768px) {
+  .mobile-padding {
+    padding: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mobile-padding {
+    padding: 16px;
+  }
+}
+
+/* Form elements with proper touch targets */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+input[type="number"],
+textarea,
+select {
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+@media (max-width: 767px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="number"],
+  textarea,
+  select {
+    font-size: 16px; /* Prevents iOS zoom on focus */
+    width: 100%;
+    margin-bottom: 12px;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 479px) {
+  .classification-diagram {
+    height: 200px;
+    padding: 8px;
+  }
+  
+  .card-header {
+    padding: 8px 12px;
+    font-size: 16px;
+  }
+  
+  .stage {
+    padding: 4px;
+    font-size: 12px;
+  }
+  
+  .biomarker-table th,
+  .biomarker-table td {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+}
+
+@media (min-width: 480px) and (max-width: 767px) {
+  .classification-diagram {
+    height: 240px;
+    padding: 12px;
+  }
+  
+  .card-header {
+    padding: 12px 16px;
+    font-size: 16px;
+  }
+  
+  .stage {
+    padding: 8px;
+    font-size: 14px;
+  }
+  
+  .biomarker-table th,
+  .biomarker-table td {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 768px) {
+  .classification-diagram {
+    height: 300px;
+    padding: 16px;
+  }
+  
+  .card-header {
+    padding: 12px 16px;
+    font-size: 18px;
+  }
+  
+  .stage {
+    padding: 8px;
+    font-size: 14px;
+  }
+  
+  .biomarker-table th,
+  .biomarker-table td {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+}
+
+/* HEALTHCARE PALETTE - SEMANTIC COLOR UTILITIES */
+@layer utilities {
+  /* Primary: Teal - for user messages, primary actions */
+  .bg-blue-600 {
+    background-color: hsl(180, 100%, 35%) !important;
+  }
+
+  /* Accent: Orange - for CTAs and attention-grabbing elements */
+  .bg-healthcare-cta {
+    background-color: hsl(var(--accent)) !important;
+    color: hsl(var(--accent-foreground)) !important;
+  }
+
+  .hover\:bg-healthcare-cta:hover {
+    background-color: hsl(23, 100%, 55%) !important; /* Slightly darker orange on hover */
+  }
+
+  /* ADA-Compliant Badge Classes (WCAG AA: 4.5:1 contrast ratio) */
+  .badge-primary {
+    background-color: hsl(180, 100%, 27%) !important; /* Dark teal */
+    color: white !important;
+    border: 1px solid hsl(180, 100%, 22%) !important;
+  }
+
+  .badge-accent {
+    background-color: hsl(23, 100%, 50%) !important; /* Darker orange */
+    color: white !important;
+    border: 1px solid hsl(23, 100%, 45%) !important;
+  }
+
+  .badge-secondary {
+    background-color: hsl(260, 60%, 50%) !important; /* Darker lavender */
+    color: white !important;
+    border: 1px solid hsl(260, 60%, 45%) !important;
+  }
+
+  .badge-success {
+    background-color: hsl(142, 76%, 36%) !important; /* Dark green */
+    color: white !important;
+    border: 1px solid hsl(142, 76%, 30%) !important;
+  }
+
+  .badge-warning {
+    background-color: hsl(45, 93%, 40%) !important; /* Dark yellow */
+    color: hsl(220, 25%, 10%) !important; /* Dark text for better contrast */
+    border: 1px solid hsl(45, 93%, 35%) !important;
+  }
+
+  .badge-error {
+    background-color: hsl(0, 84%, 50%) !important; /* Red */
+    color: white !important;
+    border: 1px solid hsl(0, 84%, 45%) !important;
+  }
+
+  .badge-neutral {
+    background-color: hsl(215, 15%, 40%) !important; /* Dark gray */
+    color: white !important;
+    border: 1px solid hsl(215, 15%, 35%) !important;
+  }
+
+  /* NUCLEAR OPTION: Force readable text on /direct-navis-test */
+  /* Override any dark mode styling with explicit dark text */
+  .text-foreground {
+    color: hsl(220, 25%, 10%) !important; /* Rich black */
+  }
+
+  .text-muted-foreground {
+    color: hsl(215, 15%, 35%) !important; /* Darker gray for readability */
+  }
+
+  .text-primary {
+    color: hsl(180, 100%, 27%) !important; /* Dark teal */
+  }
+
+  .text-secondary {
+    color: hsl(260, 60%, 40%) !important; /* Darker lavender */
+  }
+
+  .text-accent {
+    color: hsl(23, 100%, 45%) !important; /* Darker orange */
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .responsive-container {
+    transition: none !important;
+  }
+
+    .container-responsive {
+    transition: none !important;
+  }
+}
+
+/* Focus visible utility */
+.focus-visible:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+/* Button group utility */
+.button-group {
+  display: flex;
+  gap: 8px;
+}
+
+@media (max-width: 479px) {
+  .button-group {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .button-group > * {
+    width: 100%;
+  }
+}
+
+/* Responsive grid utility */
+.responsive-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 480px) {
+  .responsive-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .responsive-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Blob animation for landing page */
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+/* Fade in up animation for intake cards */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.4s ease-out forwards;
+  opacity: 0;
+}
+
+/* Infinite horizontal scroll for logo carousel */
+@keyframes scroll-x {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-33.333%, 0, 0);
+  }
+}
+
+.animate-scroll-x {
+  display: inline-flex;
+  animation: scroll-x 120s linear infinite;
+  will-change: transform;
+}
+
+/* Pause on hover (desktop) and touch/active (mobile) */
+.animate-scroll-x:hover,
+.animate-scroll-x:active {
+  animation-play-state: paused;
+}
+
+/* Touch devices: pause while touching */
+@media (hover: none) and (pointer: coarse) {
+  .animate-scroll-x:active {
+    animation-play-state: paused;
+  }
+}
+
+/* Safe area utilities for notch devices (iPhone X+) */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Ensure proper viewport on iOS */
+@supports (padding: max(0px)) {
+  .pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* ============================================
+   MODERN MOBILE UTILITIES (2025+)
+   ============================================ */
+
+/* Dynamic Viewport Height - accounts for mobile browser chrome */
+.h-screen-dynamic {
+  height: 100vh; /* fallback */
+  height: 100dvh;
+}
+
+.min-h-screen-dynamic {
+  min-height: 100vh; /* fallback */
+  min-height: 100dvh;
+}
+
+.max-h-screen-dynamic {
+  max-height: 100vh; /* fallback */
+  max-height: 100dvh;
+}
+
+/* Small Viewport Height - smallest possible viewport (keyboard open) */
+.h-screen-small {
+  height: 100vh; /* fallback */
+  height: 100svh;
+}
+
+.min-h-screen-small {
+  min-height: 100vh; /* fallback */
+  min-height: 100svh;
+}
+
+/* Large Viewport Height - largest possible viewport */
+.h-screen-large {
+  height: 100vh; /* fallback */
+  height: 100lvh;
+}
+
+.min-h-screen-large {
+  min-height: 100vh; /* fallback */
+  min-height: 100lvh;
+}
+
+/* Safe area insets - comprehensive */
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-left {
+  padding-left: env(safe-area-inset-left, 0px);
+}
+
+.safe-right {
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+.safe-x {
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+.safe-y {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-all {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+}
+
+/* Bottom fixed element safe area - for input bars, tab bars */
+.fixed-bottom-safe {
+  bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Flex overflow prevention - apply to flex children to prevent overflow */
+.flex-child-contain {
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Mobile viewport lock - prevents horizontal scroll from content */
+.viewport-lock {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: clip; /* Modern - doesn't affect scrolling ancestors */
+}
+
+/* CSS containment for performance */
+.contain-layout {
+  contain: layout;
+}
+
+.contain-paint {
+  contain: paint;
+}
+
+.contain-strict {
+  contain: strict;
+}
+
+/* Touch action utilities */
+.touch-pan-x {
+  touch-action: pan-x;
+}
+
+.touch-pan-y {
+  touch-action: pan-y;
+}
+
+.touch-manipulation {
+  touch-action: manipulation;
+}
+
+/* Scrollbar hiding for mobile-like experience */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile input fixes - prevents zoom on iOS */
+@media (max-width: 767px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  textarea,
+  select {
+    font-size: 16px !important; /* Prevents iOS zoom */
+  }
+}

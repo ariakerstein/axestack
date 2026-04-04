@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { User, LogOut, Menu, X } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { AuthModal } from '@/components/AuthModal'
@@ -16,6 +16,18 @@ export function Navbar({ showBack = false, backHref = '/', backLabel = 'Home' }:
   const { user, loading, signOut } = useAuth()
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [localProfileName, setLocalProfileName] = useState<string | null>(null)
+
+  // Check for localStorage profile (guest users)
+  useEffect(() => {
+    const saved = localStorage.getItem('patient-profile')
+    if (saved) {
+      try {
+        const profile = JSON.parse(saved)
+        setLocalProfileName(profile.name?.split(' ')[0] || null)
+      } catch {}
+    }
+  }, [])
 
   return (
     <>
@@ -79,6 +91,17 @@ export function Navbar({ showBack = false, backHref = '/', backLabel = 'Home' }:
                 >
                   <LogOut className="w-4 h-4" />
                   Sign out
+                </button>
+              </div>
+            ) : localProfileName ? (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-slate-600">{localProfileName}</span>
+                <button
+                  onClick={() => setShowAuthModal(true)}
+                  className="flex items-center gap-1.5 text-sm text-slate-700 font-medium px-3 py-1.5 border border-stone-300 hover:border-slate-400 rounded-full transition-colors"
+                >
+                  <User className="w-4 h-4" />
+                  Save account
                 </button>
               </div>
             ) : (
@@ -154,15 +177,20 @@ export function Navbar({ showBack = false, backHref = '/', backLabel = 'Home' }:
                     </button>
                   </div>
                 ) : (
-                  <button
-                    onClick={() => {
-                      setMobileMenuOpen(false)
-                      setShowAuthModal(true)
-                    }}
-                    className="w-full py-2 text-center bg-slate-900 text-white rounded-lg font-medium"
-                  >
-                    Sign in
-                  </button>
+                  <div className="flex flex-col gap-2">
+                    {localProfileName && (
+                      <span className="text-slate-600 text-sm">Signed in as {localProfileName}</span>
+                    )}
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false)
+                        setShowAuthModal(true)
+                      }}
+                      className="w-full py-2 text-center bg-slate-900 text-white rounded-lg font-medium"
+                    >
+                      {localProfileName ? 'Save account' : 'Sign in'}
+                    </button>
+                  </div>
                 )}
               </div>
             </nav>

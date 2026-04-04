@@ -70,7 +70,7 @@ export default function CoveragePage() {
   const isMedicare = insuranceType.startsWith('medicare')
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-amber-50/50 to-slate-50">
+    <main className="min-h-screen bg-white">
       <Navbar />
 
       <div className="max-w-2xl mx-auto px-4 py-8">

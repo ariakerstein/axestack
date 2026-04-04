@@ -1,22 +1,93 @@
 'use client'
 
 import { useState } from 'react'
-import { Shield, FlaskConical, Leaf, Sliders, Lock, Sparkles, Star } from 'lucide-react'
+import { Shield, Swords, Target, Clock, Leaf, Sliders, Lock, Sparkles, Star } from 'lucide-react'
 
 export interface PerspectiveWeights {
-  guidelines: number  // 0-100
-  research: number    // 0-100
-  integrative: number // 0-100
+  guidelines: number    // 0-100 - Standard of care
+  aggressive: number    // 0-100 - Maximum intervention
+  precision: number     // 0-100 - Biomarker-driven
+  conservative: number  // 0-100 - Watch & wait
+  integrative: number   // 0-100 - Whole person
 }
 
-// Preset configurations
+// Preset configurations for common analysis styles
 const PRESETS = {
-  balanced: { guidelines: 50, research: 50, integrative: 50, label: 'Balanced', description: 'All specialists contribute equally' },
-  conservative: { guidelines: 80, research: 30, integrative: 20, label: 'By the Book', description: 'Focus on proven protocols' },
-  cutting_edge: { guidelines: 30, research: 80, integrative: 40, label: 'Cutting Edge', description: 'Emphasize trials & precision medicine' },
-  holistic: { guidelines: 40, research: 40, integrative: 80, label: 'Whole Person', description: 'Prioritize quality of life' },
-  aggressive: { guidelines: 20, research: 90, integrative: 30, label: 'All Options', description: 'Maximum treatment exploration' },
+  balanced: {
+    guidelines: 50, aggressive: 50, precision: 50, conservative: 50, integrative: 50,
+    label: 'Balanced',
+    description: 'All perspectives contribute equally'
+  },
+  by_the_book: {
+    guidelines: 90, aggressive: 30, precision: 40, conservative: 50, integrative: 30,
+    label: 'By the Book',
+    description: 'Standard of care focus'
+  },
+  maximum_fight: {
+    guidelines: 50, aggressive: 90, precision: 70, conservative: 10, integrative: 40,
+    label: 'Maximum Fight',
+    description: 'Aggressive treatment priority'
+  },
+  precision_first: {
+    guidelines: 40, aggressive: 40, precision: 90, conservative: 40, integrative: 40,
+    label: 'Precision First',
+    description: 'Biomarker-driven decisions'
+  },
+  watch_and_wait: {
+    guidelines: 60, aggressive: 10, precision: 50, conservative: 90, integrative: 60,
+    label: 'Watch & Wait',
+    description: 'Conservative approach'
+  },
+  whole_person: {
+    guidelines: 50, aggressive: 30, precision: 40, conservative: 60, integrative: 90,
+    label: 'Whole Person',
+    description: 'Quality of life priority'
+  },
 }
+
+// The 5 perspective definitions
+const PERSPECTIVES = [
+  {
+    key: 'guidelines' as const,
+    icon: Shield,
+    label: 'Guidelines Board',
+    description: 'Medical, Radiation & Surgical Oncologists',
+    color: 'blue',
+    colorClasses: { bg: 'bg-blue-100', icon: 'text-blue-600', fill: '#3B82F6' }
+  },
+  {
+    key: 'aggressive' as const,
+    icon: Swords,
+    label: 'Aggressive Board',
+    description: 'High-Dose Chemo, Interventional & Transplant',
+    color: 'red',
+    colorClasses: { bg: 'bg-red-100', icon: 'text-red-600', fill: '#EF4444' }
+  },
+  {
+    key: 'precision' as const,
+    icon: Target,
+    label: 'Precision Medicine Board',
+    description: 'Molecular Pathologist, Genomics & Targeted Therapy',
+    color: 'purple',
+    colorClasses: { bg: 'bg-violet-100', icon: 'text-violet-600', fill: '#8B5CF6' }
+  },
+  {
+    key: 'conservative' as const,
+    icon: Clock,
+    label: 'Conservative Board',
+    description: 'Surveillance, Toxicity & Geriatric Oncology',
+    color: 'amber',
+    colorClasses: { bg: 'bg-amber-100', icon: 'text-amber-600', fill: '#F59E0B' }
+  },
+  {
+    key: 'integrative' as const,
+    icon: Leaf,
+    label: 'Integrative Board',
+    description: 'Nutrition, Exercise & Palliative Care',
+    color: 'green',
+    colorClasses: { bg: 'bg-green-100', icon: 'text-green-600', fill: '#10B981' }
+  },
+]
 
 interface PerspectiveTunerProps {
   weights: PerspectiveWeights
@@ -40,15 +111,17 @@ export function PerspectiveTuner({
       onUpgradeClick?.()
       return
     }
-    const { guidelines, research, integrative } = PRESETS[preset]
-    onChange({ guidelines, research, integrative })
+    const { guidelines, aggressive, precision, conservative, integrative } = PRESETS[preset]
+    onChange({ guidelines, aggressive, precision, conservative, integrative })
   }
 
   const getCurrentPreset = (): string | null => {
     for (const [key, preset] of Object.entries(PRESETS)) {
       if (
         Math.abs(weights.guidelines - preset.guidelines) < 5 &&
-        Math.abs(weights.research - preset.research) < 5 &&
+        Math.abs(weights.aggressive - preset.aggressive) < 5 &&
+        Math.abs(weights.precision - preset.precision) < 5 &&
+        Math.abs(weights.conservative - preset.conservative) < 5 &&
         Math.abs(weights.integrative - preset.integrative) < 5
       ) {
         return key
@@ -58,6 +131,7 @@ export function PerspectiveTuner({
   }
 
   const currentPreset = getCurrentPreset()
+  const totalWeight = weights.guidelines + weights.aggressive + weights.precision + weights.conservative + weights.integrative
 
   // Free user: simplified view with upgrade prompt
   if (!isPremium) {
@@ -69,49 +143,35 @@ export function PerspectiveTuner({
               <Sliders className="w-5 h-5 text-slate-500" />
               Analysis Style
             </h3>
-            <p className="text-sm text-slate-500 mt-0.5">3 tumor boards will analyze your case</p>
+            <p className="text-sm text-slate-500 mt-0.5">5 specialist boards will analyze your case</p>
           </div>
         </div>
 
         {/* Current mode indicator */}
-        <div className="bg-gradient-to-r from-slate-500 to-slate-500 text-white rounded-xl p-4 mb-4">
+        <div className="bg-gradient-to-r from-slate-700 to-slate-800 text-white rounded-xl p-4 mb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
               <p className="font-semibold">Balanced Analysis</p>
-              <p className="text-sm text-white/80">All 3 specialist boards contribute equally</p>
+              <p className="text-sm text-white/80">All 5 specialist boards contribute equally</p>
             </div>
           </div>
         </div>
 
-        {/* 3 boards preview */}
+        {/* 5 boards preview */}
         <div className="space-y-2 mb-4">
-          <div className="flex items-center gap-3 p-2 rounded-lg bg-blue-50">
-            <Shield className="w-5 h-5 text-blue-600" />
-            <div className="flex-1">
-              <p className="text-sm font-medium text-slate-900">Guidelines Board</p>
-              <p className="text-xs text-slate-500">Medical, Radiation & Surgical Oncologists</p>
+          {PERSPECTIVES.map((p) => (
+            <div key={p.key} className={`flex items-center gap-3 p-2 rounded-lg ${p.colorClasses.bg}`}>
+              <p.icon className={`w-5 h-5 ${p.colorClasses.icon}`} />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-slate-900">{p.label}</p>
+                <p className="text-xs text-slate-500">{p.description}</p>
+              </div>
+              <span className={`text-xs font-medium ${p.colorClasses.icon} bg-white/80 px-2 py-0.5 rounded`}>20%</span>
             </div>
-            <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-0.5 rounded">33%</span>
-          </div>
-          <div className="flex items-center gap-3 p-2 rounded-lg bg-slate-50">
-            <FlaskConical className="w-5 h-5 text-slate-600" />
-            <div className="flex-1">
-              <p className="text-sm font-medium text-slate-900">Cutting Edge Board</p>
-              <p className="text-xs text-slate-500">Pathologist, Immunotherapy & Trials</p>
-            </div>
-            <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded">33%</span>
-          </div>
-          <div className="flex items-center gap-3 p-2 rounded-lg bg-green-50">
-            <Leaf className="w-5 h-5 text-green-600" />
-            <div className="flex-1">
-              <p className="text-sm font-medium text-slate-900">Whole Person Board</p>
-              <p className="text-xs text-slate-500">Integrative, Nutrition & Palliative Care</p>
-            </div>
-            <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-0.5 rounded">33%</span>
-          </div>
+          ))}
         </div>
 
         {/* Upgrade CTA */}
@@ -123,13 +183,13 @@ export function PerspectiveTuner({
           Unlock All Perspectives
         </button>
         <p className="text-xs text-slate-500 text-center mt-2">
-          Customize weights • Multiple analysis styles • Expert review
+          Customize weights • 6 analysis styles • Expert review
         </p>
       </div>
     )
   }
 
-  // Premium user: full tuning access
+  // Premium user: compact mode
   if (compact) {
     return (
       <div className="bg-white border border-slate-200 rounded-xl p-4">
@@ -155,7 +215,7 @@ export function PerspectiveTuner({
                 onClick={() => applyPreset(key as keyof typeof PRESETS)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                   currentPreset === key
-                    ? 'bg-gradient-to-r from-slate-500 to-slate-500 text-white shadow-md'
+                    ? 'bg-gradient-to-r from-slate-700 to-slate-800 text-white shadow-md'
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
@@ -165,30 +225,17 @@ export function PerspectiveTuner({
           </div>
         ) : (
           <div className="space-y-3">
-            <PerspectiveSlider
-              icon={Shield}
-              label="Guidelines Board"
-              description="Medical, Radiation & Surgical Oncologists"
-              color="blue"
-              value={weights.guidelines}
-              onChange={(v) => onChange({ ...weights, guidelines: v })}
-            />
-            <PerspectiveSlider
-              icon={FlaskConical}
-              label="Cutting Edge Board"
-              description="Pathologist, Immunotherapy & Trial Specialist"
-              color="purple"
-              value={weights.research}
-              onChange={(v) => onChange({ ...weights, research: v })}
-            />
-            <PerspectiveSlider
-              icon={Leaf}
-              label="Whole Person Board"
-              description="Integrative, Nutrition & Palliative Care"
-              color="emerald"
-              value={weights.integrative}
-              onChange={(v) => onChange({ ...weights, integrative: v })}
-            />
+            {PERSPECTIVES.map((p) => (
+              <PerspectiveSlider
+                key={p.key}
+                icon={p.icon}
+                label={p.label}
+                description={p.description}
+                colorClasses={p.colorClasses}
+                value={weights[p.key]}
+                onChange={(v) => onChange({ ...weights, [p.key]: v })}
+              />
+            ))}
           </div>
         )}
       </div>
@@ -205,7 +252,7 @@ export function PerspectiveTuner({
             Tune Your Analysis
             <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
           </h3>
-          <p className="text-sm text-slate-500 mt-0.5">How should the AI perspectives be weighted?</p>
+          <p className="text-sm text-slate-500 mt-0.5">How should the 5 AI perspectives be weighted?</p>
         </div>
       </div>
 
@@ -217,13 +264,13 @@ export function PerspectiveTuner({
             onClick={() => applyPreset(key as keyof typeof PRESETS)}
             className={`group relative px-4 py-2 rounded-xl text-sm font-medium transition-all ${
               currentPreset === key
-                ? 'bg-gradient-to-r from-slate-500 to-slate-500 text-white shadow-lg shadow-slate-500/25'
+                ? 'bg-gradient-to-r from-slate-700 to-slate-800 text-white shadow-lg'
                 : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300 hover:shadow-md'
             }`}
           >
             {preset.label}
             {/* Tooltip */}
-            <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-slate-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+            <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-slate-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
               {preset.description}
             </span>
           </button>
@@ -232,52 +279,39 @@ export function PerspectiveTuner({
 
       {/* Sliders */}
       <div className="space-y-4">
-        <PerspectiveSlider
-          icon={Shield}
-          label="Guidelines Board"
-          description="Medical Oncologist • Radiation Oncologist • Surgical Oncologist"
-          color="blue"
-          value={weights.guidelines}
-          onChange={(v) => onChange({ ...weights, guidelines: v })}
-        />
-        <PerspectiveSlider
-          icon={FlaskConical}
-          label="Cutting Edge Board"
-          description="Molecular Pathologist • Immunotherapy Specialist • Trial Investigator"
-          color="purple"
-          value={weights.research}
-          onChange={(v) => onChange({ ...weights, research: v })}
-        />
-        <PerspectiveSlider
-          icon={Leaf}
-          label="Whole Person Board"
-          description="Integrative Oncologist • Oncology Nutritionist • Palliative Care"
-          color="emerald"
-          value={weights.integrative}
-          onChange={(v) => onChange({ ...weights, integrative: v })}
-        />
+        {PERSPECTIVES.map((p) => (
+          <PerspectiveSlider
+            key={p.key}
+            icon={p.icon}
+            label={p.label}
+            description={p.description}
+            colorClasses={p.colorClasses}
+            value={weights[p.key]}
+            onChange={(v) => onChange({ ...weights, [p.key]: v })}
+          />
+        ))}
       </div>
 
       {/* Visual Preview */}
       <div className="mt-6 pt-4 border-t border-slate-200">
         <p className="text-xs text-slate-500 mb-3">Analysis emphasis:</p>
         <div className="flex h-3 rounded-full overflow-hidden bg-slate-100">
-          <div
-            className="bg-gradient-to-r from-blue-400 to-blue-500 transition-all duration-300"
-            style={{ width: `${(weights.guidelines / (weights.guidelines + weights.research + weights.integrative)) * 100}%` }}
-          />
-          <div
-            className="bg-gradient-to-r from-slate-400 to-slate-500 transition-all duration-300"
-            style={{ width: `${(weights.research / (weights.guidelines + weights.research + weights.integrative)) * 100}%` }}
-          />
-          <div
-            className="bg-gradient-to-r from-green-400 to-teal-500 transition-all duration-300"
-            style={{ width: `${(weights.integrative / (weights.guidelines + weights.research + weights.integrative)) * 100}%` }}
-          />
+          {PERSPECTIVES.map((p) => (
+            <div
+              key={p.key}
+              className="transition-all duration-300"
+              style={{
+                width: `${(weights[p.key] / totalWeight) * 100}%`,
+                backgroundColor: p.colorClasses.fill
+              }}
+            />
+          ))}
         </div>
         <div className="flex justify-between mt-2 text-xs text-slate-400">
           <span>Guidelines</span>
-          <span>Research</span>
+          <span>Aggressive</span>
+          <span>Precision</span>
+          <span>Conservative</span>
           <span>Integrative</span>
         </div>
       </div>
@@ -290,44 +324,21 @@ function PerspectiveSlider({
   icon: Icon,
   label,
   description,
-  color,
+  colorClasses,
   value,
   onChange
 }: {
   icon: typeof Shield
   label: string
   description: string
-  color: 'blue' | 'purple' | 'emerald'
+  colorClasses: { bg: string; icon: string; fill: string }
   value: number
   onChange: (value: number) => void
 }) {
-  const colorClasses = {
-    blue: {
-      bg: 'bg-blue-100',
-      icon: 'text-blue-600',
-      slider: 'accent-blue-500',
-      fill: 'bg-blue-500',
-    },
-    purple: {
-      bg: 'bg-slate-100',
-      icon: 'text-slate-600',
-      slider: 'accent-slate-500',
-      fill: 'bg-slate-500',
-    },
-    emerald: {
-      bg: 'bg-green-100',
-      icon: 'text-green-600',
-      slider: 'accent-green-500',
-      fill: 'bg-green-500',
-    },
-  }
-
-  const colors = colorClasses[color]
-
   return (
     <div className="flex items-center gap-4">
-      <div className={`w-10 h-10 rounded-lg ${colors.bg} flex items-center justify-center flex-shrink-0`}>
-        <Icon className={`w-5 h-5 ${colors.icon}`} />
+      <div className={`w-10 h-10 rounded-lg ${colorClasses.bg} flex items-center justify-center flex-shrink-0`}>
+        <Icon className={`w-5 h-5 ${colorClasses.icon}`} />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1">
@@ -340,9 +351,9 @@ function PerspectiveSlider({
           max="100"
           value={value}
           onChange={(e) => onChange(parseInt(e.target.value))}
-          className={`w-full h-2 rounded-full appearance-none cursor-pointer ${colors.slider}`}
+          className="w-full h-2 rounded-full appearance-none cursor-pointer"
           style={{
-            background: `linear-gradient(to right, ${color === 'blue' ? '#3B82F6' : color === 'purple' ? '#A855F7' : '#10B981'} 0%, ${color === 'blue' ? '#3B82F6' : color === 'purple' ? '#A855F7' : '#10B981'} ${value}%, #E2E8F0 ${value}%, #E2E8F0 100%)`
+            background: `linear-gradient(to right, ${colorClasses.fill} 0%, ${colorClasses.fill} ${value}%, #E2E8F0 ${value}%, #E2E8F0 100%)`
           }}
         />
         <p className="text-xs text-slate-400 mt-0.5 truncate">{description}</p>

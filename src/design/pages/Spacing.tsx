@@ -88,68 +88,6 @@ export default function PreviewSpacing() {
           </div>
         </div>
 
-        {/* Component Spacing */}
-        <div className="mt-8 rounded-2xl p-6" style={{ backgroundColor: 'var(--p-surface)', border: '1px solid var(--p-border)' }}>
-          <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--p-text)' }}>Component Spacing</h2>
-          <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid var(--p-border)' }}>
-            <table className="w-full">
-              <thead>
-                <tr style={{ backgroundColor: 'var(--p-surface-alt)' }}>
-                  <th className="text-left text-xs font-semibold uppercase tracking-wider px-5 py-3" style={{ color: 'var(--p-text-muted)' }}>Element</th>
-                  <th className="text-left text-xs font-semibold uppercase tracking-wider px-5 py-3" style={{ color: 'var(--p-text-muted)' }}>Padding</th>
-                  <th className="text-left text-xs font-semibold uppercase tracking-wider px-5 py-3" style={{ color: 'var(--p-text-muted)' }}>Tailwind</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { element: 'Card', padding: '24px all', tw: 'p-6' },
-                  { element: 'Card compact', padding: '16px all', tw: 'p-4' },
-                  { element: 'Button', padding: '12px vertical, 24px horizontal', tw: 'py-3 px-6' },
-                  { element: 'Input', padding: '12px all', tw: 'p-3' },
-                  { element: 'Modal/Sheet', padding: '24px all', tw: 'p-6' },
-                ].map((row, i) => (
-                  <tr key={row.element} style={{ backgroundColor: i % 2 === 0 ? 'var(--p-surface)' : 'var(--p-surface-alt)', borderTop: '1px solid var(--p-border-subtle)' }}>
-                    <td className="px-5 py-3 text-sm font-medium" style={{ color: 'var(--p-text)' }}>{row.element}</td>
-                    <td className="px-5 py-3 text-sm" style={{ color: 'var(--p-text-body)' }}>{row.padding}</td>
-                    <td className="px-5 py-3"><code className="text-xs" style={{ color: 'var(--p-text-muted)' }}>{row.tw}</code></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Between Elements */}
-        <div className="mt-8 rounded-2xl p-6" style={{ backgroundColor: 'var(--p-surface)', border: '1px solid var(--p-border)' }}>
-          <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--p-text)' }}>Between Elements</h2>
-          <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid var(--p-border)' }}>
-            <table className="w-full">
-              <thead>
-                <tr style={{ backgroundColor: 'var(--p-surface-alt)' }}>
-                  <th className="text-left text-xs font-semibold uppercase tracking-wider px-5 py-3" style={{ color: 'var(--p-text-muted)' }}>Relationship</th>
-                  <th className="text-left text-xs font-semibold uppercase tracking-wider px-5 py-3" style={{ color: 'var(--p-text-muted)' }}>Gap</th>
-                  <th className="text-left text-xs font-semibold uppercase tracking-wider px-5 py-3" style={{ color: 'var(--p-text-muted)' }}>Tailwind</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { rel: 'Between cards', gap: '16-24px', tw: 'gap-4 or gap-6' },
-                  { rel: 'Between sections', gap: '48px', tw: 'py-12 or gap-12' },
-                  { rel: 'Between form fields', gap: '16px', tw: 'gap-4' },
-                  { rel: 'Between icon and text', gap: '8px', tw: 'gap-2' },
-                  { rel: 'Between badge and text', gap: '4-8px', tw: 'gap-1 or gap-2' },
-                ].map((row, i) => (
-                  <tr key={row.rel} style={{ backgroundColor: i % 2 === 0 ? 'var(--p-surface)' : 'var(--p-surface-alt)', borderTop: '1px solid var(--p-border-subtle)' }}>
-                    <td className="px-5 py-3 text-sm font-medium" style={{ color: 'var(--p-text)' }}>{row.rel}</td>
-                    <td className="px-5 py-3 text-sm" style={{ color: 'var(--p-text-body)' }}>{row.gap}</td>
-                    <td className="px-5 py-3"><code className="text-xs" style={{ color: 'var(--p-text-muted)' }}>{row.tw}</code></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
         <div
           className="mt-8 rounded-2xl p-6"
           style={{
@@ -175,22 +113,6 @@ export default function PreviewSpacing() {
               44px
             </div>
           </div>
-          <p className="text-xs mt-3" style={{ color: 'var(--p-text-faint)' }}>
-            Accessibility requirement (WCAG) and iOS/Android standard. No exceptions.
-          </p>
-        </div>
-
-        {/* Whitespace as Design */}
-        <div className="mt-8 rounded-2xl p-6" style={{ backgroundColor: 'var(--p-surface)', border: '1px solid var(--p-border)' }}>
-          <h2 className="text-xl font-semibold mb-3" style={{ color: 'var(--p-text)' }}>Whitespace as Design</h2>
-          <p className="text-sm mb-4" style={{ color: 'var(--p-text-body)' }}>
-            Generous spacing = visual &ldquo;deep breath&rdquo;. Cancer patients are overwhelmed &mdash; cramped UI makes it worse.
-          </p>
-          <ul className="space-y-2 text-sm" style={{ color: 'var(--p-text-body)' }}>
-            <li>Prefer <code>gap-6</code> over <code>gap-4</code> when in doubt</li>
-            <li>Never reduce spacing to &ldquo;fit more in&rdquo;</li>
-            <li>Empty space is not wasted space &mdash; it&rsquo;s clarity</li>
-          </ul>
         </div>
       </div>
     </div>

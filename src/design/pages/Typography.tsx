@@ -41,65 +41,6 @@ export default function PreviewTypography() {
           </div>
         </div>
 
-        {/* Font Family */}
-        <div
-          className="mt-8 rounded-2xl p-6"
-          style={{ backgroundColor: 'var(--p-surface)', border: '1px solid var(--p-border)' }}
-        >
-          <h2 className="text-xl font-semibold mb-3" style={{ color: 'var(--p-text)' }}>Font</h2>
-          <p className="text-sm mb-3" style={{ color: 'var(--p-text-body)' }}><strong>Inter</strong> &mdash; clean, highly legible sans-serif.</p>
-          <div className="rounded-xl p-3 font-mono text-xs" style={{ backgroundColor: 'var(--p-surface-alt)', color: 'var(--p-text-body)' }}>
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-          </div>
-        </div>
-
-        {/* Rules */}
-        <div
-          className="mt-8 rounded-2xl p-6"
-          style={{ backgroundColor: 'var(--p-surface)', border: '1px solid var(--p-border)' }}
-        >
-          <h2 className="text-xl font-semibold mb-3" style={{ color: 'var(--p-text)' }}>Rules</h2>
-          <ul className="space-y-2 text-sm" style={{ color: 'var(--p-text-body)' }}>
-            <li><strong>Minimum interactive text:</strong> 16px (<code>text-base</code>). Nothing smaller on buttons, links, or form inputs.</li>
-            <li><strong>Minimum readable text:</strong> 14px (<code>text-sm</code>). Use sparingly for metadata only.</li>
-            <li><strong>Mobile inputs:</strong> Must be 16px+ to prevent iOS auto-zoom.</li>
-          </ul>
-        </div>
-
-        {/* Line Height */}
-        <div
-          className="mt-8 rounded-2xl p-6"
-          style={{ backgroundColor: 'var(--p-surface)', border: '1px solid var(--p-border)' }}
-        >
-          <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--p-text)' }}>Line Height</h2>
-          <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid var(--p-border)' }}>
-            <table className="w-full">
-              <thead>
-                <tr style={{ backgroundColor: 'var(--p-surface-alt)' }}>
-                  <th className="text-left text-xs font-semibold uppercase tracking-wider px-5 py-3" style={{ color: 'var(--p-text-muted)' }}>Context</th>
-                  <th className="text-left text-xs font-semibold uppercase tracking-wider px-5 py-3" style={{ color: 'var(--p-text-muted)' }}>Tailwind</th>
-                  <th className="text-left text-xs font-semibold uppercase tracking-wider px-5 py-3" style={{ color: 'var(--p-text-muted)' }}>Ratio</th>
-                  <th className="text-left text-xs font-semibold uppercase tracking-wider px-5 py-3" style={{ color: 'var(--p-text-muted)' }}>Why</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { context: 'Headings', tw: 'leading-tight', ratio: '1.25', why: 'Compact, scannable' },
-                  { context: 'Body text', tw: 'leading-relaxed', ratio: '1.625', why: 'Generous for cognitive fatigue / chemo brain' },
-                  { context: 'UI labels', tw: 'leading-normal', ratio: '1.5', why: 'Default comfortable' },
-                ].map((row, i) => (
-                  <tr key={row.context} style={{ backgroundColor: i % 2 === 0 ? 'var(--p-surface)' : 'var(--p-surface-alt)', borderTop: '1px solid var(--p-border-subtle)' }}>
-                    <td className="px-5 py-3 text-sm font-medium" style={{ color: 'var(--p-text)' }}>{row.context}</td>
-                    <td className="px-5 py-3"><code className="text-xs" style={{ color: 'var(--p-text-body)' }}>{row.tw}</code></td>
-                    <td className="px-5 py-3 text-sm" style={{ color: 'var(--p-text-body)' }}>{row.ratio}</td>
-                    <td className="px-5 py-3 text-xs" style={{ color: 'var(--p-text-muted)' }}>{row.why}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
         <div
           className="mt-8 rounded-2xl p-6"
           style={{
@@ -110,8 +51,8 @@ export default function PreviewTypography() {
           <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--p-text)' }}>Color by Role</h2>
           <div className="space-y-3">
             <p className="text-xl font-semibold" style={{ color: 'var(--p-text)' }}>Heading: Trust Navy (#0F172A)</p>
-            <p className="text-lg" style={{ color: 'var(--p-text-body)' }}>Body: Body Text (#475569)</p>
-            <p className="text-base" style={{ color: 'var(--p-text-muted)' }}>Muted: Muted Text (#64748B)</p>
+            <p className="text-lg" style={{ color: 'var(--p-text-body)' }}>Body: Slate 600 (#475569)</p>
+            <p className="text-base" style={{ color: 'var(--p-text-muted)' }}>Muted: Slate 500 (#64748B)</p>
             <a href="#" className="text-lg text-orange-600 block">Link: CTA Orange (#EA580C) — clickable only</a>
             <p className="text-base" style={{ color: 'var(--p-red)' }}>Error: Red 600 (#DC2626)</p>
             <p className="text-base" style={{ color: 'var(--p-green)' }}>Success: Green 600 (#16A34A)</p>
@@ -158,7 +99,7 @@ export default function PreviewTypography() {
                 }}
               >
                 <p className="text-xs font-medium mb-1" style={{ color: 'var(--p-dont-text)' }}>BAD</p>
-                <p className="text-base" style={{ color: 'var(--p-text-body)' }}>Click here to get started</p>
+                <p className="text-base" style={{ color: 'var(--p-text-body)' }}>Click here to get started with your care</p>
               </div>
               <div
                 className="p-3 rounded-xl"
@@ -172,20 +113,6 @@ export default function PreviewTypography() {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Dark Mode */}
-        <div
-          className="mt-8 rounded-2xl p-6"
-          style={{ backgroundColor: 'var(--p-surface)', border: '1px solid var(--p-border)' }}
-        >
-          <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--p-text)' }}>Dark Mode</h2>
-          <ul className="space-y-2 text-sm" style={{ color: 'var(--p-text-body)' }}>
-            <li>Headings: <code>text-slate-100</code> (light)</li>
-            <li>Body: <code>text-slate-300</code></li>
-            <li>Muted: <code>text-slate-400</code></li>
-            <li>Links remain orange (CTA Orange adjusts slightly brighter in dark mode)</li>
-          </ul>
         </div>
       </div>
     </div>

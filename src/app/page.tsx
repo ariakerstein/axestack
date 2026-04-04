@@ -790,7 +790,7 @@ function HomeContent() {
           <div className="grid md:grid-cols-3 gap-4">
             <Link href="/records" className="group bg-gradient-to-br from-blue-50/60 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="mb-3">
-                <FolderClosed className="w-6 h-6 text-slate-600" />
+                <FolderClosed className="w-6 h-6 text-blue-500" />
               </div>
               <h3 className="font-bold text-slate-900 mb-1">Records Vault</h3>
               <p className="text-slate-600 text-sm mb-2">Translate confusing medical reports to plain English.</p>
@@ -811,7 +811,7 @@ function HomeContent() {
 
             <Link href="/trials" className="group bg-gradient-to-br from-indigo-50/60 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="mb-3">
-                <Microscope className="w-6 h-6 text-slate-600" />
+                <Microscope className="w-6 h-6 text-indigo-500" />
               </div>
               <h3 className="font-bold text-slate-900 mb-1">Clinical Trials</h3>
               <p className="text-slate-600 text-sm mb-2">Trials matched to your diagnosis and location.</p>
@@ -823,7 +823,7 @@ function HomeContent() {
 
             <Link href="/coverage" className="group bg-gradient-to-br from-amber-50/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="mb-3">
-                <DollarSign className="w-6 h-6 text-slate-600" />
+                <DollarSign className="w-6 h-6 text-amber-500" />
               </div>
               <h3 className="font-bold text-slate-900 mb-1">Financial Coverage</h3>
               <p className="text-slate-600 text-sm mb-2">What's covered + financial assistance programs.</p>
@@ -832,7 +832,7 @@ function HomeContent() {
 
             <Link href="/case-file" className="group bg-gradient-to-br from-blue-50/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="mb-3">
-                <FolderOpen className="w-6 h-6 text-slate-600" />
+                <FolderOpen className="w-6 h-6 text-blue-500" />
               </div>
               <h3 className="font-bold text-slate-900 mb-1">My Case File</h3>
               <p className="text-slate-600 text-sm mb-2">All your medical info organized - just the facts.</p>
@@ -841,7 +841,7 @@ function HomeContent() {
 
             <Link href="/tests" className="group bg-gradient-to-br from-violet-50/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="mb-3">
-                <FlaskConical className="w-6 h-6 text-slate-600" />
+                <FlaskConical className="w-6 h-6 text-violet-500" />
               </div>
               <h3 className="font-bold text-slate-900 mb-1">Precision Testing</h3>
               <p className="text-slate-600 text-sm mb-2">MRD, genomic tests, and biomarker monitoring.</p>
@@ -850,7 +850,7 @@ function HomeContent() {
 
             <Link href="/research" className="group bg-gradient-to-br from-slate-50/70 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="mb-3">
-                <BookOpen className="w-6 h-6 text-slate-600" />
+                <BookOpen className="w-6 h-6 text-slate-500" />
               </div>
               <h3 className="font-bold text-slate-900 mb-1">Research Library</h3>
               <p className="text-slate-600 text-sm mb-2">Search 200M+ papers with AI summaries.</p>
@@ -859,7 +859,7 @@ function HomeContent() {
 
             <Link href="/oncologists" className="group bg-gradient-to-br from-teal-50/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="mb-3">
-                <Stethoscope className="w-6 h-6 text-slate-600" />
+                <Stethoscope className="w-6 h-6 text-teal-500" />
               </div>
               <h3 className="font-bold text-slate-900 mb-1">Find Oncologist</h3>
               <p className="text-slate-600 text-sm">Specialists by cancer type, location, insurance.</p>
@@ -867,7 +867,7 @@ function HomeContent() {
 
             <Link href="/hub" className="group bg-gradient-to-br from-rose-50/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="mb-3">
-                <Heart className="w-6 h-6 text-slate-600" />
+                <Heart className="w-6 h-6 text-rose-500" />
               </div>
               <h3 className="font-bold text-slate-900 mb-1">CareCircle</h3>
               <p className="text-slate-600 text-sm">Update family & friends without repeating yourself.</p>
@@ -875,8 +875,8 @@ function HomeContent() {
 
             <Link href="/expert-review" className="group bg-gradient-to-br from-orange-50/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="flex items-center gap-2 mb-2">
-                <UserCheck className="w-6 h-6 text-slate-600" />
-                <h3 className="font-bold text-slate-900 ">Expert Review</h3>
+                <UserCheck className="w-6 h-6 text-orange-500" />
+                <h3 className="font-bold text-slate-900 group-hover:text-[#C66B4A]">Expert Review</h3>
               </div>
               <p className="text-slate-600 text-sm">Get your case reviewed by oncology experts.</p>
               <p className="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1">
@@ -886,8 +886,8 @@ function HomeContent() {
 
             <a href="https://community.cancerpatientlab.org/" target="_blank" rel="noopener noreferrer" className="group bg-gradient-to-br from-green-50/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="flex items-center gap-2 mb-2">
-                <Users className="w-6 h-6 text-slate-600" />
-                <h3 className="font-bold text-slate-900 ">Community</h3>
+                <Users className="w-6 h-6 text-green-500" />
+                <h3 className="font-bold text-slate-900 group-hover:text-[#C66B4A]">Community</h3>
               </div>
               <p className="text-slate-600 text-sm">Connect with patients and caregivers.</p>
               <p className="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1">
@@ -897,8 +897,8 @@ function HomeContent() {
 
             <Link href="/profile" className="group bg-gradient-to-br from-slate-100/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="flex items-center gap-2 mb-2">
-                <UserRound className="w-6 h-6 text-slate-600" />
-                <h3 className="font-bold text-slate-900 ">My Profile</h3>
+                <UserRound className="w-6 h-6 text-slate-500" />
+                <h3 className="font-bold text-slate-900 group-hover:text-[#C66B4A]">My Profile</h3>
               </div>
               <p className="text-slate-600 text-sm">Personalize your tools and save your diagnosis.</p>
             </Link>

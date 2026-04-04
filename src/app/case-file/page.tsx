@@ -246,14 +246,14 @@ export default function CaseFilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50/40 to-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="w-8 h-8 border-3 border-slate-600 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-blue-50/40 to-slate-50">
+    <main className="min-h-screen bg-white">
       <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 py-6">
