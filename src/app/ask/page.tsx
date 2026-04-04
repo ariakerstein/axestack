@@ -336,7 +336,7 @@ I can help you with:
   const showSuggestions = messages.length === 1 && messages[0]?.role === 'assistant'
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-amber-50/40 to-white flex flex-col">
       <Navbar />
 
       {/* Chat Area */}

@@ -771,9 +771,9 @@ function HomeContent() {
                 <span className="text-2xl">⚔️</span>
               </div>
               <h3 className="font-bold text-slate-900 mb-1">Cancer Combat</h3>
-              <p className="text-slate-600 text-sm mb-3">3 AI perspectives debate your diagnosis and treatment options.</p>
+              <p className="text-slate-600 text-sm mb-3">Three expert AI viewpoints challenge and refine your treatment plan.</p>
               <div className="flex flex-wrap gap-2">
-                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">Adversarial AI</span>
+                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">Multi-Perspective Analysis</span>
                 <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">Upload records</span>
               </div>
             </Link>
@@ -1150,7 +1150,7 @@ function HomeContent() {
 
           <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
             {[
-              { name: "Ari Akerstein, MS", title: "Co-Founder/CEO", subtitle: "Meta · 2x Survivor", image: "https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/64694c7d-e3e3-414f-af72-288d201bb060/Screenshot+2024-10-02+at+10.59.02%E2%80%AFAM.jpg" },
+              { name: "Ari Akerstein, MS", title: "Co-Founder/CEO", subtitle: "Meta · Survivor", image: "https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/64694c7d-e3e3-414f-af72-288d201bb060/Screenshot+2024-10-02+at+10.59.02%E2%80%AFAM.jpg" },
               { name: "Brad Power", title: "Co-Founder/Chief Trust", subtitle: "Stanford · Survivor", image: "https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/48fdd96b-71a0-41f9-bc5f-f1ae27636b95/Screenshot+2024-09-11+at+7.36.59%E2%80%AFPM.png" },
               { name: "Chris Apfel, MD/PhD", title: "Chief Medical Officer", subtitle: "UCSF · 500+ publications", image: "https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/5761840d-8d31-4c56-a09e-c6f27510bc5a/Chris-Apfel-Nature-removebg-preview.png" },
               { name: "Kaumudi Bhawe, PhD", title: "Chief Scientific Officer", subtitle: "Genentech · Cancer Commons", image: "https://navis.health/pitchAssets/kaumudi.jpg" },

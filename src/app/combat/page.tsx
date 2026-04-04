@@ -1254,7 +1254,7 @@ export default function CombatPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f3ee]">
+    <main className="min-h-screen bg-gradient-to-b from-green-50/50 to-slate-50">
       {/* Outcome Question Modal - Simple, non-intrusive */}
       {showOutcomeQuestion && (
         <div className="fixed bottom-4 right-4 z-50 bg-white rounded-2xl shadow-2xl border border-slate-200 p-5 max-w-sm animate-in slide-in-from-bottom-4">

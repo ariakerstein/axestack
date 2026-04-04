@@ -1591,7 +1591,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f3ee]">
+    <main className="min-h-screen bg-gradient-to-b from-blue-50/50 to-slate-50">
       <Navbar />
 
       <div className="max-w-3xl mx-auto px-4 py-6">
