@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "preview:design": "vite dev --config vite.preview.config.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.82.0",
@@ -36,6 +37,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
     "happy-dom": "^20.8.9",
+    "react-router-dom": "^7.14.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.2"
