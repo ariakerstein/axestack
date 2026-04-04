@@ -771,7 +771,7 @@ function HomeContent() {
                 <span className="text-2xl">⚔️</span>
               </div>
               <h3 className="font-bold text-slate-900 mb-1">Cancer Combat</h3>
-              <p className="text-slate-600 text-sm mb-3">Three expert AI viewpoints challenge and refine your treatment plan.</p>
+              <p className="text-slate-600 text-sm mb-3">Guidelines. Research. Integrative. Three AI perspectives on your case.</p>
               <div className="flex flex-wrap gap-2">
                 <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">Multi-Perspective Analysis</span>
                 <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">Upload records</span>
@@ -797,7 +797,7 @@ function HomeContent() {
           {/* ALL TOOLS */}
           <p className="text-xs font-medium tracking-widest text-slate-400 mb-3">ALL TOOLS</p>
           <div className="grid md:grid-cols-3 gap-4">
-            <Link href="/records" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
+            <Link href="/records" className="group bg-gradient-to-br from-blue-50/60 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="mb-3">
                 <FolderClosed className="w-6 h-6 text-slate-600" />
               </div>
@@ -809,7 +809,7 @@ function HomeContent() {
               </div>
             </Link>
 
-            <Link href="/ask" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
+            <Link href="/ask" className="group bg-gradient-to-br from-amber-50/60 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="mb-3">
                 <ThinkingIndicator size={24} variant="light" />
               </div>
@@ -818,7 +818,7 @@ function HomeContent() {
               <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">Claude · OpenAI · Gemini</span>
             </Link>
 
-            <Link href="/trials" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
+            <Link href="/trials" className="group bg-gradient-to-br from-indigo-50/60 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="mb-3">
                 <Microscope className="w-6 h-6 text-slate-600" />
               </div>
@@ -830,7 +830,7 @@ function HomeContent() {
               </div>
             </Link>
 
-            <Link href="/coverage" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
+            <Link href="/coverage" className="group bg-gradient-to-br from-amber-50/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="mb-3">
                 <DollarSign className="w-6 h-6 text-slate-600" />
               </div>
@@ -839,7 +839,7 @@ function HomeContent() {
               <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">Medicare 2026</span>
             </Link>
 
-            <Link href="/case-file" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
+            <Link href="/case-file" className="group bg-gradient-to-br from-blue-50/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="mb-3">
                 <FolderOpen className="w-6 h-6 text-slate-600" />
               </div>
@@ -848,7 +848,7 @@ function HomeContent() {
               <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">No AI commentary</span>
             </Link>
 
-            <Link href="/tests" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
+            <Link href="/tests" className="group bg-gradient-to-br from-violet-50/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="mb-3">
                 <FlaskConical className="w-6 h-6 text-slate-600" />
               </div>
@@ -857,7 +857,7 @@ function HomeContent() {
               <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">OpenOnco</span>
             </Link>
 
-            <Link href="/research" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
+            <Link href="/research" className="group bg-gradient-to-br from-slate-50/70 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="mb-3">
                 <BookOpen className="w-6 h-6 text-slate-600" />
               </div>
@@ -866,7 +866,7 @@ function HomeContent() {
               <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">BioMCP</span>
             </Link>
 
-            <Link href="/oncologists" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
+            <Link href="/oncologists" className="group bg-gradient-to-br from-teal-50/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="mb-3">
                 <Stethoscope className="w-6 h-6 text-slate-600" />
               </div>
@@ -874,7 +874,7 @@ function HomeContent() {
               <p className="text-slate-600 text-sm">Specialists by cancer type, location, insurance.</p>
             </Link>
 
-            <Link href="/hub" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
+            <Link href="/hub" className="group bg-gradient-to-br from-rose-50/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="mb-3">
                 <Heart className="w-6 h-6 text-slate-600" />
               </div>
@@ -882,7 +882,7 @@ function HomeContent() {
               <p className="text-slate-600 text-sm">Update family & friends without repeating yourself.</p>
             </Link>
 
-            <Link href="/expert-review" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
+            <Link href="/expert-review" className="group bg-gradient-to-br from-orange-50/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="flex items-center gap-2 mb-2">
                 <UserCheck className="w-6 h-6 text-slate-600" />
                 <h3 className="font-bold text-slate-900 group-hover:text-[#C66B4A]">Expert Review</h3>
@@ -893,7 +893,7 @@ function HomeContent() {
               </p>
             </Link>
 
-            <a href="https://community.cancerpatientlab.org/" target="_blank" rel="noopener noreferrer" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
+            <a href="https://community.cancerpatientlab.org/" target="_blank" rel="noopener noreferrer" className="group bg-gradient-to-br from-green-50/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="flex items-center gap-2 mb-2">
                 <Users className="w-6 h-6 text-slate-600" />
                 <h3 className="font-bold text-slate-900 group-hover:text-[#C66B4A]">Community</h3>
@@ -904,7 +904,7 @@ function HomeContent() {
               </p>
             </a>
 
-            <Link href="/profile" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
+            <Link href="/profile" className="group bg-gradient-to-br from-slate-100/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="flex items-center gap-2 mb-2">
                 <UserRound className="w-6 h-6 text-slate-600" />
                 <h3 className="font-bold text-slate-900 group-hover:text-[#C66B4A]">My Profile</h3>

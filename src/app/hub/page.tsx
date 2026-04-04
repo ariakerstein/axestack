@@ -63,7 +63,7 @@ export default function HubPage() {
   }
 
   return (
-    <main className="min-h-screen bg-white text-slate-900">
+    <main className="min-h-screen bg-gradient-to-b from-rose-50/40 to-white text-slate-900">
       <Navbar />
       {/* Hero */}
       <section className="relative flex flex-col items-center justify-center px-8 pt-16 pb-16 overflow-hidden">

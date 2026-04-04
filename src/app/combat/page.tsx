@@ -1247,7 +1247,7 @@ export default function CombatPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f5f3ee] flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-green-50/50 to-slate-50 flex items-center justify-center">
         <div className="animate-pulse text-slate-400">Loading...</div>
       </div>
     )
