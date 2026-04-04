@@ -226,14 +226,14 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
         {migrating ? (
           <div className="text-center py-4">
-            <Loader2 className="w-12 h-12 text-violet-600 animate-spin mx-auto mb-4" />
+            <Loader2 className="w-12 h-12 text-slate-600 animate-spin mx-auto mb-4" />
             <h2 className="text-xl font-bold text-slate-900 mb-2">Migrating your records...</h2>
             <p className="text-slate-500 text-sm">Moving your local records to the cloud</p>
           </div>
         ) : success ? (
           <div className="text-center py-4">
-            <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Check className="w-8 h-8 text-emerald-600" />
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Check className="w-8 h-8 text-green-600" />
             </div>
             <h2 className="text-2xl font-bold text-slate-900 mb-2">Check your email</h2>
             <p className="text-slate-500">
@@ -246,8 +246,8 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         ) : mode === 'choice' ? (
           <>
             <div className="text-center mb-6">
-              <div className="w-14 h-14 bg-violet-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Mail className="w-7 h-7 text-violet-600" />
+              <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Mail className="w-7 h-7 text-slate-600" />
               </div>
               <h2 className="text-2xl font-bold text-slate-900 mb-2">Sign in</h2>
               <p className="text-slate-500 text-sm">
@@ -263,13 +263,13 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 placeholder="your@email.com"
                 required
                 autoFocus
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-center text-lg"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent text-center text-lg"
               />
 
               <button
                 onClick={() => email && setMode('magic')}
                 disabled={!email}
-                className="w-full bg-violet-600 hover:bg-violet-500 disabled:bg-slate-200 disabled:text-slate-400 text-white py-3.5 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+                className="w-full bg-orange-600 hover:bg-slate-500 disabled:bg-slate-200 disabled:text-slate-400 text-white py-3.5 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
               >
                 <Mail className="w-5 h-5" />
                 Send magic link
@@ -312,7 +312,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-violet-600 hover:bg-violet-500 disabled:bg-violet-300 text-white py-3.5 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+                className="w-full bg-orange-600 hover:bg-slate-500 disabled:bg-slate-300 text-white py-3.5 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
@@ -352,7 +352,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 placeholder="Password"
                 required
                 autoFocus
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-lg"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent text-lg"
               />
 
               {error && (
@@ -360,13 +360,13 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
               )}
 
               {migrationResult && (
-                <p className="text-sm text-emerald-600 text-center">{migrationResult}</p>
+                <p className="text-sm text-green-600 text-center">{migrationResult}</p>
               )}
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-violet-600 hover:bg-violet-500 disabled:bg-violet-300 text-white py-3.5 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+                className="w-full bg-orange-600 hover:bg-slate-500 disabled:bg-slate-300 text-white py-3.5 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
@@ -382,7 +382,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             <div className="flex flex-col gap-2 mt-4">
               <button
                 onClick={() => setMode('magic')}
-                className="w-full text-sm text-slate-500 hover:text-violet-600"
+                className="w-full text-sm text-slate-500 hover:text-slate-600"
               >
                 Forgot password? Use magic link instead
               </button>
@@ -391,7 +391,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   setError(null)
                   setMode('signup')
                 }}
-                className="w-full text-sm text-violet-600 hover:text-violet-700 font-medium"
+                className="w-full text-sm text-slate-600 hover:text-slate-700 font-medium"
               >
                 Don't have an account? Create one
               </button>
@@ -421,7 +421,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 required
                 autoFocus
                 minLength={6}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-lg"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent text-lg"
               />
 
               {error && (
@@ -431,7 +431,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
               <button
                 type="submit"
                 disabled={loading || password.length < 6}
-                className="w-full bg-violet-600 hover:bg-violet-500 disabled:bg-violet-300 text-white py-3.5 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+                className="w-full bg-orange-600 hover:bg-slate-500 disabled:bg-slate-300 text-white py-3.5 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
@@ -453,7 +453,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 setError(null)
                 setMode('password')
               }}
-              className="w-full text-sm text-slate-500 hover:text-violet-600 mt-3"
+              className="w-full text-sm text-slate-500 hover:text-slate-600 mt-3"
             >
               Already have an account? Sign in
             </button>

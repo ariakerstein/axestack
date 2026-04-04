@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowLeft, Users, Shield, CheckCircle, Clock, FileText, AlertTriangle, ChevronDown, ChevronUp, Send, ExternalLink } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
+import { Navbar } from '@/components/Navbar'
 
 interface Expert {
   id: string
@@ -162,8 +163,8 @@ export default function ExpertReviewPage() {
     return (
       <main className="min-h-screen bg-white px-4 py-16">
         <div className="max-w-xl mx-auto text-center">
-          <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-8 h-8 text-emerald-600" />
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
           <h1 className="text-2xl font-bold text-slate-900 mb-4">Request Submitted!</h1>
           <p className="text-slate-600 mb-2">
@@ -173,7 +174,7 @@ export default function ExpertReviewPage() {
             Expected response time: {selectedExpert?.responseTime}
           </p>
           <div className="flex gap-4 justify-center">
-            <Link href="/records" className="px-6 py-3 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-500">
+            <Link href="/records" className="px-6 py-3 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-500">
               Back to Records
             </Link>
             <Link href="/" className="px-6 py-3 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50">
@@ -187,20 +188,7 @@ export default function ExpertReviewPage() {
 
   return (
     <main className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="border-b border-slate-200 bg-white sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="text-slate-500 hover:text-slate-900 text-sm flex items-center gap-1">
-            <ArrowLeft className="w-4 h-4" /> Home
-          </Link>
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">opencancer.ai</span>
-            <span className="text-slate-400">/</span>
-            <span className="font-medium text-slate-700">Expert Review</span>
-          </div>
-          <div className="w-16" />
-        </div>
-      </header>
+      <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Hero */}
@@ -214,7 +202,7 @@ export default function ExpertReviewPage() {
               </p>
               <div className="flex items-center justify-center gap-4 text-sm text-slate-500">
                 <span className="flex items-center gap-1">
-                  <a href="https://cancercommons.org" target="_blank" rel="noopener noreferrer" className="text-slate-700 font-semibold hover:text-violet-600 flex items-center gap-1">
+                  <a href="https://cancercommons.org" target="_blank" rel="noopener noreferrer" className="text-slate-700 font-semibold hover:text-slate-600 flex items-center gap-1">
                     Partnered with Cancer Commons <ExternalLink className="w-3 h-3" />
                   </a>
                 </span>
@@ -238,12 +226,12 @@ export default function ExpertReviewPage() {
                 </div>
               </div>
             ) : (
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6 mb-8">
+              <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-8">
                 <div className="flex items-center gap-3">
-                  <CheckCircle className="w-6 h-6 text-emerald-600" />
+                  <CheckCircle className="w-6 h-6 text-green-600" />
                   <div>
-                    <p className="font-semibold text-emerald-900">{userRecords.length} record{userRecords.length !== 1 ? 's' : ''} in your vault</p>
-                    <p className="text-emerald-700 text-sm">Ready to share with an expert</p>
+                    <p className="font-semibold text-green-900">{userRecords.length} record{userRecords.length !== 1 ? 's' : ''} in your vault</p>
+                    <p className="text-green-700 text-sm">Ready to share with an expert</p>
                   </div>
                 </div>
               </div>
@@ -254,21 +242,21 @@ export default function ExpertReviewPage() {
               <h2 className="font-bold text-slate-900 mb-4">How It Works</h2>
               <div className="grid md:grid-cols-3 gap-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-violet-100 rounded-full flex items-center justify-center flex-shrink-0 text-violet-600 font-bold">1</div>
+                  <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center flex-shrink-0 text-slate-600 font-bold">1</div>
                   <div>
                     <p className="font-medium text-slate-900">Select an Expert</p>
                     <p className="text-sm text-slate-600">Choose from PhD-level scientists or MD pathologists</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-violet-100 rounded-full flex items-center justify-center flex-shrink-0 text-violet-600 font-bold">2</div>
+                  <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center flex-shrink-0 text-slate-600 font-bold">2</div>
                   <div>
                     <p className="font-medium text-slate-900">Share Your Records</p>
                     <p className="text-sm text-slate-600">Consent to share specific records from your vault</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-violet-100 rounded-full flex items-center justify-center flex-shrink-0 text-violet-600 font-bold">3</div>
+                  <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center flex-shrink-0 text-slate-600 font-bold">3</div>
                   <div>
                     <p className="font-medium text-slate-900">Get Expert Guidance</p>
                     <p className="text-sm text-slate-600">Receive written recommendations within days</p>
@@ -281,7 +269,7 @@ export default function ExpertReviewPage() {
               <div className="text-center">
                 <button
                   onClick={() => setStep('select')}
-                  className="px-8 py-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-xl font-semibold hover:opacity-90 transition-all"
+                  className="px-8 py-3 bg-gradient-to-r from-slate-600 to-slate-600 text-white rounded-xl font-semibold hover:opacity-90 transition-all"
                 >
                   Select an Expert
                 </button>
@@ -302,7 +290,7 @@ export default function ExpertReviewPage() {
               {experts.map((expert) => (
                 <div
                   key={expert.id}
-                  className="bg-white border border-slate-200 rounded-xl p-6 hover:border-violet-400 hover:shadow-md transition-all cursor-pointer"
+                  className="bg-white border border-slate-200 rounded-xl p-6 hover:border-slate-400 hover:shadow-md transition-all cursor-pointer"
                   onClick={() => handleSelectExpert(expert)}
                 >
                   <div className="flex items-start gap-4">
@@ -314,13 +302,13 @@ export default function ExpertReviewPage() {
                         <div>
                           <h3 className="font-semibold text-slate-900">{expert.name}</h3>
                           <p className="text-sm text-slate-500">{expert.title}</p>
-                          <a href={expert.organizationUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-violet-600 hover:underline" onClick={(e) => e.stopPropagation()}>
+                          <a href={expert.organizationUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-slate-600 hover:underline" onClick={(e) => e.stopPropagation()}>
                             {expert.organization} →
                           </a>
                         </div>
                         <div className="text-right">
                           {expert.isFree ? (
-                            <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-semibold">Free</span>
+                            <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">Free</span>
                           ) : (
                             <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-sm font-semibold">{expert.price}</span>
                           )}
@@ -352,7 +340,7 @@ export default function ExpertReviewPage() {
                           e.stopPropagation()
                           setExpandedExpert(expandedExpert === expert.id ? null : expert.id)
                         }}
-                        className="mt-3 text-sm text-violet-600 hover:text-violet-700 flex items-center gap-1"
+                        className="mt-3 text-sm text-slate-600 hover:text-slate-700 flex items-center gap-1"
                       >
                         {expandedExpert === expert.id ? (
                           <>Less <ChevronUp className="w-4 h-4" /></>
@@ -438,7 +426,7 @@ export default function ExpertReviewPage() {
                 value={signature}
                 onChange={(e) => setSignature(e.target.value)}
                 placeholder="Type your full name to sign"
-                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
               />
               <p className="text-xs text-slate-500 mt-1">
                 By typing your name, you electronically sign this authorization
@@ -450,7 +438,7 @@ export default function ExpertReviewPage() {
               disabled={!isConsentValid}
               className={`w-full py-3 rounded-xl font-semibold transition-all ${
                 isConsentValid
-                  ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white hover:opacity-90'
+                  ? 'bg-gradient-to-r from-slate-600 to-slate-600 text-white hover:opacity-90'
                   : 'bg-slate-200 text-slate-400 cursor-not-allowed'
               }`}
             >
@@ -513,7 +501,7 @@ export default function ExpertReviewPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
               />
             </div>
 
@@ -527,7 +515,7 @@ export default function ExpertReviewPage() {
                 onChange={(e) => setQuestion(e.target.value)}
                 placeholder="Describe your case or what you'd like the expert to review. Include any specific questions..."
                 rows={4}
-                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 resize-none"
+                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 resize-none"
               />
             </div>
 
@@ -551,7 +539,7 @@ export default function ExpertReviewPage() {
                 disabled={!question.trim() || !email.trim() || selectedRecords.length === 0 || isSubmitting}
                 className={`w-full py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
                   question.trim() && email.trim() && selectedRecords.length > 0 && !isSubmitting
-                    ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white hover:opacity-90'
+                    ? 'bg-gradient-to-r from-slate-600 to-slate-600 text-white hover:opacity-90'
                     : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                 }`}
               >

@@ -9,6 +9,8 @@ import { TypewriterMarkdown } from '@/components/TypewriterMarkdown'
 import { fetchSuggestedQuestions, getCategoryColor, SuggestedQuestion } from '@/lib/suggested-questions'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { ShareButton } from '@/components/ShareButton'
+import { Navbar } from '@/components/Navbar'
+import { ThinkingIndicator } from '@/components/ThinkingIndicator'
 
 // Get or create a session ID for anonymous users
 function getSessionId(): string {
@@ -335,44 +337,7 @@ I can help you with:
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Header - consistent with Navbar pattern */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          {/* Left side - brand */}
-          <Link href="/" className="flex items-center gap-1.5">
-            <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">
-              opencancer
-            </span>
-            <span className="text-lg font-bold text-slate-400">.ai</span>
-          </Link>
-
-          {/* Center - nav links (hidden on mobile) */}
-          <nav className="hidden sm:flex items-center gap-4 text-sm">
-            <Link href="/records" className="text-slate-600 hover:text-violet-600 transition-colors">
-              Records
-            </Link>
-            <span className="text-violet-600 font-medium">Ask Navis</span>
-            <Link href="/trials" className="text-slate-600 hover:text-violet-600 transition-colors">
-              Trials
-            </Link>
-          </nav>
-
-          {/* Right side */}
-          <div className="flex items-center gap-3">
-            {cancerType && (
-              <span className="hidden sm:inline text-xs bg-violet-100 text-violet-700 px-2 py-1 rounded-full">
-                {CANCER_TYPES[cancerType] || cancerType}
-              </span>
-            )}
-            <ShareButton
-              tool="ask"
-              title="Share Ask Navis"
-              description="Help others find cancer information"
-              variant="icon"
-            />
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Chat Area */}
       <div className="flex-1 overflow-y-auto pb-32">
@@ -383,21 +348,17 @@ I can help you with:
                 <div className={`${message.role === 'user' ? 'max-w-[85%]' : 'w-full'}`}>
                   {message.role === 'assistant' && (
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="relative w-2.5 h-2.5">
-                        <div className="absolute w-2.5 h-2.5 bg-green-500 rounded-full" />
-                        <div className="absolute w-2.5 h-2.5 bg-green-400 rounded-full animate-ping opacity-75" />
-                      </div>
-                      <span className="text-sm font-medium text-gray-700">opencancer AI</span>
+                      <span className="text-sm font-medium text-gray-700">Navis</span>
                     </div>
                   )}
                   <div className={`rounded-2xl px-4 py-3 ${
                     message.role === 'user'
-                      ? 'bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white'
+                      ? 'bg-slate-900 text-white'
                       : 'bg-gray-50 border border-gray-200 text-gray-900'
                   }`}>
                     {message.isLoading ? (
                       <div className="flex items-center gap-2 py-2">
-                        <div className="w-4 h-4 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+                        <ThinkingIndicator size={20} variant="light" />
                         <span className="text-sm text-gray-600">Thinking...</span>
                       </div>
                     ) : message.role === 'user' ? (
@@ -463,7 +424,7 @@ I can help you with:
                               value={feedbackComment}
                               onChange={(e) => setFeedbackComment(e.target.value)}
                               placeholder="e.g., The answer was too technical, missing information about..."
-                              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent resize-none"
+                              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent resize-none"
                               rows={2}
                               maxLength={500}
                             />
@@ -478,7 +439,7 @@ I can help you with:
                                 </button>
                                 <button
                                   onClick={() => submitNegativeFeedback(message.id)}
-                                  className="px-3 py-1.5 text-xs bg-violet-600 hover:bg-violet-500 text-white rounded-lg font-medium"
+                                  className="px-3 py-1.5 text-xs bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-medium"
                                 >
                                   Submit Feedback
                                 </button>
@@ -505,11 +466,11 @@ I can help you with:
                               href={citation.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2 text-xs bg-white px-3 py-2 rounded-lg border border-gray-200 text-gray-700 hover:border-violet-300 hover:bg-violet-50 transition-colors group"
+                              className="flex items-center gap-2 text-xs bg-white px-3 py-2 rounded-lg border border-gray-200 text-gray-700 hover:border-slate-400 hover:bg-stone-50 transition-colors group"
                             >
-                              <span className="text-violet-500 font-medium">[{i + 1}]</span>
+                              <span className="text-slate-500 font-medium">[{i + 1}]</span>
                               <span className="truncate flex-1">{citation.title}</span>
-                              <svg className="w-3 h-3 text-gray-400 group-hover:text-violet-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <svg className="w-3 h-3 text-gray-400 group-hover:text-slate-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                               </svg>
                             </a>
@@ -527,9 +488,9 @@ I can help you with:
                             <button
                               key={q.id || i}
                               onClick={() => handleSubmit(q.question)}
-                              className="flex items-center gap-2 w-full text-left text-sm bg-white px-3 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-violet-50 hover:border-violet-300 transition-colors group"
+                              className="flex items-center gap-2 w-full text-left text-sm bg-white px-3 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-stone-50 hover:border-slate-400 transition-colors group"
                             >
-                              <span className="text-violet-500 group-hover:translate-x-1 transition-transform">→</span>
+                              <span className="text-slate-500 group-hover:translate-x-1 transition-transform">→</span>
                               {q.question}
                             </button>
                           ))}
@@ -551,7 +512,7 @@ I can help you with:
                   {cancerType && (
                     <button
                       onClick={() => setShowSettingsModal(true)}
-                      className="text-xs text-violet-600 hover:text-violet-700"
+                      className="text-xs text-slate-600 hover:text-slate-800"
                     >
                       Change cancer type
                     </button>
@@ -559,7 +520,7 @@ I can help you with:
                 </div>
                 {isLoadingQuestions ? (
                   <div className="flex items-center justify-center py-8">
-                    <div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-slate-500 border-t-transparent rounded-full animate-spin" />
                     <span className="ml-2 text-sm text-gray-500">Loading questions...</span>
                   </div>
                 ) : (
@@ -568,9 +529,9 @@ I can help you with:
                       <button
                         key={q.id}
                         onClick={() => handleSubmit(q.question)}
-                        className="group flex items-start gap-3 w-full text-left px-4 py-3 bg-gradient-to-r from-gray-50 to-violet-50 hover:from-violet-50 hover:to-fuchsia-50 border border-gray-200 hover:border-violet-300 rounded-xl text-sm text-gray-700 transition-all hover:shadow-md"
+                        className="group flex items-start gap-3 w-full text-left px-4 py-3 bg-white hover:bg-stone-50 border border-gray-200 hover:border-slate-400 rounded-xl text-sm text-gray-700 transition-all hover:shadow-md"
                       >
-                        <span className="text-violet-500 font-medium group-hover:translate-x-1 transition-transform mt-0.5">→</span>
+                        <span className="text-slate-500 font-medium group-hover:translate-x-1 transition-transform mt-0.5">→</span>
                         <div className="flex-1 min-w-0">
                           <span className="block">{q.question}</span>
                           {q.category && (
@@ -586,7 +547,7 @@ I can help you with:
                 {!cancerType && !isLoadingQuestions && (
                   <button
                     onClick={() => setShowSettingsModal(true)}
-                    className="mt-4 w-full py-2.5 text-sm text-violet-600 bg-violet-50 hover:bg-violet-100 border border-violet-200 rounded-xl transition-colors"
+                    className="mt-4 w-full py-2.5 text-sm text-slate-600 bg-stone-100 hover:bg-stone-200 border border-stone-200 rounded-xl transition-colors"
                   >
                     Select your cancer type for personalized questions →
                   </button>
@@ -602,13 +563,10 @@ I can help you with:
       {/* Floating Input Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe">
         <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-end gap-2 bg-gray-50 border border-gray-300 rounded-2xl p-2 focus-within:border-violet-400 focus-within:ring-2 focus-within:ring-violet-100">
-            {/* Green status dot */}
-            <div className="flex-shrink-0 pl-2 pb-2">
-              <div className="relative w-3 h-3">
-                <div className="absolute w-3 h-3 bg-green-500 rounded-full" />
-                <div className="absolute w-3 h-3 bg-green-400 rounded-full animate-ping opacity-75" />
-              </div>
+          <div className="flex items-end gap-2 bg-gray-50 border border-gray-300 rounded-2xl p-2 focus-within:border-slate-400 focus-within:ring-2 focus-within:ring-slate-100">
+            {/* Status indicator */}
+            <div className="flex-shrink-0 pl-1 pb-1">
+              <ThinkingIndicator size={24} variant="light" />
             </div>
 
             <textarea
@@ -624,7 +582,7 @@ I can help you with:
             {/* Settings Button */}
             <button
               onClick={() => setShowSettingsModal(true)}
-              className="flex-shrink-0 p-2 rounded-xl text-gray-400 hover:text-violet-500 hover:bg-violet-50 transition-colors"
+              className="flex-shrink-0 p-2 rounded-xl text-gray-400 hover:text-slate-600 hover:bg-stone-100 transition-colors"
               title="Settings"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -637,7 +595,7 @@ I can help you with:
             <button
               onClick={() => handleSubmit()}
               disabled={!input.trim() || isLoading}
-              className="flex-shrink-0 p-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-400 hover:to-fuchsia-400 disabled:from-gray-300 disabled:to-gray-300 text-white rounded-xl transition-all shadow-md"
+              className="flex-shrink-0 p-2 bg-[#C66B4A] hover:bg-[#B35E40] disabled:bg-gray-300 text-white rounded-xl transition-all shadow-md"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
@@ -649,12 +607,12 @@ I can help you with:
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             {cancerType && (
               <>
-                <span className="text-xs bg-violet-100 text-violet-700 px-2 py-1 rounded-full">
+                <span className="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded-full">
                   {CANCER_TYPES[cancerType] || cancerType}
                 </span>
                 <button
                   onClick={() => setShowSettingsModal(true)}
-                  className="text-xs text-gray-500 hover:text-violet-600"
+                  className="text-xs text-gray-500 hover:text-slate-700"
                 >
                   Change
                 </button>
@@ -724,8 +682,8 @@ I can help you with:
                         }}
                         className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                           cancerType === cat.code
-                            ? 'bg-violet-500 text-white shadow-md'
-                            : 'bg-gray-50 border border-gray-200 text-gray-700 hover:border-violet-400 hover:bg-violet-50'
+                            ? 'bg-slate-900 text-white shadow-md'
+                            : 'bg-gray-50 border border-gray-200 text-gray-700 hover:border-slate-400 hover:bg-stone-50'
                         }`}
                       >
                         <span>{cat.icon}</span>
@@ -748,8 +706,8 @@ I can help you with:
                         }}
                         className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                           cancerType === code
-                            ? 'bg-violet-500 text-white shadow-md'
-                            : 'bg-gray-50 border border-gray-200 text-gray-700 hover:border-violet-400 hover:bg-violet-50'
+                            ? 'bg-slate-900 text-white shadow-md'
+                            : 'bg-gray-50 border border-gray-200 text-gray-700 hover:border-slate-400 hover:bg-stone-50'
                         }`}
                       >
                         {CANCER_TYPES[code]}
@@ -785,7 +743,7 @@ I can help you with:
                         localStorage.setItem('ask-concise-mode', String(newValue))
                       }}
                       className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        conciseMode ? 'bg-violet-600' : 'bg-gray-200'
+                        conciseMode ? 'bg-slate-900' : 'bg-gray-200'
                       }`}
                     >
                       <span
@@ -796,7 +754,7 @@ I can help you with:
                     </button>
                   </div>
                   {conciseMode && (
-                    <p className="mt-2 text-xs text-violet-600 bg-violet-50 px-3 py-2 rounded-lg">
+                    <p className="mt-2 text-xs text-slate-600 bg-stone-100 px-3 py-2 rounded-lg">
                       Responses will be shorter and focused on facts only.
                     </p>
                   )}

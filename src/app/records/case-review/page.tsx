@@ -6,6 +6,8 @@ import { FileText, AlertTriangle, ChevronDown, ChevronUp, MessageCircle, ArrowLe
 import { TypewriterMarkdown } from '@/components/TypewriterMarkdown'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { ShareButton } from '@/components/ShareButton'
+import { Navbar } from '@/components/Navbar'
+import { ThinkingIndicator } from '@/components/ThinkingIndicator'
 
 interface TranslationResult {
   document_type: string
@@ -76,51 +78,6 @@ interface ChatMessage {
   isNew?: boolean
 }
 
-// Atom Animation Component
-function AtomIcon({ size = 'md' }: { size?: 'sm' | 'md' }) {
-  const dimensions = size === 'sm' ? 'w-8 h-8' : 'w-10 h-10'
-  const nucleusSize = size === 'sm' ? 'w-3 h-3' : 'w-4 h-4'
-  const electronSize = size === 'sm' ? 'w-1.5 h-1.5' : 'w-2 h-2'
-
-  return (
-    <div className={`relative ${dimensions}`} style={{ perspective: '150px', perspectiveOrigin: 'center' }}>
-      <div className="absolute inset-0 flex items-center justify-center z-10">
-        <div className={`${nucleusSize} rounded-full`} style={{
-          background: 'radial-gradient(circle at 30% 30%, #E879F9, #A855F7 50%, #7C3AED 100%)',
-          boxShadow: '0 2px 6px rgba(168, 85, 247, 0.4)'
-        }} />
-      </div>
-      <div className="absolute inset-0 animate-spin" style={{ animationDuration: '2.5s' }}>
-        <div className={`absolute top-1/2 -left-0.5 -translate-y-1/2 ${electronSize} rounded-full`} style={{
-          background: 'radial-gradient(circle at 35% 35%, #C4B5FD, #8B5CF6 50%, #6D28D9 100%)',
-          boxShadow: '0 1px 3px rgba(139, 92, 246, 0.5)'
-        }} />
-      </div>
-      <div className="absolute inset-0 animate-spin" style={{ animationDuration: '3s', animationDirection: 'reverse' }}>
-        <div className={`absolute -top-0.5 left-1/2 -translate-x-1/2 ${electronSize} rounded-full`} style={{
-          background: 'radial-gradient(circle at 35% 35%, #67E8F9, #06B6D4 50%, #0891B2 100%)',
-          boxShadow: '0 1px 3px rgba(6, 182, 212, 0.5)'
-        }} />
-      </div>
-      <div className="absolute inset-0 flex items-center justify-center" style={{ transformStyle: 'preserve-3d' }}>
-        <div className={`${electronSize} rounded-full electron-z`} style={{
-          background: 'radial-gradient(circle at 35% 35%, #FBCFE8, #EC4899 50%, #DB2777 100%)',
-          boxShadow: '0 1px 3px rgba(236, 72, 153, 0.5)',
-        }} />
-      </div>
-      <style jsx>{`
-        @keyframes orbitZ {
-          0% { transform: translateZ(16px) scale(1.2); }
-          25% { transform: translateX(12px) translateZ(0px) scale(1); }
-          50% { transform: translateZ(-16px) scale(0.8); }
-          75% { transform: translateX(-12px) translateZ(0px) scale(1); }
-          100% { transform: translateZ(16px) scale(1.2); }
-        }
-        .electron-z { animation: orbitZ 3s ease-in-out infinite; }
-      `}</style>
-    </div>
-  )
-}
 
 export default function CaseReviewPage() {
   const [records, setRecords] = useState<SavedTranslation[]>([])
@@ -796,7 +753,7 @@ Provide a helpful, educational response. Reference specific records when relevan
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <AtomIcon size="md" />
+          <ThinkingIndicator size={40} variant="light" />
           <p className="text-slate-500 mt-4">Loading your records...</p>
         </div>
       </div>
@@ -811,7 +768,7 @@ Provide a helpful, educational response. Reference specific records when relevan
           <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
             {/* Left side - brand */}
             <Link href="/" className="flex items-center gap-1.5">
-              <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">
+              <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-slate-500 to-slate-500">
                 opencancer
               </span>
               <span className="text-lg font-bold text-slate-400">.ai</span>
@@ -819,13 +776,13 @@ Provide a helpful, educational response. Reference specific records when relevan
 
             {/* Center - nav links (hidden on mobile) */}
             <nav className="hidden sm:flex items-center gap-4 text-sm">
-              <Link href="/records" className="text-violet-600 font-medium">
+              <Link href="/records" className="text-slate-600 font-medium">
                 Records
               </Link>
-              <Link href="/ask" className="text-slate-600 hover:text-violet-600 transition-colors">
+              <Link href="/ask" className="text-slate-600 hover:text-slate-600 transition-colors">
                 Ask Navis
               </Link>
-              <Link href="/trials" className="text-slate-600 hover:text-violet-600 transition-colors">
+              <Link href="/trials" className="text-slate-600 hover:text-slate-600 transition-colors">
                 Trials
               </Link>
             </nav>
@@ -845,7 +802,7 @@ Provide a helpful, educational response. Reference specific records when relevan
           </p>
           <Link
             href="/records"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-violet-600 hover:bg-violet-500 text-white font-medium rounded-xl transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 hover:bg-orange-500 text-white font-medium rounded-xl transition-colors"
           >
             <FileText className="w-5 h-5" />
             Upload Records
@@ -857,41 +814,7 @@ Provide a helpful, educational response. Reference specific records when relevan
 
   return (
     <main className="min-h-screen bg-slate-50">
-      {/* Header - consistent with Navbar pattern */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          {/* Left side - brand */}
-          <Link href="/" className="flex items-center gap-1.5">
-            <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">
-              opencancer
-            </span>
-            <span className="text-lg font-bold text-slate-400">.ai</span>
-          </Link>
-
-          {/* Center - nav links (hidden on mobile) */}
-          <nav className="hidden sm:flex items-center gap-4 text-sm">
-            <Link href="/records" className="text-violet-600 font-medium">
-              Records
-            </Link>
-            <Link href="/ask" className="text-slate-600 hover:text-violet-600 transition-colors">
-              Ask Navis
-            </Link>
-            <Link href="/trials" className="text-slate-600 hover:text-violet-600 transition-colors">
-              Trials
-            </Link>
-          </nav>
-
-          {/* Right side */}
-          <div className="flex items-center gap-3">
-            <ShareButton
-              tool="case-review"
-              title="Share Case Review"
-              description="Help others review their medical records"
-              variant="icon"
-            />
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Disclaimer Banner */}
@@ -913,8 +836,8 @@ Provide a helpful, educational response. Reference specific records when relevan
         {/* Records Count */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-violet-100 rounded-xl flex items-center justify-center">
-              <FileText className="w-5 h-5 text-violet-600" />
+            <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center">
+              <FileText className="w-5 h-5 text-slate-600" />
             </div>
             <div>
               <p className="font-semibold text-slate-900">Analyzing {records.length} Record{records.length !== 1 ? 's' : ''}</p>
@@ -958,11 +881,11 @@ Provide a helpful, educational response. Reference specific records when relevan
             <button
               onClick={generateCaseBrief}
               disabled={generating}
-              className="flex items-center gap-2 px-4 py-2 bg-violet-100 hover:bg-violet-200 text-violet-700 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
             >
               {generating ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
                   Analyzing...
                 </>
               ) : (
@@ -1033,7 +956,7 @@ Provide a helpful, educational response. Reference specific records when relevan
               onClick={() => setActiveSection(tab.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
                 activeSection === tab.id
-                  ? 'bg-violet-600 text-white'
+                  ? 'bg-orange-600 text-white'
                   : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
               }`}
             >
@@ -1043,7 +966,7 @@ Provide a helpful, educational response. Reference specific records when relevan
                 <span className={`px-1.5 py-0.5 text-xs rounded-full ${
                   activeSection === tab.id
                     ? 'bg-white/20 text-white'
-                    : 'bg-violet-100 text-violet-700'
+                    : 'bg-slate-100 text-slate-700'
                 }`}>
                   {tab.badge}
                 </span>
@@ -1057,7 +980,7 @@ Provide a helpful, educational response. Reference specific records when relevan
           <div className="space-y-4">
             {generating ? (
               <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center">
-                <div className="w-10 h-10 border-3 border-violet-500 border-t-transparent rounded-full animate-spin mx-auto" />
+                <div className="w-10 h-10 border-3 border-slate-500 border-t-transparent rounded-full animate-spin mx-auto" />
                 <p className="text-slate-600 mt-4">Generating your case brief...</p>
                 <p className="text-sm text-slate-500 mt-2">Analyzing {records.length} records</p>
               </div>
@@ -1081,9 +1004,9 @@ Provide a helpful, educational response. Reference specific records when relevan
                   </div>
                 )}
                 {/* Bottom Line */}
-                <div className="bg-gradient-to-br from-violet-50 to-fuchsia-50 border border-violet-200 rounded-2xl p-6">
+                <div className="bg-gradient-to-br from-slate-50 to-slate-50 border border-slate-200 rounded-2xl p-6">
                   <div className="flex items-center gap-2 mb-3">
-                    <Lightbulb className="w-5 h-5 text-violet-600" />
+                    <Lightbulb className="w-5 h-5 text-slate-600" />
                     <h2 className="font-bold text-slate-900">The Bottom Line</h2>
                   </div>
                   <p className="text-slate-800 leading-relaxed">{caseBrief.bottomLine}</p>
@@ -1093,7 +1016,7 @@ Provide a helpful, educational response. Reference specific records when relevan
                 {caseBrief.cancerSummary && caseBrief.cancerSummary.type && (
                   <div className="bg-white border border-slate-200 rounded-2xl p-6">
                     <div className="flex items-center gap-2 mb-4">
-                      <Activity className="w-5 h-5 text-violet-600" />
+                      <Activity className="w-5 h-5 text-slate-600" />
                       <h2 className="font-bold text-slate-900">Cancer Overview</h2>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -1119,7 +1042,7 @@ Provide a helpful, educational response. Reference specific records when relevan
                         <p className="text-xs text-slate-500 mb-2">Treatments Mentioned</p>
                         <div className="flex flex-wrap gap-2">
                           {caseBrief.cancerSummary.treatments.map((t, i) => (
-                            <span key={i} className="px-3 py-1 bg-violet-100 text-violet-700 rounded-full text-sm">
+                            <span key={i} className="px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-sm">
                               {t}
                             </span>
                           ))}
@@ -1205,7 +1128,7 @@ Provide a helpful, educational response. Reference specific records when relevan
                 <p className="text-slate-600">Unable to generate case brief. Please try refreshing.</p>
                 <button
                   onClick={generateCaseBrief}
-                  className="mt-4 px-4 py-2 bg-violet-600 text-white rounded-lg text-sm font-medium"
+                  className="mt-4 px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-medium"
                 >
                   Try Again
                 </button>
@@ -1229,8 +1152,8 @@ Provide a helpful, educational response. Reference specific records when relevan
                   onClick={() => toggleRecord(record.id)}
                   className="w-full flex items-center gap-4 p-4 text-left hover:bg-slate-50 transition-colors"
                 >
-                  <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <FileText className="w-5 h-5 text-violet-600" />
+                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <FileText className="w-5 h-5 text-slate-600" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-slate-900 truncate">{record.fileName}</p>
@@ -1266,10 +1189,10 @@ Provide a helpful, educational response. Reference specific records when relevan
                               )}
                               <button
                                 onClick={() => openEditModal(record.id, 'diagnosis', 'Diagnosis', value)}
-                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-violet-100 rounded transition-all"
+                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-100 rounded transition-all"
                                 title="Edit this field"
                               >
-                                <PenLine className="w-3 h-3 text-violet-600" />
+                                <PenLine className="w-3 h-3 text-slate-600" />
                               </button>
                             </div>
                             <p className={`text-slate-800 ${isCorrected ? 'bg-green-50 px-2 py-1 rounded border border-green-200' : ''}`}>{value}</p>
@@ -1291,22 +1214,22 @@ Provide a helpful, educational response. Reference specific records when relevan
                             <div className="flex flex-wrap items-center gap-2">
                               <span
                                 onClick={() => openEditModal(record.id, 'cancer_type', 'Cancer Type', typeValue)}
-                                className={`cursor-pointer hover:ring-2 hover:ring-violet-300 rounded px-2 py-1 transition-all ${typeCorrected ? 'bg-green-50 border border-green-200' : 'bg-slate-100'}`}
+                                className={`cursor-pointer hover:ring-2 hover:ring-slate-300 rounded px-2 py-1 transition-all ${typeCorrected ? 'bg-green-50 border border-green-200' : 'bg-slate-100'}`}
                                 title="Click to edit"
                               >
                                 {typeValue}
-                                <PenLine className="w-3 h-3 text-violet-400 inline ml-1 opacity-50" />
+                                <PenLine className="w-3 h-3 text-slate-400 inline ml-1 opacity-50" />
                               </span>
                               {stageValue && stageValue !== 'unknown' && (
                                 <>
                                   <span className="text-slate-400">-</span>
                                   <span
                                     onClick={() => openEditModal(record.id, 'stage', 'Stage', stageValue)}
-                                    className={`cursor-pointer hover:ring-2 hover:ring-violet-300 rounded px-2 py-1 transition-all ${stageCorrected ? 'bg-green-50 border border-green-200' : 'bg-slate-100'}`}
+                                    className={`cursor-pointer hover:ring-2 hover:ring-slate-300 rounded px-2 py-1 transition-all ${stageCorrected ? 'bg-green-50 border border-green-200' : 'bg-slate-100'}`}
                                     title="Click to edit"
                                   >
                                     Stage {stageValue}
-                                    <PenLine className="w-3 h-3 text-violet-400 inline ml-1 opacity-50" />
+                                    <PenLine className="w-3 h-3 text-slate-400 inline ml-1 opacity-50" />
                                   </span>
                                 </>
                               )}
@@ -1339,7 +1262,7 @@ Provide a helpful, educational response. Reference specific records when relevan
                             // Set this record as active in records page
                             localStorage.setItem('axestack-view-record', record.id)
                           }}
-                          className="inline-flex items-center gap-1 text-violet-600 hover:text-violet-700 text-sm font-medium"
+                          className="inline-flex items-center gap-1 text-slate-600 hover:text-slate-700 text-sm font-medium"
                         >
                           View full translation →
                         </Link>
@@ -1377,18 +1300,18 @@ Provide a helpful, educational response. Reference specific records when relevan
         {activeSection === 'timeline' && (
           <div className="bg-white border border-slate-200 rounded-2xl p-6">
             <div className="flex items-center gap-2 mb-6">
-              <Calendar className="w-5 h-5 text-violet-600" />
+              <Calendar className="w-5 h-5 text-slate-600" />
               <h2 className="font-bold text-slate-900">Your Care Timeline</h2>
             </div>
 
             {caseBrief?.timeline && caseBrief.timeline.length > 0 ? (
               <div className="relative">
-                <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-violet-200" />
+                <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-slate-200" />
                 <div className="space-y-4">
                   {caseBrief.timeline.map((event, i) => (
                     <div key={i} className="flex gap-4 relative">
-                      <div className="w-8 h-8 bg-violet-100 border-2 border-violet-300 rounded-full flex items-center justify-center z-10">
-                        <div className="w-2 h-2 bg-violet-600 rounded-full" />
+                      <div className="w-8 h-8 bg-slate-100 border-2 border-slate-300 rounded-full flex items-center justify-center z-10">
+                        <div className="w-2 h-2 bg-orange-600 rounded-full" />
                       </div>
                       <div className="flex-1 bg-slate-50 rounded-xl p-4">
                         <p className="text-xs text-slate-500 mb-1">{event.date}</p>
@@ -1412,7 +1335,7 @@ Provide a helpful, educational response. Reference specific records when relevan
         {activeSection === 'questions' && (
           <div className="bg-white border border-slate-200 rounded-2xl p-6">
             <div className="flex items-center gap-2 mb-6">
-              <HelpCircle className="w-5 h-5 text-violet-600" />
+              <HelpCircle className="w-5 h-5 text-slate-600" />
               <h2 className="font-bold text-slate-900">Questions for Your Oncologist</h2>
             </div>
 
@@ -1422,13 +1345,13 @@ Provide a helpful, educational response. Reference specific records when relevan
                   <div
                     key={i}
                     onClick={() => askAbout(question)}
-                    className="flex items-start gap-3 bg-violet-50 hover:bg-violet-100 rounded-xl p-4 cursor-pointer transition-colors group"
+                    className="flex items-start gap-3 bg-slate-50 hover:bg-slate-100 rounded-xl p-4 cursor-pointer transition-colors group"
                   >
-                    <span className="w-6 h-6 bg-violet-600 text-white rounded-full flex items-center justify-center text-sm flex-shrink-0">
+                    <span className="w-6 h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-sm flex-shrink-0">
                       ?
                     </span>
                     <span className="text-slate-800 flex-1">{question}</span>
-                    <span className="text-violet-400 group-hover:text-violet-600 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                    <span className="text-slate-400 group-hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
                   </div>
                 ))}
               </div>
@@ -1441,16 +1364,16 @@ Provide a helpful, educational response. Reference specific records when relevan
 
             <Link
               href="/cancer-checklist"
-              className="mt-6 flex items-center justify-between p-4 bg-violet-100 hover:bg-violet-200 rounded-xl transition-colors"
+              className="mt-6 flex items-center justify-between p-4 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
             >
               <div className="flex items-center gap-3">
                 <span className="text-xl">📋</span>
                 <div>
-                  <p className="font-medium text-violet-900">Prepare for your appointment</p>
-                  <p className="text-sm text-violet-700">Get your personalized Cancer Checklist</p>
+                  <p className="font-medium text-slate-900">Prepare for your appointment</p>
+                  <p className="text-sm text-slate-700">Get your personalized Cancer Checklist</p>
                 </div>
               </div>
-              <ChevronDown className="w-5 h-5 text-violet-600 rotate-[-90deg]" />
+              <ChevronDown className="w-5 h-5 text-slate-600 rotate-[-90deg]" />
             </Link>
           </div>
         )}
@@ -1460,7 +1383,7 @@ Provide a helpful, educational response. Reference specific records when relevan
       {!chatOpen && records.length > 0 && (
         <button
           onClick={() => setChatOpen(true)}
-          className="fixed bottom-6 right-6 z-40 flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white rounded-full shadow-lg shadow-violet-500/30 transition-all hover:scale-105"
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-slate-600 to-slate-600 hover:from-slate-500 hover:to-slate-500 text-white rounded-full shadow-lg shadow-slate-500/30 transition-all hover:scale-105"
         >
           <MessageCircle className="w-5 h-5" />
           <span className="font-medium">Ask about your case</span>
@@ -1471,9 +1394,9 @@ Provide a helpful, educational response. Reference specific records when relevan
       <div className={`fixed top-0 right-0 h-full w-full sm:w-[420px] bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-out ${chatOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex flex-col h-full">
           {/* Panel Header */}
-          <div className="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-violet-50 to-fuchsia-50 flex items-center justify-between">
+          <div className="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-slate-50 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <MessageCircle className="w-5 h-5 text-violet-600" />
+              <MessageCircle className="w-5 h-5 text-slate-600" />
               <div>
                 <h3 className="font-semibold text-slate-900">Ask About Your Case</h3>
                 <p className="text-xs text-slate-600">
@@ -1483,7 +1406,7 @@ Provide a helpful, educational response. Reference specific records when relevan
             </div>
             <button
               onClick={() => setChatOpen(false)}
-              className="p-2 hover:bg-violet-100 rounded-lg transition-colors text-slate-400 hover:text-slate-600"
+              className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-slate-600"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1495,7 +1418,7 @@ Provide a helpful, educational response. Reference specific records when relevan
           <div className="flex-1 overflow-y-auto p-5 space-y-4">
             {chatMessages.length === 0 && (
               <div className="space-y-3">
-                <div className="bg-violet-50 rounded-xl p-4 border border-violet-100">
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
                   <p className="text-sm text-slate-700">
                     I can help you understand your complete medical case based on all {records.length} records you've uploaded.
                   </p>
@@ -1510,9 +1433,9 @@ Provide a helpful, educational response. Reference specific records when relevan
                   <button
                     key={i}
                     onClick={() => { setChatInput(q); setTimeout(handleAskQuestion, 50) }}
-                    className="flex items-center gap-3 w-full text-left p-3 bg-slate-50 hover:bg-violet-50 rounded-xl text-slate-700 hover:text-violet-700 transition-colors border border-slate-100 hover:border-violet-200 group"
+                    className="flex items-center gap-3 w-full text-left p-3 bg-slate-50 hover:bg-slate-50 rounded-xl text-slate-700 hover:text-slate-700 transition-colors border border-slate-100 hover:border-slate-200 group"
                   >
-                    <span className="text-violet-400 group-hover:text-violet-600 text-lg">→</span>
+                    <span className="text-slate-400 group-hover:text-slate-600 text-lg">→</span>
                     <span className="text-sm">{q}</span>
                   </button>
                 ))}
@@ -1524,7 +1447,7 @@ Provide a helpful, educational response. Reference specific records when relevan
                 key={i}
                 className={`${
                   msg.role === 'user'
-                    ? 'ml-6 bg-violet-100 text-violet-900 px-4 py-3 rounded-2xl rounded-tr-sm'
+                    ? 'ml-6 bg-slate-100 text-slate-900 px-4 py-3 rounded-2xl rounded-tr-sm'
                     : 'mr-2'
                 }`}
               >
@@ -1545,9 +1468,9 @@ Provide a helpful, educational response. Reference specific records when relevan
             {isChatLoading && (
               <div className="mr-4 bg-slate-100 px-4 py-3 rounded-2xl rounded-tl-sm inline-block">
                 <div className="flex gap-1.5">
-                  <div className="w-2 h-2 bg-violet-400 rounded-full animate-bounce" />
-                  <div className="w-2 h-2 bg-violet-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                  <div className="w-2 h-2 bg-violet-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                  <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" />
+                  <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                  <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
                 </div>
               </div>
             )}
@@ -1563,12 +1486,12 @@ Provide a helpful, educational response. Reference specific records when relevan
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleAskQuestion()}
                 placeholder="Ask about your medical records..."
-                className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-white text-slate-900 placeholder:text-slate-400"
+                className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent bg-white text-slate-900 placeholder:text-slate-400"
               />
               <button
                 onClick={handleAskQuestion}
                 disabled={!chatInput.trim() || isChatLoading}
-                className="px-5 py-3 bg-violet-600 hover:bg-violet-500 disabled:bg-slate-300 text-white rounded-xl transition-colors font-medium"
+                className="px-5 py-3 bg-orange-600 hover:bg-orange-500 disabled:bg-slate-300 text-white rounded-xl transition-colors font-medium"
               >
                 Send
               </button>
@@ -1601,8 +1524,8 @@ Provide a helpful, educational response. Reference specific records when relevan
             </button>
 
             <div className="mb-6">
-              <div className="w-12 h-12 mb-3 bg-violet-100 rounded-xl flex items-center justify-center">
-                <PenLine className="w-6 h-6 text-violet-600" />
+              <div className="w-12 h-12 mb-3 bg-slate-100 rounded-xl flex items-center justify-center">
+                <PenLine className="w-6 h-6 text-slate-600" />
               </div>
               <h2 className="text-xl font-bold text-slate-900">Edit {editModal.fieldLabel}</h2>
               <p className="text-slate-600 text-sm mt-1">
@@ -1627,7 +1550,7 @@ Provide a helpful, educational response. Reference specific records when relevan
                 type="text"
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-900"
+                className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 text-slate-900"
                 placeholder={`Enter correct ${editModal.fieldLabel.toLowerCase()}`}
               />
             </div>
@@ -1641,7 +1564,7 @@ Provide a helpful, educational response. Reference specific records when relevan
                 type="text"
                 value={editNote}
                 onChange={(e) => setEditNote(e.target.value)}
-                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-900 text-sm"
+                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 text-slate-900 text-sm"
                 placeholder="e.g., Confirmed with oncologist"
               />
             </div>
@@ -1656,7 +1579,7 @@ Provide a helpful, educational response. Reference specific records when relevan
               <button
                 onClick={saveCorrection}
                 disabled={isSavingCorrection || !editValue.trim()}
-                className="flex-1 px-4 py-3 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-3 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isSavingCorrection ? (
                   <>
@@ -1697,7 +1620,7 @@ Provide a helpful, educational response. Reference specific records when relevan
             </button>
 
             <div className="text-center mb-6">
-              <div className="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-blue-100 to-violet-100 rounded-full flex items-center justify-center">
+              <div className="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-blue-100 to-slate-100 rounded-full flex items-center justify-center">
                 <Link2 className="w-6 h-6 text-blue-600" />
               </div>
               <h2 className="text-xl font-bold text-slate-900">Share Your Case Review</h2>
@@ -1717,7 +1640,7 @@ Provide a helpful, educational response. Reference specific records when relevan
                   />
                   <button
                     onClick={copyShareLink}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition-colors"
+                    className="flex items-center gap-1 px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-lg transition-colors"
                   >
                     {shareCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                     {shareCopied ? 'Copied!' : 'Copy'}
@@ -1728,14 +1651,14 @@ Provide a helpful, educational response. Reference specific records when relevan
                 {showEmailForm ? (
                   reportSent ? (
                     <div className="text-center py-4">
-                      <div className="w-14 h-14 mx-auto mb-3 bg-emerald-100 rounded-full flex items-center justify-center">
-                        <Check className="w-7 h-7 text-emerald-600" />
+                      <div className="w-14 h-14 mx-auto mb-3 bg-green-100 rounded-full flex items-center justify-center">
+                        <Check className="w-7 h-7 text-green-600" />
                       </div>
                       <h3 className="text-lg font-bold text-slate-900 mb-1">Report Sent!</h3>
                       <p className="text-slate-600 text-sm mb-4">Emailed to {sendReportEmail}</p>
                       <button
                         onClick={() => { setShowEmailForm(false); setShareModalOpen(false); }}
-                        className="px-6 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-medium"
+                        className="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium"
                       >
                         Done
                       </button>
@@ -1751,7 +1674,7 @@ Provide a helpful, educational response. Reference specific records when relevan
                           value={sendReportEmail}
                           onChange={(e) => setSendReportEmail(e.target.value)}
                           placeholder="doctor@hospital.com"
-                          className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500"
+                          className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500"
                         />
                       </div>
                       <div>
@@ -1763,7 +1686,7 @@ Provide a helpful, educational response. Reference specific records when relevan
                           value={sendReportName}
                           onChange={(e) => setSendReportName(e.target.value)}
                           placeholder="Dr. Smith"
-                          className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500"
+                          className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500"
                         />
                       </div>
                       {reportError && (

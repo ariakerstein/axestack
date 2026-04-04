@@ -87,7 +87,7 @@ export function ClaimEmailModal({ isOpen, onClose, sessionId, userId, onSuccess 
       {/* Modal */}
       <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500 p-6">
+        <div className="bg-gradient-to-r from-slate-500 to-slate-500 p-6">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-white/80 hover:text-white"
@@ -110,33 +110,33 @@ export function ClaimEmailModal({ isOpen, onClose, sessionId, userId, onSuccess 
           {success ? (
             /* Success state */
             <div className="text-center space-y-4">
-              <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto">
-                <Check className="w-10 h-10 text-emerald-600" />
+              <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto">
+                <Check className="w-10 h-10 text-green-600" />
               </div>
               <div>
                 <h3 className="text-xl font-bold text-slate-900">You're all set!</h3>
-                <p className="text-lg font-semibold text-violet-600 mt-2">{success}</p>
+                <p className="text-lg font-semibold text-slate-600 mt-2">{success}</p>
               </div>
               <div className="bg-slate-50 rounded-xl p-4 text-left">
                 <h4 className="font-semibold text-slate-900 mb-2">What's next:</h4>
                 <ul className="space-y-2 text-sm text-slate-600">
                   <li className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                    <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                     Forward medical documents to your new email
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                    <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                     Attachments auto-appear in your Records Vault
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                    <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                     Use it as your medical contact email
                   </li>
                 </ul>
               </div>
               <button
                 onClick={onClose}
-                className="w-full py-3 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white rounded-xl font-semibold hover:opacity-90 transition-all"
+                className="w-full py-3 bg-gradient-to-r from-slate-500 to-slate-500 text-white rounded-xl font-semibold hover:opacity-90 transition-all"
               >
                 Got it!
               </button>
@@ -161,8 +161,8 @@ export function ClaimEmailModal({ isOpen, onClose, sessionId, userId, onSuccess 
                     value={username}
                     onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9._-]/g, ''))}
                     placeholder="yourname"
-                    className={`w-full px-4 py-3 pr-32 border rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-lg font-medium text-slate-900 placeholder:text-slate-400 ${
-                      error ? 'border-red-300' : available ? 'border-emerald-300' : 'border-slate-300'
+                    className={`w-full px-4 py-3 pr-32 border rounded-xl focus:ring-2 focus:ring-slate-500 focus:border-slate-500 text-lg font-medium text-slate-900 placeholder:text-slate-400 ${
+                      error ? 'border-red-300' : available ? 'border-green-300' : 'border-slate-300'
                     }`}
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium">
@@ -185,7 +185,7 @@ export function ClaimEmailModal({ isOpen, onClose, sessionId, userId, onSuccess 
                     </div>
                   )}
                   {!checking && available && username.length >= 3 && (
-                    <div className="flex items-center gap-2 text-sm text-emerald-600">
+                    <div className="flex items-center gap-2 text-sm text-green-600">
                       <Check className="w-4 h-4" />
                       {username}@opencancer.ai is available!
                     </div>
@@ -198,22 +198,22 @@ export function ClaimEmailModal({ isOpen, onClose, sessionId, userId, onSuccess 
                 <h4 className="text-sm font-medium text-slate-700 mb-3">How it works:</h4>
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex flex-col items-center gap-1 text-slate-600">
-                    <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center">
-                      <Mail className="w-4 h-4 text-violet-600" />
+                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                      <Mail className="w-4 h-4 text-slate-600" />
                     </div>
                     <span className="text-xs text-center">Forward<br/>email</span>
                   </div>
                   <ArrowRight className="w-4 h-4 text-slate-300" />
                   <div className="flex flex-col items-center gap-1 text-slate-600">
-                    <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center">
-                      <Shield className="w-4 h-4 text-violet-600" />
+                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                      <Shield className="w-4 h-4 text-slate-600" />
                     </div>
                     <span className="text-xs text-center">Stored<br/>securely</span>
                   </div>
                   <ArrowRight className="w-4 h-4 text-slate-300" />
                   <div className="flex flex-col items-center gap-1 text-slate-600">
-                    <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center">
-                      <FileText className="w-4 h-4 text-violet-600" />
+                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                      <FileText className="w-4 h-4 text-slate-600" />
                     </div>
                     <span className="text-xs text-center">Case file<br/>updated</span>
                   </div>
@@ -224,7 +224,7 @@ export function ClaimEmailModal({ isOpen, onClose, sessionId, userId, onSuccess 
               <button
                 onClick={handleClaim}
                 disabled={!available || claiming || username.length < 3}
-                className="w-full py-3.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white rounded-xl font-semibold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-3.5 bg-gradient-to-r from-slate-500 to-slate-500 text-white rounded-xl font-semibold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {claiming ? (
                   <>

@@ -43,31 +43,63 @@ Return ONLY valid JSON (no markdown, no code blocks) with this structure:
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
-    const file = formData.get('file') as File
+    const file = formData.get('file') as File | null
     const sessionId = formData.get('sessionId') as string | null
     const userId = formData.get('userId') as string | null
+    const storagePathParam = formData.get('storagePath') as string | null
 
-    if (!file) {
+    let fileName: string
+    let fileType: string
+    let fileSize: number
+    let buffer: Buffer
+    let base64Data: string
+
+    // Support fetching from storage for large files (>4MB uploaded directly to Supabase)
+    if (storagePathParam) {
+      console.log(`Fetching large file from storage: ${storagePathParam}`)
+      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+
+      const { data: fileData, error: downloadError } = await supabase.storage
+        .from('medical-documents')
+        .download(storagePathParam)
+
+      if (downloadError || !fileData) {
+        console.error('Failed to download from storage:', downloadError)
+        return NextResponse.json({ error: 'Failed to retrieve file from storage' }, { status: 500 })
+      }
+
+      const arrayBuffer = await fileData.arrayBuffer()
+      buffer = Buffer.from(arrayBuffer)
+      base64Data = buffer.toString('base64')
+
+      // Extract filename and type from path
+      fileName = storagePathParam.split('/').pop() || 'unknown'
+      fileType = fileName.toLowerCase().endsWith('.pdf') ? 'application/pdf' :
+                 fileName.toLowerCase().endsWith('.doc') || fileName.toLowerCase().endsWith('.docx') ? 'application/msword' :
+                 fileName.toLowerCase().endsWith('.txt') ? 'text/plain' :
+                 'application/octet-stream'
+      fileSize = buffer.length
+    } else if (file) {
+      fileName = file.name
+      fileType = file.type
+      fileSize = file.size
+
+      const arrayBuffer = await file.arrayBuffer()
+      buffer = Buffer.from(arrayBuffer)
+      base64Data = buffer.toString('base64')
+    } else {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
     }
 
-    const fileName = file.name
-    const fileType = file.type
-    const fileSize = file.size
     const fileSizeMB = fileSize / 1024 / 1024
 
     // Log file details (no hard limit - let Claude API handle it)
-    console.log(`Processing file: ${fileName}, type: ${fileType}, size: ${fileSizeMB.toFixed(2)}MB`)
+    console.log(`Processing file: ${fileName}, type: ${fileType}, size: ${fileSizeMB.toFixed(2)}MB${storagePathParam ? ' (from storage)' : ''}`)
 
     // Warn for very large files (Claude API has ~32MB limit for documents)
     if (fileSizeMB > 30) {
       console.warn(`Large file warning: ${fileName} is ${fileSizeMB.toFixed(2)}MB - may fail due to API limits`)
     }
-
-    // Convert file to base64
-    const arrayBuffer = await file.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-    const base64Data = buffer.toString('base64')
 
     const isPDF = fileType === 'application/pdf' || fileName.toLowerCase().endsWith('.pdf')
     const isImage = fileType.startsWith('image/')
@@ -335,6 +367,25 @@ export async function POST(request: NextRequest) {
         console.error('Entity extraction background call failed:', err)
       })
     }
+
+    // Log API usage for stats (non-blocking)
+    const supabaseForStats = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+    supabaseForStats.from('api_usage').insert({
+      source: 'opencancer',
+      model: 'claude-3-5-sonnet',
+      operation: 'translate',
+      file_type: fileType,
+      file_size_bytes: fileSize,
+      session_id: sessionId,
+      user_id: userId || null,
+      success: true,
+    }).then(({ error }) => {
+      if (error) {
+        console.error('Failed to log API usage:', error.message)
+      } else {
+        console.log('API usage logged')
+      }
+    })
 
     return NextResponse.json({
       success: true,

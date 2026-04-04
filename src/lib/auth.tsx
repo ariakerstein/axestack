@@ -228,9 +228,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(null)
       setProfile(null)
 
-      // NOTE: We keep localStorage profile so returning users retain their data
-      // This allows: sign in → set profile → sign out → sign in → profile still there
-      // The profile will sync to Supabase on next sign-in if needed
+      // Clear localStorage profile to prevent stale UI after sign out
+      // Profile data is saved to Supabase, so it will restore on next sign in
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('patient-profile')
+      }
 
       // Sign out from Supabase (clears auth tokens)
       const { error } = await supabase.auth.signOut()

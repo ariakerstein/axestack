@@ -10,6 +10,8 @@ import { AuthModal } from '@/components/AuthModal'
 import { ClaimEmailModal } from '@/components/ClaimEmailModal'
 import { EntityAnnotation } from '@/components/EntityAnnotation'
 import { getSessionId } from '@/lib/supabase'
+import { Navbar } from '@/components/Navbar'
+import { ThinkingIndicator } from '@/components/ThinkingIndicator'
 
 interface TranslationResult {
   document_type: string
@@ -75,51 +77,48 @@ interface UploadedFile {
 const SUPABASE_URL = "https://felofmlhqwcdpiyjgstx.supabase.co"
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlbG9mbWxocXdjZHBpeWpnc3R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA2NzQzODAsImV4cCI6MjA1NjI1MDM4MH0._kYA-prwPgxQWoKzWPzJDy2Bf95WgTF5_KnAPN2cGnQ"
 
-// Atom Animation Component
-function AtomIcon({ size = 'md' }: { size?: 'sm' | 'md' }) {
-  const dimensions = size === 'sm' ? 'w-8 h-8' : 'w-10 h-10'
-  const nucleusSize = size === 'sm' ? 'w-3 h-3' : 'w-4 h-4'
-  const electronSize = size === 'sm' ? 'w-1.5 h-1.5' : 'w-2 h-2'
+// Large file threshold - files over this are uploaded to storage first
+const LARGE_FILE_THRESHOLD_MB = 4
 
-  return (
-    <div className={`relative ${dimensions}`} style={{ perspective: '150px', perspectiveOrigin: 'center' }}>
-      <div className="absolute inset-0 flex items-center justify-center z-10">
-        <div className={`${nucleusSize} rounded-full`} style={{
-          background: 'radial-gradient(circle at 30% 30%, #E879F9, #A855F7 50%, #7C3AED 100%)',
-          boxShadow: '0 2px 6px rgba(168, 85, 247, 0.4)'
-        }} />
-      </div>
-      <div className="absolute inset-0 animate-spin" style={{ animationDuration: '2.5s' }}>
-        <div className={`absolute top-1/2 -left-0.5 -translate-y-1/2 ${electronSize} rounded-full`} style={{
-          background: 'radial-gradient(circle at 35% 35%, #C4B5FD, #8B5CF6 50%, #6D28D9 100%)',
-          boxShadow: '0 1px 3px rgba(139, 92, 246, 0.5)'
-        }} />
-      </div>
-      <div className="absolute inset-0 animate-spin" style={{ animationDuration: '3s', animationDirection: 'reverse' }}>
-        <div className={`absolute -top-0.5 left-1/2 -translate-x-1/2 ${electronSize} rounded-full`} style={{
-          background: 'radial-gradient(circle at 35% 35%, #67E8F9, #06B6D4 50%, #0891B2 100%)',
-          boxShadow: '0 1px 3px rgba(6, 182, 212, 0.5)'
-        }} />
-      </div>
-      <div className="absolute inset-0 flex items-center justify-center" style={{ transformStyle: 'preserve-3d' }}>
-        <div className={`${electronSize} rounded-full electron-z`} style={{
-          background: 'radial-gradient(circle at 35% 35%, #FBCFE8, #EC4899 50%, #DB2777 100%)',
-          boxShadow: '0 1px 3px rgba(236, 72, 153, 0.5)',
-        }} />
-      </div>
-      <style jsx>{`
-        @keyframes orbitZ {
-          0% { transform: translateZ(16px) scale(1.2); }
-          25% { transform: translateX(12px) translateZ(0px) scale(1); }
-          50% { transform: translateZ(-16px) scale(0.8); }
-          75% { transform: translateX(-12px) translateZ(0px) scale(1); }
-          100% { transform: translateZ(16px) scale(1.2); }
-        }
-        .electron-z { animation: orbitZ 3s ease-in-out infinite; }
-      `}</style>
-    </div>
-  )
+// Helper to upload large files using signed URL (bypasses RLS via server endpoint)
+async function uploadLargeFileToStorage(file: File, sessionId: string): Promise<string> {
+  // Step 1: Get a signed upload URL from our API (uses service key)
+  const signedUrlResponse = await fetch('/api/storage/signed-url', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      fileName: file.name,
+      sessionId,
+      contentType: file.type || 'application/octet-stream',
+    }),
+  })
+
+  if (!signedUrlResponse.ok) {
+    const error = await signedUrlResponse.json()
+    console.error('Failed to get signed URL:', error)
+    throw new Error('Failed to prepare upload. Please try again.')
+  }
+
+  const { signedUrl, storagePath } = await signedUrlResponse.json()
+
+  // Step 2: Upload directly to storage using the signed URL
+  const uploadResponse = await fetch(signedUrl, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': file.type || 'application/octet-stream',
+    },
+    body: file,
+  })
+
+  if (!uploadResponse.ok) {
+    console.error('Storage upload failed:', uploadResponse.status, await uploadResponse.text())
+    throw new Error('Failed to upload large file. Please try again.')
+  }
+
+  console.log(`Large file uploaded to storage: ${storagePath}`)
+  return storagePath
 }
+
 
 // Portal providers list
 const PORTAL_PROVIDERS = [
@@ -213,6 +212,9 @@ export default function RecordsVaultPage() {
   const [showEmailModal, setShowEmailModal] = useState(false)
   const [claimedEmail, setClaimedEmail] = useState<string | null>(null)
 
+  // Stats for social proof
+  const [totalTranslations, setTotalTranslations] = useState(12847)
+
   // Inbox state
   const [receivedEmails, setReceivedEmails] = useState<ReceivedEmail[]>([])
   const [loadingEmails, setLoadingEmails] = useState(false)
@@ -282,6 +284,34 @@ export default function RecordsVaultPage() {
       fetchReceivedEmails()
     }
   }, [activeTab, emailAddressId, fetchReceivedEmails])
+
+  // Warn user when navigating away during processing
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isProcessing) {
+        e.preventDefault()
+        e.returnValue = 'Upload in progress. Are you sure you want to leave?'
+        return e.returnValue
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [isProcessing])
+
+  // Fetch total translations count for social proof
+  useEffect(() => {
+    fetch('/api/stats')
+      .then(res => res.json())
+      .then(data => {
+        if (data.totalTranslations) {
+          setTotalTranslations(data.totalTranslations)
+        }
+      })
+      .catch(() => {
+        // Keep default value on error
+      })
+  }, [])
 
   // Track referral arrivals from share links
   useEffect(() => {
@@ -480,15 +510,41 @@ export default function RecordsVaultPage() {
     setError(null)
 
     try {
+      const sessionId = localStorage.getItem('opencancer_session_id') || 'anonymous'
+      const fileSizeMB = file.size / 1024 / 1024
       const formData = new FormData()
-      formData.append('file', file)
-      formData.append('sessionId', localStorage.getItem('opencancer_session_id') || 'anonymous')
+
+      // For large files (>4MB), upload to storage first to bypass Vercel body limit
+      if (fileSizeMB > LARGE_FILE_THRESHOLD_MB) {
+        console.log(`Large file detected (${fileSizeMB.toFixed(1)}MB), uploading to storage first...`)
+        const storagePath = await uploadLargeFileToStorage(file, sessionId)
+        formData.append('storagePath', storagePath)
+      } else {
+        formData.append('file', file)
+      }
+
+      formData.append('sessionId', sessionId)
       if (user?.id) formData.append('userId', user.id)
 
-      const response = await fetch('/api/translate', {
-        method: 'POST',
-        body: formData,
-      })
+      // Add 90-second client-side timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 90000)
+
+      let response: Response
+      try {
+        response = await fetch('/api/translate', {
+          method: 'POST',
+          body: formData,
+          signal: controller.signal,
+        })
+      } catch (fetchErr: unknown) {
+        clearTimeout(timeoutId)
+        if (fetchErr instanceof Error && fetchErr.name === 'AbortError') {
+          throw new Error('Processing timed out. Please try again with a smaller file.')
+        }
+        throw fetchErr
+      }
+      clearTimeout(timeoutId)
 
       if (!response.ok) {
         const errorData = await response.json()
@@ -536,17 +592,44 @@ export default function RecordsVaultPage() {
       ))
 
       try {
+        const sessionId = localStorage.getItem('opencancer_session_id') || 'anonymous'
+        const fileSizeMB = uploadedFile.file.size / 1024 / 1024
         const formData = new FormData()
-        formData.append('file', uploadedFile.file)
-        formData.append('sessionId', localStorage.getItem('opencancer_session_id') || 'anonymous')
+
+        // For large files (>4MB), upload to storage first to bypass Vercel body limit
+        if (fileSizeMB > LARGE_FILE_THRESHOLD_MB) {
+          console.log(`[Bulk] Large file detected (${fileSizeMB.toFixed(1)}MB), uploading to storage first...`)
+          const storagePath = await uploadLargeFileToStorage(uploadedFile.file, sessionId)
+          formData.append('storagePath', storagePath)
+        } else {
+          formData.append('file', uploadedFile.file)
+        }
+
+        formData.append('sessionId', sessionId)
         if (user?.id) formData.append('userId', user.id)
 
-        console.log(`[Bulk] Processing ${i + 1}/${uploadedFiles.length}: ${uploadedFile.file.name}, type: ${uploadedFile.file.type || 'unknown'}, size: ${(uploadedFile.file.size / 1024).toFixed(1)}KB`)
+        console.log(`[Bulk] Processing ${i + 1}/${uploadedFiles.length}: ${uploadedFile.file.name}, type: ${uploadedFile.file.type || 'unknown'}, size: ${(uploadedFile.file.size / 1024).toFixed(1)}KB${fileSizeMB > LARGE_FILE_THRESHOLD_MB ? ' (via storage)' : ''}`)
 
-        const response = await fetch('/api/translate', {
-          method: 'POST',
-          body: formData,
-        })
+        // Add 90-second client-side timeout
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 90000)
+
+        let response: Response
+        try {
+          response = await fetch('/api/translate', {
+            method: 'POST',
+            body: formData,
+            signal: controller.signal,
+          })
+        } catch (fetchErr: unknown) {
+          clearTimeout(timeoutId)
+          if (fetchErr instanceof Error && fetchErr.name === 'AbortError') {
+            console.error(`[Bulk] Timeout for ${uploadedFile.file.name}`)
+            throw new Error('Processing timed out. Please try again with a smaller file.')
+          }
+          throw fetchErr
+        }
+        clearTimeout(timeoutId)
 
         if (!response.ok) {
           const errorData = await response.json()
@@ -717,17 +800,44 @@ export default function RecordsVaultPage() {
       ))
 
       try {
+        const sessionId = localStorage.getItem('opencancer_session_id') || 'anonymous'
+        const fileSizeMB = uploadedFile.file.size / 1024 / 1024
         const formData = new FormData()
-        formData.append('file', uploadedFile.file)
-        formData.append('sessionId', localStorage.getItem('opencancer_session_id') || 'anonymous')
+
+        // For large files (>4MB), upload to storage first to bypass Vercel body limit
+        if (fileSizeMB > LARGE_FILE_THRESHOLD_MB) {
+          console.log(`[Retry] Large file detected (${fileSizeMB.toFixed(1)}MB), uploading to storage first...`)
+          const storagePath = await uploadLargeFileToStorage(uploadedFile.file, sessionId)
+          formData.append('storagePath', storagePath)
+        } else {
+          formData.append('file', uploadedFile.file)
+        }
+
+        formData.append('sessionId', sessionId)
         if (user?.id) formData.append('userId', user.id)
 
-        console.log(`[Retry] Processing: ${uploadedFile.file.name}, type: ${uploadedFile.file.type}, size: ${(uploadedFile.file.size / 1024).toFixed(1)}KB`)
+        console.log(`[Retry] Processing: ${uploadedFile.file.name}, type: ${uploadedFile.file.type}, size: ${(uploadedFile.file.size / 1024).toFixed(1)}KB${fileSizeMB > LARGE_FILE_THRESHOLD_MB ? ' (via storage)' : ''}`)
 
-        const response = await fetch('/api/translate', {
-          method: 'POST',
-          body: formData,
-        })
+        // Add 90-second client-side timeout
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 90000)
+
+        let response: Response
+        try {
+          response = await fetch('/api/translate', {
+            method: 'POST',
+            body: formData,
+            signal: controller.signal,
+          })
+        } catch (fetchErr: unknown) {
+          clearTimeout(timeoutId)
+          if (fetchErr instanceof Error && fetchErr.name === 'AbortError') {
+            console.error(`[Retry] Timeout for ${uploadedFile.file.name}`)
+            throw new Error('Processing timed out. Please try again with a smaller file.')
+          }
+          throw fetchErr
+        }
+        clearTimeout(timeoutId)
 
         if (!response.ok) {
           const errorData = await response.json()
@@ -1464,12 +1574,12 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
   }) => {
     const isOpen = expandedSections.has(id) || defaultOpen
     return (
-      <div className={`rounded-2xl border shadow-sm ${highlight ? 'bg-gradient-to-br from-violet-50 to-purple-50 border-violet-200' : 'bg-white border-slate-200'}`}>
+      <div className={`rounded-2xl border shadow-sm ${highlight ? 'bg-white border-slate-900' : 'bg-white border-stone-200'}`}>
         <button onClick={() => toggleSection(id)} className="w-full px-5 py-4 flex items-center justify-between text-left">
           <span className="flex items-center gap-3">
-            <span className="w-5 h-5 text-violet-600 flex-shrink-0">{icon}</span>
+            <span className="w-5 h-5 text-slate-700 flex-shrink-0">{icon}</span>
             <span className="font-semibold text-slate-900 text-base">{title}</span>
-            {badge && <span className="px-2 py-0.5 bg-violet-100 text-violet-700 text-xs font-medium rounded-full">{badge}</span>}
+            {badge && <span className="px-2 py-0.5 bg-[#C66B4A] text-white text-xs font-medium rounded-full">{badge}</span>}
           </span>
           <span className={`w-6 h-6 flex items-center justify-center rounded-full ${isOpen ? 'bg-slate-200' : 'bg-slate-100'} text-slate-600 text-sm font-medium`}>
             {isOpen ? '−' : '+'}
@@ -1481,91 +1591,8 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
   }
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      {/* Header - consistent with Navbar pattern */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          {/* Left side - brand */}
-          <Link href="/" className="flex items-center gap-1.5">
-            <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">
-              opencancer
-            </span>
-            <span className="text-lg font-bold text-slate-400">.ai</span>
-          </Link>
-
-          {/* Center - nav links (hidden on mobile) */}
-          <nav className="hidden sm:flex items-center gap-4 text-sm">
-            <button
-              onClick={() => {
-                setResult(null)
-                setShowAddRecordView(false)
-                setFile(null)
-              }}
-              className="text-violet-600 font-medium hover:text-violet-700 transition-colors"
-            >
-              Records
-            </button>
-            <Link href="/ask" className="text-slate-600 hover:text-violet-600 transition-colors">
-              Ask Navis
-            </Link>
-            <Link href="/trials" className="text-slate-600 hover:text-violet-600 transition-colors">
-              Trials
-            </Link>
-            <Link href="/combat" className="text-slate-600 hover:text-orange-600 transition-colors">
-              Combat
-            </Link>
-          </nav>
-
-          {/* Right side - auth + records count */}
-          <div className="flex items-center gap-3">
-            {/* Auth state */}
-            {user ? (
-              <div className="flex items-center gap-3">
-                <span className="hidden sm:flex items-center gap-1.5 text-sm text-slate-700">
-                  <User className="w-4 h-4 text-violet-500" />
-                  {user.email?.split('@')[0]}
-                </span>
-                <button
-                  onClick={async () => {
-                    try {
-                      await signOut()
-                      window.location.reload()
-                    } catch (err) {
-                      console.error('Sign out error:', err)
-                    }
-                  }}
-                  className="flex items-center gap-1 text-sm text-slate-500 hover:text-red-600 transition-colors"
-                >
-                  Sign out
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setShowAuthModal(true)}
-                className="flex items-center gap-1.5 text-sm text-violet-600 hover:text-violet-700 font-medium px-3 py-1.5 bg-violet-50 hover:bg-violet-100 rounded-lg transition-colors"
-              >
-                <User className="w-4 h-4" />
-                Sign in
-              </button>
-            )}
-
-            {/* Saved records button */}
-            {savedTranslations.length > 0 && (
-              <button
-                onClick={() => {
-                  setResult(null)
-                  setShowAddRecordView(false)
-                  setFile(null)
-                }}
-                className="flex items-center gap-2 px-3 py-1.5 bg-violet-100 text-violet-700 rounded-full text-sm font-medium hover:bg-violet-200 transition-colors"
-              >
-                <FileText className="w-4 h-4" />
-                {savedTranslations.length} Record{savedTranslations.length !== 1 ? 's' : ''}
-              </button>
-            )}
-          </div>
-        </div>
-      </header>
+    <main className="min-h-screen bg-[#f5f3ee]">
+      <Navbar />
 
       <div className="max-w-3xl mx-auto px-4 py-6">
         {/* RECORDS-FIRST VIEW: Show when user has saved records and not adding new */}
@@ -1576,12 +1603,12 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
               <div>
                 <h1 className="text-2xl font-bold text-slate-900">My Records</h1>
                 {isProcessing ? (
-                  <p className="text-violet-600 text-sm font-medium flex items-center gap-2">
-                    <span className="w-3 h-3 border-2 border-violet-600 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-slate-600 text-sm font-medium flex items-center gap-2">
+                    <span className="w-3 h-3 border-2 border-slate-600 border-t-transparent rounded-full animate-spin" />
                     Processing {bulkProgress.current} of {bulkProgress.total}...
                   </p>
                 ) : bulkComplete && uploadedFiles.length > 0 ? (
-                  <p className="text-emerald-600 text-sm font-medium flex items-center gap-1">
+                  <p className="text-slate-700 text-sm font-medium flex items-center gap-1">
                     ✓ Done! {savedTranslations.length} record{savedTranslations.length !== 1 ? 's' : ''} translated
                   </p>
                 ) : (
@@ -1590,7 +1617,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
               </div>
               <button
                 onClick={() => setShowAddRecordView(true)}
-                className="flex items-center gap-2 px-5 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-violet-500/20 hover:shadow-lg transition-all"
+                className="flex items-center gap-2 px-5 py-2.5 bg-[#C66B4A] hover:bg-[#B35E40] text-white rounded-xl text-sm font-semibold shadow-md shadow-[#C66B4A]/20 hover:shadow-lg transition-all"
               >
                 <Upload className="w-4 h-4" />
                 + Add Record
@@ -1600,17 +1627,17 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
             {/* AI Case Review - PROMINENT CTA */}
             <Link
               href="/records/case-review"
-              className="block bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 rounded-2xl p-5 text-white shadow-lg shadow-violet-500/20 transition-all hover:shadow-xl hover:shadow-violet-500/30"
+              className="block bg-slate-900 hover:bg-slate-800 rounded-2xl p-5 text-white shadow-lg transition-all hover:shadow-xl"
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <AtomIcon size="sm" />
+                <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <ThinkingIndicator size={32} variant="dark" />
                 </div>
                 <div className="flex-1">
                   <p className="font-bold text-lg">AI Case Review</p>
-                  <p className="text-violet-100 text-sm">Synthesize all {savedTranslations.length} records into one comprehensive summary</p>
+                  <p className="text-slate-300 text-sm">Synthesize all {savedTranslations.length} records into one comprehensive summary</p>
                 </div>
-                <ArrowRight className="w-5 h-5 text-violet-200" />
+                <ArrowRight className="w-5 h-5 text-slate-400" />
               </div>
             </Link>
 
@@ -1620,11 +1647,11 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 setShowAddRecordView(true)
                 setActiveTab('inbox')
               }}
-              className="w-full bg-white border border-slate-200 hover:border-violet-300 rounded-2xl p-4 text-left transition-all hover:shadow-md"
+              className="w-full bg-white border border-stone-200 hover:border-slate-400 rounded-2xl p-4 text-left transition-all hover:shadow-md"
             >
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-violet-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Inbox className="w-5 h-5 text-violet-600" />
+                <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Inbox className="w-5 h-5 text-slate-600" />
                 </div>
                 <div className="flex-1">
                   <p className="font-semibold text-slate-900">Email Inbox</p>
@@ -1633,7 +1660,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                   </p>
                 </div>
                 {receivedEmails.length > 0 && (
-                  <span className="bg-violet-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                  <span className="bg-[#C66B4A] text-white text-xs font-bold px-2 py-1 rounded-full">
                     {receivedEmails.length}
                   </span>
                 )}
@@ -1642,9 +1669,9 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
             </button>
 
             {/* Privacy note */}
-            <div className="flex items-center justify-center gap-2 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg">
-              <Shield className="w-4 h-4 text-emerald-600" />
-              <p className="text-xs text-emerald-700">
+            <div className="flex items-center justify-center gap-2 px-3 py-2 bg-stone-100 border border-stone-200 rounded-lg">
+              <Shield className="w-4 h-4 text-slate-600" />
+              <p className="text-xs text-slate-600">
                 {user
                   ? 'Encrypted in your account. Your data is yours.'
                   : 'Stored locally on this device. Sign in to sync.'}
@@ -1674,14 +1701,14 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 {savedTranslations.map(t => (
                   <div
                     key={t.id}
-                    className="w-full flex items-center gap-4 p-4 hover:bg-violet-50 text-left transition-colors group"
+                    className="w-full flex items-center gap-4 p-4 hover:bg-stone-50 text-left transition-colors group"
                   >
                     <button
                       onClick={() => loadSavedTranslation(t.id)}
                       className="flex items-center gap-4 flex-1 min-w-0"
                     >
-                      <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <FileText className="w-5 h-5 text-violet-600" />
+                      <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <FileText className="w-5 h-5 text-slate-600" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-slate-900 truncate">{t.fileName}</p>
@@ -1691,7 +1718,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                           <span>{new Date(t.date).toLocaleDateString()}</span>
                         </div>
                       </div>
-                      <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-violet-500 transition-colors" />
+                      <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-slate-600 transition-colors" />
                     </button>
                     <button
                       onClick={(e) => viewOriginalDocument(t.id, e)}
@@ -1740,7 +1767,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
               <>
                 <button
                   onClick={() => setShowAddRecordView(false)}
-                  className="text-violet-600 hover:text-violet-700 text-sm font-medium mb-4 inline-flex items-center gap-1"
+                  className="text-slate-600 hover:text-slate-800 text-sm font-medium mb-4 inline-flex items-center gap-1"
                 >
                   ← Back to My Records
                 </button>
@@ -1763,35 +1790,35 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
         {!result && (savedTranslations.length === 0 || showAddRecordView) && !claimedEmail && (
           <button
             onClick={() => setShowEmailModal(true)}
-            className="w-full mb-4 p-4 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-violet-500 rounded-xl text-white text-left group hover:shadow-lg hover:shadow-violet-500/25 transition-all"
+            className="w-full mb-4 p-4 bg-slate-900 rounded-xl text-white text-left group hover:bg-slate-800 transition-all"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
                   <Mail className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-lg">Get your @opencancer.ai email</span>
-                    <span className="px-2 py-0.5 bg-white/20 text-xs font-bold rounded-full">NEW</span>
+                    <span className="px-2 py-0.5 bg-[#C66B4A] text-xs font-bold rounded-full">NEW</span>
                   </div>
-                  <p className="text-white/80 text-sm">Forward medical docs there. They auto-appear in your vault.</p>
+                  <p className="text-slate-300 text-sm">Forward medical docs there. They auto-appear in your vault.</p>
                 </div>
               </div>
-              <ArrowRight className="w-5 h-5 text-white/70 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-5 h-5 text-slate-400 group-hover:translate-x-1 transition-transform" />
             </div>
           </button>
         )}
 
         {/* Claimed email banner */}
         {!result && claimedEmail && (savedTranslations.length === 0 || showAddRecordView) && (
-          <div className="w-full mb-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl">
+          <div className="w-full mb-4 p-4 bg-stone-100 border border-stone-200 rounded-xl">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+              <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
+                <CheckCircle2 className="w-5 h-5 text-slate-600" />
               </div>
               <div>
-                <p className="font-semibold text-slate-900">Your email: <span className="text-emerald-600">{claimedEmail}</span></p>
+                <p className="font-semibold text-slate-900">Your email: <span className="text-slate-700">{claimedEmail}</span></p>
                 <p className="text-sm text-slate-600">Forward medical documents there and they'll appear here automatically!</p>
               </div>
             </div>
@@ -1800,12 +1827,12 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
 
         {/* Tab Navigation - only show in upload-first mode */}
         {!result && (savedTranslations.length === 0 || showAddRecordView) && (
-          <div className="flex gap-2 mb-6 bg-slate-100 p-1 rounded-xl">
+          <div className="flex gap-2 mb-6 bg-stone-200 p-1 rounded-xl">
             <button
               onClick={() => setActiveTab('upload')}
               className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium transition-all ${
                 activeTab === 'upload'
-                  ? 'bg-white text-violet-700 shadow-sm'
+                  ? 'bg-white text-slate-900 shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -1816,13 +1843,13 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
               onClick={() => setActiveTab('portal')}
               className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium transition-all relative ${
                 activeTab === 'portal'
-                  ? 'bg-white text-violet-700 shadow-sm'
+                  ? 'bg-white text-slate-900 shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <Link2 className="w-4 h-4" />
               Connect Portal
-              <span className="absolute -top-2 -right-1 bg-amber-100 text-amber-700 text-[10px] font-semibold px-1.5 py-0.5 rounded-full border border-amber-200">
+              <span className="absolute -top-2 -right-1 bg-stone-100 text-slate-600 text-[10px] font-semibold px-1.5 py-0.5 rounded-full border border-stone-300">
                 Soon
               </span>
             </button>
@@ -1830,14 +1857,14 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
               onClick={() => setActiveTab('inbox')}
               className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium transition-all relative ${
                 activeTab === 'inbox'
-                  ? 'bg-white text-violet-700 shadow-sm'
+                  ? 'bg-white text-slate-900 shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <Inbox className="w-4 h-4" />
               Email Inbox
               {receivedEmails.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-violet-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-[#C66B4A] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
                   {receivedEmails.length}
                 </span>
               )}
@@ -1847,11 +1874,11 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
 
         {/* Upload Tab Content - only in upload-first mode */}
         {activeTab === 'upload' && !result && (savedTranslations.length === 0 || showAddRecordView) && (
-          <div className="bg-gradient-to-b from-white to-violet-50/30 rounded-2xl border border-slate-200 p-8 shadow-sm">
+          <div className="bg-white rounded-2xl border border-stone-200 p-8 shadow-sm">
             {/* Strong Privacy Banner */}
-            <div className="mb-6 flex items-center justify-center gap-3 px-4 py-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl">
-              <Shield className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-              <p className="text-sm text-emerald-800 font-medium">
+            <div className="mb-6 flex items-center justify-center gap-3 px-4 py-3 bg-stone-100 border border-stone-200 rounded-xl">
+              <Shield className="w-5 h-5 text-slate-600 flex-shrink-0" />
+              <p className="text-sm text-slate-700 font-medium">
                 {user
                   ? 'Private. Never sold. Encrypted and synced to your account.'
                   : 'Private. Never sold. Stored only on your device.'}
@@ -1860,10 +1887,10 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
 
             <div className="text-center mb-6">
               <div className="flex justify-center gap-2 mb-4">
-                <span className="inline-flex items-center gap-2 px-3 py-1 bg-violet-100 text-violet-700 text-sm font-medium rounded-full">
+                <span className="inline-flex items-center gap-2 px-3 py-1 bg-slate-100 text-slate-700 text-sm font-medium rounded-full">
                   NCCN guideline-informed
                 </span>
-                <span className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-100 text-emerald-700 text-sm font-medium rounded-full">
+                <span className="inline-flex items-center gap-2 px-3 py-1 bg-slate-100 text-slate-700 text-sm font-medium rounded-full">
                   Bulk upload supported
                 </span>
               </div>
@@ -1874,15 +1901,15 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
             {/* What you'll get */}
             <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mb-6 text-sm text-slate-600">
               <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-violet-500"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
                 Plain English summary
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-violet-500"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
                 Questions for your doctor
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-violet-500"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
                 Medical terms explained
               </span>
             </div>
@@ -1906,7 +1933,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 }
               }}
               className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all
-                ${isDragging ? 'border-violet-500 bg-violet-50' : file ? 'border-green-400 bg-green-50' : 'border-violet-300 bg-white hover:border-violet-500 hover:bg-violet-50/50'}`}
+                ${isDragging ? 'border-slate-500 bg-stone-100' : file ? 'border-green-400 bg-green-50' : 'border-stone-300 bg-white hover:border-slate-500 hover:bg-stone-50'}`}
             >
               <input ref={fileInputRef} type="file" onChange={handleFileSelect} accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg" multiple className="hidden" />
               {file ? (
@@ -1922,7 +1949,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 </div>
               ) : (
                 <div>
-                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-violet-100 to-purple-100 rounded-2xl flex items-center justify-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-2xl flex items-center justify-center">
                     <span className="text-3xl">📄</span>
                   </div>
                   <p className="font-semibold text-slate-900 text-lg">Drop your medical document here</p>
@@ -1941,7 +1968,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
               <button
                 onClick={handleTranslate}
                 disabled={isProcessing}
-                className="w-full mt-5 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 disabled:from-slate-300 disabled:to-slate-300 text-white font-semibold py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-2 text-lg shadow-lg shadow-violet-500/20"
+                className="w-full mt-5 bg-[#C66B4A] hover:bg-[#B35E40] disabled:bg-slate-300 text-white font-semibold py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-2 text-lg shadow-lg shadow-[#C66B4A]/20"
               >
                 {isProcessing ? (
                   <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />Analyzing your document...</>
@@ -1957,7 +1984,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 {/* Prominent progress indicator at TOP during processing */}
                 {/* Show when isProcessing OR when any file has 'processing' status (more robust) */}
                 {(isProcessing || uploadedFiles.some(f => f.status === 'processing')) && (
-                  <div className="bg-gradient-to-r from-violet-600 to-purple-600 rounded-xl p-4 text-white shadow-lg">
+                  <div className="bg-slate-900 rounded-xl p-4 text-white shadow-lg">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       <span className="font-semibold">
@@ -1980,8 +2007,8 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 {bulkComplete && !isProcessing && (
                   <div className={`rounded-xl p-4 shadow-lg ${
                     uploadedFiles.filter(f => f.status === 'error').length > 0
-                      ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white'
-                      : 'bg-gradient-to-r from-emerald-500 to-green-500 text-white'
+                      ? 'bg-[#C66B4A] text-white'
+                      : 'bg-slate-900 text-white'
                   }`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -2044,7 +2071,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                       className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
                         uf.status === 'completed' ? 'bg-green-50 border-green-200' :
                         uf.status === 'error' ? 'bg-red-50 border-red-200' :
-                        uf.status === 'processing' ? 'bg-violet-50 border-violet-300 ring-2 ring-violet-400 ring-offset-1' :
+                        uf.status === 'processing' ? 'bg-stone-100 border-slate-400 ring-2 ring-slate-400 ring-offset-1' :
                         'bg-slate-50 border-slate-200'
                       }`}
                     >
@@ -2052,7 +2079,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                         {uf.status === 'completed' ? '✓' :
                          uf.status === 'error' ? '✗' :
                          uf.status === 'processing' ? (
-                           <span className="w-5 h-5 border-2 border-violet-600 border-t-transparent rounded-full animate-spin inline-block" />
+                           <span className="w-5 h-5 border-2 border-slate-600 border-t-transparent rounded-full animate-spin inline-block" />
                          ) : '📄'}
                       </span>
                       <div className="flex-1 min-w-0">
@@ -2104,7 +2131,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                           setUploadedFiles([])
                           setBulkProgress({ current: 0, total: 0 })
                         }}
-                        className="bg-violet-600 hover:bg-violet-500 text-white font-semibold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
+                        className="bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
                       >
                         View My Records ({savedTranslations.length})
                       </button>
@@ -2120,7 +2147,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                   <button
                     onClick={handleBulkTranslate}
                     disabled={isProcessing}
-                    className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 disabled:from-slate-300 disabled:to-slate-300 text-white font-semibold py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-2 text-lg shadow-lg shadow-violet-500/20"
+                    className="w-full bg-[#C66B4A] hover:bg-[#B35E40] disabled:bg-slate-300 text-white font-semibold py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-2 text-lg shadow-lg shadow-[#C66B4A]/20"
                   >
                     {isProcessing ? (
                       <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />Processing files...</>
@@ -2146,7 +2173,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
 
             {/* Social proof */}
             <div className="mt-6 flex items-center justify-center gap-2 text-sm">
-              <span className="font-semibold text-violet-700">12,847</span>
+              <span className="font-semibold text-slate-700">{totalTranslations.toLocaleString()}</span>
               <span className="text-slate-600">records translated by patients like you</span>
             </div>
 
@@ -2215,7 +2242,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                     <button
                       key={provider.id}
                       onClick={() => setSelectedProvider(provider.id)}
-                      className="flex items-center gap-4 p-4 border border-slate-200 rounded-xl hover:border-violet-300 hover:bg-violet-50 transition-colors text-left"
+                      className="flex items-center gap-4 p-4 border border-slate-200 rounded-xl hover:border-slate-400 hover:bg-stone-50 transition-colors text-left"
                     >
                       <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-2xl">
                         {provider.icon}
@@ -2228,7 +2255,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                   ))}
                   <button
                     onClick={() => setSelectedProvider('other')}
-                    className="flex items-center gap-4 p-4 border border-dashed border-slate-300 rounded-xl hover:border-violet-300 hover:bg-violet-50 transition-colors text-left col-span-full"
+                    className="flex items-center gap-4 p-4 border border-dashed border-slate-300 rounded-xl hover:border-slate-400 hover:bg-stone-50 transition-colors text-left col-span-full"
                   >
                     <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center">
                       <Link2 className="w-6 h-6 text-slate-400" />
@@ -2265,7 +2292,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                         value={portalEmail}
                         onChange={(e) => setPortalEmail(e.target.value)}
                         placeholder="patient@email.com"
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
                       />
                     </div>
                     <div>
@@ -2275,7 +2302,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                         value={portalPassword}
                         onChange={(e) => setPortalPassword(e.target.value)}
                         placeholder="Your portal password"
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
                       />
                     </div>
                   </div>
@@ -2290,7 +2317,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                   <button
                     onClick={handleConnectPortal}
                     disabled={!portalEmail || isConnecting}
-                    className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 disabled:from-slate-300 disabled:to-slate-300 text-white font-semibold py-4 rounded-xl transition-all flex items-center justify-center gap-2"
+                    className="w-full bg-[#C66B4A] hover:bg-[#B35E40] disabled:bg-slate-300 text-white font-semibold py-4 rounded-xl transition-all flex items-center justify-center gap-2"
                   >
                     {isConnecting ? (
                       <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />Connecting...</>
@@ -2326,7 +2353,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-semibold text-slate-900 flex items-center gap-2">
-                    <Inbox className="w-5 h-5 text-violet-600" />
+                    <Inbox className="w-5 h-5 text-slate-600" />
                     Email Inbox
                   </h3>
                   <p className="text-sm text-slate-500 mt-1">
@@ -2336,7 +2363,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 <button
                   onClick={fetchReceivedEmails}
                   disabled={loadingEmails}
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-violet-600 hover:bg-violet-50 rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-stone-100 rounded-lg transition-colors"
                 >
                   <RefreshCw className={`w-4 h-4 ${loadingEmails ? 'animate-spin' : ''}`} />
                   Refresh
@@ -2347,8 +2374,8 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
             {/* Email List or Empty State */}
             {!claimedEmail ? (
               <div className="p-8 text-center">
-                <div className="w-16 h-16 bg-violet-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Mail className="w-8 h-8 text-violet-600" />
+                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Mail className="w-8 h-8 text-slate-600" />
                 </div>
                 <h4 className="font-semibold text-slate-900 mb-2">No email address yet</h4>
                 <p className="text-slate-500 text-sm mb-4">
@@ -2356,7 +2383,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 </p>
                 <button
                   onClick={() => setShowEmailModal(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-medium transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-[#C66B4A] hover:bg-[#B35E40] text-white rounded-lg font-medium transition-colors"
                 >
                   <Mail className="w-4 h-4" />
                   Claim Your Email
@@ -2364,7 +2391,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
               </div>
             ) : loadingEmails ? (
               <div className="p-8 text-center">
-                <div className="w-8 h-8 border-2 border-violet-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                <div className="w-8 h-8 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
                 <p className="text-slate-500">Loading emails...</p>
               </div>
             ) : receivedEmails.length === 0 ? (
@@ -2374,21 +2401,21 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 </div>
                 <h4 className="font-semibold text-slate-900 mb-2">No emails yet</h4>
                 <p className="text-slate-500 text-sm mb-4">
-                  Forward medical documents to <span className="font-medium text-violet-600">{claimedEmail}</span>
+                  Forward medical documents to <span className="font-medium text-slate-700">{claimedEmail}</span>
                 </p>
                 <div className="bg-slate-50 rounded-xl p-4 max-w-md mx-auto text-left">
                   <p className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-2">How it works:</p>
                   <ol className="text-sm text-slate-600 space-y-2">
                     <li className="flex items-start gap-2">
-                      <span className="w-5 h-5 bg-violet-100 text-violet-700 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0">1</span>
+                      <span className="w-5 h-5 bg-slate-200 text-slate-700 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0">1</span>
                       Forward any medical email to {claimedEmail}
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="w-5 h-5 bg-violet-100 text-violet-700 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0">2</span>
+                      <span className="w-5 h-5 bg-slate-200 text-slate-700 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0">2</span>
                       Attachments are automatically stored here
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="w-5 h-5 bg-violet-100 text-violet-700 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0">3</span>
+                      <span className="w-5 h-5 bg-slate-200 text-slate-700 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0">3</span>
                       Click to translate any document to plain English
                     </li>
                   </ol>
@@ -2400,7 +2427,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 <div className="p-4 border-b border-slate-200 bg-slate-50">
                   <button
                     onClick={() => setSelectedEmail(null)}
-                    className="text-sm text-violet-600 hover:text-violet-700 font-medium flex items-center gap-1"
+                    className="text-sm text-slate-600 hover:text-slate-800 font-medium flex items-center gap-1"
                   >
                     <ArrowRight className="w-4 h-4 rotate-180" />
                     Back to inbox
@@ -2421,16 +2448,16 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
 
                   {/* Attachments */}
                   {selectedEmail.attachments.length > 0 && (
-                    <div className="mb-4 p-4 bg-violet-50 border border-violet-200 rounded-xl">
-                      <p className="text-sm font-medium text-violet-700 mb-2 flex items-center gap-2">
+                    <div className="mb-4 p-4 bg-stone-100 border border-stone-200 rounded-xl">
+                      <p className="text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
                         <Paperclip className="w-4 h-4" />
                         {selectedEmail.attachments.length} Attachment{selectedEmail.attachments.length > 1 ? 's' : ''}
                       </p>
                       <div className="space-y-2">
                         {selectedEmail.attachments.map(att => (
-                          <div key={att.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-violet-100">
+                          <div key={att.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-stone-200">
                             <div className="flex items-center gap-3">
-                              <FileText className="w-5 h-5 text-violet-600" />
+                              <FileText className="w-5 h-5 text-slate-600" />
                               <div>
                                 <p className="text-sm font-medium text-slate-900">{att.filename}</p>
                                 <p className="text-xs text-slate-500">
@@ -2443,7 +2470,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                                 // TODO: Process attachment as medical record
                                 alert('Processing attachment coming soon!')
                               }}
-                              className="text-sm text-violet-600 hover:text-violet-700 font-medium"
+                              className="text-sm text-[#C66B4A] hover:text-[#B35E40] font-medium"
                             >
                               Translate →
                             </button>
@@ -2485,7 +2512,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                           {email.from_address}
                         </p>
                         {email.attachments.length > 0 && (
-                          <span className="flex items-center gap-1 text-xs text-violet-600 bg-violet-100 px-2 py-0.5 rounded-full">
+                          <span className="flex items-center gap-1 text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
                             <Paperclip className="w-3 h-3" />
                             {email.attachments.length}
                           </span>
@@ -2511,13 +2538,13 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
           <div className="space-y-4">
             {/* Breadcrumb - Back to Records */}
             {savedTranslations.length > 0 && (
-              <div className="flex items-center justify-between bg-violet-50 border border-violet-200 rounded-xl px-4 py-3">
+              <div className="flex items-center justify-between bg-stone-100 border border-stone-200 rounded-xl px-4 py-3">
                 <button
                   onClick={() => {
                     setResult(null)
                     setFile(null)
                   }}
-                  className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-medium transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-medium transition-colors"
                 >
                   <ArrowRight className="w-4 h-4 rotate-180" />
                   Back to Records ({savedTranslations.length})
@@ -2531,12 +2558,12 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
             {/* Header Card */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
+                <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
                   <span className="text-white text-xl">📋</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <h2 className="font-semibold text-slate-900 text-base truncate">{file?.name}</h2>
-                  <p className="text-sm text-violet-600 mt-0.5">{result.document_type}</p>
+                  <p className="text-sm text-slate-600 mt-0.5">{result.document_type}</p>
                   {result.processing_metadata?.confidence_level && result.processing_metadata.confidence_level !== 'High' && (
                     <p className={`text-xs mt-1 ${
                       result.processing_metadata.confidence_level === 'Moderate' ? 'text-amber-600' : 'text-slate-500'
@@ -2552,7 +2579,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                     className={`px-3 py-2 rounded-lg font-medium text-sm transition-colors flex items-center gap-1.5 ${
                       shareLinkCopied
                         ? 'bg-green-100 text-green-700'
-                        : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                     }`}
                   >
                     <Link2 className="w-3.5 h-3.5" />
@@ -2560,14 +2587,14 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                   </button>
                   <button
                     onClick={handleSendReport}
-                    className="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-medium text-sm transition-colors flex items-center gap-1.5"
+                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium text-sm transition-colors flex items-center gap-1.5"
                   >
                     <Mail className="w-3.5 h-3.5" />
                     Send Report
                   </button>
                   <button
                     onClick={() => setShowSaveModal(true)}
-                    className="px-3 py-2 bg-violet-100 hover:bg-violet-200 text-violet-700 rounded-lg font-medium text-sm transition-colors"
+                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium text-sm transition-colors"
                   >
                     Save
                   </button>
@@ -2583,8 +2610,8 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
 
             {/* Gentle acknowledgment - shows for cancer diagnoses */}
             {result.cancer_specific && result.cancer_specific.cancer_type !== 'unknown' && (
-              <div className="bg-gradient-to-r from-slate-50 to-violet-50 border border-slate-200 rounded-xl p-4 flex items-start gap-3">
-                <span className="text-lg">💜</span>
+              <div className="bg-stone-100 border border-stone-200 rounded-xl p-4 flex items-start gap-3">
+                <span className="text-lg">🤍</span>
                 <div>
                   <p className="text-slate-700 text-sm leading-relaxed">
                     This is a lot to take in. Take your time with this information. You don't have to process it all at once.
@@ -2609,7 +2636,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 <ul className="space-y-2">
                   {result.diagnosis.map((item, i) => (
                     <li key={i} className="flex items-start gap-3 text-base">
-                      <span className="w-6 h-6 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center text-sm font-medium flex-shrink-0 mt-0.5">{i + 1}</span>
+                      <span className="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-sm font-medium flex-shrink-0 mt-0.5">{i + 1}</span>
                       <span className="text-slate-700">{item}</span>
                     </li>
                   ))}
@@ -2645,9 +2672,9 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
               <Section id="cancer" icon={<Ribbon className="w-5 h-5" />} title="Cancer Information">
                 <div className="grid grid-cols-2 gap-4">
                   {result.cancer_specific.cancer_type !== 'unknown' && (
-                    <div className="bg-purple-50 rounded-xl p-4">
-                      <p className="text-purple-600 text-sm font-medium mb-1">Type</p>
-                      <p className="font-semibold text-purple-900 text-base">{result.cancer_specific.cancer_type}</p>
+                    <div className="bg-slate-100 rounded-xl p-4">
+                      <p className="text-slate-600 text-sm font-medium mb-1">Type</p>
+                      <p className="font-semibold text-slate-900 text-base">{result.cancer_specific.cancer_type}</p>
                     </div>
                   )}
                   {result.cancer_specific.stage !== 'unknown' && (
@@ -2678,22 +2705,22 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 <div className="mt-4 grid grid-cols-2 gap-3">
                   <Link
                     href={`/trials?cancer=${encodeURIComponent(result.cancer_specific.cancer_type)}`}
-                    className="flex items-center gap-3 p-3 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-xl transition-colors group"
+                    className="flex items-center gap-3 p-3 bg-stone-100 hover:bg-stone-200 border border-stone-200 rounded-xl transition-colors group"
                   >
                     <span className="text-lg">🔬</span>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-teal-900 text-sm">Find Clinical Trials</p>
-                      <p className="text-xs text-teal-700 truncate">For {result.cancer_specific.cancer_type}</p>
+                      <p className="font-medium text-slate-900 text-sm">Find Clinical Trials</p>
+                      <p className="text-xs text-slate-600 truncate">For {result.cancer_specific.cancer_type}</p>
                     </div>
                   </Link>
                   <Link
                     href="/records/case-review"
-                    className="flex items-center gap-3 p-3 bg-fuchsia-50 hover:bg-fuchsia-100 border border-fuchsia-200 rounded-xl transition-colors group"
+                    className="flex items-center gap-3 p-3 bg-slate-900 hover:bg-slate-800 rounded-xl transition-colors group"
                   >
                     <span className="text-lg">🧠</span>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-fuchsia-900 text-sm">AI Case Review</p>
-                      <p className="text-xs text-fuchsia-700">Synthesize all your records</p>
+                      <p className="font-medium text-white text-sm">AI Case Review</p>
+                      <p className="text-xs text-slate-300">Synthesize all your records</p>
                     </div>
                   </Link>
                 </div>
@@ -2705,16 +2732,16 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 <p className="text-slate-700 text-base leading-relaxed whitespace-pre-line">{result.questions_to_ask_doctor}</p>
                 <Link
                   href="/cancer-checklist"
-                  className="mt-4 flex items-center justify-between p-4 bg-violet-100 hover:bg-violet-200 rounded-xl transition-colors group"
+                  className="mt-4 flex items-center justify-between p-4 bg-stone-100 hover:bg-stone-200 rounded-xl transition-colors group"
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-xl">📋</span>
                     <div>
-                      <p className="font-medium text-violet-900">Bring these to your appointment</p>
-                      <p className="text-sm text-violet-700">Add to your Cancer Checklist →</p>
+                      <p className="font-medium text-slate-900">Bring these to your appointment</p>
+                      <p className="text-sm text-slate-600">Add to your Cancer Checklist →</p>
                     </div>
                   </div>
-                  <ArrowRight className="w-5 h-5 text-violet-600 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-5 h-5 text-slate-500 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Section>
             )}
@@ -2732,14 +2759,14 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                           document.querySelector('[placeholder*="Ask a question"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
                         }, 100)
                       }}
-                      className="w-full text-left bg-slate-50 hover:bg-violet-50 rounded-xl p-3 border border-slate-100 hover:border-violet-200 transition-colors group"
+                      className="w-full text-left bg-slate-50 hover:bg-stone-100 rounded-xl p-3 border border-slate-100 hover:border-slate-300 transition-colors group"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <p className="font-semibold text-violet-900 text-sm group-hover:text-violet-700">{term.term}</p>
+                          <p className="font-semibold text-slate-900 text-sm group-hover:text-slate-700">{term.term}</p>
                           <p className="text-slate-600 text-xs leading-relaxed line-clamp-2">{term.definition}</p>
                         </div>
-                        <span className="text-violet-400 group-hover:text-violet-600 flex-shrink-0 text-sm">→</span>
+                        <span className="text-slate-400 group-hover:text-slate-600 flex-shrink-0 text-sm">→</span>
                       </div>
                     </button>
                   ))}
@@ -2747,7 +2774,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 {result.technical_terms_explained.length > 4 && (
                   <button
                     onClick={() => setShowAllTerms(!showAllTerms)}
-                    className="w-full mt-3 py-2.5 text-sm text-violet-600 hover:text-violet-700 font-medium bg-violet-50 hover:bg-violet-100 rounded-lg transition-colors"
+                    className="w-full mt-3 py-2.5 text-sm text-slate-600 hover:text-slate-800 font-medium bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors"
                   >
                     {showAllTerms ? 'Show less' : `Show all ${result.technical_terms_explained.length} terms`}
                   </button>
@@ -2769,12 +2796,12 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
             )}
 
             {/* Share CTA */}
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-5 text-center">
-              <p className="text-green-800 font-medium mb-2">Did this help you understand your results?</p>
-              <p className="text-green-700 text-sm mb-4">Share with someone else who might benefit</p>
+            <div className="bg-stone-100 border border-stone-200 rounded-2xl p-5 text-center">
+              <p className="text-slate-800 font-medium mb-2">Did this help you understand your results?</p>
+              <p className="text-slate-600 text-sm mb-4">Share with someone else who might benefit</p>
               <button
                 onClick={() => setShowShareModal(true)}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-500 text-white font-medium rounded-xl transition-colors"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-xl transition-colors"
               >
                 <Share2 className="w-4 h-4" />
                 Share This Tool
@@ -2795,9 +2822,9 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
           {!chatOpen && (
             <button
               onClick={() => setChatOpen(true)}
-              className="fixed bottom-6 right-6 z-40 flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white rounded-full shadow-lg shadow-violet-500/30 transition-all hover:scale-105"
+              className="fixed bottom-6 right-6 z-40 flex items-center gap-3 px-5 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-full shadow-lg transition-all hover:scale-105"
             >
-              <AtomIcon size="sm" />
+              <ThinkingIndicator size={32} variant="dark" />
               <span className="font-medium">Ask about your results</span>
             </button>
           )}
@@ -2806,9 +2833,9 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
           <div className={`fixed top-0 right-0 h-full w-full sm:w-[420px] bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-out ${chatOpen ? 'translate-x-0' : 'translate-x-full'}`}>
             <div className="flex flex-col h-full">
               {/* Panel Header */}
-              <div className="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-violet-50 to-purple-50 flex items-center justify-between">
+              <div className="px-5 py-4 border-b border-slate-100 bg-stone-100 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <AtomIcon size="md" />
+                  <ThinkingIndicator size={40} variant="light" />
                   <div>
                     <h3 className="font-semibold text-slate-900">Your document assistant</h3>
                     <p className="text-xs text-slate-600">
@@ -2820,7 +2847,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 </div>
                 <button
                   onClick={() => setChatOpen(false)}
-                  className="p-2 hover:bg-violet-100 rounded-lg transition-colors text-slate-400 hover:text-slate-600"
+                  className="p-2 hover:bg-stone-200 rounded-lg transition-colors text-slate-400 hover:text-slate-600"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -2832,7 +2859,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
               <div className="flex-1 overflow-y-auto p-5 space-y-4">
                 {chatMessages.length === 0 && (
                   <div className="space-y-3">
-                    <div className="bg-violet-50 rounded-xl p-4 border border-violet-100">
+                    <div className="bg-stone-100 rounded-xl p-4 border border-stone-200">
                       <p className="text-sm text-slate-700">
                         {result?.cancer_specific?.cancer_type !== 'unknown'
                           ? `I've analyzed your ${result.document_type?.toLowerCase() || 'document'} and can answer questions using NCCN ${result.cancer_specific.cancer_type} guidelines.`
@@ -2857,9 +2884,9 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                         <button
                           key={i}
                           onClick={() => { setChatInput(q); setTimeout(handleAskQuestion, 50) }}
-                          className="flex items-center gap-3 w-full text-left p-3 bg-slate-50 hover:bg-violet-50 rounded-xl text-slate-700 hover:text-violet-700 transition-colors border border-slate-100 hover:border-violet-200 group"
+                          className="flex items-center gap-3 w-full text-left p-3 bg-slate-50 hover:bg-stone-100 rounded-xl text-slate-700 hover:text-slate-900 transition-colors border border-slate-100 hover:border-slate-300 group"
                         >
-                          <span className="text-violet-400 group-hover:text-violet-600 text-lg">→</span>
+                          <span className="text-slate-400 group-hover:text-slate-600 text-lg">→</span>
                           <span className="text-sm">{q}</span>
                         </button>
                       ))
@@ -2872,7 +2899,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                     key={i}
                     className={`${
                       msg.role === 'user'
-                        ? 'ml-6 bg-violet-100 text-violet-900 px-4 py-3 rounded-2xl rounded-tr-sm'
+                        ? 'ml-6 bg-slate-200 text-slate-900 px-4 py-3 rounded-2xl rounded-tr-sm'
                         : 'mr-2'
                     }`}
                   >
@@ -2893,9 +2920,9 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 {isChatLoading && (
                   <div className="mr-4 bg-slate-100 px-4 py-3 rounded-2xl rounded-tl-sm inline-block">
                     <div className="flex gap-1.5">
-                      <div className="w-2 h-2 bg-violet-400 rounded-full animate-bounce" />
-                      <div className="w-2 h-2 bg-violet-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                      <div className="w-2 h-2 bg-violet-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" />
+                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
                     </div>
                   </div>
                 )}
@@ -2911,12 +2938,12 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                     onChange={(e) => setChatInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleAskQuestion()}
                     placeholder="Ask about your results..."
-                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-white text-slate-900 placeholder:text-slate-400"
+                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent bg-white text-slate-900 placeholder:text-slate-400"
                   />
                   <button
                     onClick={handleAskQuestion}
                     disabled={!chatInput.trim() || isChatLoading}
-                    className="px-5 py-3 bg-violet-600 hover:bg-violet-500 disabled:bg-slate-300 text-white rounded-xl transition-colors font-medium"
+                    className="px-5 py-3 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white rounded-xl transition-colors font-medium"
                   >
                     Send
                   </button>
@@ -2957,21 +2984,21 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                   <button
                     onClick={handleSaveToCloud}
                     disabled={isSavingToCloud}
-                    className="w-full flex items-center gap-4 p-4 border-2 border-violet-200 bg-gradient-to-r from-violet-50 to-purple-50 rounded-xl hover:border-violet-400 transition-colors text-left"
+                    className="w-full flex items-center gap-4 p-4 border-2 border-slate-300 bg-stone-50 rounded-xl hover:border-slate-400 transition-colors text-left"
                   >
-                    <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center">
+                    <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
                       {isSavingToCloud ? (
-                        <div className="w-5 h-5 border-2 border-violet-600 border-t-transparent rounded-full animate-spin" />
+                        <div className="w-5 h-5 border-2 border-slate-600 border-t-transparent rounded-full animate-spin" />
                       ) : (
-                        <Cloud className="w-5 h-5 text-violet-600" />
+                        <Cloud className="w-5 h-5 text-slate-600" />
                       )}
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <p className="font-medium text-violet-900">Save to Account</p>
+                        <p className="font-medium text-slate-900">Save to Account</p>
                         {user && <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">Signed in</span>}
                       </div>
-                      <p className="text-xs text-violet-600">
+                      <p className="text-xs text-slate-600">
                         {user ? 'Access from any device · Secure cloud storage' : 'Sign in to save securely in the cloud'}
                       </p>
                     </div>
@@ -2983,7 +3010,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
 
                   <button
                     onClick={handleSaveToApp}
-                    className="w-full flex items-center gap-4 p-4 border border-slate-200 rounded-xl hover:border-violet-300 hover:bg-violet-50 transition-colors text-left"
+                    className="w-full flex items-center gap-4 p-4 border border-slate-200 rounded-xl hover:border-slate-400 hover:bg-stone-50 transition-colors text-left"
                   >
                     <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
                       <span>💾</span>
@@ -2996,7 +3023,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
 
                   <button
                     onClick={handleDownloadSummary}
-                    className="w-full flex items-center gap-4 p-4 border border-slate-200 rounded-xl hover:border-violet-300 hover:bg-violet-50 transition-colors text-left"
+                    className="w-full flex items-center gap-4 p-4 border border-slate-200 rounded-xl hover:border-slate-400 hover:bg-stone-50 transition-colors text-left"
                   >
                     <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
                       <Download className="w-5 h-5 text-slate-600" />
@@ -3026,8 +3053,8 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
           <div className="bg-white rounded-2xl max-w-md w-full p-6" onClick={e => e.stopPropagation()}>
             {reportSent ? (
               <div className="text-center py-6">
-                <div className="w-16 h-16 mx-auto mb-4 bg-emerald-100 rounded-full flex items-center justify-center">
-                  <CheckCircle2 className="w-8 h-8 text-emerald-600" />
+                <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-full flex items-center justify-center">
+                  <CheckCircle2 className="w-8 h-8 text-slate-600" />
                 </div>
                 <h2 className="text-xl font-bold text-slate-900 mb-2">Report Sent!</h2>
                 <p className="text-slate-600 mb-6">
@@ -3035,7 +3062,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 </p>
                 <button
                   onClick={() => setShowSendReportModal(false)}
-                  className="px-6 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-medium"
+                  className="px-6 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-medium"
                 >
                   Done
                 </button>
@@ -3043,8 +3070,8 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
             ) : (
               <>
                 <div className="text-center mb-6">
-                  <div className="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-blue-100 to-violet-100 rounded-full flex items-center justify-center">
-                    <Mail className="w-6 h-6 text-blue-600" />
+                  <div className="w-14 h-14 mx-auto mb-3 bg-slate-100 rounded-full flex items-center justify-center">
+                    <Mail className="w-6 h-6 text-slate-600" />
                   </div>
                   <h2 className="text-xl font-bold text-slate-900">Send Report</h2>
                   <p className="text-slate-600 text-sm mt-2">Email this summary to your doctor, caregiver, or family</p>
@@ -3060,7 +3087,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                       value={sendReportEmail}
                       onChange={(e) => setSendReportEmail(e.target.value)}
                       placeholder="doctor@hospital.com"
-                      className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -3072,7 +3099,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                       value={sendReportName}
                       onChange={(e) => setSendReportName(e.target.value)}
                       placeholder="Dr. Smith"
-                      className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
                     />
                   </div>
 
@@ -3118,8 +3145,8 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowShareModal(false)}>
           <div className="bg-white rounded-2xl max-w-md w-full p-6" onClick={e => e.stopPropagation()}>
             <div className="text-center mb-6">
-              <div className="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full flex items-center justify-center">
-                <Share2 className="w-6 h-6 text-green-600" />
+              <div className="w-14 h-14 mx-auto mb-3 bg-slate-100 rounded-full flex items-center justify-center">
+                <Share2 className="w-6 h-6 text-slate-600" />
               </div>
               <h2 className="text-xl font-bold text-slate-900">Share This Tool</h2>
               <p className="text-slate-600 text-sm mt-2">Help other patients understand their medical records</p>
@@ -3128,7 +3155,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
             <div className="space-y-3">
               <button
                 onClick={() => handleShare('copy')}
-                className="w-full flex items-center gap-4 p-4 border border-slate-200 rounded-xl hover:border-violet-300 hover:bg-violet-50 transition-colors text-left"
+                className="w-full flex items-center gap-4 p-4 border border-slate-200 rounded-xl hover:border-slate-400 hover:bg-stone-50 transition-colors text-left"
               >
                 <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
                   {copied ? '✓' : '📋'}
@@ -3205,8 +3232,8 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowPrivacyModal(false)}>
           <div className="bg-white rounded-2xl max-w-md w-full p-6" onClick={e => e.stopPropagation()}>
             <div className="text-center mb-6">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full flex items-center justify-center">
-                <Shield className="w-8 h-8 text-emerald-600" />
+              <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-full flex items-center justify-center">
+                <Shield className="w-8 h-8 text-slate-600" />
               </div>
               <h2 className="text-xl font-bold text-slate-900 mb-2">Your Privacy Matters</h2>
               <p className="text-slate-600">Before you upload, here's how we protect you:</p>
@@ -3214,8 +3241,8 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
 
             <div className="space-y-4 mb-6">
               <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-emerald-600 text-sm">✓</span>
+                <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-slate-600 text-sm">✓</span>
                 </div>
                 <div>
                   <p className="font-medium text-slate-900">Your data is yours</p>
@@ -3228,8 +3255,8 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-emerald-600 text-sm">✓</span>
+                <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-slate-600 text-sm">✓</span>
                 </div>
                 <div>
                   <p className="font-medium text-slate-900">Never sold</p>
@@ -3238,8 +3265,8 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-emerald-600 text-sm">✓</span>
+                <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-slate-600 text-sm">✓</span>
                 </div>
                 <div>
                   <p className="font-medium text-slate-900">You're in control</p>
@@ -3256,7 +3283,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 // Open file picker after acknowledgment
                 setTimeout(() => fileInputRef.current?.click(), 100)
               }}
-              className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold py-4 rounded-xl transition-all"
+              className="w-full bg-[#C66B4A] hover:bg-[#B35E40] text-white font-semibold py-4 rounded-xl transition-all"
             >
               I Understand, Continue
             </button>

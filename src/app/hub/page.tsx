@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { useActivityLog } from '@/hooks/useActivityLog'
+import { Navbar } from '@/components/Navbar'
 
 export default function HubPage() {
   const router = useRouter()
@@ -63,23 +64,19 @@ export default function HubPage() {
 
   return (
     <main className="min-h-screen bg-white text-slate-900">
+      <Navbar />
       {/* Hero */}
-      <section className="relative flex flex-col items-center justify-center px-8 pt-24 pb-16 overflow-hidden">
+      <section className="relative flex flex-col items-center justify-center px-8 pt-16 pb-16 overflow-hidden">
         {/* Background */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-rose-400/20 rounded-full blur-3xl" />
         <div className="absolute top-20 right-1/4 w-80 h-80 bg-pink-400/15 rounded-full blur-3xl" />
 
         <div className="relative text-center max-w-2xl">
-          <Link href="/" className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-900 text-sm mb-4 transition-colors">
-            <span>←</span> Home
-          </Link>
-
-          <Link href="/" className="flex items-center justify-center gap-2 mb-6">
-            <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">opencancer.ai</span>
+          <div className="flex items-center justify-center gap-2 mb-6">
             <span className="text-slate-400 text-sm">/</span>
             <span className="font-medium text-slate-700">CareCircle</span>
-          </Link>
+          </div>
 
           <div className="text-5xl mb-6">💝</div>
 
@@ -237,7 +234,7 @@ export default function HubPage() {
           <p className="text-slate-600 mb-4">Need help preparing for your next appointment?</p>
           <Link
             href="/cancer-checklist"
-            className="inline-block border border-slate-300 hover:border-violet-400 text-slate-700 hover:text-violet-600 font-semibold px-6 py-3 rounded-xl transition-all"
+            className="inline-block border border-slate-300 hover:border-orange-600 text-slate-700 hover:text-orange-600 font-semibold px-6 py-3 rounded-xl transition-all"
           >
             Try the Cancer Checklist →
           </Link>

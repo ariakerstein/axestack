@@ -11,6 +11,8 @@ import {
   Microscope, BookOpen, FlaskConical, FolderClosed, FolderOpen, UserRound,
   Heart, Users, Ribbon, DollarSign, Code, Share2, Copy, ShieldCheck, UserCheck
 } from 'lucide-react'
+import { Navbar } from '@/components/Navbar'
+import { ThinkingIndicator } from '@/components/ThinkingIndicator'
 
 // Cancer types for profile display
 const CANCER_TYPES: Record<string, string> = {
@@ -40,37 +42,6 @@ interface PatientProfile {
   location?: string
 }
 
-// Atom Animation Component
-function AtomIcon() {
-  return (
-    <div className="relative w-6 h-6" style={{ perspective: '150px', perspectiveOrigin: 'center' }}>
-      <div className="absolute inset-0 flex items-center justify-center z-10">
-        <div className="w-2.5 h-2.5 rounded-full" style={{
-          background: 'radial-gradient(circle at 30% 30%, #E879F9, #A855F7 50%, #7C3AED 100%)',
-          boxShadow: '0 2px 6px rgba(168, 85, 247, 0.4)'
-        }} />
-      </div>
-      <div className="absolute inset-0 animate-spin" style={{ animationDuration: '2.5s' }}>
-        <div className="absolute top-1/2 -left-0.5 -translate-y-1/2 w-1.5 h-1.5 rounded-full" style={{
-          background: 'radial-gradient(circle at 35% 35%, #C4B5FD, #8B5CF6 50%, #6D28D9 100%)',
-          boxShadow: '0 1px 3px rgba(139, 92, 246, 0.5)'
-        }} />
-      </div>
-      <div className="absolute inset-0 animate-spin" style={{ animationDuration: '3s', animationDirection: 'reverse' }}>
-        <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full" style={{
-          background: 'radial-gradient(circle at 35% 35%, #67E8F9, #06B6D4 50%, #0891B2 100%)',
-          boxShadow: '0 1px 3px rgba(6, 182, 212, 0.5)'
-        }} />
-      </div>
-      <div className="absolute inset-0 flex items-center justify-center" style={{ transformStyle: 'preserve-3d' }}>
-        <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{
-          background: 'radial-gradient(circle at 35% 35%, #FBCFE8, #EC4899 50%, #DB2777 100%)',
-          boxShadow: '0 1px 3px rgba(236, 72, 153, 0.5)',
-        }} />
-      </div>
-    </div>
-  )
-}
 
 // Rotating cancer demos with medical jargon → plain English
 const CANCER_DEMOS = [
@@ -283,67 +254,41 @@ function HomeContent() {
   }, [])
 
   return (
-    <main className="min-h-screen bg-white text-slate-900">
+    <main className="min-h-screen bg-[#f5f3ee] text-slate-900">
+      <Navbar />
+
       {/* Success Toast */}
       {showSuccess && (
         <div
-          className="fixed top-4 left-1/2 z-50 bg-emerald-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3"
+          className="fixed top-4 left-1/2 z-50 bg-slate-900 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3"
           style={{ transform: 'translateX(-50%)', animation: 'slideDown 0.3s ease-out' }}
         >
           <Check className="w-5 h-5" />
           <div>
             <p className="font-medium">Profile saved!</p>
-            <p className="text-sm text-emerald-100">Your tools are now personalized</p>
+            <p className="text-sm text-slate-300">Your tools are now personalized</p>
           </div>
         </div>
       )}
 
       {/* Hero */}
       <section className="relative flex flex-col items-center justify-center px-8 pt-16 pb-8 overflow-hidden">
-        {/* Background grid */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-violet-400/20 rounded-full blur-3xl" />
-        <div className="absolute top-20 right-1/4 w-80 h-80 bg-fuchsia-400/15 rounded-full blur-3xl" />
-
         <div className="relative text-center max-w-4xl">
           {authLoading ? (
             /* Show minimal loading state while auth loads */
             <div className="py-8">
-              <h1 className="text-5xl md:text-6xl font-bold mb-4">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500">
-                  opencancer
-                </span>
-                <span className="text-slate-400">.ai</span>
-              </h1>
-              <div className="animate-pulse text-slate-400 mt-4">Loading...</div>
+              <div className="animate-pulse text-slate-400">Loading...</div>
             </div>
           ) : profile ? (
             <>
-              {/* Brand */}
-              <h1 className="text-4xl md:text-5xl font-bold mb-6">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500">
-                  opencancer
-                </span>
-                <span className="text-slate-400">.a</span>
-                <span className="relative inline-block">
-                  <span className="text-slate-400">ı</span>
-                  <span className="absolute -top-[0.12em] left-1/2 -translate-x-1/2 scale-50 origin-center">
-                    <AtomIcon />
-                  </span>
-                </span>
+              {/* Patient name is the hero - most important element on page */}
+              <h1 className="text-4xl md:text-5xl font-bold mb-3">
+                Welcome back, <span className="text-[#C66B4A]">{profile.name.split(' ')[0]}</span>
               </h1>
-
-              <p className="text-2xl md:text-3xl font-semibold text-slate-700 mb-3">
-                Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">{profile.name.split(' ')[0]}</span>
-              </p>
 
               {/* Personalization row - all in one clean line */}
               <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
-                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${
-                  profile.role === 'caregiver'
-                    ? 'bg-purple-100 text-purple-700'
-                    : 'bg-violet-100 text-violet-700'
-                }`}>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-slate-100 text-slate-700">
                   {profile.role === 'caregiver' ? <><Heart className="w-3.5 h-3.5" /> Caregiver</> : <><Ribbon className="w-3.5 h-3.5" /> Patient</>}
                 </span>
                 <span className="text-slate-300">·</span>
@@ -355,33 +300,20 @@ function HomeContent() {
                   </>
                 )}
                 <span className="text-slate-300">·</span>
-                <Link href="/profile" className="text-violet-600 hover:text-violet-700 text-sm font-medium">
+                <Link href="/profile" className="text-slate-900 hover:text-[#C66B4A] text-sm font-medium underline underline-offset-2">
                   Edit
                 </Link>
               </div>
             </>
           ) : (
             <>
-              <h1 className="text-5xl md:text-6xl font-bold mb-4">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500">
-                  opencancer
-                </span>
-                <span className="text-slate-400">.a</span>
-                <span className="relative inline-block">
-                  {/* Dotless i (ı) with atom as the dot */}
-                  <span className="text-slate-400">ı</span>
-                  <span className="absolute -top-[0.12em] left-1/2 -translate-x-1/2 scale-50 origin-center">
-                    <AtomIcon />
-                  </span>
-                </span>
+              <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
+                Navigate your diagnosis<br />
+                <span className="font-normal">with clarity</span>
               </h1>
 
-              <p className="text-2xl text-slate-600 mb-4 font-light">
-                Tools for the AI-enabled patient & caregiver.
-              </p>
-
-              <p className="text-slate-500 max-w-xl mx-auto mb-8">
-                In 2018, I was diagnosed with cancer as a new dad. The medical system gave me confusion and overwhelm. This site exists because patients deserve better.
+              <p className="text-xl text-slate-600 mb-6 max-w-lg mx-auto">
+                Free AI tools for cancer patients and caregivers. Built by a survivor.
               </p>
 
             </>
@@ -393,13 +325,13 @@ function HomeContent() {
       {!authLoading && !profile && (
         <section className="px-8 pb-10 -mt-2">
           <div className="max-w-2xl mx-auto">
-            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-white border-2 border-slate-900 rounded-2xl shadow-sm overflow-hidden">
               {/* Cancer type indicator */}
-              <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500 px-4 py-2 flex items-center justify-center gap-2">
-                <span className="text-white/80 text-xs font-medium">Now showing:</span>
+              <div className="bg-slate-900 px-4 py-2 flex items-center justify-center gap-2">
+                <span className="text-slate-400 text-xs font-medium">Now showing:</span>
                 <span
                   key={currentDemo.type}
-                  className="text-white font-semibold text-sm capitalize animate-pulse"
+                  className="text-white font-semibold text-sm capitalize"
                   style={{ animation: 'fadeInUp 0.5s ease-out' }}
                 >
                   {currentDemo.type}
@@ -420,7 +352,7 @@ function HomeContent() {
                 </div>
                 {/* After */}
                 <div className="p-5 relative overflow-hidden">
-                  <p className="text-xs font-medium text-violet-600 uppercase tracking-wider mb-2">We translate to</p>
+                  <p className="text-xs font-medium text-slate-900 uppercase tracking-wider mb-2">We translate to</p>
                   <p
                     key={`plain-${currentDemo.type}`}
                     className="text-sm text-slate-700 leading-relaxed transition-opacity duration-500"
@@ -431,15 +363,15 @@ function HomeContent() {
                 </div>
               </div>
               {/* CTA + Social proof */}
-              <div className="border-t border-slate-100 p-4 bg-gradient-to-r from-violet-50/50 to-transparent">
+              <div className="border-t border-slate-200 p-4 bg-slate-50">
                 <div className="flex items-center justify-between gap-3">
-                  <Link href="/about" className="flex items-center gap-2 hover:opacity-80 transition-opacity py-2 -my-1 min-w-0">
-                    <img src="/ari.png" alt="Ari" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
-                    <p className="text-xs text-slate-500 truncate"><span className="font-medium text-slate-700">Built by a survivor</span></p>
+                  <Link href="/about" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity py-2 -my-1 min-w-0">
+                    <img src="/ari.png" alt="Ari" className="w-10 h-10 rounded-full object-cover flex-shrink-0 ring-2 ring-slate-200" />
+                    <p className="text-sm text-slate-500 truncate"><span className="font-medium text-slate-700">Built by a survivor</span></p>
                   </Link>
                   <button
                     onClick={() => { setShowWizardModal(true); setWizardStep(1); setWizardRole(null); }}
-                    className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold px-4 sm:px-8 py-3 rounded-xl transition-all shadow-lg shadow-orange-500/25 hover:shadow-xl hover:scale-105 min-h-[44px] whitespace-nowrap flex-shrink-0"
+                    className="bg-[#C66B4A] hover:bg-[#B35E40] text-white font-semibold px-4 sm:px-8 py-3 rounded-xl transition-all shadow-lg shadow-[#C66B4A]/25 hover:shadow-xl min-h-[44px] whitespace-nowrap flex-shrink-0"
                   >
                     Start Here →
                   </button>
@@ -476,9 +408,9 @@ function HomeContent() {
             </button>
 
             {/* Header with value prop - always visible */}
-            <div className="bg-gradient-to-r from-violet-600 to-fuchsia-600 px-6 py-5 text-white text-center">
+            <div className="bg-slate-900 px-6 py-5 text-white text-center">
               <h2 className="text-xl font-bold">Get Personalized Guidance</h2>
-              <p className="text-violet-100 text-sm mt-1">60 seconds to AI insights tailored to your diagnosis</p>
+              <p className="text-slate-400 text-sm mt-1">60 seconds to AI insights tailored to your diagnosis</p>
             </div>
 
             <div className="p-6 sm:p-8">
@@ -488,13 +420,13 @@ function HomeContent() {
                   <div key={step} className="flex items-center">
                     <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
                       wizardStep >= step
-                        ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/30'
+                        ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/30'
                         : 'bg-slate-100 text-slate-400'
                     }`}>
                       {wizardStep > step ? <Check className="w-5 h-5" /> : step}
                     </div>
                     {step < 3 && (
-                      <div className={`w-12 h-1 rounded ${wizardStep > step ? 'bg-violet-600' : 'bg-slate-200'}`} />
+                      <div className={`w-12 h-1 rounded ${wizardStep > step ? 'bg-slate-900' : 'bg-slate-200'}`} />
                     )}
                   </div>
                 ))}
@@ -509,20 +441,20 @@ function HomeContent() {
                   <div className="grid grid-cols-2 gap-4">
                     <button
                       onClick={() => { setWizardRole('patient'); setWizardStep(2); }}
-                      className="group bg-gradient-to-br from-violet-50 to-white border-2 border-slate-200 rounded-2xl p-6 hover:border-violet-400 hover:shadow-xl hover:scale-[1.02] transition-all text-center"
+                      className="group bg-white border-2 border-slate-200 rounded-2xl p-6 hover:border-slate-900 hover:shadow-xl hover:scale-[1.02] transition-all text-center"
                     >
-                      <div className="w-16 h-16 bg-violet-100 group-hover:bg-violet-200 rounded-2xl flex items-center justify-center mx-auto mb-3 transition-colors">
-                        <Ribbon className="w-9 h-9 text-violet-600" />
+                      <div className="w-16 h-16 bg-slate-100 group-hover:bg-slate-200 rounded-2xl flex items-center justify-center mx-auto mb-3 transition-colors">
+                        <Ribbon className="w-9 h-9 text-slate-700" />
                       </div>
                       <span className="font-bold text-slate-900 text-lg block">I'm a Patient</span>
                       <span className="text-sm text-slate-500 mt-1 block">Navigating my own diagnosis</span>
                     </button>
                     <button
                       onClick={() => { setWizardRole('caregiver'); setWizardStep(2); }}
-                      className="group bg-gradient-to-br from-pink-50 to-white border-2 border-slate-200 rounded-2xl p-6 hover:border-pink-400 hover:shadow-xl hover:scale-[1.02] transition-all text-center"
+                      className="group bg-white border-2 border-slate-200 rounded-2xl p-6 hover:border-slate-900 hover:shadow-xl hover:scale-[1.02] transition-all text-center"
                     >
-                      <div className="w-16 h-16 bg-pink-100 group-hover:bg-pink-200 rounded-2xl flex items-center justify-center mx-auto mb-3 transition-colors">
-                        <Heart className="w-9 h-9 text-pink-600" />
+                      <div className="w-16 h-16 bg-slate-100 group-hover:bg-slate-200 rounded-2xl flex items-center justify-center mx-auto mb-3 transition-colors">
+                        <Heart className="w-9 h-9 text-slate-700" />
                       </div>
                       <span className="font-bold text-slate-900 text-lg block">I'm a Caregiver</span>
                       <span className="text-sm text-slate-500 mt-1 block">Supporting a loved one</span>
@@ -533,17 +465,17 @@ function HomeContent() {
                   <div className="mt-6 pt-5 border-t border-slate-100">
                     <div className="flex items-center justify-center gap-4 text-xs text-slate-500">
                       <span className="flex items-center gap-1.5">
-                        <Dna className="w-4 h-4 text-emerald-500" />
+                        <Dna className="w-4 h-4 text-slate-600" />
                         AI Case Review
                       </span>
                       <span className="text-slate-300">·</span>
                       <span className="flex items-center gap-1.5">
-                        <CheckCircle className="w-4 h-4 text-blue-500" />
+                        <CheckCircle className="w-4 h-4 text-slate-600" />
                         Care Checklist
                       </span>
                       <span className="text-slate-300">·</span>
                       <span className="flex items-center gap-1.5">
-                        <Microscope className="w-4 h-4 text-orange-500" />
+                        <Microscope className="w-4 h-4 text-slate-600" />
                         Clinical Trials
                       </span>
                     </div>
@@ -552,9 +484,9 @@ function HomeContent() {
                   {/* Social proof */}
                   <div className="mt-6 flex items-center justify-center gap-2 text-sm text-slate-500">
                     <div className="flex -space-x-2">
-                      <div className="w-6 h-6 rounded-full bg-violet-200 ring-2 ring-white" />
-                      <div className="w-6 h-6 rounded-full bg-pink-200 ring-2 ring-white" />
-                      <div className="w-6 h-6 rounded-full bg-blue-200 ring-2 ring-white" />
+                      <div className="w-6 h-6 rounded-full bg-slate-300 ring-2 ring-white" />
+                      <div className="w-6 h-6 rounded-full bg-slate-400 ring-2 ring-white" />
+                      <div className="w-6 h-6 rounded-full bg-slate-500 ring-2 ring-white" />
                     </div>
                     <span>Join <span className="font-semibold text-slate-700">2,400+</span> patients & caregivers</span>
                   </div>
@@ -582,7 +514,7 @@ function HomeContent() {
                         onChange={(e) => setWizardName(e.target.value)}
                         placeholder="First name"
                         autoFocus
-                        className="w-full px-4 py-3.5 bg-slate-50 text-slate-900 placeholder:text-slate-400 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent focus:bg-white transition-colors"
+                        className="w-full px-4 py-3.5 bg-slate-50 text-slate-900 placeholder:text-slate-400 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent focus:bg-white transition-colors"
                       />
                     </div>
                     <div>
@@ -592,13 +524,13 @@ function HomeContent() {
                         value={wizardEmail}
                         onChange={(e) => setWizardEmail(e.target.value)}
                         placeholder="you@example.com"
-                        className="w-full px-4 py-3.5 bg-slate-50 text-slate-900 placeholder:text-slate-400 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent focus:bg-white transition-colors"
+                        className="w-full px-4 py-3.5 bg-slate-50 text-slate-900 placeholder:text-slate-400 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent focus:bg-white transition-colors"
                       />
                     </div>
                     <button
                       onClick={() => wizardName.trim() && setWizardStep(3)}
                       disabled={!wizardName.trim()}
-                      className="w-full bg-violet-600 hover:bg-violet-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold py-3.5 rounded-xl transition-colors shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40"
+                      className="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold py-3.5 rounded-xl transition-colors shadow-lg shadow-slate-900/25"
                     >
                       Continue →
                     </button>
@@ -613,12 +545,12 @@ function HomeContent() {
               {/* Email Sent Confirmation */}
               {wizardEmailSent && (
                 <div className="text-center py-4">
-                  <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Check className="w-8 h-8 text-emerald-600" />
+                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Check className="w-8 h-8 text-slate-900" />
                   </div>
                   <h3 className="text-xl font-bold text-slate-900 mb-2">Check your email!</h3>
                   <p className="text-slate-600 mb-4">
-                    We sent a sign-in link to <span className="font-semibold text-violet-600">{wizardEmail}</span>
+                    We sent a sign-in link to <span className="font-semibold text-slate-900">{wizardEmail}</span>
                   </p>
                   <p className="text-sm text-slate-500 mb-6">
                     Click the link to sign in and start using your personalized cancer toolkit.
@@ -632,7 +564,7 @@ function HomeContent() {
                         setWizardEmailSent(false)
                         router.push('/records')
                       }}
-                      className="text-sm text-slate-500 hover:text-violet-600 underline"
+                      className="text-sm text-slate-500 hover:text-[#C66B4A] underline"
                     >
                       Continue without signing in →
                     </button>
@@ -655,7 +587,7 @@ function HomeContent() {
                     <select
                       value={wizardCancerType}
                       onChange={(e) => setWizardCancerType(e.target.value)}
-                      className="w-full px-4 py-3.5 bg-slate-50 text-slate-900 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent focus:bg-white transition-colors"
+                      className="w-full px-4 py-3.5 bg-slate-50 text-slate-900 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent focus:bg-white transition-colors"
                     >
                       <option value="">Select cancer type...</option>
                       {Object.entries(CANCER_TYPES).map(([key, label]) => (
@@ -665,11 +597,11 @@ function HomeContent() {
 
                     {/* Summary */}
                     {wizardCancerType && (
-                      <div className="bg-gradient-to-br from-violet-50 to-fuchsia-50 rounded-xl p-4 border border-violet-100">
-                        <p className="text-xs font-semibold text-violet-600 uppercase tracking-wide mb-2">Your Profile</p>
+                      <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2">Your Profile</p>
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
-                            {wizardRole === 'caregiver' ? <Heart className="w-6 h-6 text-pink-500" /> : <Ribbon className="w-6 h-6 text-violet-500" />}
+                          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-200">
+                            {wizardRole === 'caregiver' ? <Heart className="w-6 h-6 text-slate-700" /> : <Ribbon className="w-6 h-6 text-slate-700" />}
                           </div>
                           <div>
                             <p className="font-semibold text-slate-900">{wizardName}</p>
@@ -752,7 +684,7 @@ function HomeContent() {
                         }).catch(err => console.warn('Welcome email failed:', err))
                       }}
                       disabled={!wizardCancerType || !wizardEmail.trim() || wizardSaving}
-                      className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl transition-all shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 flex items-center justify-center gap-2"
+                      className="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl transition-all shadow-lg shadow-slate-900/25 flex items-center justify-center gap-2"
                     >
                       {wizardSaving ? (
                         <>
@@ -779,10 +711,11 @@ function HomeContent() {
       )}
 
       {/* Patient Tools Grid */}
-      <section className="py-10 px-8 bg-slate-50">
+      <section className="py-10 px-8">
         <div className="max-w-4xl mx-auto">
           {profile ? (
             <>
+              <p className="text-xs font-medium tracking-widest text-slate-400 text-center mb-2">PATIENT TOOLS</p>
               <h2 className="text-2xl font-bold text-center mb-2 text-slate-900">
                 Recommended for You
               </h2>
@@ -792,169 +725,178 @@ function HomeContent() {
             </>
           ) : (
             <>
-              <h2 className="text-2xl font-bold text-center mb-2 text-slate-900">
-                <span className="text-violet-600">Patient Tools:</span> Facing cancer yourself?
+              <p className="text-xs font-medium tracking-widest text-slate-400 text-center mb-2">PATIENT TOOLS</p>
+              <h2 className="text-3xl font-bold text-center mb-3 text-slate-900">
+                Facing cancer?
               </h2>
               <p className="text-slate-500 text-center mb-4 text-sm max-w-lg mx-auto">
-                The average cancer patient waits 6+ weeks for a second opinion. Get AI-powered insights in minutes, grounded in the same NCCN guidelines your doctors use.
+                The average patient waits 6+ weeks for a second opinion. Get AI-powered guidance in minutes, grounded in NCCN guidelines.
               </p>
-              <p className="text-center mb-6">
+              <p className="text-center mb-8">
                 <button
                   onClick={() => { setShowWizardModal(true); setWizardStep(1); setWizardRole(null); }}
-                  className="text-sm text-violet-600 hover:text-violet-700 font-medium underline underline-offset-2"
+                  className="text-sm text-slate-900 hover:text-slate-600 font-medium underline underline-offset-4"
                 >
-                  Not sure where to start? Let us guide you →
+                  Not sure where to start — let us guide you →
                 </button>
               </p>
             </>
           )}
 
-          {/* Core Tools - Always visible */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-            {/* AI Case Review - Featured */}
-            <Link href="/records" className="group bg-gradient-to-br from-violet-100 to-fuchsia-50 border-2 border-violet-300 rounded-xl p-5 hover:border-violet-500 hover:shadow-lg transition-all relative">
-              <span className="absolute -top-2 -right-2 bg-gradient-to-r from-amber-400 to-orange-400 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md">
-                Most Popular
+          {/* START HERE - Featured tools */}
+          <p className="text-xs font-medium tracking-widest text-slate-400 mb-3">START HERE</p>
+          <div className="grid md:grid-cols-3 gap-4 mb-8">
+            {/* AI Case Review - Most Popular */}
+            <Link href="/records" className="group bg-white border-2 border-slate-900 rounded-xl p-5 hover:shadow-lg transition-all relative">
+              <span className="absolute -top-2.5 left-4 bg-[#C66B4A] text-white text-[10px] font-medium px-2.5 py-1 rounded">
+                Most popular
               </span>
-              <div className="flex items-center gap-2 mb-2">
-                <Dna className="w-6 h-6 text-violet-600" />
-                <h3 className="font-bold text-slate-900 group-hover:text-violet-700">AI Case Review</h3>
+              <div className="mb-3 mt-1">
+                <CheckCircle className="w-6 h-6 text-slate-700" />
               </div>
-              <p className="text-slate-600 text-sm">Upload your records. Get a complete second opinion based on NCCN guidelines.</p>
+              <h3 className="font-bold text-slate-900 mb-1">AI case review</h3>
+              <p className="text-slate-600 text-sm mb-3">Upload your records. Get a complete second opinion based on NCCN guidelines.</p>
+              <div className="flex flex-wrap gap-2">
+                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-900 text-white font-medium">NCCN guidelines</span>
+                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">Minutes, not weeks</span>
+              </div>
             </Link>
 
-            <Link href="/cancer-checklist" className="group bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-5 hover:border-blue-500 hover:shadow-lg transition-all relative">
-              <span className="absolute -top-2 -right-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md">
-                ⭐ Most Popular
+            {/* Combat - Trending */}
+            <Link href="/combat" className="group bg-white border-2 border-slate-900 rounded-xl p-5 hover:shadow-lg transition-all relative">
+              <span className="absolute -top-2.5 left-4 bg-[#C66B4A] text-white text-[10px] font-medium px-2.5 py-1 rounded">
+                Trending
               </span>
-              <div className="flex items-center gap-2 mb-2">
-                <CheckCircle className="w-6 h-6 text-blue-600" />
-                <h3 className="font-bold text-slate-900 group-hover:text-blue-700">Appointment Prep</h3>
-              </div>
-              <p className="text-slate-600 text-sm">Questions to ask + scripts for your oncologist visit.</p>
-            </Link>
-
-            <Link href="/combat" className="group bg-gradient-to-br from-orange-50 to-red-50 border-2 border-orange-300 rounded-xl p-5 hover:border-orange-500 hover:shadow-lg transition-all relative">
-              <span className="absolute -top-2 -right-2 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md">
-                🔥 Trending
-              </span>
-              <div className="flex items-center gap-2 mb-2">
+              <div className="mb-3 mt-1">
                 <span className="text-2xl">⚔️</span>
-                <h3 className="font-bold text-slate-900 group-hover:text-orange-600">CancerCombat</h3>
               </div>
-              <p className="text-slate-600 text-sm">3 AI perspectives debate your diagnosis & treatment options.</p>
+              <h3 className="font-bold text-slate-900 mb-1">Cancer Combat</h3>
+              <p className="text-slate-600 text-sm mb-3">3 AI perspectives debate your diagnosis and treatment options.</p>
+              <div className="flex flex-wrap gap-2">
+                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">Adversarial AI</span>
+                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">Upload records</span>
+              </div>
             </Link>
 
-            <Link href="/records" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-emerald-400 hover:shadow-md transition-all relative">
-              <div className="flex items-center gap-2 mb-2">
-                <FolderClosed className="w-6 h-6 text-emerald-500" />
-                <h3 className="font-bold text-slate-900 group-hover:text-emerald-600">Records Vault</h3>
+            {/* Appointment Prep */}
+            <Link href="/cancer-checklist" className="group bg-white border-2 border-slate-900 rounded-xl p-5 hover:shadow-lg transition-all">
+              <div className="mb-3">
+                <CheckCircle className="w-6 h-6 text-slate-700" />
               </div>
+              <h3 className="font-bold text-slate-900 mb-1">Appointment prep</h3>
+              <p className="text-slate-600 text-sm mb-3">Questions to ask your oncologist, tailored to your diagnosis.</p>
+              <div className="flex flex-wrap gap-2">
+                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">Before your visit</span>
+              </div>
+            </Link>
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-slate-200 mb-6"></div>
+
+          {/* ALL TOOLS */}
+          <p className="text-xs font-medium tracking-widest text-slate-400 mb-3">ALL TOOLS</p>
+          <div className="grid md:grid-cols-3 gap-4">
+            <Link href="/records" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
+              <div className="mb-3">
+                <FolderClosed className="w-6 h-6 text-slate-600" />
+              </div>
+              <h3 className="font-bold text-slate-900 mb-1">Records Vault</h3>
               <p className="text-slate-600 text-sm mb-2">Translate confusing medical reports to plain English.</p>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] text-violet-600 font-medium">1,000+ patients</span>
-                <span className="text-[10px] text-emerald-600 flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3" /> Private
-                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">1,000+ patients</span>
+                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">Private</span>
               </div>
             </Link>
 
-            <Link href="/ask" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-fuchsia-400 hover:shadow-md transition-all">
-              <div className="flex items-center gap-2 mb-2">
-                <AtomIcon />
-                <h3 className="font-bold text-slate-900 group-hover:text-fuchsia-600">Ask Navis</h3>
+            <Link href="/ask" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
+              <div className="mb-3">
+                <ThinkingIndicator size={24} variant="light" />
               </div>
-              <p className="text-slate-600 text-sm">Questions about treatments, tests, or side effects.</p>
-              <p className="text-[10px] text-slate-400 mt-1.5">Powered by Claude • OpenAI • Gemini</p>
+              <h3 className="font-bold text-slate-900 mb-1">Ask Navis</h3>
+              <p className="text-slate-600 text-sm mb-2">Questions about treatments, tests, or side effects.</p>
+              <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">Claude · OpenAI · Gemini</span>
             </Link>
 
-            <Link href="/trials" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-400 hover:shadow-md transition-all">
-              <div className="flex items-center gap-2 mb-2">
-                <Microscope className="w-6 h-6 text-blue-500" />
-                <h3 className="font-bold text-slate-900 group-hover:text-blue-600">Clinical Trials</h3>
+            <Link href="/trials" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
+              <div className="mb-3">
+                <Microscope className="w-6 h-6 text-slate-600" />
               </div>
-              <p className="text-slate-600 text-sm mb-2">Find trials matched to your diagnosis and location.</p>
+              <h3 className="font-bold text-slate-900 mb-1">Clinical Trials</h3>
+              <p className="text-slate-600 text-sm mb-2">Trials matched to your diagnosis and location.</p>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-medium">ClinicalTrials.gov</span>
-                <span className="text-[10px] text-slate-400 flex items-center gap-1">
-                  Powered by <img src="/biomcp-logo.png" alt="BioMCP" className="h-4 w-4 inline-block" /> <span className="font-medium text-slate-600">BioMCP</span>
-                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">ClinicalTrials.gov</span>
+                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">BioMCP</span>
               </div>
             </Link>
 
-            <Link href="/coverage" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-emerald-400 hover:shadow-md transition-all">
-              <div className="flex items-center gap-2 mb-2">
-                <DollarSign className="w-6 h-6 text-emerald-500" />
-                <h3 className="font-bold text-slate-900 group-hover:text-emerald-600">Financial Coverage</h3>
+            <Link href="/coverage" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
+              <div className="mb-3">
+                <DollarSign className="w-6 h-6 text-slate-600" />
               </div>
+              <h3 className="font-bold text-slate-900 mb-1">Financial Coverage</h3>
               <p className="text-slate-600 text-sm mb-2">What's covered + financial assistance programs.</p>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">Medicare 2026</span>
+              <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">Medicare 2026</span>
             </Link>
 
-            <Link href="/case-file" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-amber-400 hover:shadow-md transition-all">
-              <div className="flex items-center gap-2 mb-2">
-                <FolderOpen className="w-6 h-6 text-amber-500" />
-                <h3 className="font-bold text-slate-900 group-hover:text-amber-600">My Case File</h3>
+            <Link href="/case-file" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
+              <div className="mb-3">
+                <FolderOpen className="w-6 h-6 text-slate-600" />
               </div>
+              <h3 className="font-bold text-slate-900 mb-1">My Case File</h3>
               <p className="text-slate-600 text-sm mb-2">All your medical info organized - just the facts.</p>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">No AI commentary</span>
-            </Link>
-            <Link href="/tests" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-orange-400 hover:shadow-md transition-all">
-              <div className="flex items-center gap-2 mb-2">
-                <FlaskConical className="w-6 h-6 text-orange-500" />
-                <h3 className="font-bold text-slate-900 group-hover:text-orange-600">Precision Testing</h3>
-              </div>
-              <p className="text-slate-600 text-sm">MRD, genomic tests, and biomarker monitoring.</p>
-              <p className="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1">
-                Partnered with <a href="https://www.openonco.org/" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-blue-800 font-semibold hover:underline flex items-center gap-0.5">♥ OpenOnco</a>
-              </p>
+              <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">No AI commentary</span>
             </Link>
 
-            <Link href="/research" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-cyan-400 hover:shadow-md transition-all">
-              <div className="flex items-center gap-2 mb-2">
-                <BookOpen className="w-6 h-6 text-cyan-500" />
-                <h3 className="font-bold text-slate-900 group-hover:text-cyan-600">Research Library</h3>
+            <Link href="/tests" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
+              <div className="mb-3">
+                <FlaskConical className="w-6 h-6 text-slate-600" />
               </div>
-              <p className="text-slate-600 text-sm">Search 200M+ papers with AI summaries.</p>
-              <p className="text-[10px] text-slate-400 mt-1.5">
-                Partnered with <a href="https://biomcp.org/" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-emerald-600 font-semibold hover:underline">BioMCP</a>
-              </p>
+              <h3 className="font-bold text-slate-900 mb-1">Precision Testing</h3>
+              <p className="text-slate-600 text-sm mb-2">MRD, genomic tests, and biomarker monitoring.</p>
+              <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">OpenOnco</span>
             </Link>
 
-            <Link href="/oncologists" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-teal-400 hover:shadow-md transition-all relative">
-              <span className="absolute -top-2 -right-2 bg-amber-100 text-amber-700 text-[10px] font-semibold px-2 py-0.5 rounded-full border border-amber-200">
-                Soon
-              </span>
-              <div className="flex items-center gap-2 mb-2">
-                <Stethoscope className="w-6 h-6 text-teal-500" />
-                <h3 className="font-bold text-slate-900 group-hover:text-teal-600">Find Oncologist</h3>
+            <Link href="/research" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
+              <div className="mb-3">
+                <BookOpen className="w-6 h-6 text-slate-600" />
               </div>
+              <h3 className="font-bold text-slate-900 mb-1">Research Library</h3>
+              <p className="text-slate-600 text-sm mb-2">Search 200M+ papers with AI summaries.</p>
+              <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">BioMCP</span>
+            </Link>
+
+            <Link href="/oncologists" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
+              <div className="mb-3">
+                <Stethoscope className="w-6 h-6 text-slate-600" />
+              </div>
+              <h3 className="font-bold text-slate-900 mb-1">Find Oncologist</h3>
               <p className="text-slate-600 text-sm">Specialists by cancer type, location, insurance.</p>
             </Link>
 
-            <Link href="/hub" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-rose-400 hover:shadow-md transition-all">
-              <div className="flex items-center gap-2 mb-2">
-                <Heart className="w-6 h-6 text-rose-500" />
-                <h3 className="font-bold text-slate-900 group-hover:text-rose-600">CareCircle</h3>
+            <Link href="/hub" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
+              <div className="mb-3">
+                <Heart className="w-6 h-6 text-slate-600" />
               </div>
+              <h3 className="font-bold text-slate-900 mb-1">CareCircle</h3>
               <p className="text-slate-600 text-sm">Update family & friends without repeating yourself.</p>
             </Link>
 
-            <Link href="/expert-review" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-indigo-400 hover:shadow-md transition-all">
+            <Link href="/expert-review" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="flex items-center gap-2 mb-2">
-                <UserCheck className="w-6 h-6 text-indigo-500" />
-                <h3 className="font-bold text-slate-900 group-hover:text-indigo-600">Expert Review</h3>
+                <UserCheck className="w-6 h-6 text-slate-600" />
+                <h3 className="font-bold text-slate-900 group-hover:text-[#C66B4A]">Expert Review</h3>
               </div>
               <p className="text-slate-600 text-sm">Get your case reviewed by oncology experts.</p>
               <p className="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1">
-                Partnered with <a href="https://cancercommons.org" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="font-semibold text-slate-600 hover:text-violet-600">Cancer Commons</a>
+                Partnered with <a href="https://cancercommons.org" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="font-semibold text-slate-600 hover:text-[#C66B4A]">Cancer Commons</a>
               </p>
             </Link>
 
-            <a href="https://community.cancerpatientlab.org/" target="_blank" rel="noopener noreferrer" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-pink-400 hover:shadow-md transition-all">
+            <a href="https://community.cancerpatientlab.org/" target="_blank" rel="noopener noreferrer" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="flex items-center gap-2 mb-2">
-                <Users className="w-6 h-6 text-pink-500" />
-                <h3 className="font-bold text-slate-900 group-hover:text-pink-600">Community</h3>
+                <Users className="w-6 h-6 text-slate-600" />
+                <h3 className="font-bold text-slate-900 group-hover:text-[#C66B4A]">Community</h3>
               </div>
               <p className="text-slate-600 text-sm">Connect with patients and caregivers.</p>
               <p className="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1">
@@ -962,10 +904,10 @@ function HomeContent() {
               </p>
             </a>
 
-            <Link href="/profile" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-violet-400 hover:shadow-md transition-all">
+            <Link href="/profile" className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
               <div className="flex items-center gap-2 mb-2">
-                <UserRound className="w-6 h-6 text-violet-500" />
-                <h3 className="font-bold text-slate-900 group-hover:text-violet-600">My Profile</h3>
+                <UserRound className="w-6 h-6 text-slate-600" />
+                <h3 className="font-bold text-slate-900 group-hover:text-[#C66B4A]">My Profile</h3>
               </div>
               <p className="text-slate-600 text-sm">Personalize your tools and save your diagnosis.</p>
             </Link>
@@ -975,11 +917,11 @@ function HomeContent() {
       </section>
 
       {/* Caregiver Section */}
-      <section className="py-12 px-8 bg-gradient-to-br from-pink-50 via-white to-rose-50 border-t border-pink-100">
+      <section className="py-12 px-8 border-t border-stone-200">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">
-              <span className="text-pink-600">Caregiver Tools:</span> Supporting someone with cancer?
+              <span className="text-slate-600">Caregiver Tools:</span> Supporting someone with cancer?
             </h2>
             <p className="text-slate-600 max-w-2xl mx-auto">
               93% of caregivers say understanding the diagnosis is their biggest challenge. These tools help you be the advocate your loved one needs.
@@ -988,60 +930,60 @@ function HomeContent() {
 
           {/* Core Caregiver Needs - mapped to tools */}
           <div className="grid md:grid-cols-2 gap-4 mb-8">
-            <div className="bg-white rounded-xl p-5 border border-pink-200 shadow-sm">
+            <div className="bg-white rounded-xl p-5 border border-stone-200 shadow-sm">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <BookOpen className="w-5 h-5 text-violet-600" />
+                <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <BookOpen className="w-5 h-5 text-slate-700" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-slate-900 mb-1">Understand the diagnosis</h3>
                   <p className="text-sm text-slate-600 mb-2">Translate medical jargon into plain English with our Records Vault.</p>
-                  <Link href="/records" onClick={() => trackEvent('caregiver_need_click', { need: 'understand_diagnosis', tool: 'records' })} className="inline-flex items-center text-sm text-violet-600 hover:text-violet-700 font-medium min-h-[44px]">
+                  <Link href="/records" onClick={() => trackEvent('caregiver_need_click', { need: 'understand_diagnosis', tool: 'records' })} className="inline-flex items-center text-sm text-slate-900 hover:text-[#C66B4A] font-medium min-h-[44px]">
                     Upload records →
                   </Link>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl p-5 border border-pink-200 shadow-sm">
+            <div className="bg-white rounded-xl p-5 border border-stone-200 shadow-sm">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-fuchsia-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Microscope className="w-5 h-5 text-fuchsia-600" />
+                <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Microscope className="w-5 h-5 text-slate-700" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-slate-900 mb-1">Explore treatment options</h3>
                   <p className="text-sm text-slate-600 mb-2">Get a comprehensive case review and understand all the options.</p>
-                  <Link href="/records/case-review" onClick={() => trackEvent('caregiver_need_click', { need: 'treatment_options', tool: 'case_review' })} className="inline-flex items-center text-sm text-violet-600 hover:text-violet-700 font-medium min-h-[44px]">
+                  <Link href="/records/case-review" onClick={() => trackEvent('caregiver_need_click', { need: 'treatment_options', tool: 'case_review' })} className="inline-flex items-center text-sm text-slate-900 hover:text-[#C66B4A] font-medium min-h-[44px]">
                     Start case review →
                   </Link>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl p-5 border border-pink-200 shadow-sm">
+            <div className="bg-white rounded-xl p-5 border border-stone-200 shadow-sm">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <CheckCircle className="w-5 h-5 text-blue-600" />
+                <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <CheckCircle className="w-5 h-5 text-slate-700" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-slate-900 mb-1">Prepare for appointments</h3>
                   <p className="text-sm text-slate-600 mb-2">Know exactly what to ask the oncologist with our question generator.</p>
-                  <Link href="/cancer-checklist" onClick={() => trackEvent('caregiver_need_click', { need: 'appointment_prep', tool: 'checklist' })} className="inline-flex items-center text-sm text-violet-600 hover:text-violet-700 font-medium min-h-[44px]">
+                  <Link href="/cancer-checklist" onClick={() => trackEvent('caregiver_need_click', { need: 'appointment_prep', tool: 'checklist' })} className="inline-flex items-center text-sm text-slate-900 hover:text-[#C66B4A] font-medium min-h-[44px]">
                     Build question list →
                   </Link>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl p-5 border border-pink-200 shadow-sm">
+            <div className="bg-white rounded-xl p-5 border border-stone-200 shadow-sm">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-rose-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Users className="w-5 h-5 text-rose-600" />
+                <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Users className="w-5 h-5 text-slate-700" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-slate-900 mb-1">Coordinate the care team</h3>
                   <p className="text-sm text-slate-600 mb-2">Share updates without repeating yourself. Keep everyone informed.</p>
-                  <Link href="/hub" onClick={() => trackEvent('caregiver_need_click', { need: 'coordinate_care', tool: 'carecircle' })} className="inline-flex items-center text-sm text-violet-600 hover:text-violet-700 font-medium min-h-[44px]">
+                  <Link href="/hub" onClick={() => trackEvent('caregiver_need_click', { need: 'coordinate_care', tool: 'carecircle' })} className="inline-flex items-center text-sm text-slate-900 hover:text-[#C66B4A] font-medium min-h-[44px]">
                     Create CareCircle →
                   </Link>
                 </div>
@@ -1058,7 +1000,7 @@ function HomeContent() {
                 setWizardStep(1)
                 setWizardRole('caregiver')
               }}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-pink-500/25 hover:shadow-xl transition-all min-h-[44px]"
+              className="inline-flex items-center gap-2 bg-[#C66B4A] hover:bg-[#B35E40] text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-[#C66B4A]/25 hover:shadow-xl transition-all min-h-[44px]"
             >
               <Heart className="w-5 h-5" />
               Get Started as a Caregiver
@@ -1071,9 +1013,9 @@ function HomeContent() {
       </section>
 
       {/* Share Card */}
-      <section className="py-8 px-8 bg-white">
+      <section className="py-8 px-8">
         <div className="max-w-2xl mx-auto">
-          <div className="bg-gradient-to-br from-rose-50 via-white to-pink-50 border border-rose-200 rounded-2xl p-6 text-center">
+          <div className="bg-white border border-stone-200 rounded-2xl p-6 text-center">
             <div className="text-3xl mb-3">💝</div>
             <h3 className="text-xl font-bold text-slate-900 mb-2">Know someone who needs this?</h3>
             <p className="text-slate-600 mb-4">Share these free tools with a patient or caregiver.</p>
@@ -1089,14 +1031,14 @@ function HomeContent() {
                   }
                 }}
                 id="copy-btn"
-                className="inline-flex items-center gap-2 bg-white border border-slate-300 hover:border-rose-400 text-slate-700 font-medium px-5 py-2.5 rounded-lg transition-all hover:shadow-md"
+                className="inline-flex items-center gap-2 bg-white border border-slate-300 hover:border-slate-900 text-slate-700 font-medium px-5 py-2.5 rounded-lg transition-all hover:shadow-md"
               >
                 <Copy className="w-4 h-4" />
                 Copy Link
               </button>
               <a
                 href="sms:?body=I thought these free cancer tools might help: https://opencancer.ai - built by a survivor, NCCN-informed"
-                className="inline-flex items-center gap-2 bg-rose-500 hover:bg-rose-600 text-white font-medium px-5 py-2.5 rounded-lg transition-all"
+                className="inline-flex items-center gap-2 bg-[#C66B4A] hover:bg-[#B35E40] text-white font-medium px-5 py-2.5 rounded-lg transition-all"
               >
                 <Share2 className="w-4 h-4" />
                 Text a Friend
@@ -1111,12 +1053,12 @@ function HomeContent() {
       </section>
 
       {/* Trust Bar - Data Sources */}
-      <section className="py-6 px-8 bg-white border-t border-slate-100">
+      <section className="py-6 px-8 border-t border-stone-200">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-xs text-slate-400 uppercase tracking-wider mb-3">Data from trusted sources</p>
           <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-500">
             <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
               NCCN Guidelines
             </span>
             <span className="flex items-center gap-1.5">
@@ -1124,7 +1066,7 @@ function HomeContent() {
               ClinicalTrials.gov
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-violet-400"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
               Medicare.gov
             </span>
             <span className="flex items-center gap-1.5">
@@ -1152,7 +1094,7 @@ function HomeContent() {
       </section>
 
       {/* What patients are saying - Scrolling */}
-      <section className="py-12 px-8 bg-slate-50 border-t border-slate-200 overflow-hidden">
+      <section className="py-12 px-8 border-t border-stone-200 overflow-hidden">
         <style jsx global>{`
           @keyframes fadeIn {
             from { opacity: 0; }
@@ -1179,8 +1121,8 @@ function HomeContent() {
 
         <div className="relative">
           {/* Fade edges */}
-          <div className="absolute left-0 top-0 bottom-0 w-24 z-10 pointer-events-none bg-gradient-to-r from-slate-50 to-transparent" />
-          <div className="absolute right-0 top-0 bottom-0 w-24 z-10 pointer-events-none bg-gradient-to-l from-slate-50 to-transparent" />
+          <div className="absolute left-0 top-0 bottom-0 w-24 z-10 pointer-events-none bg-gradient-to-r from-[#f5f3ee] to-transparent" />
+          <div className="absolute right-0 top-0 bottom-0 w-24 z-10 pointer-events-none bg-gradient-to-l from-[#f5f3ee] to-transparent" />
 
           {/* Scrolling content */}
           <div className="flex gap-8 testimonial-scroll">
@@ -1199,7 +1141,7 @@ function HomeContent() {
       </section>
 
       {/* Team Section */}
-      <section className="py-12 px-8 bg-white border-t border-slate-200">
+      <section className="py-12 px-8 border-t border-stone-200">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-bold text-center mb-2 text-slate-900">Team</h2>
           <p className="text-center text-slate-500 text-sm mb-8">
@@ -1218,17 +1160,17 @@ function HomeContent() {
                 <img
                   src={person.image}
                   alt={person.name}
-                  className="w-20 h-20 rounded-full object-cover mx-auto mb-3 ring-2 ring-violet-200 shadow-md"
+                  className="w-20 h-20 rounded-full object-cover mx-auto mb-3 ring-2 ring-stone-200 shadow-md"
                 />
                 <p className="text-sm font-semibold text-slate-900 leading-tight">{person.name}</p>
-                <p className="text-xs text-violet-600 font-medium">{person.title}</p>
+                <p className="text-xs text-[#C66B4A] font-medium">{person.title}</p>
                 <p className="text-[10px] text-slate-500">{person.subtitle}</p>
               </div>
             ))}
           </div>
 
           <div className="text-center mt-8">
-            <a href="https://cancerhackerlab.com" target="_blank" rel="noopener noreferrer" className="text-sm text-violet-600 hover:text-violet-700 font-medium">
+            <a href="https://cancerhackerlab.com" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-900 hover:text-[#C66B4A] font-medium underline underline-offset-2">
               View all advisors →
             </a>
           </div>
@@ -1236,12 +1178,12 @@ function HomeContent() {
       </section>
 
       {/* Upcoming Events */}
-      <section className="py-12 px-8 border-t border-slate-200">
+      <section className="py-12 px-8 border-t border-stone-200">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <h2 className="text-xl font-bold text-slate-900">Upcoming Events</h2>
-              <a href="https://www.cancerpatientlab.org/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs text-slate-500 hover:text-violet-600 transition-colors">
+              <a href="https://www.cancerpatientlab.org/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs text-slate-500 hover:text-[#C66B4A] transition-colors">
                 <span>Partnered with</span>
                 <img src="/cpl-logo.avif" alt="Cancer Patient Lab" className="h-6 object-contain" />
               </a>
@@ -1250,7 +1192,7 @@ function HomeContent() {
               href="https://community.cancerpatientlab.org/c/events/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-violet-600 hover:text-violet-700 font-medium"
+              className="text-sm text-slate-900 hover:text-[#C66B4A] font-medium underline underline-offset-2"
             >
               View all →
             </a>
@@ -1263,13 +1205,13 @@ function HomeContent() {
                 href={event.rsvpUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-violet-400 hover:shadow-md transition-all"
+                className="group bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-900 hover:shadow-md transition-all"
               >
                 <div className="flex items-center gap-3 mb-2">
-                  <span className="text-sm font-bold text-violet-600 bg-violet-100 px-2 py-1 rounded">{event.date}</span>
+                  <span className="text-sm font-bold text-[#C66B4A] bg-[#C66B4A]/10 px-2 py-1 rounded">{event.date}</span>
                   <span className="text-xs text-slate-500">{event.time}</span>
                 </div>
-                <h3 className="font-semibold text-slate-900 group-hover:text-violet-600 mb-1 line-clamp-2">{event.title}</h3>
+                <h3 className="font-semibold text-slate-900 group-hover:text-[#C66B4A] mb-1 line-clamp-2">{event.title}</h3>
                 {event.speaker && (
                   <p className="text-sm text-slate-500">{event.speaker}</p>
                 )}
@@ -1279,6 +1221,22 @@ function HomeContent() {
         </div>
       </section>
 
+      {/* Footer */}
+      <footer className="py-8 px-8 border-t border-stone-200">
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-sm text-slate-600 mb-2">
+            Free for every patient. Built by a cancer survivor.
+          </p>
+          <div className="flex items-center justify-center gap-4 text-xs text-slate-400">
+            <Link href="/about" className="hover:text-slate-600">About</Link>
+            <span>·</span>
+            <Link href="/privacy" className="hover:text-slate-600">Privacy</Link>
+            <span>·</span>
+            <a href="mailto:support@opencancer.ai" className="hover:text-slate-600">Contact</a>
+          </div>
+        </div>
+      </footer>
+
     </main>
   )
 }
@@ -1286,9 +1244,9 @@ function HomeContent() {
 // Loading fallback for Suspense
 function HomeLoading() {
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center">
+    <div className="min-h-screen bg-[#f5f3ee] flex items-center justify-center">
       <div className="text-center">
-        <div className="w-8 h-8 border-2 border-violet-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <div className="w-8 h-8 border-2 border-slate-900 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
         <p className="text-slate-500">Loading...</p>
       </div>
     </div>

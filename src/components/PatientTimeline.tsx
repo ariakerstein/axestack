@@ -5,7 +5,7 @@ import { Calendar, Circle, Pill, Dna, FlaskConical, Stethoscope, Building2, Aler
 
 const ENTITY_CONFIG: Record<string, { icon: typeof Circle; color: string; bgColor: string }> = {
   diagnosis: { icon: AlertCircle, color: 'text-red-600', bgColor: 'bg-red-100' },
-  biomarker: { icon: Dna, color: 'text-purple-600', bgColor: 'bg-purple-100' },
+  biomarker: { icon: Dna, color: 'text-slate-600', bgColor: 'bg-slate-100' },
   treatment: { icon: Pill, color: 'text-blue-600', bgColor: 'bg-blue-100' },
   medication: { icon: Pill, color: 'text-green-600', bgColor: 'bg-green-100' },
   procedure: { icon: Stethoscope, color: 'text-amber-600', bgColor: 'bg-amber-100' },
@@ -14,7 +14,7 @@ const ENTITY_CONFIG: Record<string, { icon: typeof Circle; color: string; bgColo
   institution: { icon: Building2, color: 'text-indigo-600', bgColor: 'bg-indigo-100' },
   symptom: { icon: Activity, color: 'text-orange-600', bgColor: 'bg-orange-100' },
   vital_sign: { icon: Activity, color: 'text-pink-600', bgColor: 'bg-pink-100' },
-  question: { icon: MessageCircle, color: 'text-violet-600', bgColor: 'bg-violet-100' },
+  question: { icon: MessageCircle, color: 'text-slate-600', bgColor: 'bg-slate-100' },
 }
 
 interface TimelineEntity {

@@ -11,6 +11,35 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'opencancer.ai | AI-powered tools for cancer patients',
   description: 'Navigate your diagnosis with clarity. Free AI tools for cancer patients and caregivers. Built by a cancer survivor.',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: '32x32' },
+    ],
+    apple: '/apple-touch-icon.png',
+  },
+  openGraph: {
+    title: 'opencancer.ai | AI-powered tools for cancer patients',
+    description: 'Navigate your diagnosis with clarity. Free AI tools for cancer patients and caregivers. Built by a cancer survivor.',
+    url: 'https://opencancer.ai',
+    siteName: 'opencancer.ai',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'opencancer.ai - AI tools for cancer patients & caregivers',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'opencancer.ai | AI-powered tools for cancer patients',
+    description: 'Navigate your diagnosis with clarity. Free AI tools for cancer patients and caregivers.',
+    images: ['/og-image.png'],
+  },
 }
 
 export default function RootLayout({

@@ -152,7 +152,7 @@ function AdminGraphContent() {
                 Back
               </Link>
             )}
-            <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-slate-500 to-slate-500 rounded-xl flex items-center justify-center">
               <Network className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -178,7 +178,7 @@ function AdminGraphContent() {
             </button>
             <button
               onClick={exportGraph}
-              className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-medium transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition-colors"
             >
               <Download className="w-4 h-4" />
               Export JSON
@@ -213,13 +213,13 @@ function AdminGraphContent() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search entities..."
-              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
             />
           </div>
           <select
             value={selectedType || ''}
             onChange={(e) => setSelectedType(e.target.value || null)}
-            className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+            className="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
           >
             <option value="">All Types</option>
             {Object.keys(groupedEntities).map(type => (
@@ -269,7 +269,7 @@ function AdminGraphContent() {
                   onClick={() => setSelectedEntity(entity)}
                   className={`w-full text-left p-3 rounded-lg border transition-colors ${
                     selectedEntity?.id === entity.id
-                      ? 'border-violet-500 bg-violet-50'
+                      ? 'border-slate-500 bg-slate-50'
                       : 'border-slate-200 hover:border-slate-300'
                   }`}
                 >
@@ -362,7 +362,7 @@ export default function AdminGraphPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-slate-100 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-violet-600 animate-spin" />
+        <Loader2 className="w-8 h-8 text-slate-600 animate-spin" />
       </div>
     }>
       <AdminGraphContent />

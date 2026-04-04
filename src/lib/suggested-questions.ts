@@ -274,11 +274,11 @@ function getParentCancerCode(code: string): string | null {
  */
 export function getCategoryColor(category: string): string {
   const colorMap: Record<string, string> = {
-    'Treatment': 'bg-violet-100 text-violet-700',
+    'Treatment': 'bg-slate-100 text-slate-700',
     'Testing': 'bg-blue-100 text-blue-700',
-    'Biomarkers': 'bg-purple-100 text-purple-700',
+    'Biomarkers': 'bg-slate-100 text-slate-700',
     'Side Effects': 'bg-amber-100 text-amber-700',
-    'Clinical Trials': 'bg-emerald-100 text-emerald-700',
+    'Clinical Trials': 'bg-green-100 text-green-700',
     'Care Planning': 'bg-cyan-100 text-cyan-700',
     'Surgery': 'bg-red-100 text-red-700',
     'Monitoring': 'bg-green-100 text-green-700',

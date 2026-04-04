@@ -11,6 +11,7 @@ import { getSessionId } from '@/lib/supabase'
 import { ShareModal } from '@/components/ShareModal'
 import { PerspectiveTuner, PerspectiveWeights } from '@/components/PerspectiveTuner'
 import { UpgradeModal } from '@/components/UpgradeModal'
+import { Navbar } from '@/components/Navbar'
 
 // Animated AI Trio Component - Three AI perspectives visualized
 function AITrioAnimation({ isActive, activePerspective }: { isActive: boolean, activePerspective?: 'guidelines' | 'research' | 'integrative' | null }) {
@@ -29,29 +30,29 @@ function AITrioAnimation({ isActive, activePerspective }: { isActive: boolean, a
 
       {/* Emerging Research - Flask */}
       <div className={`flex flex-col items-center transition-all duration-500 ${activePerspective === 'research' ? 'scale-110' : ''}`}>
-        <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-400 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-purple-500/30 transition-all duration-500 ${
-          activePerspective === 'research' ? 'ring-4 ring-purple-400/50 ring-offset-2' :
+        <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-400 to-slate-500 flex items-center justify-center shadow-lg shadow-slate-500/30 transition-all duration-500 ${
+          activePerspective === 'research' ? 'ring-4 ring-slate-400/50 ring-offset-2' :
           isActive ? 'opacity-70' : ''
         }`}>
           <FlaskConical className="w-10 h-10 text-white" />
         </div>
-        <span className={`mt-2 text-xs font-semibold transition-all ${activePerspective === 'research' ? 'text-purple-700' : 'text-purple-600'}`}>Research</span>
+        <span className={`mt-2 text-xs font-semibold transition-all ${activePerspective === 'research' ? 'text-slate-700' : 'text-slate-600'}`}>Research</span>
       </div>
 
       {/* Integrative - Leaf */}
       <div className={`flex flex-col items-center transition-all duration-500 ${activePerspective === 'integrative' ? 'scale-110' : ''}`}>
-        <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30 transition-all duration-500 ${
-          activePerspective === 'integrative' ? 'ring-4 ring-emerald-400/50 ring-offset-2' :
+        <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br from-green-400 to-teal-500 flex items-center justify-center shadow-lg shadow-green-500/30 transition-all duration-500 ${
+          activePerspective === 'integrative' ? 'ring-4 ring-green-400/50 ring-offset-2' :
           isActive ? 'opacity-70' : ''
         }`}>
           <Leaf className="w-8 h-8 text-white" />
         </div>
-        <span className={`mt-2 text-xs font-semibold transition-all ${activePerspective === 'integrative' ? 'text-emerald-700' : 'text-emerald-600'}`}>Integrative</span>
+        <span className={`mt-2 text-xs font-semibold transition-all ${activePerspective === 'integrative' ? 'text-green-700' : 'text-green-600'}`}>Integrative</span>
       </div>
 
       {/* Connecting line when active */}
       {isActive && (
-        <div className="absolute top-1/2 left-1/4 w-1/2 h-0.5 bg-gradient-to-r from-blue-400 via-purple-400 to-emerald-400 rounded-full opacity-50" />
+        <div className="absolute top-1/2 left-1/4 w-1/2 h-0.5 bg-gradient-to-r from-blue-400 via-slate-400 to-green-400 rounded-full opacity-50" />
       )}
     </div>
   )
@@ -60,19 +61,19 @@ function AITrioAnimation({ isActive, activePerspective }: { isActive: boolean, a
 // Evidence Strength Meter - Sophisticated, professional design
 function EvidenceStrengthMeter({ strength, missingData }: { strength: number, missingData: string[] }) {
   const getLevel = () => {
-    if (strength >= 80) return { label: 'Comprehensive', color: 'violet' }
-    if (strength >= 60) return { label: 'Substantial', color: 'violet' }
+    if (strength >= 80) return { label: 'Comprehensive', color: 'terracotta' }
+    if (strength >= 60) return { label: 'Substantial', color: 'terracotta' }
     if (strength >= 40) return { label: 'Partial', color: 'slate' }
     return { label: 'Limited', color: 'slate' }
   }
   const level = getLevel()
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 to-white border border-slate-200 rounded-xl p-4">
+    <div className="bg-white border border-stone-200 rounded-xl p-4">
       <div className="flex items-center justify-between mb-3">
         <span className="text-sm font-medium text-slate-700">Case Evidence</span>
         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-          level.color === 'violet' ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-600'
+          level.color === 'terracotta' ? 'bg-[#C66B4A]/10 text-[#C66B4A]' : 'bg-slate-100 text-slate-600'
         }`}>
           {level.label}
         </span>
@@ -81,7 +82,7 @@ function EvidenceStrengthMeter({ strength, missingData }: { strength: number, mi
       {/* Elegant progress bar */}
       <div className="relative h-1.5 bg-slate-100 rounded-full overflow-hidden">
         <div
-          className="h-full bg-gradient-to-r from-violet-400 to-fuchsia-400 rounded-full transition-all duration-1000 ease-out"
+          className="h-full bg-slate-900 rounded-full transition-all duration-1000 ease-out"
           style={{ width: `${strength}%` }}
         />
       </div>
@@ -129,8 +130,8 @@ function DeliberationTheater({
 
   const perspectiveConfig = {
     guidelines: { icon: Shield, gradient: 'from-blue-500 to-blue-600', bgGradient: 'from-blue-50 to-blue-100/50', borderColor: 'border-blue-200', textColor: 'text-blue-700', label: 'NCCN Guidelines' },
-    research: { icon: FlaskConical, gradient: 'from-purple-500 to-fuchsia-500', bgGradient: 'from-purple-50 to-fuchsia-50', borderColor: 'border-purple-200', textColor: 'text-purple-700', label: 'Emerging Research' },
-    integrative: { icon: Leaf, gradient: 'from-emerald-500 to-teal-500', bgGradient: 'from-emerald-50 to-teal-50', borderColor: 'border-emerald-200', textColor: 'text-emerald-700', label: 'Integrative Oncology' },
+    research: { icon: FlaskConical, gradient: 'from-slate-500 to-slate-500', bgGradient: 'from-slate-50 to-slate-50', borderColor: 'border-slate-200', textColor: 'text-slate-700', label: 'Emerging Research' },
+    integrative: { icon: Leaf, gradient: 'from-green-500 to-teal-500', bgGradient: 'from-green-50 to-teal-50', borderColor: 'border-green-200', textColor: 'text-green-700', label: 'Integrative Oncology' },
   }
 
   return (
@@ -138,7 +139,7 @@ function DeliberationTheater({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 animate-pulse" />
+          <div className="w-2 h-2 rounded-full bg-gradient-to-r from-slate-500 to-slate-500 animate-pulse" />
           <span className="text-sm font-semibold text-slate-700">Live Consultation</span>
         </div>
         {records && records.length > 0 && (
@@ -192,7 +193,7 @@ function DeliberationTheater({
         {activePerspective && (
           <div className="flex items-center gap-3 p-3">
             <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center">
-              <div className="w-4 h-4 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
             </div>
             <span className="text-sm text-slate-500">Reviewing case details...</span>
           </div>
@@ -200,8 +201,8 @@ function DeliberationTheater({
 
         {deliberationLog.length === 0 && !activePerspective && (
           <div className="flex items-center gap-3 p-3">
-            <div className="w-9 h-9 rounded-lg bg-violet-50 flex items-center justify-center">
-              <div className="w-4 h-4 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />
+            <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center">
+              <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
             </div>
             <span className="text-sm text-slate-500">Initializing consultation...</span>
           </div>
@@ -271,9 +272,9 @@ function DoubleDiamond({ activeDiamond, completedPhases }: { activeDiamond: 'dia
       <div className="flex items-center justify-center gap-4">
         {/* Diamond 1: Diagnosis */}
         <div className="flex flex-col items-center">
-          <span className={`text-sm font-semibold mb-3 ${completedPhases.diagnosis ? 'text-violet-600' : 'text-slate-700'}`}>
+          <span className={`text-sm font-semibold mb-3 ${completedPhases.diagnosis ? 'text-slate-600' : 'text-slate-700'}`}>
             Diagnosis
-            {completedPhases.diagnosis && <CheckCircle2 className="w-4 h-4 inline ml-1 text-emerald-500" />}
+            {completedPhases.diagnosis && <CheckCircle2 className="w-4 h-4 inline ml-1 text-green-500" />}
           </span>
           <div className="relative">
             <svg width="180" height="90" viewBox="0 0 180 90">
@@ -298,11 +299,11 @@ function DoubleDiamond({ activeDiamond, completedPhases }: { activeDiamond: 'dia
           </div>
           <div className="flex mt-2 gap-8">
             <div className="text-center">
-              <span className={`text-[10px] uppercase tracking-wide font-bold ${activeDiamond === 'diagnosis' || completedPhases.diagnosis ? 'text-violet-500' : 'text-slate-400'}`}>Diverge</span>
+              <span className={`text-[10px] uppercase tracking-wide font-bold ${activeDiamond === 'diagnosis' || completedPhases.diagnosis ? 'text-slate-500' : 'text-slate-400'}`}>Diverge</span>
               <p className="text-[9px] text-slate-400">Explore all</p>
             </div>
             <div className="text-center">
-              <span className={`text-[10px] uppercase tracking-wide font-bold ${activeDiamond === 'diagnosis' || completedPhases.diagnosis ? 'text-violet-700' : 'text-slate-400'}`}>Converge</span>
+              <span className={`text-[10px] uppercase tracking-wide font-bold ${activeDiamond === 'diagnosis' || completedPhases.diagnosis ? 'text-slate-700' : 'text-slate-400'}`}>Converge</span>
               <p className="text-[9px] text-slate-400">Decide best</p>
             </div>
           </div>
@@ -317,7 +318,7 @@ function DoubleDiamond({ activeDiamond, completedPhases }: { activeDiamond: 'dia
         <div className="flex flex-col items-center">
           <span className={`text-sm font-semibold mb-3 ${completedPhases.treatment ? 'text-orange-600' : 'text-slate-700'}`}>
             Treatment
-            {completedPhases.treatment && <CheckCircle2 className="w-4 h-4 inline ml-1 text-emerald-500" />}
+            {completedPhases.treatment && <CheckCircle2 className="w-4 h-4 inline ml-1 text-green-500" />}
           </span>
           <div className="relative">
             <svg width="180" height="90" viewBox="0 0 180 90">
@@ -382,8 +383,8 @@ function PerspectiveCard({ perspective, isExpanded, onToggle }: {
 
   const colorMap: Record<string, { bgGradient: string, border: string, text: string, iconGradient: string }> = {
     blue: { bgGradient: 'from-blue-50 to-blue-100/50', border: 'border-blue-200', text: 'text-blue-800', iconGradient: 'from-blue-500 to-blue-600' },
-    purple: { bgGradient: 'from-purple-50 to-fuchsia-50', border: 'border-purple-200', text: 'text-purple-800', iconGradient: 'from-purple-500 to-fuchsia-500' },
-    green: { bgGradient: 'from-emerald-50 to-teal-50', border: 'border-emerald-200', text: 'text-emerald-800', iconGradient: 'from-emerald-500 to-teal-500' }
+    purple: { bgGradient: 'from-slate-50 to-slate-50', border: 'border-slate-200', text: 'text-slate-800', iconGradient: 'from-slate-500 to-slate-500' },
+    green: { bgGradient: 'from-green-50 to-teal-50', border: 'border-green-200', text: 'text-green-800', iconGradient: 'from-green-500 to-teal-500' }
   }
   const colors = colorMap[perspective.color] || colorMap.blue
 
@@ -478,7 +479,7 @@ function ActionHub({
 
       {/* Section Header */}
       <div className="flex items-center gap-2 pt-2">
-        <ArrowRight className="w-5 h-5 text-violet-500" />
+        <ArrowRight className="w-5 h-5 text-slate-500" />
         <h3 className="font-semibold text-slate-900">Take Action</h3>
       </div>
 
@@ -499,39 +500,39 @@ function ActionHub({
         {/* Share with Family - Always show with viral badge */}
         <button
           onClick={() => onShareClick('family')}
-          className="p-4 bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl hover:border-emerald-300 hover:shadow-md transition-all text-left group relative"
+          className="p-4 bg-gradient-to-br from-green-50 to-teal-50 border border-green-200 rounded-xl hover:border-green-300 hover:shadow-md transition-all text-left group relative"
         >
           {/* Viral badge */}
           <span className="absolute -top-2 -right-2 px-2 py-0.5 bg-gradient-to-r from-orange-400 to-amber-400 text-white text-[10px] font-bold rounded-full shadow-sm">
             + INVITE
           </span>
-          <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center mb-3 group-hover:bg-emerald-200 transition-colors">
-            <Users className="w-5 h-5 text-emerald-600" />
+          <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center mb-3 group-hover:bg-green-200 transition-colors">
+            <Users className="w-5 h-5 text-green-600" />
           </div>
           <p className="font-medium text-slate-900 text-sm">Share with Family</p>
-          <p className="text-xs text-emerald-600 mt-0.5">Simplified + invite link</p>
+          <p className="text-xs text-green-600 mt-0.5">Simplified + invite link</p>
         </button>
 
         {/* Get Expert Validation - Always show */}
         <button
           onClick={onExpertClick}
-          className="p-4 bg-gradient-to-br from-violet-50 to-fuchsia-50 border border-violet-200 rounded-xl hover:border-violet-300 hover:shadow-md transition-all text-left group"
+          className="p-4 bg-gradient-to-br from-slate-50 to-slate-50 border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-md transition-all text-left group"
         >
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center mb-3 shadow-sm">
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-slate-500 to-slate-500 flex items-center justify-center mb-3 shadow-sm">
             <Star className="w-5 h-5 text-white" />
           </div>
           <p className="font-medium text-slate-900 text-sm">Get Expert Review</p>
-          <p className="text-xs text-violet-600 mt-0.5">Tony or Emma</p>
+          <p className="text-xs text-slate-600 mt-0.5">Tony or Emma</p>
         </button>
 
         {/* Clinical Trials - Only if mentioned */}
         {mentionsTrials && (
           <a
             href={`/trials${cancerType ? `?cancer=${encodeURIComponent(cancerType)}` : ''}`}
-            className="p-4 bg-white border border-slate-200 rounded-xl hover:border-violet-300 hover:shadow-md transition-all text-left group"
+            className="p-4 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-md transition-all text-left group"
           >
-            <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center mb-3 group-hover:bg-purple-100 transition-colors">
-              <FlaskConical className="w-5 h-5 text-purple-600" />
+            <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center mb-3 group-hover:bg-slate-100 transition-colors">
+              <FlaskConical className="w-5 h-5 text-slate-600" />
             </div>
             <p className="font-medium text-slate-900 text-sm">Find Clinical Trials</p>
             <p className="text-xs text-slate-500 mt-0.5">In your area</p>
@@ -542,7 +543,7 @@ function ActionHub({
         {needsTests && (
           <a
             href={`/tests${cancerType ? `?cancer=${encodeURIComponent(cancerType)}` : ''}`}
-            className="p-4 bg-white border border-slate-200 rounded-xl hover:border-violet-300 hover:shadow-md transition-all text-left group"
+            className="p-4 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-md transition-all text-left group"
           >
             <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center mb-3 group-hover:bg-orange-100 transition-colors">
               <Target className="w-5 h-5 text-orange-600" />
@@ -555,10 +556,10 @@ function ActionHub({
         {/* Email to Self */}
         <button
           onClick={() => onShareClick('self')}
-          className="p-4 bg-white border border-slate-200 rounded-xl hover:border-violet-300 hover:shadow-md transition-all text-left group relative"
+          className="p-4 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-md transition-all text-left group relative"
         >
-          <div className="w-10 h-10 rounded-lg bg-violet-50 flex items-center justify-center mb-3 group-hover:bg-violet-100 transition-colors">
-            <Mail className="w-5 h-5 text-violet-600" />
+          <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center mb-3 group-hover:bg-slate-100 transition-colors">
+            <Mail className="w-5 h-5 text-slate-600" />
           </div>
           <p className="font-medium text-slate-900 text-sm">Email to Myself</p>
           <p className="text-xs text-slate-500 mt-0.5">Save for later</p>
@@ -601,7 +602,7 @@ function SynthesisCard({ result }: { result: CombatResult }) {
     <div className="bg-gradient-to-br from-slate-50 to-white border border-slate-200 rounded-2xl p-6 space-y-5">
       {/* Header */}
       <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-500 to-slate-500 flex items-center justify-center">
           <CheckCircle2 className="w-4 h-4 text-white" />
         </div>
         <h3 className="font-bold text-lg text-slate-900">Your Action Plan</h3>
@@ -660,20 +661,20 @@ function SynthesisCard({ result }: { result: CombatResult }) {
         <h4 className="font-semibold text-slate-900 text-sm mb-3">Next Steps</h4>
         <div className="space-y-2">
           <label className="flex items-start gap-3 cursor-pointer group">
-            <input type="checkbox" className="mt-1 w-4 h-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500" />
+            <input type="checkbox" className="mt-1 w-4 h-4 rounded border-slate-300 text-slate-600 focus:ring-slate-500" />
             <span className="text-sm text-slate-700 group-hover:text-slate-900">Review this analysis with your oncologist</span>
           </label>
           <label className="flex items-start gap-3 cursor-pointer group">
-            <input type="checkbox" className="mt-1 w-4 h-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500" />
+            <input type="checkbox" className="mt-1 w-4 h-4 rounded border-slate-300 text-slate-600 focus:ring-slate-500" />
             <span className="text-sm text-slate-700 group-hover:text-slate-900">Discuss recommended tests and timeline</span>
           </label>
           <label className="flex items-start gap-3 cursor-pointer group">
-            <input type="checkbox" className="mt-1 w-4 h-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500" />
+            <input type="checkbox" className="mt-1 w-4 h-4 rounded border-slate-300 text-slate-600 focus:ring-slate-500" />
             <span className="text-sm text-slate-700 group-hover:text-slate-900">Share summary with family/caregivers</span>
           </label>
           {result.synthesis?.toLowerCase().includes('trial') && (
             <label className="flex items-start gap-3 cursor-pointer group">
-              <input type="checkbox" className="mt-1 w-4 h-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500" />
+              <input type="checkbox" className="mt-1 w-4 h-4 rounded border-slate-300 text-slate-600 focus:ring-slate-500" />
               <span className="text-sm text-slate-700 group-hover:text-slate-900">Explore clinical trial options</span>
             </label>
           )}
@@ -699,7 +700,7 @@ function ExpertModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
       isFree: false
     },
     {
-      name: 'Emma Shtibelman, PhD',
+      name: 'Emma Shtivelman, PhD',
       title: 'Cancer Research Scientist',
       organization: 'Cancer Commons',
       specialty: 'Integrative oncology, clinical trials',
@@ -719,7 +720,7 @@ function ExpertModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
       {/* Modal */}
       <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 p-6 rounded-t-2xl">
+        <div className="sticky top-0 bg-slate-900 p-6 rounded-t-2xl">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-white/80 hover:text-white"
@@ -729,7 +730,7 @@ function ExpertModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
             </svg>
           </button>
           <h2 className="text-2xl font-bold text-white">Expert Consultation</h2>
-          <p className="text-white/80 mt-1">Get personalized guidance from leading oncology experts</p>
+          <p className="text-slate-400 mt-1">Get personalized guidance from leading oncology experts</p>
         </div>
 
         {/* Experts */}
@@ -737,12 +738,12 @@ function ExpertModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
           {experts.map((expert, i) => (
             <div key={i} className={`border rounded-xl p-5 transition-all ${
               expert.isFree
-                ? 'border-emerald-200 bg-gradient-to-r from-emerald-50/50 to-white hover:border-emerald-300'
-                : 'border-slate-200 hover:border-violet-300 hover:shadow-md'
+                ? 'border-green-200 bg-gradient-to-r from-green-50/50 to-white hover:border-green-300'
+                : 'border-slate-200 hover:border-slate-300 hover:shadow-md'
             }`}>
               <div className="flex gap-4">
                 {/* Avatar - will use image when available */}
-                <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-violet-100 to-fuchsia-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-slate-100 to-slate-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
                   {expert.image && (
                     <img
                       src={expert.image}
@@ -754,7 +755,7 @@ function ExpertModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
                       }}
                     />
                   )}
-                  <span className={`text-2xl font-bold text-violet-600 ${expert.image ? 'hidden' : ''}`}>
+                  <span className={`text-2xl font-bold text-slate-600 ${expert.image ? 'hidden' : ''}`}>
                     {expert.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
                   </span>
                 </div>
@@ -763,13 +764,13 @@ function ExpertModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
                   <div className="flex items-start justify-between">
                     <div>
                       <h3 className="font-bold text-slate-900">{expert.name}</h3>
-                      <p className="text-sm text-violet-600 font-medium">{expert.title}</p>
+                      <p className="text-sm text-slate-600 font-medium">{expert.title}</p>
                       {expert.organization && (
-                        <p className="text-xs text-emerald-600 font-medium">{expert.organization}</p>
+                        <p className="text-xs text-green-600 font-medium">{expert.organization}</p>
                       )}
                     </div>
                     {expert.isFree && (
-                      <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">
+                      <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
                         FREE
                       </span>
                     )}
@@ -790,8 +791,8 @@ function ExpertModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
                     </div>
                     <button className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all shadow-md hover:shadow-lg ${
                       expert.isFree
-                        ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white'
-                        : 'bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white'
+                        ? 'bg-slate-900 hover:bg-slate-800 text-white'
+                        : 'bg-[#C66B4A] hover:bg-[#B35E40] text-white'
                     }`}>
                       {expert.isFree ? 'Request Consultation' : 'Book Consultation'}
                     </button>
@@ -806,19 +807,19 @@ function ExpertModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
             <h4 className="font-semibold text-slate-900 mb-3">What's included:</h4>
             <ul className="space-y-2">
               <li className="flex items-start gap-2 text-sm text-slate-600">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                 30-minute video consultation reviewing your CancerCombat analysis
               </li>
               <li className="flex items-start gap-2 text-sm text-slate-600">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                 Personalized written summary with actionable next steps
               </li>
               <li className="flex items-start gap-2 text-sm text-slate-600">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                 Questions to bring to your oncologist appointment
               </li>
               <li className="flex items-start gap-2 text-sm text-slate-600">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                 7-day follow-up support via secure messaging
               </li>
             </ul>
@@ -1246,14 +1247,14 @@ export default function CombatPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-[#f5f3ee] flex items-center justify-center">
         <div className="animate-pulse text-slate-400">Loading...</div>
       </div>
     )
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <main className="min-h-screen bg-[#f5f3ee]">
       {/* Outcome Question Modal - Simple, non-intrusive */}
       {showOutcomeQuestion && (
         <div className="fixed bottom-4 right-4 z-50 bg-white rounded-2xl shadow-2xl border border-slate-200 p-5 max-w-sm animate-in slide-in-from-bottom-4">
@@ -1263,7 +1264,7 @@ export default function CombatPage() {
           <div className="flex gap-2">
             <button
               onClick={() => saveOutcome('yes')}
-              className="flex-1 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-sm font-medium transition-colors"
+              className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors"
             >
               Yes
             </button>
@@ -1289,31 +1290,14 @@ export default function CombatPage() {
         </div>
       )}
 
-      {/* Header - Clean & Refined */}
-      <header className="border-b border-slate-200 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href="/records" className="text-slate-500 hover:text-slate-900 text-sm flex items-center gap-1.5 group">
-            <ArrowRight className="w-4 h-4 rotate-180 group-hover:-translate-x-0.5 transition-transform" />
-            Records
-          </Link>
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-sm">
-              <Swords className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-semibold text-slate-900">
-              Combat
-            </span>
-          </Link>
-          <div className="w-16" /> {/* Spacer */}
-        </div>
-      </header>
+      <Navbar />
 
       <div className="max-w-3xl mx-auto px-4 py-6">
         {records.length === 0 ? (
           /* No records state - Clear prompt to upload */
           <div className="text-center py-12">
-            <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-violet-100 to-fuchsia-100 flex items-center justify-center mx-auto mb-6 border border-violet-200">
-              <FileText className="w-12 h-12 text-violet-500" />
+            <div className="w-24 h-24 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-6 border border-slate-200">
+              <FileText className="w-12 h-12 text-slate-600" />
             </div>
             <h2 className="text-2xl font-bold text-slate-900 mb-3">Upload Records to Begin</h2>
             <p className="text-slate-600 mb-6 max-w-md mx-auto leading-relaxed">
@@ -1323,7 +1307,7 @@ export default function CombatPage() {
 
             <Link
               href="/records"
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white px-8 py-4 rounded-xl font-semibold transition-all shadow-lg shadow-violet-500/25 hover:shadow-xl"
+              className="inline-flex items-center gap-2 bg-[#C66B4A] hover:bg-[#B35E40] text-white px-8 py-4 rounded-xl font-semibold transition-all shadow-lg shadow-[#C66B4A]/25 hover:shadow-xl"
             >
               <FileText className="w-5 h-5" />
               Upload Your Records
@@ -1337,13 +1321,13 @@ export default function CombatPage() {
           /* Has records - show combat interface */
           <div className="space-y-5">
             {/* Audit in Progress Banner */}
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+            <div className="bg-slate-900 text-white rounded-xl p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
                 <span className="text-lg">🔬</span>
               </div>
               <div>
-                <p className="font-semibold text-amber-900">Medical Audit in Progress</p>
-                <p className="text-sm text-amber-700 mt-0.5">
+                <p className="font-semibold">Medical Audit in Progress</p>
+                <p className="text-sm text-slate-300 mt-0.5">
                   For informational purposes only. Always consult your oncologist.
                 </p>
               </div>
@@ -1353,20 +1337,20 @@ export default function CombatPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold text-slate-900">
-                  Cancer<span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500">Combat</span>
+                  Cancer<span className="text-[#C66B4A]">Combat</span>
                 </h1>
                 <p className="text-sm text-slate-500 mt-0.5">Three AI perspectives debate your case</p>
               </div>
               {/* Progress indicator */}
               <div className="flex items-center gap-2">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                  diagnosisResult ? 'bg-emerald-100 text-emerald-700' : 'bg-violet-100 text-violet-700'
+                  diagnosisResult ? 'bg-slate-900 text-white' : 'bg-slate-200 text-slate-700'
                 }`}>
                   {diagnosisResult ? <CheckCircle2 className="w-4 h-4" /> : '1'}
                 </div>
-                <div className={`w-6 h-0.5 ${diagnosisResult ? 'bg-emerald-300' : 'bg-slate-200'}`} />
+                <div className={`w-6 h-0.5 ${diagnosisResult ? 'bg-slate-900' : 'bg-slate-200'}`} />
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                  treatmentResult ? 'bg-emerald-100 text-emerald-700' : diagnosisResult ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-400'
+                  treatmentResult ? 'bg-slate-900 text-white' : diagnosisResult ? 'bg-[#C66B4A] text-white' : 'bg-slate-100 text-slate-400'
                 }`}>
                   {treatmentResult ? <CheckCircle2 className="w-4 h-4" /> : '2'}
                 </div>
@@ -1384,7 +1368,7 @@ export default function CombatPage() {
                     <span className="text-slate-500">{records[0]?.result?.cancer_specific?.cancer_type || 'Ready to analyze'}</span>
                   </div>
                 </div>
-                <Link href="/records" className="text-sm text-violet-600 hover:text-violet-700 font-medium">
+                <Link href="/records" className="text-sm text-slate-900 hover:text-[#C66B4A] font-medium underline underline-offset-2">
                   Edit
                 </Link>
               </div>
@@ -1420,7 +1404,7 @@ export default function CombatPage() {
             {!currentResult && !generating && (
               <button
                 onClick={() => runCombat(diagnosisResult ? 'treatment' : 'diagnosis')}
-                className="w-full group p-5 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-violet-500 hover:from-violet-600 hover:via-fuchsia-600 hover:to-violet-600 rounded-xl text-center transition-all shadow-lg shadow-violet-500/25 hover:shadow-xl text-white"
+                className="w-full group p-5 bg-[#C66B4A] hover:bg-[#B35E40] rounded-xl text-center transition-all shadow-lg shadow-[#C66B4A]/25 hover:shadow-xl text-white"
               >
                 <div className="flex items-center justify-center gap-3">
                   <Swords className="w-6 h-6" />
@@ -1448,8 +1432,8 @@ export default function CombatPage() {
                 />
 
                 {/* Question being debated - Brand colors */}
-                <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white rounded-2xl p-6 shadow-lg shadow-violet-500/20">
-                  <p className="text-sm text-white/70 mb-2 uppercase tracking-wide font-medium">
+                <div className="bg-slate-900 text-white rounded-2xl p-6 shadow-lg">
+                  <p className="text-sm text-slate-400 mb-2 uppercase tracking-wide font-medium">
                     {phase === 'diagnosis' ? 'Diagnosis Question' : 'Treatment Question'}
                   </p>
                   <h2 className="text-xl font-semibold leading-relaxed">{currentResult.question}</h2>
@@ -1463,7 +1447,7 @@ export default function CombatPage() {
                       const body = encodeURIComponent(`View my CancerCombat analysis at opencancer.ai/combat\n\nQuestion: ${currentResult.question}\n\nGenerated by opencancer.ai`)
                       window.open(`mailto:?subject=${subject}&body=${body}`)
                     }}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                     Email
@@ -1479,7 +1463,7 @@ export default function CombatPage() {
                       a.click()
                       URL.revokeObjectURL(url)
                     }}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
                   >
                     <Download className="w-4 h-4" />
                     Download
@@ -1494,7 +1478,7 @@ export default function CombatPage() {
                         alert('Link copied!')
                       }
                     }}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
                   >
                     <Share2 className="w-4 h-4" />
                     Share
@@ -1504,7 +1488,7 @@ export default function CombatPage() {
                 {/* Three Perspectives */}
                 <div className="space-y-4">
                   <h3 className="font-semibold text-slate-900 flex items-center gap-2">
-                    <Swords className="w-5 h-5 text-orange-500" />
+                    <Swords className="w-5 h-5 text-[#C66B4A]" />
                     Three Perspectives
                   </h3>
 
@@ -1521,11 +1505,11 @@ export default function CombatPage() {
                 {/* Consensus & Divergence Summary */}
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="bg-white rounded-xl p-4 border border-slate-200">
-                    <p className="text-xs font-medium text-emerald-600 uppercase mb-2">Where They Agree</p>
+                    <p className="text-xs font-medium text-green-600 uppercase mb-2">Where They Agree</p>
                     <ul className="space-y-1">
                       {currentResult.consensus.map((c, i) => (
                         <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                          <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
                           {c}
                         </li>
                       ))}
@@ -1565,8 +1549,8 @@ export default function CombatPage() {
                       <span>Continue to Treatment Debate</span>
                       <div className="flex items-center gap-1">
                         <div className="w-2 h-2 rounded-full bg-orange-400" />
-                        <div className="w-2 h-2 rounded-full bg-purple-400" />
-                        <div className="w-2 h-2 rounded-full bg-emerald-400" />
+                        <div className="w-2 h-2 rounded-full bg-slate-400" />
+                        <div className="w-2 h-2 rounded-full bg-green-400" />
                       </div>
                       <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </button>
@@ -1589,10 +1573,10 @@ export default function CombatPage() {
 
                 {/* Completion & Gamification - Show after treatment phase */}
                 {treatmentResult && phase === 'treatment' && (
-                  <div className="bg-gradient-to-br from-violet-50 via-white to-orange-50 border-2 border-violet-200 rounded-2xl p-6 space-y-5">
+                  <div className="bg-white border-2 border-slate-900 rounded-2xl p-6 space-y-5">
                     {/* Completion Header */}
                     <div className="text-center">
-                      <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-400 to-orange-400 text-white rounded-full text-sm font-bold shadow-lg shadow-orange-400/30 mb-3">
+                      <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#C66B4A] text-white rounded-full text-sm font-bold shadow-lg shadow-[#C66B4A]/30 mb-3">
                         <Trophy className="w-5 h-5" />
                         Combat Complete!
                       </div>
@@ -1602,23 +1586,23 @@ export default function CombatPage() {
 
                     {/* Progress Stats */}
                     <div className="grid grid-cols-3 gap-4">
-                      <div className="bg-white rounded-xl p-4 text-center border border-slate-100 shadow-sm">
-                        <div className="w-10 h-10 bg-violet-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                          <Target className="w-5 h-5 text-violet-600" />
+                      <div className="bg-stone-50 rounded-xl p-4 text-center border border-stone-200">
+                        <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <Target className="w-5 h-5 text-slate-700" />
                         </div>
                         <p className="text-2xl font-bold text-slate-900">2</p>
                         <p className="text-xs text-slate-500">Phases Completed</p>
                       </div>
-                      <div className="bg-white rounded-xl p-4 text-center border border-slate-100 shadow-sm">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                          <Swords className="w-5 h-5 text-blue-600" />
+                      <div className="bg-stone-50 rounded-xl p-4 text-center border border-stone-200">
+                        <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <Swords className="w-5 h-5 text-slate-700" />
                         </div>
                         <p className="text-2xl font-bold text-slate-900">6</p>
                         <p className="text-xs text-slate-500">AI Perspectives</p>
                       </div>
-                      <div className="bg-white rounded-xl p-4 text-center border border-slate-100 shadow-sm">
-                        <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                          <Star className="w-5 h-5 text-emerald-600" />
+                      <div className="bg-stone-50 rounded-xl p-4 text-center border border-stone-200">
+                        <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <Star className="w-5 h-5 text-slate-700" />
                         </div>
                         <p className="text-2xl font-bold text-slate-900">{records.length}</p>
                         <p className="text-xs text-slate-500">Records Analyzed</p>
@@ -1626,16 +1610,16 @@ export default function CombatPage() {
                     </div>
 
                     {/* Badges Earned */}
-                    <div className="bg-white rounded-xl p-4 border border-slate-100">
+                    <div className="bg-stone-50 rounded-xl p-4 border border-stone-200">
                       <p className="text-xs font-medium text-slate-500 uppercase mb-3">Badges Earned</p>
                       <div className="flex flex-wrap gap-2">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-violet-100 text-violet-700 rounded-full text-sm font-medium">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-700 rounded-full text-sm font-medium">
                           🎯 Diagnosis Debater
                         </span>
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-700 rounded-full text-sm font-medium">
                           ⚔️ Treatment Tactician
                         </span>
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-700 rounded-full text-sm font-medium">
                           🧠 Multi-Perspective Thinker
                         </span>
                       </div>
@@ -1703,7 +1687,7 @@ Generated by CancerCombat at opencancer.ai
                           }
                           trackEvent('combat_shared', {})
                         }}
-                        className="flex items-center justify-center gap-2 py-3.5 bg-white border-2 border-slate-200 hover:border-orange-400 text-slate-700 hover:text-orange-600 rounded-xl font-semibold transition-all"
+                        className="flex items-center justify-center gap-2 py-3.5 bg-white border-2 border-slate-200 hover:border-slate-900 text-slate-700 hover:text-slate-900 rounded-xl font-semibold transition-all"
                       >
                         <Share2 className="w-5 h-5" />
                         Share
@@ -1720,13 +1704,13 @@ Generated by CancerCombat at opencancer.ai
                 )}
 
                 {/* Disclaimer */}
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-                  <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <span className="text-amber-600">!</span>
+                <div className="bg-stone-100 border border-stone-200 rounded-xl p-4 flex items-start gap-3">
+                  <div className="w-8 h-8 bg-stone-200 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span className="text-slate-600 font-bold">!</span>
                   </div>
                   <div>
-                    <p className="text-sm text-amber-800 font-medium">This is not medical advice</p>
-                    <p className="text-sm text-amber-700 mt-1">
+                    <p className="text-sm text-slate-800 font-medium">This is not medical advice</p>
+                    <p className="text-sm text-slate-600 mt-1">
                       CancerCombat presents multiple perspectives to inform your conversations with your oncologist.
                       Always consult your medical team before making treatment decisions.
                     </p>

@@ -76,7 +76,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
   {
     id: 'forest',
     name: 'Forest',
-    preview: 'from-emerald-800 to-green-900',
+    preview: 'from-green-800 to-green-900',
     colors: {
       bg: '#022c22',
       surface: '#064e3b',
@@ -90,7 +90,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
   {
     id: 'lavender',
     name: 'Lavender',
-    preview: 'from-purple-900 to-indigo-900',
+    preview: 'from-slate-900 to-indigo-900',
     colors: {
       bg: '#1e1b4b',
       surface: '#312e81',

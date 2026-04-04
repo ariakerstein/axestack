@@ -1,21 +1,19 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowLeft, Shield, Database, Bot, Lock, AlertTriangle } from 'lucide-react'
+import { Shield, Database, Bot, Lock, AlertTriangle } from 'lucide-react'
+import { Navbar } from '@/components/Navbar'
 
 export default function PrivacyPage() {
   return (
-    <main className="min-h-screen bg-white text-slate-900 px-8 py-16">
-      <div className="max-w-3xl mx-auto">
-        {/* Back link */}
-        <Link href="/" className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-900 text-sm mb-12 transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Back to opencancer.ai
-        </Link>
+    <main className="min-h-screen bg-white text-slate-900">
+      <Navbar />
+      <div className="max-w-3xl mx-auto px-8 py-16">
 
         {/* Header */}
         <div className="mb-12">
           <div className="flex items-center gap-3 mb-4">
-            <Shield className="w-8 h-8 text-violet-500" />
+            <Shield className="w-8 h-8 text-slate-500" />
             <h1 className="text-3xl font-bold">Privacy & Terms</h1>
           </div>
           <p className="text-slate-600">Last updated: April 2026</p>
@@ -37,7 +35,7 @@ export default function PrivacyPage() {
         {/* Data We Collect */}
         <section className="mb-10">
           <div className="flex items-center gap-2 mb-4">
-            <Database className="w-5 h-5 text-violet-500" />
+            <Database className="w-5 h-5 text-slate-500" />
             <h2 className="text-xl font-bold">What We Store</h2>
           </div>
           <div className="space-y-4 text-slate-600">
@@ -49,29 +47,29 @@ export default function PrivacyPage() {
               <li><strong>Usage analytics:</strong> Page views, feature usage (anonymized)</li>
             </ul>
             <p className="mt-4">
-              All data is stored in <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-violet-600 hover:underline">Supabase</a> with encryption at rest. Your data is associated with your account and accessible only to you.
+              All data is stored in <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:underline">Supabase</a> with encryption at rest. Your data is associated with your account and accessible only to you.
             </p>
           </div>
         </section>
 
         {/* What We DON'T Do */}
-        <section className="mb-10 p-6 bg-emerald-50 border border-emerald-200 rounded-xl">
+        <section className="mb-10 p-6 bg-green-50 border border-green-200 rounded-xl">
           <div className="flex items-center gap-2 mb-4">
-            <Lock className="w-5 h-5 text-emerald-600" />
-            <h2 className="text-xl font-bold text-emerald-900">What We Don't Do</h2>
+            <Lock className="w-5 h-5 text-green-600" />
+            <h2 className="text-xl font-bold text-green-900">What We Don't Do</h2>
           </div>
-          <ul className="space-y-2 text-emerald-800">
+          <ul className="space-y-2 text-green-800">
             <li className="flex items-center gap-2">
-              <span className="text-emerald-500">✓</span> We <strong>never sell</strong> your data
+              <span className="text-green-500">✓</span> We <strong>never sell</strong> your data
             </li>
             <li className="flex items-center gap-2">
-              <span className="text-emerald-500">✓</span> We don't share data with advertisers
+              <span className="text-green-500">✓</span> We don't share data with advertisers
             </li>
             <li className="flex items-center gap-2">
-              <span className="text-emerald-500">✓</span> We don't use your records to train AI models
+              <span className="text-green-500">✓</span> We don't use your records to train AI models
             </li>
             <li className="flex items-center gap-2">
-              <span className="text-emerald-500">✓</span> We don't contact you for marketing (unless you opt in)
+              <span className="text-green-500">✓</span> We don't contact you for marketing (unless you opt in)
             </li>
           </ul>
         </section>
@@ -79,7 +77,7 @@ export default function PrivacyPage() {
         {/* Third-Party Services */}
         <section className="mb-10">
           <div className="flex items-center gap-2 mb-4">
-            <Bot className="w-5 h-5 text-violet-500" />
+            <Bot className="w-5 h-5 text-slate-500" />
             <h2 className="text-xl font-bold">Third-Party Services</h2>
           </div>
           <div className="space-y-4 text-slate-600">
@@ -93,9 +91,9 @@ export default function PrivacyPage() {
               These providers have their own privacy policies and data handling practices. When you submit a query, relevant context is sent to these services for processing. We recommend reviewing their policies:
             </p>
             <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
-              <li><a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener noreferrer" className="text-violet-600 hover:underline">Anthropic Privacy Policy</a></li>
-              <li><a href="https://openai.com/privacy" target="_blank" rel="noopener noreferrer" className="text-violet-600 hover:underline">OpenAI Privacy Policy</a></li>
-              <li><a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-violet-600 hover:underline">Google Privacy Policy</a></li>
+              <li><a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:underline">Anthropic Privacy Policy</a></li>
+              <li><a href="https://openai.com/privacy" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:underline">OpenAI Privacy Policy</a></li>
+              <li><a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:underline">Google Privacy Policy</a></li>
             </ul>
           </div>
         </section>
@@ -106,9 +104,9 @@ export default function PrivacyPage() {
           <div className="space-y-4 text-slate-600">
             <p>Some features are powered by partner organizations:</p>
             <ul className="list-disc list-inside space-y-2 ml-4">
-              <li><strong><a href="https://biomcp.org" target="_blank" rel="noopener noreferrer" className="text-violet-600 hover:underline">BioMCP</a>:</strong> Research library queries (read-only, no data storage)</li>
-              <li><strong><a href="https://openonco.org" target="_blank" rel="noopener noreferrer" className="text-violet-600 hover:underline">OpenOnco</a>:</strong> Precision testing information</li>
-              <li><strong><a href="https://cancerpatientlab.org" target="_blank" rel="noopener noreferrer" className="text-violet-600 hover:underline">Cancer Patient Lab</a>:</strong> Community features and events</li>
+              <li><strong><a href="https://biomcp.org" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:underline">BioMCP</a>:</strong> Research library queries (read-only, no data storage)</li>
+              <li><strong><a href="https://openonco.org" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:underline">OpenOnco</a>:</strong> Precision testing information</li>
+              <li><strong><a href="https://cancerpatientlab.org" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:underline">Cancer Patient Lab</a>:</strong> Community features and events</li>
             </ul>
             <p className="mt-4">
               Each partner maintains their own privacy practices. Data shared with partners is limited to what's necessary for the specific feature.
@@ -129,7 +127,7 @@ export default function PrivacyPage() {
           <h2 className="text-xl font-bold mb-4">Open Source & Transparency</h2>
           <p className="text-slate-600">
             opencancer.ai is open source. You can review our code, data handling practices, and contribute improvements on{' '}
-            <a href="https://github.com/ariakerstein/opencancer-skills" target="_blank" rel="noopener noreferrer" className="text-violet-600 hover:underline">GitHub</a>.
+            <a href="https://github.com/ariakerstein/opencancer-skills" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:underline">GitHub</a>.
           </p>
         </section>
 
@@ -138,15 +136,15 @@ export default function PrivacyPage() {
           <h2 className="text-xl font-bold mb-4">Data Deletion</h2>
           <p className="text-slate-600">
             You can delete your account and all associated data at any time. Contact{' '}
-            <a href="mailto:info@opencancer.ai" className="text-violet-600 hover:underline">info@opencancer.ai</a>{' '}
+            <a href="mailto:info@opencancer.ai" className="text-slate-600 hover:underline">info@opencancer.ai</a>{' '}
             to request complete data deletion.
           </p>
         </section>
 
         {/* Contact */}
-        <section className="mb-10 p-6 bg-violet-50 border border-violet-200 rounded-xl">
-          <h2 className="text-xl font-bold mb-3 text-violet-900">Questions?</h2>
-          <p className="text-violet-800">
+        <section className="mb-10 p-6 bg-slate-50 border border-slate-200 rounded-xl">
+          <h2 className="text-xl font-bold mb-3 text-slate-900">Questions?</h2>
+          <p className="text-slate-800">
             For privacy questions or concerns, email{' '}
             <a href="mailto:info@opencancer.ai" className="font-semibold hover:underline">info@opencancer.ai</a>
           </p>

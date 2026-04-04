@@ -155,7 +155,7 @@ export default function TestsPage() {
     return (
       <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
         isRecommended
-          ? 'bg-emerald-100 text-emerald-700'
+          ? 'bg-green-100 text-green-700'
           : 'bg-slate-100 text-slate-600'
       }`}>
         {status}
@@ -183,7 +183,7 @@ export default function TestsPage() {
           <p className="text-slate-600 text-sm mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg text-sm"
+            className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm"
           >
             Try Again
           </button>
@@ -201,7 +201,7 @@ export default function TestsPage() {
             ← Home
           </Link>
           <Link href="/" className="flex items-center gap-2">
-            <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">opencancer.ai</span>
+            <span className="font-semibold text-slate-900">opencancer.ai</span>
             <span className="text-slate-400 text-sm">/</span>
             <span className="font-medium text-slate-700">Precision Testing</span>
           </Link>
@@ -250,7 +250,7 @@ export default function TestsPage() {
                 placeholder="Search tests..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-2.5 pl-10 bg-white text-slate-900 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm"
+                className="w-full px-4 py-2.5 pl-10 bg-white text-slate-900 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400 text-sm"
               />
               <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -261,7 +261,7 @@ export default function TestsPage() {
             <select
               value={selectedCancerType}
               onChange={(e) => setSelectedCancerType(e.target.value)}
-              className="w-full px-4 py-2.5 bg-white text-slate-900 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm"
+              className="w-full px-4 py-2.5 bg-white text-slate-900 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400 text-sm"
             >
               <option value="all">All Cancer Types</option>
               {Object.entries(CANCER_TYPES).map(([key, label]) => (
@@ -273,7 +273,7 @@ export default function TestsPage() {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="w-full px-4 py-2.5 bg-white text-slate-900 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm"
+              className="w-full px-4 py-2.5 bg-white text-slate-900 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400 text-sm"
             >
               <option value="all">All Tests</option>
               <option value="recommended">Recommended</option>
@@ -284,7 +284,7 @@ export default function TestsPage() {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-4 py-2.5 bg-white text-slate-900 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm"
+              className="w-full px-4 py-2.5 bg-white text-slate-900 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400 text-sm"
             >
               <option value="all">All Categories</option>
               {categories.map(cat => (

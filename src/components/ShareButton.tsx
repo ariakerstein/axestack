@@ -132,7 +132,7 @@ export function ShareButton({
             </button>
 
             <div className="text-center mb-6">
-              <div className="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full flex items-center justify-center">
+              <div className="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-green-100 to-green-100 rounded-full flex items-center justify-center">
                 <Share2 className="w-6 h-6 text-green-600" />
               </div>
               <h2 className="text-xl font-bold text-slate-900">{title}</h2>
@@ -142,7 +142,7 @@ export function ShareButton({
             <div className="space-y-3">
               <button
                 onClick={() => handleShare('copy')}
-                className="w-full flex items-center gap-4 p-4 border border-slate-200 rounded-xl hover:border-violet-300 hover:bg-violet-50 transition-colors text-left"
+                className="w-full flex items-center gap-4 p-4 border border-slate-200 rounded-xl hover:border-slate-300 hover:bg-slate-50 transition-colors text-left"
               >
                 <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
                   {copied ? <Check className="w-5 h-5 text-green-600" /> : <Copy className="w-5 h-5 text-slate-600" />}

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { FileText, ChevronDown, ChevronUp, AlertCircle, Clock, Eye } from 'lucide-react'
+import { Navbar } from '@/components/Navbar'
 
 interface TranslationResult {
   document_type: string
@@ -98,7 +99,7 @@ export default function SharedRecordPage() {
           <p className="text-slate-600 mb-6">This link may have expired or been removed.</p>
           <Link
             href="/records"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-violet-600 text-white rounded-xl font-semibold hover:bg-violet-700 transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-xl font-semibold hover:bg-orange-700 transition-colors"
           >
             Upload Your Own Records
           </Link>
@@ -113,22 +114,7 @@ export default function SharedRecordPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      {/* Header */}
-      <header className="border-b border-slate-200 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-violet-600 font-bold">open</span>
-            <span className="font-bold text-slate-900">cancer</span>
-            <span className="text-violet-600 font-bold">.ai</span>
-          </Link>
-          <Link
-            href="/records"
-            className="text-sm text-violet-600 hover:text-violet-700 font-medium"
-          >
-            Upload Your Records
-          </Link>
-        </div>
-      </header>
+      <Navbar />
 
       <div className="max-w-3xl mx-auto px-4 py-6">
         {/* Shared indicator */}
@@ -148,12 +134,12 @@ export default function SharedRecordPage() {
           {/* Header */}
           <div className="p-6 border-b border-slate-100">
             <div className="flex items-start gap-4">
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center flex-shrink-0">
+              <div className="w-14 h-14 rounded-xl bg-slate-900 flex items-center justify-center flex-shrink-0">
                 <FileText className="w-7 h-7 text-white" />
               </div>
               <div className="flex-1 min-w-0">
                 <h1 className="text-xl font-bold text-slate-900 truncate">{record.fileName}</h1>
-                <p className="text-violet-600 font-medium">{record.documentType}</p>
+                <p className="text-slate-600 font-medium">{record.documentType}</p>
                 <p className="text-sm text-slate-500 mt-1">
                   {result.processing_metadata?.confidence_level || 'Moderate'} confidence
                 </p>
@@ -208,7 +194,7 @@ export default function SharedRecordPage() {
                     <ul className="space-y-2">
                       {result.diagnosis.map((d, i) => (
                         <li key={i} className="flex items-start gap-2 text-slate-700">
-                          <span className="text-violet-500 mt-1">•</span>
+                          <span className="text-slate-400 mt-1">•</span>
                           {d}
                         </li>
                       ))}
@@ -319,7 +305,7 @@ export default function SharedRecordPage() {
                 </button>
                 {expandedSections.has('questions') && (
                   <div className="px-4 pb-4 pl-12">
-                    <div className="bg-violet-50 border border-violet-200 rounded-xl p-4">
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
                       <p className="text-slate-700 whitespace-pre-wrap">{result.questions_to_ask_doctor}</p>
                     </div>
                   </div>
@@ -372,7 +358,7 @@ export default function SharedRecordPage() {
           <p className="text-slate-600 mb-4">Want to translate your own medical records?</p>
           <Link
             href="/records"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white rounded-xl font-semibold hover:from-violet-600 hover:to-fuchsia-600 transition-all shadow-lg"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-orange-600 text-white rounded-xl font-semibold hover:bg-orange-700 transition-all shadow-lg"
           >
             <FileText className="w-5 h-5" />
             Upload Your Records Free
@@ -383,7 +369,7 @@ export default function SharedRecordPage() {
       {/* Footer */}
       <footer className="border-t border-slate-200 mt-12 py-6">
         <div className="max-w-3xl mx-auto px-4 text-center text-sm text-slate-500">
-          <p>Powered by <Link href="/" className="text-violet-600 hover:text-violet-700">opencancer.ai</Link></p>
+          <p>Powered by <Link href="/" className="text-orange-600 hover:text-orange-700">opencancer.ai</Link></p>
         </div>
       </footer>
     </main>

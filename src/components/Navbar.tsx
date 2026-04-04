@@ -19,7 +19,7 @@ export function Navbar({ showBack = false, backHref = '/', backLabel = 'Home' }:
 
   return (
     <>
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
+      <header className="bg-[#f5f3ee] border-b border-stone-200 sticky top-0 z-20">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           {/* Left side */}
           <div className="flex items-center gap-4">
@@ -28,37 +28,42 @@ export function Navbar({ showBack = false, backHref = '/', backLabel = 'Home' }:
                 ← {backLabel}
               </Link>
             )}
-            <Link href="/" className="flex items-center gap-1.5">
-              <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">
-                opencancer
-              </span>
-              <span className="text-lg font-bold text-slate-400">.ai</span>
+            <Link href="/" className="flex items-center">
+              <img
+                src="/nav-lockup-black.svg"
+                alt="opencancer.ai"
+                width="200"
+                height="32"
+              />
             </Link>
           </div>
 
           {/* Right side - Desktop */}
           <div className="hidden sm:flex items-center gap-4">
             <nav className="flex items-center gap-2 text-sm">
-              <Link href="/records" className="text-slate-600 hover:text-violet-600 transition-colors px-3 py-2 min-h-[44px] flex items-center">
+              <Link href="/records" className="text-slate-600 hover:text-slate-900 transition-colors px-3 py-2 min-h-[44px] flex items-center">
                 Records
               </Link>
-              <Link href="/ask" className="text-slate-600 hover:text-violet-600 transition-colors px-3 py-2 min-h-[44px] flex items-center">
+              <Link href="/ask" className="text-slate-600 hover:text-slate-900 transition-colors px-3 py-2 min-h-[44px] flex items-center">
                 Ask Navis
               </Link>
-              <Link href="/trials" className="text-slate-600 hover:text-violet-600 transition-colors px-3 py-2 min-h-[44px] flex items-center">
+              <Link href="/trials" className="text-slate-600 hover:text-slate-900 transition-colors px-3 py-2 min-h-[44px] flex items-center">
                 Trials
+              </Link>
+              <Link href="/combat" className="text-slate-600 hover:text-slate-900 transition-colors px-3 py-2 min-h-[44px] flex items-center">
+                Combat
               </Link>
             </nav>
 
-            <div className="h-4 w-px bg-slate-200" />
+            <div className="h-4 w-px bg-stone-300" />
 
             {/* Auth state */}
             {loading ? (
-              <div className="w-20 h-6 bg-slate-100 rounded animate-pulse" />
+              <div className="w-20 h-6 bg-stone-200 rounded animate-pulse" />
             ) : user ? (
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1.5 text-sm text-slate-700">
-                  <User className="w-4 h-4 text-violet-500" />
+                  <User className="w-4 h-4 text-slate-500" />
                   {user.email?.split('@')[0]}
                 </span>
                 <button
@@ -79,7 +84,7 @@ export function Navbar({ showBack = false, backHref = '/', backLabel = 'Home' }:
             ) : (
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="flex items-center gap-1.5 text-sm text-violet-600 hover:text-violet-700 font-medium px-3 py-1.5 bg-violet-50 hover:bg-violet-100 rounded-lg transition-colors"
+                className="flex items-center gap-1.5 text-sm text-slate-700 font-medium px-3 py-1.5 border border-stone-300 hover:border-slate-400 rounded-full transition-colors"
               >
                 <User className="w-4 h-4" />
                 Sign in
@@ -98,37 +103,44 @@ export function Navbar({ showBack = false, backHref = '/', backLabel = 'Home' }:
 
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="sm:hidden border-t border-slate-100 bg-white">
+          <div className="sm:hidden border-t border-stone-200 bg-[#f5f3ee]">
             <nav className="flex flex-col px-4 py-2">
               <Link
                 href="/records"
                 onClick={() => setMobileMenuOpen(false)}
-                className="py-3 min-h-[44px] flex items-center text-slate-700 hover:text-violet-600 transition-colors"
+                className="py-3 min-h-[44px] flex items-center text-slate-700 hover:text-slate-900 transition-colors"
               >
                 Records
               </Link>
               <Link
                 href="/ask"
                 onClick={() => setMobileMenuOpen(false)}
-                className="py-3 min-h-[44px] flex items-center text-slate-700 hover:text-violet-600 transition-colors"
+                className="py-3 min-h-[44px] flex items-center text-slate-700 hover:text-slate-900 transition-colors"
               >
                 Ask Navis
               </Link>
               <Link
                 href="/trials"
                 onClick={() => setMobileMenuOpen(false)}
-                className="py-3 min-h-[44px] flex items-center text-slate-700 hover:text-violet-600 transition-colors"
+                className="py-3 min-h-[44px] flex items-center text-slate-700 hover:text-slate-900 transition-colors"
               >
                 Trials
               </Link>
+              <Link
+                href="/combat"
+                onClick={() => setMobileMenuOpen(false)}
+                className="py-3 min-h-[44px] flex items-center text-slate-700 hover:text-slate-900 transition-colors"
+              >
+                Combat
+              </Link>
 
-              <div className="border-t border-slate-100 pt-2 mt-2">
+              <div className="border-t border-stone-200 pt-2 mt-2">
                 {loading ? (
                   <div className="py-2 text-slate-400">Loading...</div>
                 ) : user ? (
                   <div className="flex items-center justify-between py-2">
                     <span className="text-slate-700 flex items-center gap-2">
-                      <User className="w-4 h-4 text-violet-500" />
+                      <User className="w-4 h-4 text-slate-500" />
                       {user.email?.split('@')[0]}
                     </span>
                     <button
@@ -147,7 +159,7 @@ export function Navbar({ showBack = false, backHref = '/', backLabel = 'Home' }:
                       setMobileMenuOpen(false)
                       setShowAuthModal(true)
                     }}
-                    className="w-full py-2 text-center bg-violet-600 text-white rounded-lg font-medium"
+                    className="w-full py-2 text-center bg-slate-900 text-white rounded-lg font-medium"
                   >
                     Sign in
                   </button>

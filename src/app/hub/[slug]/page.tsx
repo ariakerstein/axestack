@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { useActivityLog } from '@/hooks/useActivityLog'
+import { Navbar } from '@/components/Navbar'
 
 interface Update {
   id: string
@@ -241,35 +242,7 @@ export default function HubViewPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/hub" className="text-slate-500 hover:text-slate-900 text-sm transition-colors">
-            ← Back
-          </Link>
-          <Link href="/" className="flex items-center gap-2">
-            <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">opencancer.ai</span>
-            <span className="text-slate-400 text-sm">/</span>
-            <span className="font-medium text-slate-700">CareCircle</span>
-          </Link>
-          <button
-            onClick={handleCopyLink}
-            className="flex items-center gap-2 text-sm bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition-colors"
-          >
-            {copied ? (
-              <>
-                <span className="text-green-600">✓</span>
-                <span className="text-green-600">Copied!</span>
-              </>
-            ) : (
-              <>
-                <span>🔗</span>
-                <span>Share Link</span>
-              </>
-            )}
-          </button>
-        </div>
-      </header>
+      <Navbar />
 
       <div className="max-w-2xl mx-auto px-6 py-8">
         {/* Hub Header */}
@@ -462,7 +435,7 @@ export default function HubViewPage() {
         <div className="mt-6 text-center">
           <Link
             href="/cancer-checklist"
-            className="text-slate-500 hover:text-violet-600 text-sm transition-colors"
+            className="text-slate-500 hover:text-orange-600 text-sm transition-colors"
           >
             Need help preparing for appointments? Try the Cancer Checklist →
           </Link>

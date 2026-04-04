@@ -7,6 +7,7 @@ import { Search, Filter, MapPin, Phone, ExternalLink, Star, Building2 } from 'lu
 import { ShareButton } from '@/components/ShareButton'
 import { useAuth } from '@/lib/auth'
 import { useActivityLog } from '@/hooks/useActivityLog'
+import { Navbar } from '@/components/Navbar'
 
 interface CancerCenter {
   id: string
@@ -260,41 +261,7 @@ export default function OncologistsPage() {
 
   return (
     <main className="min-h-screen bg-white">
-      {/* Header - consistent with Navbar pattern */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          {/* Left side - brand */}
-          <Link href="/" className="flex items-center gap-1.5">
-            <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">
-              opencancer
-            </span>
-            <span className="text-lg font-bold text-slate-400">.ai</span>
-          </Link>
-
-          {/* Center - nav links (hidden on mobile) */}
-          <nav className="hidden sm:flex items-center gap-4 text-sm">
-            <Link href="/records" className="text-slate-600 hover:text-violet-600 transition-colors">
-              Records
-            </Link>
-            <Link href="/ask" className="text-slate-600 hover:text-violet-600 transition-colors">
-              Ask Navis
-            </Link>
-            <Link href="/trials" className="text-slate-600 hover:text-violet-600 transition-colors">
-              Trials
-            </Link>
-          </nav>
-
-          {/* Right side */}
-          <div className="flex items-center gap-3">
-            <ShareButton
-              tool="oncologists"
-              title="Share Find Oncologist"
-              description="Help others find cancer specialists"
-              variant="icon"
-            />
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Hero */}
@@ -315,7 +282,7 @@ export default function OncologistsPage() {
               placeholder="Search by name, location, or specialty..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-3 pl-11 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm"
+              className="w-full px-4 py-3 pl-11 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400 text-sm"
             />
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           </div>
@@ -331,7 +298,7 @@ export default function OncologistsPage() {
             <select
               value={selectedRegion}
               onChange={(e) => setSelectedRegion(e.target.value)}
-              className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+              className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-400 focus:border-slate-400"
             >
               {REGIONS.map(r => (
                 <option key={r} value={r}>{r}</option>
@@ -342,7 +309,7 @@ export default function OncologistsPage() {
             <select
               value={selectedSpecialty}
               onChange={(e) => setSelectedSpecialty(e.target.value)}
-              className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+              className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-slate-400 focus:border-slate-400"
             >
               {SPECIALTIES.map(s => (
                 <option key={s} value={s}>{s}</option>
@@ -354,8 +321,8 @@ export default function OncologistsPage() {
               onClick={() => setShowTopOnly(!showTopOnly)}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                 showTopOnly
-                  ? 'bg-violet-100 text-violet-700 border border-violet-300'
-                  : 'bg-white text-slate-600 border border-slate-300 hover:border-violet-300'
+                  ? 'bg-slate-100 text-slate-900 border border-slate-400'
+                  : 'bg-white text-slate-600 border border-slate-300 hover:border-slate-400'
               }`}
             >
               <Star className="w-4 h-4" />
@@ -381,7 +348,7 @@ export default function OncologistsPage() {
           {profile?.cancerType && (
             <div className="mt-4 pt-4 border-t border-slate-200">
               <p className="text-sm text-slate-600">
-                Your profile: <span className="font-medium text-violet-700">{CANCER_TYPES[profile.cancerType] || profile.cancerType}</span>
+                Your profile: <span className="font-medium text-slate-900">{CANCER_TYPES[profile.cancerType] || profile.cancerType}</span>
                 {profile.location && <span> • Near <span className="font-medium">{profile.location}</span></span>}
               </p>
             </div>
@@ -405,7 +372,7 @@ export default function OncologistsPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => handleCenterClick(center)}
-                className="block bg-white border border-slate-200 rounded-xl p-4 hover:border-violet-300 hover:shadow-md transition-all group"
+                className="block bg-white border border-slate-200 rounded-xl p-4 hover:border-slate-400 hover:shadow-md transition-all group"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
@@ -416,7 +383,7 @@ export default function OncologistsPage() {
                           #{center.ranking}
                         </span>
                       )}
-                      <h3 className="font-semibold text-slate-900 group-hover:text-violet-600 transition-colors">
+                      <h3 className="font-semibold text-slate-900 group-hover:text-[#C66B4A] transition-colors">
                         {center.name}
                       </h3>
                       <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium bg-blue-100 text-blue-700">
@@ -432,7 +399,7 @@ export default function OncologistsPage() {
                       {center.specialties.filter(s => s !== 'All cancer types').slice(0, 4).map((specialty) => (
                         <span
                           key={specialty}
-                          className="text-xs bg-violet-50 text-violet-600 px-2 py-0.5 rounded-full border border-violet-100"
+                          className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full border border-slate-200"
                         >
                           {specialty}
                         </span>
@@ -445,7 +412,7 @@ export default function OncologistsPage() {
                       </p>
                     )}
                   </div>
-                  <ExternalLink className="w-5 h-5 text-slate-300 group-hover:text-violet-500 transition-colors flex-shrink-0" />
+                  <ExternalLink className="w-5 h-5 text-slate-300 group-hover:text-[#C66B4A] transition-colors flex-shrink-0" />
                 </div>
               </a>
             ))}
@@ -465,23 +432,23 @@ export default function OncologistsPage() {
           <h3 className="font-semibold text-slate-900 mb-3">Tips for Finding the Right Oncologist</h3>
           <ul className="space-y-2 text-sm text-slate-600">
             <li className="flex gap-2">
-              <span className="text-violet-500">✓</span>
+              <span className="text-green-600">✓</span>
               Look for specialists in your specific cancer type
             </li>
             <li className="flex gap-2">
-              <span className="text-violet-500">✓</span>
+              <span className="text-green-600">✓</span>
               Check if they participate in clinical trials
             </li>
             <li className="flex gap-2">
-              <span className="text-violet-500">✓</span>
+              <span className="text-green-600">✓</span>
               Verify they accept your insurance
             </li>
             <li className="flex gap-2">
-              <span className="text-violet-500">✓</span>
+              <span className="text-green-600">✓</span>
               Consider travel time for frequent appointments
             </li>
             <li className="flex gap-2">
-              <span className="text-violet-500">✓</span>
+              <span className="text-green-600">✓</span>
               Getting a second opinion is always OK
             </li>
           </ul>
@@ -492,7 +459,7 @@ export default function OncologistsPage() {
           <p className="text-slate-600 mb-4">Preparing for your first appointment?</p>
           <Link
             href="/cancer-checklist"
-            className="inline-block bg-violet-600 hover:bg-violet-700 text-white font-medium px-6 py-3 rounded-lg transition-colors"
+            className="inline-block bg-orange-600 hover:bg-orange-700 text-white font-medium px-6 py-3 rounded-lg transition-colors"
           >
             Get Your Appointment Checklist →
           </Link>

@@ -316,6 +316,38 @@ interface PatientListData {
   totalEntities: number
 }
 
+interface QuestionsData {
+  questions: Array<{
+    id: string
+    created_at: string
+    question: string
+    question_type: string
+    cancer_type: string | null
+    confidence_score: number | null
+    feedback_type: 'positive' | 'negative' | null
+    feedback_comment: string | null
+    has_patient_context: boolean
+    used_fallback: boolean
+    treatment_options_count: number
+    has_false_dichotomy: boolean
+    needs_expert_review: boolean
+    session_id: string | null
+    user_id: string | null
+  }>
+  stats: {
+    total: number
+    byCancerType: Record<string, number>
+    byQuestionType: Record<string, number>
+    avgConfidence: number
+    feedbackBreakdown: {
+      positive: number
+      negative: number
+      none: number
+    }
+    needsReviewCount: number
+  }
+}
+
 export default function AdminPage() {
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [profilesData, setProfilesData] = useState<ProfilesData | null>(null)
@@ -323,12 +355,13 @@ export default function AdminPage() {
   const [activityGraphData, setActivityGraphData] = useState<ActivityGraphData | null>(null)
   const [entityGraphData, setEntityGraphData] = useState<EntityGraphData | null>(null)
   const [winbackData, setWinbackData] = useState<WinbackData | null>(null)
+  const [questionsData, setQuestionsData] = useState<QuestionsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [adminKey, setAdminKey] = useState('')
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [days, setDays] = useState(30)
-  const [activeTab, setActiveTab] = useState<'analytics' | 'profiles' | 'usage' | 'activity' | 'entity'>('analytics')
+  const [activeTab, setActiveTab] = useState<'analytics' | 'profiles' | 'usage' | 'activity' | 'entity' | 'questions'>('analytics')
   const [selectedProfile, setSelectedProfile] = useState<ProfileData | null>(null)
   const [userStats, setUserStats] = useState<UserStats | null>(null)
   const [loadingUserStats, setLoadingUserStats] = useState(false)
@@ -698,6 +731,20 @@ export default function AdminPage() {
     }
   }
 
+  const fetchQuestions = async (key: string) => {
+    try {
+      const res = await fetch('/api/admin/questions?limit=200', {
+        headers: { 'x-admin-key': key }
+      })
+      if (res.ok) {
+        const json = await res.json()
+        setQuestionsData(json)
+      }
+    } catch (err) {
+      console.error('Error fetching questions:', err)
+    }
+  }
+
   const fetchUserStats = async (profile: ProfileData) => {
     setSelectedProfile(profile)
     setLoadingUserStats(true)
@@ -844,7 +891,7 @@ export default function AdminPage() {
               value={adminKey}
               onChange={(e) => setAdminKey(e.target.value)}
               placeholder="Enter admin key"
-              className="w-full px-4 py-3 bg-white text-slate-900 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent mb-4"
+              className="w-full px-4 py-3 bg-white text-slate-900 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent mb-4"
             />
             {error && (
               <p className="text-red-600 text-sm mb-4">{error}</p>
@@ -852,7 +899,7 @@ export default function AdminPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700 transition disabled:opacity-50"
+              className="w-full py-3 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition disabled:opacity-50"
             >
               {loading ? 'Loading...' : 'Login'}
             </button>
@@ -881,7 +928,7 @@ export default function AdminPage() {
               <select
                 value={days}
                 onChange={(e) => handleDaysChange(Number(e.target.value))}
-                className="px-4 py-2 bg-white text-slate-900 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="px-4 py-2 bg-white text-slate-900 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
               >
                 <option value={7}>Last 7 days</option>
                 <option value={14}>Last 14 days</option>
@@ -892,7 +939,7 @@ export default function AdminPage() {
             )}
             <button
               onClick={() => { fetchAnalytics(adminKey, days); fetchProfiles(adminKey); fetchUsage(adminKey, days); fetchActivityGraph(adminKey, days); fetchEntityGraph(adminKey); fetchWinback(adminKey); }}
-              className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition"
+              className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition"
             >
               Refresh
             </button>
@@ -911,7 +958,7 @@ export default function AdminPage() {
             onClick={() => setActiveTab('analytics')}
             className={`px-4 py-2 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
               activeTab === 'analytics'
-                ? 'text-violet-600 border-violet-600'
+                ? 'text-slate-600 border-slate-600'
                 : 'text-slate-500 border-transparent hover:text-slate-700'
             }`}
           >
@@ -921,7 +968,7 @@ export default function AdminPage() {
             onClick={() => setActiveTab('profiles')}
             className={`px-4 py-2 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
               activeTab === 'profiles'
-                ? 'text-violet-600 border-violet-600'
+                ? 'text-slate-600 border-slate-600'
                 : 'text-slate-500 border-transparent hover:text-slate-700'
             }`}
           >
@@ -931,7 +978,7 @@ export default function AdminPage() {
             onClick={() => setActiveTab('usage')}
             className={`px-4 py-2 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
               activeTab === 'usage'
-                ? 'text-violet-600 border-violet-600'
+                ? 'text-slate-600 border-slate-600'
                 : 'text-slate-500 border-transparent hover:text-slate-700'
             }`}
           >
@@ -941,7 +988,7 @@ export default function AdminPage() {
             onClick={() => setActiveTab('activity')}
             className={`px-4 py-2 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
               activeTab === 'activity'
-                ? 'text-violet-600 border-violet-600'
+                ? 'text-slate-600 border-slate-600'
                 : 'text-slate-500 border-transparent hover:text-slate-700'
             }`}
           >
@@ -951,11 +998,21 @@ export default function AdminPage() {
             onClick={() => setActiveTab('entity')}
             className={`px-4 py-2 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
               activeTab === 'entity'
-                ? 'text-violet-600 border-violet-600'
+                ? 'text-slate-600 border-slate-600'
                 : 'text-slate-500 border-transparent hover:text-slate-700'
             }`}
           >
             🕸️ Entity Graph {entityGraphData?.stats?.total_edges ? `(${entityGraphData.stats.total_edges} edges)` : ''}
+          </button>
+          <button
+            onClick={() => { setActiveTab('questions'); if (!questionsData) fetchQuestions(adminKey); }}
+            className={`px-4 py-2 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
+              activeTab === 'questions'
+                ? 'text-slate-600 border-slate-600'
+                : 'text-slate-500 border-transparent hover:text-slate-700'
+            }`}
+          >
+            💬 Questions {questionsData?.stats?.total ? `(${questionsData.stats.total})` : ''}
           </button>
           <a
             href="/admin/graph"
@@ -973,7 +1030,7 @@ export default function AdminPage() {
 
         {loading ? (
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-violet-600 border-t-transparent"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-slate-600 border-t-transparent"></div>
           </div>
         ) : error ? (
           <div className="bg-red-50 text-red-700 p-4 rounded-lg">{error}</div>
@@ -997,16 +1054,16 @@ export default function AdminPage() {
                 <p className="text-xs text-slate-500">Input Tokens</p>
               </div>
               <div className="bg-white rounded-xl shadow p-4">
-                <p className="text-2xl font-bold text-purple-600">{((usageData?.summary?.totalOutputTokens || 0) / 1000).toFixed(1)}K</p>
+                <p className="text-2xl font-bold text-slate-600">{((usageData?.summary?.totalOutputTokens || 0) / 1000).toFixed(1)}K</p>
                 <p className="text-xs text-slate-500">Output Tokens</p>
               </div>
               <div className="bg-white rounded-xl shadow p-4">
-                <p className="text-2xl font-bold text-emerald-600">{((usageData?.summary?.totalTokens || 0) / 1000).toFixed(1)}K</p>
+                <p className="text-2xl font-bold text-green-600">{((usageData?.summary?.totalTokens || 0) / 1000).toFixed(1)}K</p>
                 <p className="text-xs text-slate-500">Total Tokens</p>
               </div>
-              <div className="bg-gradient-to-br from-violet-50 to-fuchsia-50 rounded-xl shadow p-4 border border-violet-200">
-                <p className="text-2xl font-bold text-violet-700">${usageData?.summary?.estimatedCostUsd || '0.00'}</p>
-                <p className="text-xs text-violet-600 font-medium">Est. Cost</p>
+              <div className="bg-gradient-to-br from-slate-50 to-slate-50 rounded-xl shadow p-4 border border-slate-200">
+                <p className="text-2xl font-bold text-slate-700">${usageData?.summary?.estimatedCostUsd || '0.00'}</p>
+                <p className="text-xs text-slate-600 font-medium">Est. Cost</p>
               </div>
               <div className="bg-white rounded-xl shadow p-4">
                 <p className="text-2xl font-bold text-slate-900">{usageData?.summary?.successRate || 100}%</p>
@@ -1026,7 +1083,7 @@ export default function AdminPage() {
                     {usageData.byOperation.map((item) => (
                       <div key={item.operation} className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-violet-500" />
+                          <span className="w-2 h-2 rounded-full bg-slate-500" />
                           <span className="text-sm text-slate-700 capitalize">{item.operation}</span>
                         </div>
                         <div className="text-right">
@@ -1094,7 +1151,7 @@ export default function AdminPage() {
                     {chartData.map((day) => (
                       <div key={day.date} className="flex-1 flex flex-col items-center group relative">
                         <div
-                          className="w-full bg-gradient-to-t from-violet-500 to-fuchsia-400 rounded-t hover:from-violet-600 hover:to-fuchsia-500 transition-colors cursor-pointer"
+                          className="w-full bg-gradient-to-t from-slate-500 to-slate-400 rounded-t hover:from-slate-600 hover:to-slate-500 transition-colors cursor-pointer"
                           style={{ height: `${(day.cost / maxCost) * 100}%`, minHeight: day.cost > 0 ? '4px' : '0' }}
                         />
                         <div className="absolute bottom-full mb-1 hidden group-hover:block bg-slate-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
@@ -1133,7 +1190,7 @@ export default function AdminPage() {
                       {usageData.recentCalls.map((call) => (
                         <tr key={call.id} className="border-b border-slate-100 hover:bg-slate-50">
                           <td className="py-2 px-2">
-                            <span className="px-2 py-0.5 bg-violet-100 text-violet-700 rounded text-xs font-medium capitalize">
+                            <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-medium capitalize">
                               {call.operation}
                             </span>
                           </td>
@@ -1145,7 +1202,7 @@ export default function AdminPage() {
                           <td className="py-2 px-2 text-right text-slate-900 font-medium tabular-nums">${call.cost?.toFixed(4) || '0.0000'}</td>
                           <td className="py-2 px-2 text-center">
                             {call.success ? (
-                              <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" title="Success" />
+                              <span className="w-2 h-2 rounded-full bg-green-500 inline-block" title="Success" />
                             ) : (
                               <span className="w-2 h-2 rounded-full bg-red-500 inline-block" title="Failed" />
                             )}
@@ -1173,9 +1230,9 @@ export default function AdminPage() {
                   <div key={step.name} className="flex-1 flex flex-col items-center">
                     {/* Step */}
                     <div className={`w-full rounded-lg p-4 text-center ${
-                      i === 0 ? 'bg-violet-600' :
+                      i === 0 ? 'bg-orange-600' :
                       i === 1 ? 'bg-blue-600' :
-                      i === 2 ? 'bg-emerald-600' :
+                      i === 2 ? 'bg-green-600' :
                       i === 3 ? 'bg-orange-600' :
                       'bg-pink-600'
                     }`} style={{
@@ -1203,7 +1260,7 @@ export default function AdminPage() {
               <div className="hidden sm:flex justify-between px-8 -mt-2 mb-4">
                 {activityGraphData?.funnelSteps?.slice(1).map((step, i) => (
                   <div key={i} className="text-center flex-1">
-                    <span className={`text-sm font-semibold ${step.dropoffRate > 50 ? 'text-red-400' : step.dropoffRate > 25 ? 'text-yellow-400' : 'text-emerald-400'}`}>
+                    <span className={`text-sm font-semibold ${step.dropoffRate > 50 ? 'text-red-400' : step.dropoffRate > 25 ? 'text-yellow-400' : 'text-green-400'}`}>
                       ↓ {step.dropoffRate}% drop
                     </span>
                   </div>
@@ -1296,7 +1353,7 @@ export default function AdminPage() {
                 <p className="text-xs text-slate-500">Activities</p>
               </div>
               <div className="bg-white rounded-lg shadow p-3">
-                <p className="text-lg font-bold text-violet-600">{activityGraphData?.summary?.uniqueUsers || 0}</p>
+                <p className="text-lg font-bold text-slate-600">{activityGraphData?.summary?.uniqueUsers || 0}</p>
                 <p className="text-xs text-slate-500">Users</p>
               </div>
               <div className="bg-white rounded-lg shadow p-3">
@@ -1304,7 +1361,7 @@ export default function AdminPage() {
                 <p className="text-xs text-slate-500">Uploaders</p>
               </div>
               <div className="bg-white rounded-lg shadow p-3">
-                <p className="text-lg font-bold text-emerald-600">{activityGraphData?.funnel?.askers || 0}</p>
+                <p className="text-lg font-bold text-green-600">{activityGraphData?.funnel?.askers || 0}</p>
                 <p className="text-xs text-slate-500">Askers</p>
               </div>
               <div className="bg-white rounded-lg shadow p-3">
@@ -1376,7 +1433,7 @@ export default function AdminPage() {
                       <div key={item.type} className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span className={`w-2 h-2 rounded-full ${
-                            item.type === 'record_upload' ? 'bg-emerald-500' :
+                            item.type === 'record_upload' ? 'bg-green-500' :
                             item.type === 'ask_question' ? 'bg-blue-500' :
                             item.type === 'combat_run' ? 'bg-orange-500' :
                             item.type === 'thumbs_up' ? 'bg-green-500' :
@@ -1405,7 +1462,7 @@ export default function AdminPage() {
                         <div className="flex items-center gap-1 text-xs">
                           <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded">{formatEventType(p.from)}</span>
                           <span className="text-slate-400">→</span>
-                          <span className="px-1.5 py-0.5 bg-violet-100 text-violet-700 rounded">{formatEventType(p.to)}</span>
+                          <span className="px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded">{formatEventType(p.to)}</span>
                         </div>
                         <div className="text-right">
                           <span className="text-sm font-semibold text-slate-900">{p.connection_count}x</span>
@@ -1470,12 +1527,12 @@ export default function AdminPage() {
                   {activityGraphData.recentActivities.map((activity, i) => (
                     <div key={i} className="flex items-center gap-4 py-2 border-b border-slate-100 last:border-0">
                       <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                        activity.type === 'record_upload' ? 'bg-emerald-100 text-emerald-700' :
+                        activity.type === 'record_upload' ? 'bg-green-100 text-green-700' :
                         activity.type === 'ask_question' ? 'bg-blue-100 text-blue-700' :
                         activity.type === 'combat_run' ? 'bg-orange-100 text-orange-700' :
                         activity.type === 'thumbs_up' ? 'bg-green-100 text-green-700' :
                         activity.type === 'thumbs_down' ? 'bg-red-100 text-red-700' :
-                        'bg-violet-100 text-violet-700'
+                        'bg-slate-100 text-slate-700'
                       }`}>
                         {formatEventType(activity.type)}
                       </span>
@@ -1524,7 +1581,7 @@ export default function AdminPage() {
                 <p className="text-xs text-slate-500">Diagnoses</p>
               </div>
               <div className="bg-white rounded-xl shadow p-4">
-                <p className="text-2xl font-bold text-emerald-600">{entityGraphData?.stats?.biomarker_count || entityGraphData?.topEntities?.biomarkers?.length || 0}</p>
+                <p className="text-2xl font-bold text-green-600">{entityGraphData?.stats?.biomarker_count || entityGraphData?.topEntities?.biomarkers?.length || 0}</p>
                 <p className="text-xs text-slate-500">Biomarkers</p>
               </div>
               <div className="bg-white rounded-xl shadow p-4">
@@ -1532,7 +1589,7 @@ export default function AdminPage() {
                 <p className="text-xs text-slate-500">Treatments</p>
               </div>
               <div className="bg-white rounded-xl shadow p-4">
-                <p className="text-2xl font-bold text-violet-600">{entityGraphData?.stats?.record_count || 0}</p>
+                <p className="text-2xl font-bold text-slate-600">{entityGraphData?.stats?.record_count || 0}</p>
                 <p className="text-xs text-slate-500">Records</p>
               </div>
               <div className="bg-white rounded-xl shadow p-4">
@@ -1557,7 +1614,7 @@ export default function AdminPage() {
             </div>
 
             {/* Cross-Tab: Diagnosis → Biomarkers → Treatments */}
-            <div className="bg-gradient-to-br from-blue-50 to-violet-50 border border-blue-200 rounded-xl shadow p-6">
+            <div className="bg-gradient-to-br from-blue-50 to-slate-50 border border-blue-200 rounded-xl shadow p-6">
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-slate-900">🧬 Cross-Tab Analysis</h2>
@@ -1612,15 +1669,15 @@ export default function AdminPage() {
                   <div className="grid sm:grid-cols-2 gap-6">
                     {/* Biomarkers */}
                     <div>
-                      <p className="text-xs text-emerald-700 mb-3 uppercase tracking-wide font-medium">Biomarkers They Track</p>
+                      <p className="text-xs text-green-700 mb-3 uppercase tracking-wide font-medium">Biomarkers They Track</p>
                       {getCoOccurringEntities()?.topBiomarkers.length === 0 ? (
                         <p className="text-slate-400 text-sm">None extracted from their records</p>
                       ) : (
                         <div className="space-y-2">
                           {getCoOccurringEntities()?.topBiomarkers.map((b, j) => (
-                            <div key={j} className="flex items-center justify-between bg-emerald-50 rounded-lg px-3 py-2">
-                              <span className="text-emerald-800 text-sm">{b.name}</span>
-                              <span className="text-emerald-600 text-xs font-mono">{b.count}x</span>
+                            <div key={j} className="flex items-center justify-between bg-green-50 rounded-lg px-3 py-2">
+                              <span className="text-green-800 text-sm">{b.name}</span>
+                              <span className="text-green-600 text-xs font-mono">{b.count}x</span>
                             </div>
                           ))}
                         </div>
@@ -1661,12 +1718,12 @@ export default function AdminPage() {
                   {/* Recommended Tests Section */}
                   {getCoOccurringEntities()?.topBiomarkers && getRecommendedTests(getCoOccurringEntities()!.topBiomarkers).length > 0 && (
                     <div className="mt-4 pt-4 border-t border-blue-200">
-                      <p className="text-xs text-violet-700 mb-3 uppercase tracking-wide font-medium">🧪 Recommended Tests</p>
+                      <p className="text-xs text-slate-700 mb-3 uppercase tracking-wide font-medium">🧪 Recommended Tests</p>
                       <div className="space-y-2">
                         {getRecommendedTests(getCoOccurringEntities()!.topBiomarkers).map((t, j) => (
-                          <div key={j} className="flex items-center justify-between bg-violet-50 rounded-lg px-3 py-2">
-                            <span className="text-violet-800 text-sm font-medium">{t.test}</span>
-                            <span className="text-violet-600 text-xs">{t.reason}</span>
+                          <div key={j} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2">
+                            <span className="text-slate-800 text-sm font-medium">{t.test}</span>
+                            <span className="text-slate-600 text-xs">{t.reason}</span>
                           </div>
                         ))}
                       </div>
@@ -1798,7 +1855,7 @@ export default function AdminPage() {
               {/* Top Biomarkers */}
               <div className="bg-white rounded-xl shadow p-6">
                 <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                  <span className="w-3 h-3 bg-emerald-500 rounded-full"></span>
+                  <span className="w-3 h-3 bg-green-500 rounded-full"></span>
                   Top Biomarkers
                 </h3>
                 {!entityGraphData?.topEntities?.biomarkers?.length ? (
@@ -1808,7 +1865,7 @@ export default function AdminPage() {
                     {entityGraphData.topEntities.biomarkers.map((b, i) => (
                       <div key={i} className="flex justify-between items-center">
                         <span className="text-sm text-slate-700 truncate">{b.name}</span>
-                        <span className="text-sm font-semibold text-emerald-600 tabular-nums">{b.count}</span>
+                        <span className="text-sm font-semibold text-green-600 tabular-nums">{b.count}</span>
                       </div>
                     ))}
                   </div>
@@ -1854,7 +1911,7 @@ export default function AdminPage() {
             </div>
 
             {/* Patient Timeline - Chronological Clinical Story */}
-            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl shadow p-6">
+            <div className="bg-gradient-to-br from-indigo-50 to-slate-50 border border-indigo-200 rounded-xl shadow p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h2 className="text-lg font-semibold text-slate-900">📅 Patient Timeline</h2>
@@ -1949,7 +2006,7 @@ export default function AdminPage() {
                         onClick={() => setTimelineFilters(prev => ({ ...prev, biomarker: !prev.biomarker }))}
                         className={`px-2 py-0.5 text-xs rounded-full transition-colors ${
                           timelineFilters.biomarker
-                            ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                            ? 'bg-green-100 text-green-700 border border-green-300'
                             : 'bg-slate-100 text-slate-400 border border-slate-200'
                         }`}
                       >
@@ -1969,7 +2026,7 @@ export default function AdminPage() {
                         onClick={() => setTimelineFilters(prev => ({ ...prev, records: !prev.records }))}
                         className={`px-2 py-0.5 text-xs rounded-full transition-colors ${
                           timelineFilters.records
-                            ? 'bg-violet-100 text-violet-700 border border-violet-300'
+                            ? 'bg-slate-100 text-slate-700 border border-slate-300'
                             : 'bg-slate-100 text-slate-400 border border-slate-200'
                         }`}
                       >
@@ -1997,7 +2054,7 @@ export default function AdminPage() {
                           <div key={type} className="flex items-start gap-2">
                             <span className={`text-xs font-medium capitalize px-2 py-0.5 rounded ${
                               type === 'diagnosis' ? 'bg-blue-100 text-blue-700' :
-                              type === 'biomarker' ? 'bg-emerald-100 text-emerald-700' :
+                              type === 'biomarker' ? 'bg-green-100 text-green-700' :
                               type === 'treatment' ? 'bg-orange-100 text-orange-700' :
                               'bg-slate-100 text-slate-600'
                             }`}>
@@ -2039,11 +2096,11 @@ export default function AdminPage() {
                           <div className={`absolute -left-[9px] w-4 h-4 rounded-full border-2 border-white ${
                             event.type === 'entity' ? (
                               event.category === 'diagnosis' ? 'bg-blue-500' :
-                              event.category === 'biomarker' ? 'bg-emerald-500' :
+                              event.category === 'biomarker' ? 'bg-green-500' :
                               event.category === 'treatment' ? 'bg-orange-500' :
                               'bg-slate-400'
                             ) :
-                            event.type === 'record' ? 'bg-violet-500' :
+                            event.type === 'record' ? 'bg-slate-500' :
                             'bg-pink-500'
                           }`}></div>
                           <div className="ml-4">
@@ -2054,11 +2111,11 @@ export default function AdminPage() {
                               <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-medium ${
                                 event.type === 'entity' ? (
                                   event.category === 'diagnosis' ? 'bg-blue-100 text-blue-700' :
-                                  event.category === 'biomarker' ? 'bg-emerald-100 text-emerald-700' :
+                                  event.category === 'biomarker' ? 'bg-green-100 text-green-700' :
                                   event.category === 'treatment' ? 'bg-orange-100 text-orange-700' :
                                   'bg-slate-100 text-slate-600'
                                 ) :
-                                event.type === 'record' ? 'bg-violet-100 text-violet-700' :
+                                event.type === 'record' ? 'bg-slate-100 text-slate-700' :
                                 'bg-pink-100 text-pink-700'
                               }`}>
                                 {event.type === 'entity' ? event.category : event.type}
@@ -2122,7 +2179,7 @@ export default function AdminPage() {
                         <div className="flex items-center gap-1 text-xs flex-1 min-w-0">
                           <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded truncate max-w-[120px]">{co.entity_a}</span>
                           <span className="text-slate-400 flex-shrink-0">↔</span>
-                          <span className="px-1.5 py-0.5 bg-violet-100 text-violet-700 rounded truncate max-w-[120px]">{co.entity_b}</span>
+                          <span className="px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded truncate max-w-[120px]">{co.entity_b}</span>
                         </div>
                         <span className="text-sm font-semibold text-slate-700 ml-2">{co.patient_count} pts</span>
                       </div>
@@ -2145,14 +2202,14 @@ export default function AdminPage() {
                           <div className="flex items-center gap-2">
                             <a
                               href={`/admin/graph?patientId=${sp.patientAId}`}
-                              className="font-mono text-xs text-violet-600 hover:text-violet-800 hover:underline"
+                              className="font-mono text-xs text-slate-600 hover:text-slate-800 hover:underline"
                             >
                               {sp.patientA}
                             </a>
                             <span className="text-amber-500">↔</span>
                             <a
                               href={`/admin/graph?patientId=${sp.patientBId}`}
-                              className="font-mono text-xs text-violet-600 hover:text-violet-800 hover:underline"
+                              className="font-mono text-xs text-slate-600 hover:text-slate-800 hover:underline"
                             >
                               {sp.patientB}
                             </a>
@@ -2184,7 +2241,7 @@ export default function AdminPage() {
                   {entityGraphData.recentEdges.map((edge, i) => (
                     <div key={i} className="flex items-center gap-3 py-2 border-b border-slate-100 last:border-0">
                       <span className="text-xs font-mono text-slate-500">{edge.from}</span>
-                      <span className="px-2 py-0.5 bg-violet-100 text-violet-700 text-xs rounded-full">{edge.relationship}</span>
+                      <span className="px-2 py-0.5 bg-slate-100 text-slate-700 text-xs rounded-full">{edge.relationship}</span>
                       <span className="text-xs font-mono text-slate-500 truncate">{edge.to}</span>
                       <span className="text-xs text-slate-400 ml-auto">{formatTimestamp(edge.when)}</span>
                     </div>
@@ -2216,7 +2273,7 @@ export default function AdminPage() {
             )}
 
             {/* Ontology Explanation */}
-            <div className="bg-gradient-to-br from-violet-50 to-fuchsia-50 border border-violet-200 rounded-xl p-6">
+            <div className="bg-gradient-to-br from-slate-50 to-slate-50 border border-slate-200 rounded-xl p-6">
               <h3 className="font-semibold text-slate-900 mb-3">🧠 What is this?</h3>
               <p className="text-sm text-slate-600 mb-4">
                 This is a <strong>Palantir-style ontology graph</strong> connecting patients to their medical entities.
@@ -2238,12 +2295,133 @@ export default function AdminPage() {
                   </ul>
                 </div>
               </div>
-              <div className="mt-4 pt-4 border-t border-violet-200">
-                <p className="text-xs text-violet-600 font-medium">B2B Signal:</p>
+              <div className="mt-4 pt-4 border-t border-slate-200">
+                <p className="text-xs text-slate-600 font-medium">B2B Signal:</p>
                 <p className="text-xs text-slate-600">
                   <span className="text-red-600 font-medium">Non-SOC treatments</span> = treatment-experienced patients actively seeking alternatives.
                   This is pharma gold: patients who have exhausted standard options.
                 </p>
+              </div>
+            </div>
+          </div>
+        ) : activeTab === 'questions' ? (
+          /* Questions Tab */
+          <div>
+            {/* Stats Overview */}
+            {questionsData && (
+              <div className="grid lg:grid-cols-4 gap-4 mb-6">
+                <div className="bg-white rounded-xl shadow p-4">
+                  <p className="text-sm text-slate-500">Total Questions</p>
+                  <p className="text-2xl font-bold text-slate-900">{questionsData.stats.total}</p>
+                </div>
+                <div className="bg-white rounded-xl shadow p-4">
+                  <p className="text-sm text-slate-500">Avg Confidence</p>
+                  <p className="text-2xl font-bold text-slate-900">{(questionsData.stats.avgConfidence * 100).toFixed(0)}%</p>
+                </div>
+                <div className="bg-white rounded-xl shadow p-4">
+                  <p className="text-sm text-slate-500">Needs Review</p>
+                  <p className="text-2xl font-bold text-amber-600">{questionsData.stats.needsReviewCount}</p>
+                </div>
+                <div className="bg-white rounded-xl shadow p-4">
+                  <p className="text-sm text-slate-500">Feedback</p>
+                  <p className="text-lg font-bold">
+                    <span className="text-green-600">👍 {questionsData.stats.feedbackBreakdown.positive}</span>
+                    {' · '}
+                    <span className="text-red-600">👎 {questionsData.stats.feedbackBreakdown.negative}</span>
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Breakdown Charts */}
+            {questionsData && (
+              <div className="grid lg:grid-cols-2 gap-6 mb-6">
+                <div className="bg-white rounded-xl shadow p-6">
+                  <h3 className="text-lg font-semibold text-slate-900 mb-4">By Cancer Type</h3>
+                  <div className="space-y-2">
+                    {Object.entries(questionsData.stats.byCancerType).sort((a, b) => b[1] - a[1]).map(([type, count]) => (
+                      <div key={type} className="flex items-center justify-between">
+                        <span className="text-slate-700 text-sm">{type}</span>
+                        <span className="text-slate-900 font-semibold tabular-nums">{count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-white rounded-xl shadow p-6">
+                  <h3 className="text-lg font-semibold text-slate-900 mb-4">By Question Type</h3>
+                  <div className="space-y-2">
+                    {Object.entries(questionsData.stats.byQuestionType).sort((a, b) => b[1] - a[1]).map(([type, count]) => (
+                      <div key={type} className="flex items-center justify-between">
+                        <span className="text-slate-700 text-sm capitalize">{type}</span>
+                        <span className="text-slate-900 font-semibold tabular-nums">{count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Questions List */}
+            <div className="bg-white rounded-xl shadow overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-slate-900">Recent Questions</h3>
+                <button
+                  onClick={() => fetchQuestions(adminKey)}
+                  className="text-sm text-slate-600 hover:text-slate-700"
+                >
+                  Refresh
+                </button>
+              </div>
+              <div className="divide-y divide-slate-100 max-h-[600px] overflow-y-auto">
+                {questionsData?.questions.map((q) => (
+                  <div key={q.id} className={`p-4 hover:bg-slate-50 ${q.needs_expert_review ? 'bg-amber-50' : ''}`}>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-slate-900 line-clamp-2">{q.question}</p>
+                        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                          <span className="px-2 py-0.5 bg-slate-100 rounded text-slate-600">
+                            {q.question_type || 'general'}
+                          </span>
+                          {q.cancer_type && (
+                            <span className="px-2 py-0.5 bg-slate-100 rounded text-slate-700">
+                              {q.cancer_type}
+                            </span>
+                          )}
+                          {q.confidence_score && (
+                            <span className={`px-2 py-0.5 rounded ${
+                              q.confidence_score >= 0.7 ? 'bg-green-100 text-green-700' :
+                              q.confidence_score >= 0.4 ? 'bg-amber-100 text-amber-700' :
+                              'bg-red-100 text-red-700'
+                            }`}>
+                              {(q.confidence_score * 100).toFixed(0)}% conf
+                            </span>
+                          )}
+                          {q.feedback_type === 'positive' && <span className="text-green-600">👍</span>}
+                          {q.feedback_type === 'negative' && <span className="text-red-600">👎</span>}
+                          {q.needs_expert_review && (
+                            <span className="px-2 py-0.5 bg-amber-200 rounded text-amber-800 font-medium">
+                              Needs Review
+                            </span>
+                          )}
+                          {q.used_fallback && (
+                            <span className="px-2 py-0.5 bg-blue-100 rounded text-blue-700">
+                              Fallback
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-xs text-slate-400 whitespace-nowrap">
+                        {new Date(q.created_at).toLocaleDateString()}<br/>
+                        {new Date(q.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {(!questionsData || questionsData.questions.length === 0) && (
+                  <div className="p-8 text-center text-slate-500">
+                    No questions logged yet
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -2350,8 +2528,8 @@ export default function AdminPage() {
                           <td className="py-3 px-2">
                             <span className={`px-2 py-0.5 text-xs rounded-full ${
                               profile.role === 'caregiver'
-                                ? 'bg-purple-100 text-purple-700'
-                                : 'bg-violet-100 text-violet-700'
+                                ? 'bg-slate-100 text-slate-700'
+                                : 'bg-slate-100 text-slate-700'
                             }`}>
                               {profile.role}
                             </span>
@@ -2386,8 +2564,8 @@ export default function AdminPage() {
                   <div className="flex flex-wrap gap-2 mb-6">
                     <span className={`px-2 py-1 text-xs rounded-full ${
                       selectedProfile.role === 'caregiver'
-                        ? 'bg-purple-100 text-purple-700'
-                        : 'bg-violet-100 text-violet-700'
+                        ? 'bg-slate-100 text-slate-700'
+                        : 'bg-slate-100 text-slate-700'
                     }`}>
                       {selectedProfile.role}
                     </span>
@@ -2409,14 +2587,14 @@ export default function AdminPage() {
                   {/* Stats Section */}
                   {loadingUserStats ? (
                     <div className="flex items-center justify-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-2 border-violet-600 border-t-transparent"></div>
+                      <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-600 border-t-transparent"></div>
                     </div>
                   ) : userStats ? (
                     <>
                       {/* Activity Stats Grid */}
                       <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-6">
-                        <div className="bg-violet-50 rounded-lg p-3 text-center">
-                          <p className="text-2xl font-bold text-violet-700">{userStats.stats.recordsUploaded}</p>
+                        <div className="bg-slate-50 rounded-lg p-3 text-center">
+                          <p className="text-2xl font-bold text-slate-700">{userStats.stats.recordsUploaded}</p>
                           <p className="text-xs text-slate-600">Records</p>
                         </div>
                         <div className="bg-blue-50 rounded-lg p-3 text-center">
@@ -2457,7 +2635,7 @@ export default function AdminPage() {
                       <div className="flex flex-wrap gap-2 mb-6">
                         {userStats.deviceInfo && userStats.deviceInfo.primary !== 'unknown' && (
                           <span className={`px-2 py-1 text-xs rounded-full ${
-                            userStats.deviceInfo.primary === 'mobile' ? 'bg-emerald-100 text-emerald-700' :
+                            userStats.deviceInfo.primary === 'mobile' ? 'bg-green-100 text-green-700' :
                             userStats.deviceInfo.primary === 'tablet' ? 'bg-cyan-100 text-cyan-700' :
                             'bg-slate-100 text-slate-700'
                           }`}>
@@ -2524,7 +2702,7 @@ export default function AdminPage() {
                               <div key={i} className="flex items-center justify-between bg-orange-50 rounded-lg px-3 py-2 text-sm">
                                 <div className="flex items-center gap-2">
                                   <span className={`px-1.5 py-0.5 text-xs rounded ${
-                                    combat.phase === 'diagnosis' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+                                    combat.phase === 'diagnosis' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700'
                                   }`}>
                                     {combat.phase}
                                   </span>
@@ -2611,7 +2789,7 @@ export default function AdminPage() {
 
             {/* Uploader Emails Drilldown */}
             {showUploaderEmails && winbackData && (
-              <div className="bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-200 rounded-xl shadow p-6 mb-8">
+              <div className="bg-gradient-to-br from-slate-50 to-slate-50 border border-slate-200 rounded-xl shadow p-6 mb-8">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-slate-900">📧 Uploader Emails ({winbackData.users.length} users who uploaded but haven&apos;t run Combat)</h2>
                   <button
@@ -2640,7 +2818,7 @@ export default function AdminPage() {
                     navigator.clipboard.writeText(emails)
                     alert('Emails copied to clipboard!')
                   }}
-                  className="mt-3 px-4 py-2 bg-violet-600 text-white text-sm rounded-lg hover:bg-violet-700"
+                  className="mt-3 px-4 py-2 bg-orange-600 text-white text-sm rounded-lg hover:bg-orange-700"
                 >
                   📋 Copy All Emails
                 </button>
@@ -2663,11 +2841,11 @@ export default function AdminPage() {
                     <p className="text-xs text-slate-600">Diagnosis Phase</p>
                   </div>
                   <div className="bg-white/80 rounded-lg p-3 text-center">
-                    <p className="text-2xl font-bold text-purple-600">{data.combatStats.treatment}</p>
+                    <p className="text-2xl font-bold text-slate-600">{data.combatStats.treatment}</p>
                     <p className="text-xs text-slate-600">Treatment Phase</p>
                   </div>
                   <div className="bg-white/80 rounded-lg p-3 text-center">
-                    <p className="text-2xl font-bold text-emerald-600">{data.combatStats.avgEvidenceStrength}%</p>
+                    <p className="text-2xl font-bold text-green-600">{data.combatStats.avgEvidenceStrength}%</p>
                     <p className="text-xs text-slate-600">Avg Evidence</p>
                   </div>
                 </div>
@@ -2697,7 +2875,7 @@ export default function AdminPage() {
                         <div key={i} className="flex items-center justify-between bg-white/60 rounded px-3 py-1.5">
                           <div className="flex items-center gap-2">
                             <span className={`text-xs px-1.5 py-0.5 rounded ${
-                              combat.phase === 'diagnosis' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+                              combat.phase === 'diagnosis' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700'
                             }`}>
                               {combat.phase}
                             </span>
@@ -2713,7 +2891,7 @@ export default function AdminPage() {
             )}
 
             {/* Sharing & Viral Growth Section */}
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl shadow p-6 mb-8">
+            <div className="bg-gradient-to-br from-green-50 to-green-50 border border-green-200 rounded-xl shadow p-6 mb-8">
               <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
                 🚀 Sharing & Viral Growth
               </h2>
@@ -2727,11 +2905,11 @@ export default function AdminPage() {
                   <p className="text-xs text-slate-600">Referral Arrivals</p>
                 </div>
                 <div className="bg-white/80 rounded-lg p-3 text-center">
-                  <p className="text-2xl font-bold text-purple-600">{data.roleBreakdown?.caregivers || 0}</p>
+                  <p className="text-2xl font-bold text-slate-600">{data.roleBreakdown?.caregivers || 0}</p>
                   <p className="text-xs text-slate-600">Caregivers</p>
                 </div>
                 <div className="bg-white/80 rounded-lg p-3 text-center">
-                  <p className="text-2xl font-bold text-violet-600">{data.roleBreakdown?.patients || 0}</p>
+                  <p className="text-2xl font-bold text-slate-600">{data.roleBreakdown?.patients || 0}</p>
                   <p className="text-xs text-slate-600">Patients</p>
                 </div>
               </div>
@@ -2922,7 +3100,7 @@ export default function AdminPage() {
                       {chartData.map((day, i) => (
                         <div key={day.date} className="flex-1 flex flex-col items-center group relative">
                           <div
-                            className="w-full bg-violet-500 rounded-t hover:bg-violet-600 transition-colors cursor-pointer"
+                            className="w-full bg-slate-500 rounded-t hover:bg-orange-600 transition-colors cursor-pointer"
                             style={{ height: `${(day.sessions / maxSessions) * 100}%`, minHeight: day.sessions > 0 ? '4px' : '0' }}
                           />
                           <div className="absolute bottom-full mb-1 hidden group-hover:block bg-slate-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
@@ -2943,7 +3121,7 @@ export default function AdminPage() {
                       {chartData.map((day, i) => (
                         <div key={day.date} className="flex-1 flex flex-col items-center group relative">
                           <div
-                            className="w-full bg-emerald-500 rounded-t hover:bg-emerald-600 transition-colors cursor-pointer"
+                            className="w-full bg-green-500 rounded-t hover:bg-green-600 transition-colors cursor-pointer"
                             style={{ height: `${((day.events.record_upload || 0) / maxUploads) * 100}%`, minHeight: (day.events.record_upload || 0) > 0 ? '4px' : '0' }}
                           />
                           <div className="absolute bottom-full mb-1 hidden group-hover:block bg-slate-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
@@ -3025,7 +3203,7 @@ export default function AdminPage() {
                     <div key={i} className="flex items-start gap-4 py-2 border-b border-slate-100 last:border-0">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-violet-100 text-violet-700">
+                          <span className="inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-slate-100 text-slate-700">
                             {formatEventType(event.type)}
                           </span>
                           <span className="text-slate-500 text-xs">
@@ -3100,7 +3278,7 @@ function SummaryCard({ label, value, icon, subtext, onClick, clickable }: { labe
   return (
     <Component
       onClick={onClick}
-      className={`bg-white rounded-xl shadow p-4 sm:p-6 text-left w-full ${clickable ? 'hover:bg-violet-50 hover:ring-2 hover:ring-violet-200 cursor-pointer transition-all' : ''}`}
+      className={`bg-white rounded-xl shadow p-4 sm:p-6 text-left w-full ${clickable ? 'hover:bg-slate-50 hover:ring-2 hover:ring-slate-200 cursor-pointer transition-all' : ''}`}
     >
       <div className="flex items-center gap-3">
         <span className="text-2xl">{icon}</span>
@@ -3108,7 +3286,7 @@ function SummaryCard({ label, value, icon, subtext, onClick, clickable }: { labe
           <p className="text-2xl sm:text-3xl font-bold text-slate-900 tabular-nums">{value}</p>
           <p className="text-xs sm:text-sm text-slate-600">{label}</p>
           {subtext && <p className="text-xs text-slate-400">{subtext}</p>}
-          {clickable && <p className="text-xs text-violet-500 mt-1">Click for details →</p>}
+          {clickable && <p className="text-xs text-slate-500 mt-1">Click for details →</p>}
         </div>
       </div>
     </Component>

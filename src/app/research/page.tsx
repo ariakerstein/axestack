@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { Search, Filter, ExternalLink, BookOpen, FlaskConical, GraduationCap, Newspaper } from 'lucide-react'
 import { ShareButton } from '@/components/ShareButton'
+import { Navbar } from '@/components/Navbar'
 
 interface ResearchResource {
   id: string
@@ -123,7 +124,7 @@ export default function ResearchPage() {
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case 'guidelines': return <BookOpen className="w-5 h-5 text-blue-600" />
-      case 'clinical': return <FlaskConical className="w-5 h-5 text-purple-600" />
+      case 'clinical': return <FlaskConical className="w-5 h-5 text-slate-600" />
       case 'education': return <GraduationCap className="w-5 h-5 text-green-600" />
       case 'news': return <Newspaper className="w-5 h-5 text-amber-600" />
       default: return <BookOpen className="w-5 h-5 text-slate-600" />
@@ -133,7 +134,7 @@ export default function ResearchPage() {
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'guidelines': return 'bg-blue-100 text-blue-700 border border-blue-200'
-      case 'clinical': return 'bg-purple-100 text-purple-700 border border-purple-200'
+      case 'clinical': return 'bg-slate-100 text-slate-700 border border-slate-200'
       case 'education': return 'bg-green-100 text-green-700 border border-green-200'
       case 'news': return 'bg-amber-100 text-amber-700 border border-amber-200'
       default: return 'bg-slate-100 text-slate-700 border border-slate-200'
@@ -142,27 +143,7 @@ export default function ResearchPage() {
 
   return (
     <main className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="border-b border-slate-200 bg-white sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="text-slate-500 hover:text-slate-900 text-sm flex items-center gap-1">
-            ← Home
-          </Link>
-          <Link href="/" className="flex items-center gap-2">
-            <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">opencancer.ai</span>
-            <span className="text-slate-400 text-sm">/</span>
-            <span className="font-medium text-slate-700">Research Library</span>
-          </Link>
-          <div className="flex items-center gap-2">
-            <ShareButton
-              tool="research"
-              title="Share Research Library"
-              description="Help others find cancer resources"
-              variant="icon"
-            />
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Hero */}
@@ -182,10 +163,10 @@ export default function ResearchPage() {
         </div>
 
         {/* Filters */}
-        <div className="bg-violet-50 border-2 border-violet-200 rounded-xl p-4 mb-6">
+        <div className="bg-slate-50 border-2 border-slate-200 rounded-xl p-4 mb-6">
           <div className="flex items-center gap-2 mb-3">
-            <Filter className="w-4 h-4 text-violet-600" />
-            <span className="text-sm font-medium text-violet-800">Filter Resources</span>
+            <Filter className="w-4 h-4 text-slate-600" />
+            <span className="text-sm font-medium text-slate-800">Filter Resources</span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Search */}
@@ -195,7 +176,7 @@ export default function ResearchPage() {
                 placeholder="Search resources..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-3 pl-11 bg-white border-2 border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm text-slate-900 placeholder:text-slate-500"
+                className="w-full px-4 py-3 pl-11 bg-white border-2 border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 text-sm text-slate-900 placeholder:text-slate-500"
               />
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             </div>
@@ -204,7 +185,7 @@ export default function ResearchPage() {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-4 py-3 bg-white border-2 border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm text-slate-900"
+              className="w-full px-4 py-3 bg-white border-2 border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 text-sm text-slate-900"
             >
               {Object.entries(CATEGORIES).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
@@ -233,7 +214,7 @@ export default function ResearchPage() {
                 href={resource.sourceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block bg-white border border-slate-200 rounded-xl p-4 hover:border-violet-300 hover:shadow-md transition-all group"
+                className="block bg-white border border-slate-200 rounded-xl p-4 hover:border-slate-300 hover:shadow-md transition-all group"
               >
                 <div className="flex items-start gap-4">
                   <div className="w-10 h-10 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center flex-shrink-0">
@@ -241,7 +222,7 @@ export default function ResearchPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                      <h3 className="font-semibold text-slate-900 group-hover:text-violet-600 transition-colors">
+                      <h3 className="font-semibold text-slate-900 group-hover:text-slate-600 transition-colors">
                         {resource.title}
                       </h3>
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${getCategoryColor(resource.category)}`}>
@@ -251,7 +232,7 @@ export default function ResearchPage() {
                     <p className="text-sm text-slate-600 mb-2">{resource.description}</p>
                     <p className="text-xs text-slate-500">Source: {resource.source}</p>
                   </div>
-                  <ExternalLink className="w-5 h-5 text-slate-300 group-hover:text-violet-500 transition-colors flex-shrink-0" />
+                  <ExternalLink className="w-5 h-5 text-slate-300 group-hover:text-slate-500 transition-colors flex-shrink-0" />
                 </div>
               </a>
             ))}
@@ -263,7 +244,7 @@ export default function ResearchPage() {
           <p className="text-slate-600 mb-4">Have questions about your diagnosis?</p>
           <Link
             href="/ask"
-            className="inline-block bg-violet-600 hover:bg-violet-700 text-white font-medium px-6 py-3 rounded-lg transition-colors"
+            className="inline-block bg-orange-600 hover:bg-orange-700 text-white font-medium px-6 py-3 rounded-lg transition-colors"
           >
             Ask Our AI Assistant →
           </Link>

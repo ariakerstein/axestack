@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <rect width="1200" height="630" fill="#0a0a0a"/>
+
+  <!-- Mark: smaller, left-balanced — cx=180, cy=315, r=100 -->
+  <!-- 300°: start=(180+86.6,315-50)=(266.6,265) end=(266.6,365) -->
+  <path d="M 266.6,265 A 100,100 0 1 0 266.6,365" fill="none" stroke="#ffffff" stroke-width="18" stroke-linecap="round"/>
+  <circle cx="180" cy="315" r="26" fill="#ffffff"/>
+  <circle cx="180" cy="315" r="11" fill="#0a0a0a"/>
+
+  <!-- Wordmark: tight to mark, vertically centered -->
+  <text y="338" font-family="-apple-system,'Helvetica Neue',Arial,sans-serif" font-size="96" letter-spacing="-3" fill="#ffffff">
+    <tspan x="290" font-weight="200">pen</tspan><tspan font-weight="700" dx="12">cancer</tspan><tspan font-weight="200" dx="12" opacity="0.35">.ai</tspan>
+  </text>
+
+  <!-- Tagline -->
+  <text x="290" y="388" font-family="-apple-system,'Helvetica Neue',Arial,sans-serif" font-size="22" font-weight="300" letter-spacing="4" fill="#ffffff" opacity="0.3">AI TOOLS FOR CANCER PATIENTS &amp; CAREGIVERS</text>
+</svg>

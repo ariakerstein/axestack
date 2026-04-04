@@ -13,6 +13,7 @@ import {
 } from '@/lib/coverage-data'
 import { CANCER_TYPES } from '@/lib/cancer-data'
 import { useAuth } from '@/lib/auth'
+import { Navbar } from '@/components/Navbar'
 
 type Step = 'cancer' | 'insurance' | 'results'
 
@@ -70,51 +71,24 @@ export default function CoveragePage() {
 
   return (
     <main className="min-h-screen bg-slate-50">
-      {/* Header - consistent with Navbar pattern */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          {/* Left side - brand */}
-          <Link href="/" className="flex items-center gap-1.5">
-            <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">
-              opencancer
-            </span>
-            <span className="text-lg font-bold text-slate-400">.ai</span>
-          </Link>
-
-          {/* Center - nav links (hidden on mobile) */}
-          <nav className="hidden sm:flex items-center gap-4 text-sm">
-            <Link href="/records" className="text-slate-600 hover:text-violet-600 transition-colors">
-              Records
-            </Link>
-            <Link href="/ask" className="text-slate-600 hover:text-violet-600 transition-colors">
-              Ask Navis
-            </Link>
-            <Link href="/trials" className="text-slate-600 hover:text-violet-600 transition-colors">
-              Trials
-            </Link>
-          </nav>
-
-          {/* Right side - placeholder for balance */}
-          <div className="w-16" />
-        </div>
-      </header>
+      <Navbar />
 
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Progress indicator */}
         <div className="flex items-center justify-center gap-2 mb-8">
-          <div className={`w-3 h-3 rounded-full ${step === 'cancer' ? 'bg-emerald-500' : 'bg-emerald-500'}`} />
-          <div className={`w-8 h-0.5 ${step !== 'cancer' ? 'bg-emerald-500' : 'bg-slate-200'}`} />
-          <div className={`w-3 h-3 rounded-full ${step === 'insurance' || step === 'results' ? 'bg-emerald-500' : 'bg-slate-200'}`} />
-          <div className={`w-8 h-0.5 ${step === 'results' ? 'bg-emerald-500' : 'bg-slate-200'}`} />
-          <div className={`w-3 h-3 rounded-full ${step === 'results' ? 'bg-emerald-500' : 'bg-slate-200'}`} />
+          <div className={`w-3 h-3 rounded-full ${step === 'cancer' ? 'bg-slate-900' : 'bg-slate-900'}`} />
+          <div className={`w-8 h-0.5 ${step !== 'cancer' ? 'bg-slate-900' : 'bg-slate-200'}`} />
+          <div className={`w-3 h-3 rounded-full ${step === 'insurance' || step === 'results' ? 'bg-slate-900' : 'bg-slate-200'}`} />
+          <div className={`w-8 h-0.5 ${step === 'results' ? 'bg-slate-900' : 'bg-slate-200'}`} />
+          <div className={`w-3 h-3 rounded-full ${step === 'results' ? 'bg-slate-900' : 'bg-slate-200'}`} />
         </div>
 
         {/* Step 1: Cancer Type */}
         {step === 'cancer' && (
           <div className="space-y-6">
             <div className="text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-100 mb-4">
-                <DollarSign className="w-6 h-6 text-emerald-600" />
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-stone-100 mb-4">
+                <DollarSign className="w-6 h-6 text-slate-700" />
               </div>
               <h1 className="text-2xl font-bold text-slate-900 mb-2">
                 Understand Your Coverage
@@ -125,15 +99,15 @@ export default function CoveragePage() {
             </div>
 
             {/* 2026 Key Facts */}
-            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-4">
+            <div className="bg-stone-100 border border-stone-200 rounded-xl p-4">
               <div className="flex items-center gap-2 mb-3">
-                <Info className="w-4 h-4 text-emerald-600" />
-                <span className="text-sm font-medium text-emerald-800">2026 Good News for Cancer Patients</span>
+                <Info className="w-4 h-4 text-slate-700" />
+                <span className="text-sm font-medium text-slate-800">2026 Good News for Cancer Patients</span>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {KEY_FACTS_2026.slice(0, 2).map((fact, i) => (
                   <div key={i} className="bg-white rounded-lg p-3">
-                    <div className="text-lg font-bold text-emerald-600">{fact.value}</div>
+                    <div className="text-lg font-bold text-slate-900">{fact.value}</div>
                     <div className="text-xs text-slate-600">{fact.title}</div>
                   </div>
                 ))}
@@ -155,7 +129,7 @@ export default function CoveragePage() {
                     setSearchQuery(e.target.value)
                     if (e.target.value) setShowAllCancers(true)
                   }}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
                 />
               </div>
 
@@ -177,8 +151,8 @@ export default function CoveragePage() {
                       onClick={() => handleCancerSelect(key)}
                       className={`text-left px-4 py-3 rounded-lg border transition-all ${
                         cancerType === key
-                          ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                          : 'border-slate-200 bg-white hover:border-emerald-300 text-slate-700'
+                          ? 'border-slate-900 bg-stone-100 text-slate-900'
+                          : 'border-slate-200 bg-white hover:border-slate-400 text-slate-700'
                       }`}
                     >
                       {label}
@@ -191,7 +165,7 @@ export default function CoveragePage() {
               {!searchQuery && !showAllCancers && (
                 <button
                   onClick={() => setShowAllCancers(true)}
-                  className="w-full mt-3 text-sm text-emerald-600 hover:text-emerald-700 font-medium"
+                  className="w-full mt-3 text-sm text-slate-600 hover:text-slate-800 font-medium"
                 >
                   Show all cancer types ({Object.keys(CANCER_TYPES).length - COMMON_CANCERS.length} more)
                 </button>
@@ -219,8 +193,8 @@ export default function CoveragePage() {
             </button>
 
             <div className="text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-100 mb-4">
-                <Shield className="w-6 h-6 text-emerald-600" />
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-stone-100 mb-4">
+                <Shield className="w-6 h-6 text-slate-700" />
               </div>
               <h1 className="text-2xl font-bold text-slate-900 mb-2">
                 What's your insurance?
@@ -235,13 +209,13 @@ export default function CoveragePage() {
                 <button
                   key={key}
                   onClick={() => handleInsuranceSelect(key)}
-                  className="w-full text-left px-4 py-4 rounded-lg border border-slate-200 bg-white hover:border-emerald-300 transition-all flex items-center justify-between group"
+                  className="w-full text-left px-4 py-4 rounded-lg border border-slate-200 bg-white hover:border-slate-400 transition-all flex items-center justify-between group"
                 >
                   <div>
                     <div className="font-medium text-slate-900">{info.label}</div>
                     <div className="text-sm text-slate-500">{info.description}</div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-emerald-500 transition-colors" />
+                  <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-slate-900 transition-colors" />
                 </button>
               ))}
             </div>
@@ -261,18 +235,18 @@ export default function CoveragePage() {
             {/* Summary Header */}
             <div className="bg-white rounded-xl border border-slate-200 p-6">
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                  <CheckCircle className="w-5 h-5 text-emerald-600" />
+                <div className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center flex-shrink-0">
+                  <CheckCircle className="w-5 h-5 text-slate-700" />
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-slate-900 mb-1">
                     Coverage Summary
                   </h2>
                   <div className="flex flex-wrap gap-2 mb-3">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-violet-100 text-violet-700">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-stone-200 text-slate-700">
                       {CANCER_TYPES[cancerType] || cancerType}
                     </span>
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-stone-100 text-slate-700">
                       {INSURANCE_TYPES[insuranceType as keyof typeof INSURANCE_TYPES]?.label || insuranceType}
                     </span>
                   </div>
@@ -304,12 +278,12 @@ export default function CoveragePage() {
                     <div className="text-2xl font-bold text-blue-600">${MEDICARE_2026.partB.deductible}</div>
                     <div className="text-sm text-slate-600">Part B Deductible</div>
                   </div>
-                  <div className="bg-white rounded-lg p-4 col-span-2 border-2 border-emerald-300">
+                  <div className="bg-white rounded-lg p-4 col-span-2 border-2 border-[#C66B4A]">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">NEW!</span>
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded bg-[#C66B4A]/10 text-[#C66B4A]">NEW!</span>
                       <span className="text-sm text-slate-600">Part D Out-of-Pocket Cap</span>
                     </div>
-                    <div className="text-2xl font-bold text-emerald-600">${MEDICARE_2026.partD.outOfPocketCap}</div>
+                    <div className="text-2xl font-bold text-[#C66B4A]">${MEDICARE_2026.partD.outOfPocketCap}</div>
                     <div className="text-xs text-slate-500">Maximum you'll pay for prescriptions in 2026</div>
                   </div>
                 </div>
@@ -370,9 +344,9 @@ export default function CoveragePage() {
 
             {/* Financial Assistance Programs */}
             <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-200 bg-gradient-to-r from-emerald-50 to-teal-50">
+              <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
                 <div className="flex items-center gap-2">
-                  <Heart className="w-5 h-5 text-emerald-600" />
+                  <Heart className="w-5 h-5 text-slate-700" />
                   <h3 className="font-semibold text-slate-900">Financial Assistance Programs</h3>
                 </div>
                 <p className="text-sm text-slate-600 mt-1">
@@ -390,7 +364,7 @@ export default function CoveragePage() {
                   >
                     <div className="flex items-start justify-between">
                       <div>
-                        <div className="font-medium text-slate-900 group-hover:text-emerald-600 transition-colors flex items-center gap-2">
+                        <div className="font-medium text-slate-900 group-hover:text-orange-600 transition-colors flex items-center gap-2">
                           {program.name}
                           <ExternalLink className="w-3.5 h-3.5" />
                         </div>
@@ -424,11 +398,11 @@ export default function CoveragePage() {
             </div>
 
             {/* Cross-linking */}
-            <div className="bg-violet-50 rounded-xl border border-violet-200 p-6 text-center">
+            <div className="bg-slate-50 rounded-xl border border-slate-200 p-6 text-center">
               <p className="text-slate-600 mb-3">Looking for clinical trials that might reduce costs?</p>
               <Link
                 href="/trials"
-                className="inline-flex items-center gap-2 text-violet-600 hover:text-violet-700 font-medium"
+                className="inline-flex items-center gap-2 text-orange-600 hover:text-orange-700 font-medium"
               >
                 Search Clinical Trials <ChevronRight className="w-4 h-4" />
               </Link>

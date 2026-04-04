@@ -192,7 +192,7 @@ export default function AdminEvalsPage() {
                     key={log.id}
                     onClick={() => setSelectedLog(log)}
                     className={`border-t border-slate-100 hover:bg-slate-50 cursor-pointer ${
-                      selectedLog?.id === log.id ? 'bg-violet-50' : ''
+                      selectedLog?.id === log.id ? 'bg-slate-50' : ''
                     }`}
                   >
                     <td className="px-4 py-3 max-w-[300px]">

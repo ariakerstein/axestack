@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { FileText, User, Calendar, Pill, FlaskConical, Activity, Download, ChevronDown, ChevronUp, PenLine, Clock } from 'lucide-react'
+import { Navbar } from '@/components/Navbar'
 
 interface TranslationResult {
   document_type: string
@@ -246,42 +247,14 @@ export default function CaseFilePage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-3 border-violet-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-3 border-slate-600 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
     <main className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-1.5">
-            <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">
-              opencancer
-            </span>
-            <span className="text-lg font-bold text-slate-400">.ai</span>
-          </Link>
-
-          <nav className="hidden sm:flex items-center gap-4 text-sm">
-            <Link href="/records" className="text-slate-600 hover:text-violet-600 transition-colors">
-              Records
-            </Link>
-            <span className="text-violet-600 font-medium">My Case File</span>
-            <Link href="/ask" className="text-slate-600 hover:text-violet-600 transition-colors">
-              Ask Navis
-            </Link>
-          </nav>
-
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-2 px-3 py-1.5 bg-violet-100 hover:bg-violet-200 text-violet-700 rounded-lg text-sm font-medium transition-colors"
-          >
-            <Download className="w-4 h-4" />
-            Export
-          </button>
-        </div>
-      </header>
+      <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Page Title */}
@@ -298,7 +271,7 @@ export default function CaseFilePage() {
             <div className="flex gap-3 justify-center">
               <Link
                 href="/records"
-                className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-sm font-medium"
+                className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium"
               >
                 Upload Records
               </Link>
@@ -319,8 +292,8 @@ export default function CaseFilePage() {
                 className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center">
-                    <User className="w-5 h-5 text-violet-600" />
+                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
+                    <User className="w-5 h-5 text-slate-600" />
                   </div>
                   <div className="text-left">
                     <h2 className="font-semibold text-slate-900">Overview</h2>
@@ -338,8 +311,8 @@ export default function CaseFilePage() {
                 <div className="px-4 pb-4 border-t border-slate-100">
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
                     {data.cancerType && (
-                      <div className="bg-violet-50 rounded-lg p-3">
-                        <p className="text-xs text-violet-600 font-medium uppercase">Cancer Type</p>
+                      <div className="bg-slate-50 rounded-lg p-3">
+                        <p className="text-xs text-slate-600 font-medium uppercase">Cancer Type</p>
                         <p className="text-slate-900 font-semibold mt-1">{data.cancerType}</p>
                       </div>
                     )}
@@ -373,7 +346,7 @@ export default function CaseFilePage() {
                       <p className="text-xs text-slate-500 font-medium uppercase mb-2">Biomarkers</p>
                       <div className="flex flex-wrap gap-2">
                         {data.biomarkers.map((b, i) => (
-                          <span key={i} className="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-sm">
+                          <span key={i} className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm">
                             {b}
                           </span>
                         ))}
@@ -446,7 +419,7 @@ export default function CaseFilePage() {
                   <div className="px-4 py-3 bg-slate-50">
                     <Link
                       href="/records"
-                      className="text-sm text-violet-600 hover:text-violet-700 font-medium"
+                      className="text-sm text-orange-600 hover:text-orange-700 font-medium"
                     >
                       + Add more records
                     </Link>
@@ -463,8 +436,8 @@ export default function CaseFilePage() {
                   className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                      <FlaskConical className="w-5 h-5 text-emerald-600" />
+                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                      <FlaskConical className="w-5 h-5 text-green-600" />
                     </div>
                     <div className="text-left">
                       <h2 className="font-semibold text-slate-900">Lab Results ({data.labResults.length})</h2>
@@ -534,7 +507,7 @@ export default function CaseFilePage() {
                     <p className="mt-4 text-sm text-slate-700 whitespace-pre-wrap">{patientNotes}</p>
                     <Link
                       href="/records/case-review"
-                      className="inline-block mt-3 text-sm text-violet-600 hover:text-violet-700 font-medium"
+                      className="inline-block mt-3 text-sm text-orange-600 hover:text-orange-700 font-medium"
                     >
                       Edit notes
                     </Link>
@@ -603,19 +576,19 @@ export default function CaseFilePage() {
               <div className="flex flex-wrap gap-2">
                 <Link
                   href="/records"
-                  className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm hover:border-violet-300 transition-colors"
+                  className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm hover:border-slate-400 transition-colors"
                 >
                   + Add Records
                 </Link>
                 <Link
                   href="/records/case-review"
-                  className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm hover:border-violet-300 transition-colors"
+                  className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm hover:border-slate-400 transition-colors"
                 >
                   Get AI Case Brief
                 </Link>
                 <Link
                   href="/ask"
-                  className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm hover:border-violet-300 transition-colors"
+                  className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm hover:border-slate-400 transition-colors"
                 >
                   Ask Navis
                 </Link>
@@ -623,7 +596,7 @@ export default function CaseFilePage() {
                   href="https://navis.health/home?tab=decisions"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm hover:border-violet-300 transition-colors"
+                  className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm hover:border-slate-400 transition-colors"
                 >
                   Research & Literature
                 </a>

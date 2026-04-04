@@ -66,7 +66,7 @@ export function PerspectiveTuner({
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="font-bold text-slate-900 flex items-center gap-2">
-              <Sliders className="w-5 h-5 text-violet-500" />
+              <Sliders className="w-5 h-5 text-slate-500" />
               Analysis Style
             </h3>
             <p className="text-sm text-slate-500 mt-0.5">3 tumor boards will analyze your case</p>
@@ -74,7 +74,7 @@ export function PerspectiveTuner({
         </div>
 
         {/* Current mode indicator */}
-        <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white rounded-xl p-4 mb-4">
+        <div className="bg-gradient-to-r from-slate-500 to-slate-500 text-white rounded-xl p-4 mb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
               <Sparkles className="w-5 h-5" />
@@ -96,21 +96,21 @@ export function PerspectiveTuner({
             </div>
             <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-0.5 rounded">33%</span>
           </div>
-          <div className="flex items-center gap-3 p-2 rounded-lg bg-purple-50">
-            <FlaskConical className="w-5 h-5 text-purple-600" />
+          <div className="flex items-center gap-3 p-2 rounded-lg bg-slate-50">
+            <FlaskConical className="w-5 h-5 text-slate-600" />
             <div className="flex-1">
               <p className="text-sm font-medium text-slate-900">Cutting Edge Board</p>
               <p className="text-xs text-slate-500">Pathologist, Immunotherapy & Trials</p>
             </div>
-            <span className="text-xs font-medium text-purple-600 bg-purple-100 px-2 py-0.5 rounded">33%</span>
+            <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded">33%</span>
           </div>
-          <div className="flex items-center gap-3 p-2 rounded-lg bg-emerald-50">
-            <Leaf className="w-5 h-5 text-emerald-600" />
+          <div className="flex items-center gap-3 p-2 rounded-lg bg-green-50">
+            <Leaf className="w-5 h-5 text-green-600" />
             <div className="flex-1">
               <p className="text-sm font-medium text-slate-900">Whole Person Board</p>
               <p className="text-xs text-slate-500">Integrative, Nutrition & Palliative Care</p>
             </div>
-            <span className="text-xs font-medium text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded">33%</span>
+            <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-0.5 rounded">33%</span>
           </div>
         </div>
 
@@ -135,13 +135,13 @@ export function PerspectiveTuner({
       <div className="bg-white border border-slate-200 rounded-xl p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Sliders className="w-4 h-4 text-violet-500" />
+            <Sliders className="w-4 h-4 text-slate-500" />
             <span className="font-medium text-slate-900 text-sm">Your Analysis Style</span>
             <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
           </div>
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
-            className="text-xs text-violet-600 hover:text-violet-700 font-medium"
+            className="text-xs text-slate-600 hover:text-slate-700 font-medium"
           >
             {showAdvanced ? 'Simple' : 'Customize'}
           </button>
@@ -155,7 +155,7 @@ export function PerspectiveTuner({
                 onClick={() => applyPreset(key as keyof typeof PRESETS)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                   currentPreset === key
-                    ? 'bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white shadow-md'
+                    ? 'bg-gradient-to-r from-slate-500 to-slate-500 text-white shadow-md'
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
@@ -201,7 +201,7 @@ export function PerspectiveTuner({
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="font-bold text-slate-900 flex items-center gap-2">
-            <Sliders className="w-5 h-5 text-violet-500" />
+            <Sliders className="w-5 h-5 text-slate-500" />
             Tune Your Analysis
             <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
           </h3>
@@ -217,8 +217,8 @@ export function PerspectiveTuner({
             onClick={() => applyPreset(key as keyof typeof PRESETS)}
             className={`group relative px-4 py-2 rounded-xl text-sm font-medium transition-all ${
               currentPreset === key
-                ? 'bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white shadow-lg shadow-violet-500/25'
-                : 'bg-white border border-slate-200 text-slate-700 hover:border-violet-300 hover:shadow-md'
+                ? 'bg-gradient-to-r from-slate-500 to-slate-500 text-white shadow-lg shadow-slate-500/25'
+                : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300 hover:shadow-md'
             }`}
           >
             {preset.label}
@@ -267,11 +267,11 @@ export function PerspectiveTuner({
             style={{ width: `${(weights.guidelines / (weights.guidelines + weights.research + weights.integrative)) * 100}%` }}
           />
           <div
-            className="bg-gradient-to-r from-purple-400 to-fuchsia-500 transition-all duration-300"
+            className="bg-gradient-to-r from-slate-400 to-slate-500 transition-all duration-300"
             style={{ width: `${(weights.research / (weights.guidelines + weights.research + weights.integrative)) * 100}%` }}
           />
           <div
-            className="bg-gradient-to-r from-emerald-400 to-teal-500 transition-all duration-300"
+            className="bg-gradient-to-r from-green-400 to-teal-500 transition-all duration-300"
             style={{ width: `${(weights.integrative / (weights.guidelines + weights.research + weights.integrative)) * 100}%` }}
           />
         </div>
@@ -309,16 +309,16 @@ function PerspectiveSlider({
       fill: 'bg-blue-500',
     },
     purple: {
-      bg: 'bg-purple-100',
-      icon: 'text-purple-600',
-      slider: 'accent-purple-500',
-      fill: 'bg-purple-500',
+      bg: 'bg-slate-100',
+      icon: 'text-slate-600',
+      slider: 'accent-slate-500',
+      fill: 'bg-slate-500',
     },
     emerald: {
-      bg: 'bg-emerald-100',
-      icon: 'text-emerald-600',
-      slider: 'accent-emerald-500',
-      fill: 'bg-emerald-500',
+      bg: 'bg-green-100',
+      icon: 'text-green-600',
+      slider: 'accent-green-500',
+      fill: 'bg-green-500',
     },
   }
 

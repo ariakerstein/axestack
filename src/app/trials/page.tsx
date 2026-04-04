@@ -8,6 +8,7 @@ import { useActivityLog } from '@/hooks/useActivityLog'
 import { ShareButton } from '@/components/ShareButton'
 import { useAuth } from '@/lib/auth'
 import { X, ExternalLink, MapPin, Building2, FlaskConical, CheckCircle2 } from 'lucide-react'
+import { Navbar } from '@/components/Navbar'
 
 interface PatientProfile {
   cancerType: string
@@ -125,44 +126,7 @@ export default function TrialsPage() {
 
   return (
     <main className="min-h-screen bg-white">
-      {/* Header - consistent with Navbar pattern */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          {/* Left side - brand */}
-          <Link href="/" className="flex items-center gap-1.5">
-            <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">
-              opencancer
-            </span>
-            <span className="text-lg font-bold text-slate-400">.ai</span>
-          </Link>
-
-          {/* Center - nav links (hidden on mobile) */}
-          <nav className="hidden sm:flex items-center gap-4 text-sm">
-            <Link href="/records" className="text-slate-600 hover:text-violet-600 transition-colors">
-              Records
-            </Link>
-            <Link href="/ask" className="text-slate-600 hover:text-violet-600 transition-colors">
-              Ask Navis
-            </Link>
-            <span className="text-violet-600 font-medium">Trials</span>
-          </nav>
-
-          {/* Right side */}
-          <div className="flex items-center gap-3">
-            {profile && (
-              <span className="hidden sm:inline text-xs bg-violet-100 text-violet-700 px-2 py-1 rounded-full">
-                {CANCER_TYPES[profile.cancerType] || profile.cancerType}
-              </span>
-            )}
-            <ShareButton
-              tool="trials"
-              title="Share Clinical Trials"
-              description="Help others find clinical trials"
-              variant="icon"
-            />
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       <div className="max-w-3xl mx-auto px-4 py-8">
         {!profile ? (
@@ -380,7 +344,7 @@ export default function TrialsPage() {
                   </span>
                 )}
                 {selectedTrial.matchScore >= 70 && (
-                  <span className="text-sm px-3 py-1 rounded-full bg-violet-100 text-violet-700">
+                  <span className="text-sm px-3 py-1 rounded-full bg-[#C66B4A]/10 text-[#C66B4A]">
                     {selectedTrial.matchScore}% match
                   </span>
                 )}

@@ -120,10 +120,10 @@ export function PatientWiki({ sessionId, userId, entityCount = 0, className = ''
   return (
     <div className={`bg-white rounded-2xl border border-slate-200 overflow-hidden ${className}`}>
       {/* Header */}
-      <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-violet-50 to-fuchsia-50">
+      <div className="px-5 py-4 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-slate-50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-slate-500 to-slate-500 rounded-xl flex items-center justify-center">
               <BookOpen className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -134,7 +134,7 @@ export function PatientWiki({ sessionId, userId, entityCount = 0, className = ''
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-violet-600 bg-violet-100 px-2 py-1 rounded-full flex items-center gap-1">
+            <span className="text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded-full flex items-center gap-1">
               <Sparkles className="w-3 h-3" />
               Living Document
             </span>
@@ -155,7 +155,7 @@ export function PatientWiki({ sessionId, userId, entityCount = 0, className = ''
               onClick={() => setActiveType(type.id)}
               className={`flex-shrink-0 px-4 py-3 flex items-center gap-2 text-sm font-medium transition-colors border-b-2 ${
                 isActive
-                  ? 'border-violet-500 text-violet-700 bg-violet-50/50'
+                  ? 'border-slate-500 text-slate-700 bg-slate-50/50'
                   : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
@@ -173,7 +173,7 @@ export function PatientWiki({ sessionId, userId, entityCount = 0, className = ''
       <div className="p-5">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <RefreshCw className="w-6 h-6 text-violet-500 animate-spin" />
+            <RefreshCw className="w-6 h-6 text-slate-500 animate-spin" />
           </div>
         ) : activeSummary ? (
           <div>
@@ -189,7 +189,7 @@ export function PatientWiki({ sessionId, userId, entityCount = 0, className = ''
               <button
                 onClick={() => generateSummary(activeType, true)}
                 disabled={generating}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-violet-600 hover:bg-violet-50 rounded-lg transition-colors disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 rounded-lg transition-colors disabled:opacity-50"
               >
                 <RefreshCw className={`w-4 h-4 ${generating ? 'animate-spin' : ''}`} />
                 Regenerate
@@ -211,7 +211,7 @@ export function PatientWiki({ sessionId, userId, entityCount = 0, className = ''
             <button
               onClick={() => generateSummary(activeType)}
               disabled={generating}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-medium text-sm transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium text-sm transition-colors disabled:opacity-50"
             >
               {generating ? (
                 <>
@@ -250,7 +250,7 @@ export function PatientWiki({ sessionId, userId, entityCount = 0, className = ''
                 }
               })
             }}
-            className="text-violet-600 hover:text-violet-700 font-medium flex items-center gap-1"
+            className="text-slate-600 hover:text-slate-700 font-medium flex items-center gap-1"
           >
             Generate All
             <ChevronRight className="w-3 h-3" />

@@ -218,7 +218,7 @@ Based on ${recordsCount} medical record${recordsCount !== 1 ? 's' : ''}
       icon: Users,
       title: 'Share with Family',
       subtitle: 'Simplified summary + invite to try CancerCombat',
-      gradient: 'from-emerald-500 to-teal-500',
+      gradient: 'from-green-500 to-teal-500',
       showName: true,
       showNote: true,
     },
@@ -226,7 +226,7 @@ Based on ${recordsCount} medical record${recordsCount !== 1 ? 's' : ''}
       icon: Mail,
       title: 'Email to Myself',
       subtitle: 'Save this analysis for later',
-      gradient: 'from-violet-500 to-fuchsia-500',
+      gradient: 'from-slate-500 to-slate-500',
       showName: false,
       showNote: false,
     },
@@ -273,7 +273,7 @@ Based on ${recordsCount} medical record${recordsCount !== 1 ? 's' : ''}
               value={emailAddress}
               onChange={(e) => setEmailAddress(e.target.value)}
               placeholder={shareType === 'oncologist' ? 'oncologist@hospital.com' : 'email@example.com'}
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
             />
           </div>
 
@@ -288,7 +288,7 @@ Based on ${recordsCount} medical record${recordsCount !== 1 ? 's' : ''}
                 value={familyName}
                 onChange={(e) => setFamilyName(e.target.value)}
                 placeholder="Mom, Dad, Sarah..."
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
               />
             </div>
           )}
@@ -304,7 +304,7 @@ Based on ${recordsCount} medical record${recordsCount !== 1 ? 's' : ''}
                 onChange={(e) => setPersonalNote(e.target.value)}
                 placeholder="I've been using this tool to understand my diagnosis better..."
                 rows={2}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 resize-none"
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 resize-none"
               />
             </div>
           )}
@@ -332,7 +332,7 @@ Based on ${recordsCount} medical record${recordsCount !== 1 ? 's' : ''}
               <label className="text-sm font-medium text-slate-700">Email Preview</label>
               <button
                 onClick={handleCopy}
-                className="flex items-center gap-1 text-xs text-violet-600 hover:text-violet-700"
+                className="flex items-center gap-1 text-xs text-slate-600 hover:text-slate-700"
               >
                 {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                 {copied ? 'Copied!' : 'Copy'}
@@ -375,7 +375,7 @@ Based on ${recordsCount} medical record${recordsCount !== 1 ? 's' : ''}
               onClick={handleCopy}
               className="flex-1 px-4 py-2.5 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-white transition-colors flex items-center justify-center gap-2"
             >
-              {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+              {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
               {copied ? 'Copied!' : 'Copy to Clipboard'}
             </button>
             <button

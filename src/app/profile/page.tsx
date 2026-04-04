@@ -8,6 +8,7 @@ import { useAnalytics } from '@/hooks/useAnalytics'
 import { saveProfile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth'
 import { AuthModal } from '@/components/AuthModal'
+import { Navbar } from '@/components/Navbar'
 import { User, Heart, Ribbon, ToggleLeft, ToggleRight } from 'lucide-react'
 
 interface PatientProfile {
@@ -143,64 +144,12 @@ export default function ProfilePage() {
 
   return (
     <main className="min-h-screen bg-white">
-      {/* Header - consistent with Navbar pattern */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          {/* Left side - brand */}
-          <Link href="/" className="flex items-center gap-1.5">
-            <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">
-              opencancer
-            </span>
-            <span className="text-lg font-bold text-slate-400">.ai</span>
-          </Link>
-
-          {/* Center - nav links (hidden on mobile) */}
-          <nav className="hidden sm:flex items-center gap-4 text-sm">
-            <Link href="/records" className="text-slate-600 hover:text-violet-600 transition-colors">
-              Records
-            </Link>
-            <Link href="/ask" className="text-slate-600 hover:text-violet-600 transition-colors">
-              Ask Navis
-            </Link>
-            <Link href="/trials" className="text-slate-600 hover:text-violet-600 transition-colors">
-              Trials
-            </Link>
-          </nav>
-
-          {/* Right side - auth state */}
-          <div className="flex items-center gap-3">
-            {!authLoading && (
-              user ? (
-                <div className="flex items-center gap-3">
-                  <span className="hidden sm:flex items-center gap-1.5 text-sm text-slate-700">
-                    <User className="w-4 h-4 text-violet-500" />
-                    {user.email?.split('@')[0]}
-                  </span>
-                  <button
-                    onClick={() => signOut()}
-                    className="text-sm text-slate-500 hover:text-red-600 transition-colors"
-                  >
-                    Sign out
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setShowAuthModal(true)}
-                  className="flex items-center gap-1.5 text-sm text-violet-600 hover:text-violet-700 font-medium px-3 py-1.5 bg-violet-50 hover:bg-violet-100 rounded-lg transition-colors"
-                >
-                  <User className="w-4 h-4" />
-                  Sign in
-                </button>
-              )
-            )}
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       <div className="max-w-lg mx-auto px-4 py-8">
         {/* Info */}
-        <div className={`border rounded-lg p-4 mb-6 ${user ? 'bg-emerald-50 border-emerald-200' : 'bg-violet-50 border-violet-200'}`}>
-          <p className={`text-sm ${user ? 'text-emerald-800' : 'text-violet-800'}`}>
+        <div className={`border rounded-lg p-4 mb-6 ${user ? 'bg-green-50 border-green-200' : 'bg-slate-50 border-slate-200'}`}>
+          <p className={`text-sm ${user ? 'text-green-800' : 'text-slate-700'}`}>
             Your profile helps personalize tools like Clinical Trials, Ask Navis, and Records Translator.
             <strong className="block mt-1">
               {user
@@ -226,7 +175,7 @@ export default function ProfilePage() {
                   {role === 'caregiver' ? (
                     <Heart className="w-5 h-5 text-pink-600" />
                   ) : (
-                    <Ribbon className="w-5 h-5 text-violet-600" />
+                    <Ribbon className="w-5 h-5 text-slate-600" />
                   )}
                 </div>
                 <div>
@@ -285,8 +234,8 @@ export default function ProfilePage() {
                     }
                   }}
                   placeholder="Search or select..."
-                  className={`w-full px-3 py-2.5 pl-9 bg-white text-slate-900 placeholder:text-slate-400 border rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm ${
-                    cancerType ? 'border-violet-500 bg-violet-50' : 'border-slate-300'
+                  className={`w-full px-3 py-2.5 pl-9 bg-white text-slate-900 placeholder:text-slate-400 border rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400 text-sm ${
+                    cancerType ? 'border-slate-900 bg-slate-50' : 'border-slate-300'
                   }`}
                 />
                 <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -315,7 +264,7 @@ export default function ProfilePage() {
                       setCancerType(key)
                       setCancerSearch('')
                     }}
-                    className="text-left px-3 py-2 rounded-lg text-sm transition-all bg-white hover:bg-violet-50 text-slate-700 hover:text-violet-700 border border-slate-200"
+                    className="text-left px-3 py-2 rounded-lg text-sm transition-all bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 border border-slate-200"
                   >
                     {label}
                   </button>
@@ -340,7 +289,7 @@ export default function ProfilePage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder={role === 'caregiver' ? "Patient's name" : 'Your name'}
-                className="w-full px-3 py-2.5 bg-white text-slate-900 placeholder:text-slate-400 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm"
+                className="w-full px-3 py-2.5 bg-white text-slate-900 placeholder:text-slate-400 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400 text-sm"
               />
             </div>
             <div>
@@ -352,7 +301,7 @@ export default function ProfilePage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className={`w-full px-3 py-2.5 bg-white text-slate-900 placeholder:text-slate-400 border rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm ${
+                className={`w-full px-3 py-2.5 bg-white text-slate-900 placeholder:text-slate-400 border rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400 text-sm ${
                   email && !isValidEmail(email) ? 'border-red-300' : 'border-slate-300'
                 }`}
               />
@@ -368,7 +317,7 @@ export default function ProfilePage() {
               <select
                 value={stage}
                 onChange={(e) => setStage(e.target.value)}
-                className="w-full px-3 py-2.5 bg-white text-slate-900 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm"
+                className="w-full px-3 py-2.5 bg-white text-slate-900 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400 text-sm"
               >
                 <option value="">Select stage...</option>
                 <option value="0">Stage 0 (In Situ)</option>
@@ -388,7 +337,7 @@ export default function ProfilePage() {
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="City, State or ZIP"
-                className="w-full px-3 py-2.5 bg-white text-slate-900 placeholder:text-slate-400 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 text-sm"
+                className="w-full px-3 py-2.5 bg-white text-slate-900 placeholder:text-slate-400 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400 text-sm"
               />
             </div>
           </div>
@@ -399,7 +348,7 @@ export default function ProfilePage() {
             disabled={!canSave}
             className={`w-full py-3 rounded-lg font-medium transition-all ${
               canSave
-                ? 'bg-violet-600 text-white hover:bg-violet-700'
+                ? 'bg-orange-600 text-white hover:bg-orange-700'
                 : 'bg-slate-200 text-slate-400 cursor-not-allowed'
             }`}
           >
@@ -439,14 +388,14 @@ export default function ProfilePage() {
               <h3 className="text-sm font-medium text-slate-700">Current Profile</h3>
               <div className="flex items-center gap-2">
                 {user && (
-                  <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">
+                  <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
                     Synced
                   </span>
                 )}
                 <span className={`text-xs px-2 py-1 rounded-full ${
                   profile.role === 'caregiver'
-                    ? 'bg-purple-100 text-purple-700'
-                    : 'bg-violet-100 text-violet-700'
+                    ? 'bg-slate-100 text-slate-700'
+                    : 'bg-slate-100 text-slate-700'
                 }`}>
                   {profile.role === 'caregiver' ? '💜 Caregiver' : '🎗️ Patient'}
                 </span>

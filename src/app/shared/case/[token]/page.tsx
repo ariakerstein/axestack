@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { FileText, Clock, Eye, AlertTriangle, CheckCircle, HelpCircle, Calendar, Lightbulb, ArrowRight } from 'lucide-react'
+import { Navbar } from '@/components/Navbar'
 
 interface CaseBrief {
   bottomLine: string
@@ -62,7 +63,7 @@ export default function SharedCasePage() {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-10 h-10 border-3 border-violet-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <div className="w-10 h-10 border-3 border-slate-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-slate-600">Loading shared case...</p>
         </div>
       </div>
@@ -82,7 +83,7 @@ export default function SharedCasePage() {
           <p className="text-slate-600 mb-6">{error || 'This shared case could not be found.'}</p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-xl transition-colors"
           >
             Go to opencancer.ai
             <ArrowRight className="w-4 h-4" />
@@ -97,33 +98,13 @@ export default function SharedCasePage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500">
-              opencancer
-            </span>
-            <span className="text-xl font-bold text-slate-400">.ai</span>
-          </Link>
-          <div className="flex items-center gap-4 text-sm text-slate-500">
-            <span className="flex items-center gap-1">
-              <Eye className="w-4 h-4" />
-              {viewCount} views
-            </span>
-            <span className="flex items-center gap-1">
-              <Clock className="w-4 h-4" />
-              Expires in {expiresIn}h
-            </span>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Shared badge */}
-        <div className="mb-6 p-4 bg-violet-50 border border-violet-200 rounded-xl flex items-center gap-3">
-          <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center">
-            <FileText className="w-5 h-5 text-violet-600" />
+        <div className="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-3">
+          <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
+            <FileText className="w-5 h-5 text-slate-600" />
           </div>
           <div>
             <p className="font-semibold text-slate-900">Shared Case Review</p>
@@ -158,8 +139,8 @@ export default function SharedCasePage() {
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
             <h2 className="text-lg font-bold text-slate-900 mb-4">Cancer Overview</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-violet-50 rounded-xl p-4">
-                <p className="text-xs text-violet-600 font-medium uppercase">Type</p>
+              <div className="bg-slate-50 rounded-xl p-4">
+                <p className="text-xs text-slate-600 font-medium uppercase">Type</p>
                 <p className="text-slate-900 font-semibold">{caseBrief.cancerSummary.type}</p>
               </div>
               {caseBrief.cancerSummary.stage && (
@@ -169,8 +150,8 @@ export default function SharedCasePage() {
                 </div>
               )}
               {caseBrief.cancerSummary.biomarkers?.length > 0 && (
-                <div className="bg-emerald-50 rounded-xl p-4 col-span-2">
-                  <p className="text-xs text-emerald-600 font-medium uppercase">Biomarkers</p>
+                <div className="bg-green-50 rounded-xl p-4 col-span-2">
+                  <p className="text-xs text-green-600 font-medium uppercase">Biomarkers</p>
                   <p className="text-slate-900 font-semibold">{caseBrief.cancerSummary.biomarkers.join(', ')}</p>
                 </div>
               )}
@@ -181,13 +162,13 @@ export default function SharedCasePage() {
         {/* Key Findings */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
           <div className="flex items-center gap-2 mb-4">
-            <CheckCircle className="w-5 h-5 text-emerald-500" />
+            <CheckCircle className="w-5 h-5 text-green-600" />
             <h2 className="text-lg font-bold text-slate-900">Key Findings</h2>
           </div>
           <ul className="space-y-3">
             {caseBrief.keyFindings?.map((finding, i) => (
               <li key={i} className="flex items-start gap-3">
-                <span className="flex-shrink-0 w-6 h-6 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-sm font-medium">
+                <span className="flex-shrink-0 w-6 h-6 bg-green-100 text-green-700 rounded-full flex items-center justify-center text-sm font-medium">
                   {i + 1}
                 </span>
                 <span className="text-slate-700">{finding}</span>
@@ -206,7 +187,7 @@ export default function SharedCasePage() {
             <div className="space-y-4">
               {caseBrief.timeline.map((event, i) => (
                 <div key={i} className="flex gap-4">
-                  <div className="flex-shrink-0 w-24 text-sm font-medium text-violet-600">{event.date}</div>
+                  <div className="flex-shrink-0 w-24 text-sm font-medium text-slate-600">{event.date}</div>
                   <div className="flex-1">
                     <p className="text-slate-900">{event.event}</p>
                     {event.source && <p className="text-xs text-slate-500 mt-1">Source: {event.source}</p>}
@@ -236,14 +217,14 @@ export default function SharedCasePage() {
         )}
 
         {/* CTA */}
-        <div className="bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-2xl p-6 text-center text-white">
+        <div className="bg-slate-900 rounded-2xl p-6 text-center text-white">
           <h3 className="text-xl font-bold mb-2">Want to analyze your own medical records?</h3>
-          <p className="text-violet-100 mb-4">
+          <p className="text-slate-300 mb-4">
             Upload your records to get a personalized AI case review - free.
           </p>
           <Link
             href="/records"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-white text-violet-600 font-semibold rounded-xl hover:bg-violet-50 transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 text-white font-semibold rounded-xl hover:bg-orange-700 transition-colors"
           >
             Get Started Free
             <ArrowRight className="w-4 h-4" />

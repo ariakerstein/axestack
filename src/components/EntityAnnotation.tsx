@@ -5,7 +5,7 @@ import { Plus, X, Edit2, Check, Tag, Trash2, ChevronDown, ChevronUp } from 'luci
 
 const ENTITY_TYPES = [
   { value: 'diagnosis', label: 'Diagnosis', color: 'bg-red-100 text-red-700 border-red-200' },
-  { value: 'biomarker', label: 'Biomarker', color: 'bg-purple-100 text-purple-700 border-purple-200' },
+  { value: 'biomarker', label: 'Biomarker', color: 'bg-slate-100 text-slate-700 border-slate-200' },
   { value: 'treatment', label: 'Treatment', color: 'bg-blue-100 text-blue-700 border-blue-200' },
   { value: 'medication', label: 'Medication', color: 'bg-green-100 text-green-700 border-green-200' },
   { value: 'procedure', label: 'Procedure', color: 'bg-amber-100 text-amber-700 border-amber-200' },
@@ -216,7 +216,7 @@ export function EntityAnnotation({ sessionId, userId, className = '' }: EntityAn
         className="w-full px-5 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
       >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center">
+          <div className="w-10 h-10 bg-gradient-to-br from-slate-500 to-slate-600 rounded-xl flex items-center justify-center">
             <Tag className="w-5 h-5 text-white" />
           </div>
           <div className="text-left">
@@ -244,7 +244,7 @@ export function EntityAnnotation({ sessionId, userId, className = '' }: EntityAn
                 resetForm()
                 setShowAddForm(true)
               }}
-              className="flex items-center gap-2 text-sm text-violet-600 hover:text-violet-700 font-medium"
+              className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-700 font-medium"
             >
               <Plus className="w-4 h-4" />
               Add Manual Annotation
@@ -253,7 +253,7 @@ export function EntityAnnotation({ sessionId, userId, className = '' }: EntityAn
 
           {/* Add/Edit form */}
           {showAddForm && (
-            <div className="px-5 py-4 bg-violet-50 border-b border-violet-200">
+            <div className="px-5 py-4 bg-slate-50 border-b border-slate-200">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="font-medium text-slate-900">
                   {editingId ? 'Edit Annotation' : 'New Annotation'}
@@ -270,7 +270,7 @@ export function EntityAnnotation({ sessionId, userId, className = '' }: EntityAn
                   <select
                     value={formType}
                     onChange={(e) => setFormType(e.target.value as EntityType)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
                   >
                     {ENTITY_TYPES.map(t => (
                       <option key={t.value} value={t.value}>{t.label}</option>
@@ -286,7 +286,7 @@ export function EntityAnnotation({ sessionId, userId, className = '' }: EntityAn
                     value={formValue}
                     onChange={(e) => setFormValue(e.target.value)}
                     placeholder="e.g., EGFR mutation positive"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
                   />
                 </div>
 
@@ -298,7 +298,7 @@ export function EntityAnnotation({ sessionId, userId, className = '' }: EntityAn
                       type="date"
                       value={formDate}
                       onChange={(e) => setFormDate(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
                     />
                   </div>
                   <div>
@@ -308,7 +308,7 @@ export function EntityAnnotation({ sessionId, userId, className = '' }: EntityAn
                       value={formStatus}
                       onChange={(e) => setFormStatus(e.target.value)}
                       placeholder="e.g., positive, active"
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
                     />
                   </div>
                 </div>
@@ -324,7 +324,7 @@ export function EntityAnnotation({ sessionId, userId, className = '' }: EntityAn
                         value={formNumericValue}
                         onChange={(e) => setFormNumericValue(e.target.value)}
                         placeholder="e.g., 8.2"
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
                       />
                     </div>
                     <div>
@@ -334,7 +334,7 @@ export function EntityAnnotation({ sessionId, userId, className = '' }: EntityAn
                         value={formNumericUnit}
                         onChange={(e) => setFormNumericUnit(e.target.value)}
                         placeholder="e.g., ng/mL"
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
                       />
                     </div>
                   </div>
@@ -344,7 +344,7 @@ export function EntityAnnotation({ sessionId, userId, className = '' }: EntityAn
                 <button
                   onClick={() => editingId ? handleUpdate(editingId) : handleAdd()}
                   disabled={!formValue.trim() || saving}
-                  className="w-full px-4 py-2 bg-violet-600 hover:bg-violet-700 disabled:bg-slate-300 text-white rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2"
+                  className="w-full px-4 py-2 bg-orange-600 hover:bg-orange-700 disabled:bg-slate-300 text-white rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2"
                 >
                   {saving ? (
                     'Saving...'
