@@ -14,7 +14,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [mode, setMode] = useState<'choice' | 'magic' | 'password'>('choice')
+  const [mode, setMode] = useState<'choice' | 'magic' | 'password' | 'signup'>('choice')
   const [migrating, setMigrating] = useState(false)
   const [migrationResult, setMigrationResult] = useState<string | null>(null)
 
@@ -62,7 +62,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
       if (error) {
         setLoading(false)
         if (error.message.includes('Invalid login credentials')) {
-          setError('Invalid email or password. Try magic link instead?')
+          setError('No account found with this email/password. Create one or use magic link.')
         } else {
           setError(error.message)
         }
@@ -81,6 +81,56 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
       setLoading(false)
       setError('Something went wrong. Please try again.')
       console.error('Auth error:', e)
+    }
+  }
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    setLoading(true)
+
+    try {
+      const { supabase } = await import('@/lib/supabase')
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/records`,
+        },
+      })
+
+      if (error) {
+        setLoading(false)
+        setError(error.message)
+        return
+      }
+
+      // If identities array is empty, user already exists
+      if (data.user && data.user.identities?.length === 0) {
+        setLoading(false)
+        setError('An account with this email already exists. Please sign in instead.')
+        return
+      }
+
+      // Account created - check if email confirmation needed
+      if (data.user && !data.session) {
+        // Email confirmation required
+        setLoading(false)
+        setSuccess(true)
+        return
+      }
+
+      // Auto-logged in - migrate and close
+      if (data.user && data.session) {
+        await migrateLocalStorageRecords(data.user.id, data.session.access_token)
+        setLoading(false)
+        onClose()
+        window.location.reload()
+      }
+    } catch (e) {
+      setLoading(false)
+      setError('Something went wrong. Please try again.')
+      console.error('Signup error:', e)
     }
   }
 
@@ -279,7 +329,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
               We'll email you a link. Click it to sign in instantly.
             </p>
           </>
-        ) : (
+        ) : mode === 'password' ? (
           <>
             <button
               onClick={resetForm}
@@ -329,14 +379,86 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
               </button>
             </form>
 
+            <div className="flex flex-col gap-2 mt-4">
+              <button
+                onClick={() => setMode('magic')}
+                className="w-full text-sm text-slate-500 hover:text-violet-600"
+              >
+                Forgot password? Use magic link instead
+              </button>
+              <button
+                onClick={() => {
+                  setError(null)
+                  setMode('signup')
+                }}
+                className="w-full text-sm text-violet-600 hover:text-violet-700 font-medium"
+              >
+                Don't have an account? Create one
+              </button>
+            </div>
+          </>
+        ) : mode === 'signup' ? (
+          <>
             <button
-              onClick={() => setMode('magic')}
-              className="w-full text-sm text-slate-500 hover:text-violet-600 mt-4"
+              onClick={resetForm}
+              className="flex items-center gap-1 text-slate-500 hover:text-slate-700 mb-4"
             >
-              Forgot password? Use magic link instead
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </button>
+
+            <div className="text-center mb-6">
+              <h2 className="text-xl font-bold text-slate-900 mb-2">Create your account</h2>
+              <p className="text-slate-500 text-sm">{email}</p>
+            </div>
+
+            <form onSubmit={handleSignUp} className="space-y-4">
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Choose a password"
+                required
+                autoFocus
+                minLength={6}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-lg"
+              />
+
+              {error && (
+                <p className="text-sm text-red-600 text-center">{error}</p>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading || password.length < 6}
+                className="w-full bg-violet-600 hover:bg-violet-500 disabled:bg-violet-300 text-white py-3.5 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Creating account...
+                  </>
+                ) : (
+                  'Create account'
+                )}
+              </button>
+            </form>
+
+            <p className="text-xs text-slate-400 text-center mt-4">
+              Password must be at least 6 characters
+            </p>
+
+            <button
+              onClick={() => {
+                setError(null)
+                setMode('password')
+              }}
+              className="w-full text-sm text-slate-500 hover:text-violet-600 mt-3"
+            >
+              Already have an account? Sign in
             </button>
           </>
-        )}
+        ) : null}
       </div>
     </div>
   )

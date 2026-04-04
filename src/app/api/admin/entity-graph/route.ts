@@ -106,9 +106,81 @@ export async function GET(request: Request) {
       .eq('entity_type', 'treatment')
       .not('user_id', 'is', null)
 
+    // Treatments that aren't actually treatments (care status, etc.)
+    const NON_TREATMENT_FILTER = [
+      'monitoring phase', 'monitoring', 'watchful waiting', 'active surveillance',
+      'observation', 'follow-up', 'follow up', 'routine follow-up', 'unknown',
+      'not specified', 'none', 'n/a'
+    ]
+
+    // Standard of Care treatments by cancer type (for SOC badge)
+    const SOC_BY_CANCER: Record<string, string[]> = {
+      prostate: [
+        'adt', 'androgen deprivation therapy', 'hormone therapy', 'hormonal therapy',
+        'lupron', 'leuprolide', 'degarelix', 'firmagon',
+        'enzalutamide', 'xtandi', 'abiraterone', 'zytiga',
+        'docetaxel', 'cabazitaxel', 'jevtana',
+        'radiation', 'radiation therapy', 'ebrt', 'imrt', 'sbrt',
+        'brachytherapy', 'prostatectomy', 'radical prostatectomy',
+        'orchiectomy', 'darolutamide', 'nubeqa', 'apalutamide', 'erleada',
+        'radium-223', 'xofigo', 'pluvicto', 'lu-177', 'lutetium',
+        'chemotherapy', 'immunotherapy', 'sipuleucel-t', 'provenge',
+        'olaparib', 'lynparza', 'rucaparib'
+      ],
+      breast: [
+        'chemotherapy', 'hormone therapy', 'tamoxifen', 'letrozole', 'anastrozole',
+        'trastuzumab', 'herceptin', 'pertuzumab', 'perjeta',
+        'radiation', 'mastectomy', 'lumpectomy',
+        'palbociclib', 'ibrance', 'ribociclib', 'abemaciclib',
+        'immunotherapy', 'pembrolizumab', 'keytruda'
+      ],
+      lung: [
+        'chemotherapy', 'radiation', 'immunotherapy',
+        'pembrolizumab', 'keytruda', 'nivolumab', 'opdivo',
+        'osimertinib', 'tagrisso', 'erlotinib', 'gefitinib',
+        'surgery', 'lobectomy', 'pneumonectomy',
+        'carboplatin', 'cisplatin', 'pemetrexed', 'alimta'
+      ],
+      colorectal: [
+        'chemotherapy', 'folfox', 'folfiri', 'capecitabine',
+        'bevacizumab', 'avastin', 'cetuximab', 'erbitux',
+        'surgery', 'colectomy', 'radiation',
+        'immunotherapy', 'pembrolizumab'
+      ]
+    }
+
+    // Function to check if treatment is SOC for a given diagnosis
+    const isStandardOfCare = (treatment: string, diagnoses: string[]): boolean => {
+      const treatmentLower = treatment.toLowerCase()
+
+      for (const diagnosis of diagnoses) {
+        const diagLower = diagnosis.toLowerCase()
+
+        // Determine cancer type from diagnosis
+        let cancerType = ''
+        if (diagLower.includes('prostate')) cancerType = 'prostate'
+        else if (diagLower.includes('breast')) cancerType = 'breast'
+        else if (diagLower.includes('lung') || diagLower.includes('nsclc')) cancerType = 'lung'
+        else if (diagLower.includes('colon') || diagLower.includes('colorectal')) cancerType = 'colorectal'
+
+        if (cancerType && SOC_BY_CANCER[cancerType]) {
+          const socList = SOC_BY_CANCER[cancerType]
+          // Check if treatment matches any SOC term
+          if (socList.some(soc => treatmentLower.includes(soc) || soc.includes(treatmentLower))) {
+            return true
+          }
+        }
+      }
+      return false
+    }
+
     const treatmentCounts: Record<string, number> = {}
     topTreatments?.forEach(t => {
       const key = t.entity_value.toLowerCase()
+      // Filter out non-treatment entities
+      if (NON_TREATMENT_FILTER.some(filter => key.includes(filter))) {
+        return
+      }
       treatmentCounts[key] = (treatmentCounts[key] || 0) + 1
     })
     const sortedTreatments = Object.entries(treatmentCounts)
@@ -116,18 +188,111 @@ export async function GET(request: Request) {
       .slice(0, 10)
       .map(([name, count]) => ({ name, count }))
 
-    // Get entity co-occurrence (what appears together)
+    // Get entity co-occurrence (compute from entity data since view may be empty)
     const { data: cooccurrence } = await supabase
       .from('entity_cooccurrence')
       .select('*')
       .limit(20)
 
-    // Get similar patients
-    const { data: similarPatients } = await supabase
-      .from('patient_similarity')
-      .select('*')
-      .order('similarity_score', { ascending: false })
-      .limit(10)
+    // Get similar patients from view (may be empty)
+    let similarPatients: Array<{
+      patient_a: string
+      patient_b: string
+      shared_entities: number
+      shared_values: string[]
+      similarity_score: number
+    }> = []
+
+    try {
+      const { data: spData } = await supabase
+        .from('patient_similarity')
+        .select('*')
+        .order('similarity_score', { ascending: false })
+        .limit(10)
+      if (spData && spData.length > 0) {
+        similarPatients = spData
+      }
+    } catch {
+      // View may not exist, will compute below
+    }
+
+    // Normalize diagnosis to base cancer type for cross-tab aggregation
+    const normalizeDiagnosis = (diagnosis: string): string => {
+      const lower = diagnosis.toLowerCase()
+
+      // Prostate cancer variants
+      if (lower.includes('prostate') || lower.includes('prostatic')) {
+        if (lower.includes('mcrpc') || lower.includes('castration-resistant') || lower.includes('castrate-resistant')) {
+          return 'Prostate Cancer (Castration-Resistant)'
+        }
+        if (lower.includes('metastatic')) {
+          return 'Prostate Cancer (Metastatic)'
+        }
+        return 'Prostate Cancer'
+      }
+
+      // Breast cancer variants
+      if (lower.includes('breast')) {
+        if (lower.includes('triple negative') || lower.includes('tnbc')) return 'Breast Cancer (Triple Negative)'
+        if (lower.includes('her2')) return 'Breast Cancer (HER2+)'
+        if (lower.includes('er+') || lower.includes('hormone')) return 'Breast Cancer (Hormone Receptor+)'
+        if (lower.includes('metastatic')) return 'Breast Cancer (Metastatic)'
+        return 'Breast Cancer'
+      }
+
+      // Lung cancer variants
+      if (lower.includes('lung') || lower.includes('nsclc') || lower.includes('sclc')) {
+        if (lower.includes('sclc') || lower.includes('small cell')) return 'Small Cell Lung Cancer'
+        if (lower.includes('metastatic')) return 'Lung Cancer (Metastatic)'
+        return 'Non-Small Cell Lung Cancer'
+      }
+
+      // Colorectal
+      if (lower.includes('colon') || lower.includes('rectal') || lower.includes('colorectal')) {
+        if (lower.includes('metastatic')) return 'Colorectal Cancer (Metastatic)'
+        return 'Colorectal Cancer'
+      }
+
+      // Pancreatic
+      if (lower.includes('pancrea')) {
+        return 'Pancreatic Cancer'
+      }
+
+      // Ovarian
+      if (lower.includes('ovarian') || lower.includes('ovary')) {
+        return 'Ovarian Cancer'
+      }
+
+      // Leukemia/Lymphoma
+      if (lower.includes('leukemia') || lower.includes('lymphoma') || lower.includes('myeloma')) {
+        if (lower.includes('lymphoma')) return 'Lymphoma'
+        if (lower.includes('myeloma')) return 'Multiple Myeloma'
+        return 'Leukemia'
+      }
+
+      // Blood disorders / stem cell
+      if (lower.includes('stem cell') || lower.includes('bone marrow') || lower.includes('blood disorder')) {
+        return 'Blood Disorder / Stem Cell'
+      }
+
+      // Melanoma
+      if (lower.includes('melanoma')) {
+        return 'Melanoma'
+      }
+
+      // Kidney
+      if (lower.includes('kidney') || lower.includes('renal')) {
+        return 'Kidney Cancer'
+      }
+
+      // Bladder
+      if (lower.includes('bladder') || lower.includes('urothelial')) {
+        return 'Bladder Cancer'
+      }
+
+      // Default: capitalize first letter of each word
+      return diagnosis.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+    }
 
     // Build cross-tab: Diagnosis → Biomarkers → Treatments
     // Reuse already-fetched data (topDiagnoses, topBiomarkers, topTreatments all have user_id)
@@ -137,7 +302,7 @@ export async function GET(request: Request) {
       ...(topTreatments || []).map(t => ({ ...t, entity_type: 'treatment' }))
     ]
 
-    // Group by user to build cross-tab
+    // Group by user to build cross-tab (using normalized diagnoses)
     const userEntities: Record<string, { diagnoses: string[], biomarkers: string[], treatments: string[] }> = {}
     allEntitiesForCrossTab.forEach(e => {
       if (!e.user_id) return
@@ -146,14 +311,20 @@ export async function GET(request: Request) {
       }
       const value = e.entity_value.toLowerCase()
       if (e.entity_type === 'diagnosis') {
-        if (!userEntities[e.user_id].diagnoses.includes(value)) {
-          userEntities[e.user_id].diagnoses.push(value)
+        // Use normalized diagnosis for cross-tab
+        const normalized = normalizeDiagnosis(value)
+        if (!userEntities[e.user_id].diagnoses.includes(normalized)) {
+          userEntities[e.user_id].diagnoses.push(normalized)
         }
       } else if (e.entity_type === 'biomarker') {
         if (!userEntities[e.user_id].biomarkers.includes(value)) {
           userEntities[e.user_id].biomarkers.push(value)
         }
       } else if (e.entity_type === 'treatment') {
+        // Filter out non-treatment entities
+        if (NON_TREATMENT_FILTER.some(filter => value.includes(filter))) {
+          return
+        }
         if (!userEntities[e.user_id].treatments.includes(value)) {
           userEntities[e.user_id].treatments.push(value)
         }
@@ -191,8 +362,67 @@ export async function GET(request: Request) {
         topTreatments: Object.entries(data.treatments)
           .sort((a, b) => b[1] - a[1])
           .slice(0, 5)
-          .map(([name, count]) => ({ name, count }))
+          .map(([name, count]) => ({
+            name,
+            count,
+            isStandardOfCare: isStandardOfCare(name, [diagnosis])
+          }))
       }))
+
+    // Compute similar patients from entity overlap if view is empty
+    if (similarPatients.length === 0 && Object.keys(userEntities).length >= 2) {
+      const patientIds = Object.keys(userEntities)
+      const computedSimilar: Array<{
+        patient_a: string
+        patient_b: string
+        shared_entities: number
+        shared_values: string[]
+        similarity_score: number
+      }> = []
+
+      // Compare each pair of patients
+      for (let i = 0; i < patientIds.length && i < 50; i++) {
+        for (let j = i + 1; j < patientIds.length && j < 50; j++) {
+          const pA = patientIds[i]
+          const pB = patientIds[j]
+          const entA = userEntities[pA]
+          const entB = userEntities[pB]
+
+          // Find shared entities
+          const sharedDiagnoses = entA.diagnoses.filter(d => entB.diagnoses.includes(d))
+          const sharedBiomarkers = entA.biomarkers.filter(b => entB.biomarkers.includes(b))
+          const sharedTreatments = entA.treatments.filter(t => entB.treatments.includes(t))
+
+          const sharedValues = [...sharedDiagnoses, ...sharedBiomarkers, ...sharedTreatments]
+          const totalShared = sharedValues.length
+
+          if (totalShared >= 2) {
+            // Weight biomarkers higher - they're more clinically significant
+            const weightedScore = sharedDiagnoses.length * 1.0 +
+                                  sharedBiomarkers.length * 2.0 +
+                                  sharedTreatments.length * 1.0
+
+            // Normalize by total entities
+            const totalEntitiesA = entA.diagnoses.length + entA.biomarkers.length + entA.treatments.length
+            const totalEntitiesB = entB.diagnoses.length + entB.biomarkers.length + entB.treatments.length
+            const similarity = (2 * weightedScore) / (totalEntitiesA + totalEntitiesB + weightedScore)
+
+            computedSimilar.push({
+              patient_a: pA,
+              patient_b: pB,
+              shared_entities: totalShared,
+              shared_values: sharedValues.slice(0, 10),
+              similarity_score: similarity
+            })
+          }
+        }
+      }
+
+      // Sort by similarity and take top 10
+      similarPatients = computedSimilar
+        .sort((a, b) => b.similarity_score - a.similarity_score)
+        .slice(0, 10)
+    }
 
     // Get recent edges (relationships formed)
     const { data: recentEdges } = await supabase
@@ -235,7 +465,7 @@ export async function GET(request: Request) {
       })
     })
 
-    // Add co-occurrence edges
+    // Add co-occurrence edges from database view if available
     cooccurrence?.forEach(co => {
       edges.push({
         source: co.entity_a,
@@ -244,21 +474,113 @@ export async function GET(request: Request) {
       })
     })
 
+    // Compute co-occurrence from entity data if view is empty
+    if (!cooccurrence || cooccurrence.length === 0) {
+      // Build co-occurrence matrix from userEntities
+      const cooccurrenceMatrix: Record<string, Record<string, { count: number, type: string }>> = {}
+
+      Object.values(userEntities).forEach(user => {
+        const allEntities = [
+          ...user.diagnoses.map(d => ({ value: d, type: 'diagnosis' })),
+          ...user.biomarkers.map(b => ({ value: b, type: 'biomarker' })),
+          ...user.treatments.map(t => ({ value: t, type: 'treatment' }))
+        ]
+
+        // For each pair of entities in this patient's profile
+        for (let i = 0; i < allEntities.length; i++) {
+          for (let j = i + 1; j < allEntities.length; j++) {
+            const a = allEntities[i]
+            const b = allEntities[j]
+
+            // Skip same-type co-occurrences (diagnosis-diagnosis, etc.)
+            if (a.type === b.type) continue
+
+            // Create consistent key (alphabetical order)
+            const key1 = `${a.type}:${a.value}`
+            const key2 = `${b.type}:${b.value}`
+            const [first, second] = [key1, key2].sort()
+
+            if (!cooccurrenceMatrix[first]) cooccurrenceMatrix[first] = {}
+            if (!cooccurrenceMatrix[first][second]) {
+              cooccurrenceMatrix[first][second] = { count: 0, type: `${a.type}-${b.type}` }
+            }
+            cooccurrenceMatrix[first][second].count++
+          }
+        }
+      })
+
+      // Add top co-occurrences as edges
+      const cooccurrencePairs: Array<{ source: string, target: string, count: number }> = []
+      Object.entries(cooccurrenceMatrix).forEach(([source, targets]) => {
+        Object.entries(targets).forEach(([target, data]) => {
+          if (data.count >= 2) { // Only include if appears in 2+ patients
+            cooccurrencePairs.push({ source, target, count: data.count })
+          }
+        })
+      })
+
+      // Sort by count and add top 50 as edges
+      cooccurrencePairs
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 50)
+        .forEach(pair => {
+          edges.push({
+            source: pair.source,
+            target: pair.target,
+            relationship: `co_occurs (${pair.count} patients)`
+          })
+        })
+    }
+
+    // Get accurate counts from patient_activity (authoritative)
+    const { data: activityCounts } = await supabase
+      .from('patient_activity')
+      .select('activity_type, user_id')
+
+    let recordCount = 0
+    let questionCount = 0
+    const activityUsers = new Set<string>()
+    activityCounts?.forEach(a => {
+      if (a.user_id) activityUsers.add(a.user_id)
+      if (a.activity_type === 'record_upload') recordCount++
+      if (a.activity_type === 'ask_question') questionCount++
+    })
+
+    // Count unique patients from entities
+    const entityUsers = new Set<string>()
+    topDiagnoses?.forEach(d => { if (d.user_id) entityUsers.add(d.user_id) })
+    topBiomarkers?.forEach(b => { if (b.user_id) entityUsers.add(b.user_id) })
+    topTreatments?.forEach(t => { if (t.user_id) entityUsers.add(t.user_id) })
+
+    // Use the larger of entity users or activity users for patient count
+    const patientCount = Math.max(entityUsers.size, activityUsers.size)
+
+    // Compute actual stats, don't rely on the view
+    const computedStats = {
+      patient_count: patientCount,
+      diagnosis_count: Object.keys(diagnosisCounts).length,
+      biomarker_count: Object.keys(biomarkerCounts).length,
+      treatment_count: Object.keys(treatmentCounts).length,
+      record_count: recordCount,
+      question_count: questionCount,
+      total_edges: edges.length + (cooccurrence?.length || 0),
+      similar_patient_pairs: similarPatients?.length || 0
+    }
+
     return NextResponse.json({
-      stats: stats || {
-        patient_count: 0,
-        diagnosis_count: sortedDiagnoses.length,
-        biomarker_count: sortedBiomarkers.length,
-        treatment_count: sortedTreatments.length,
-        record_count: 0,
-        question_count: 0,
-        total_edges: edges.length,
-        similar_patient_pairs: similarPatients?.length || 0
-      },
+      stats: computedStats,
       topEntities: {
         diagnoses: sortedDiagnoses,
         biomarkers: sortedBiomarkers,
-        treatments: sortedTreatments
+        treatments: sortedTreatments.map(t => {
+          // Get all diagnoses to check SOC
+          const allDiagnoses = Object.values(userEntities).flatMap(u => u.diagnoses)
+          const isSoc = isStandardOfCare(t.name, allDiagnoses)
+          return {
+            ...t,
+            isStandardOfCare: isSoc
+          }
+        })
       },
       cooccurrence: cooccurrence || [],
       crossTab: crossTabData,

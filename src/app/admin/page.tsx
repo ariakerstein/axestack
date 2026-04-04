@@ -279,6 +279,41 @@ interface EntityGraphData {
   }>
 }
 
+interface PatientTimelineData {
+  patientId: string
+  patientEmail: string
+  timeline: Array<{
+    timestamp: string
+    type: 'entity' | 'activity' | 'record'
+    category: string
+    value: string
+    source?: string
+    metadata?: Record<string, unknown>
+  }>
+  entitySummary: Record<string, string[]>
+  stats: {
+    totalEntities: number
+    totalActivities: number
+    totalRecords: number
+    entityTypes: string[]
+    firstEvent: string
+    lastEvent: string
+  }
+}
+
+interface PatientListData {
+  patients: Array<{
+    id: string
+    email: string
+    entityCount: number
+    entityTypes: string[]
+    firstSeen: string | null
+    lastSeen: string | null
+  }>
+  totalPatients: number
+  totalEntities: number
+}
+
 export default function AdminPage() {
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [profilesData, setProfilesData] = useState<ProfilesData | null>(null)
@@ -301,6 +336,27 @@ export default function AdminPage() {
   // Entity Graph enhanced state
   const [selectedDiagnosis, setSelectedDiagnosis] = useState<string | null>(null)
   const [journeyStage, setJourneyStage] = useState<'all' | 'newly-diagnosed' | 'treatment-experienced' | 'recurrence'>('all')
+
+  // Patient Timeline state
+  const [patientListData, setPatientListData] = useState<PatientListData | null>(null)
+  const [patientTimelineData, setPatientTimelineData] = useState<PatientTimelineData | null>(null)
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null)
+  const [loadingTimeline, setLoadingTimeline] = useState(false)
+  const [timelineFilters, setTimelineFilters] = useState<{
+    entities: boolean
+    activities: boolean
+    records: boolean
+    diagnosis: boolean
+    biomarker: boolean
+    treatment: boolean
+  }>({
+    entities: true,
+    activities: true,
+    records: true,
+    diagnosis: true,
+    biomarker: true,
+    treatment: true
+  })
 
   // Standard of Care treatments by cancer type - non-SOC treatments are everything else
   // This is the pharma signal: non-SOC = treatment-experienced looking for what's next
@@ -481,6 +537,7 @@ export default function AdminPage() {
       fetchActivityGraph(key, numDays)
       fetchEntityGraph(key)
       fetchWinback(key)
+      fetchPatientList(key)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
@@ -575,6 +632,89 @@ export default function AdminPage() {
     } finally {
       setLoadingUserStats(false)
     }
+  }
+
+  const fetchPatientList = async (key: string) => {
+    try {
+      const res = await fetch('/api/admin/patient-timeline', {
+        headers: { 'x-admin-key': key }
+      })
+      if (res.ok) {
+        const json = await res.json()
+        setPatientListData(json)
+      }
+    } catch (err) {
+      console.error('Error fetching patient list:', err)
+    }
+  }
+
+  const fetchPatientTimeline = async (patientId: string) => {
+    setLoadingTimeline(true)
+    setSelectedPatientId(patientId)
+    try {
+      const res = await fetch(`/api/admin/patient-timeline?patientId=${patientId}`, {
+        headers: { 'x-admin-key': adminKey }
+      })
+      if (res.ok) {
+        const json = await res.json()
+        setPatientTimelineData(json)
+      }
+    } catch (err) {
+      console.error('Error fetching patient timeline:', err)
+    } finally {
+      setLoadingTimeline(false)
+    }
+  }
+
+  // Filter timeline events based on current filters
+  const getFilteredTimeline = () => {
+    if (!patientTimelineData?.timeline) return []
+    return patientTimelineData.timeline.filter(event => {
+      // Filter by event type
+      if (event.type === 'entity' && !timelineFilters.entities) return false
+      if (event.type === 'activity' && !timelineFilters.activities) return false
+      if (event.type === 'record' && !timelineFilters.records) return false
+      // Filter by entity category
+      if (event.type === 'entity') {
+        if (event.category === 'diagnosis' && !timelineFilters.diagnosis) return false
+        if (event.category === 'biomarker' && !timelineFilters.biomarker) return false
+        if (event.category === 'treatment' && !timelineFilters.treatment) return false
+      }
+      return true
+    })
+  }
+
+  // Generate pattern insights from timeline
+  const getTimelinePatterns = () => {
+    if (!patientTimelineData?.timeline) return []
+    const patterns: Array<{ type: string; description: string; recommendation?: string }> = []
+    const biomarkers = patientTimelineData.entitySummary?.biomarker || []
+    const treatments = patientTimelineData.entitySummary?.treatment || []
+
+    // DNA repair deficiency
+    const dnaRepairMutations = biomarkers.filter(b =>
+      DNA_REPAIR_GENES.some(gene => b.toLowerCase().includes(gene))
+    )
+    if (dnaRepairMutations.length >= 2) {
+      patterns.push({
+        type: 'DNA Repair Deficiency',
+        description: `${dnaRepairMutations.length} DNA repair pathway mutations: ${dnaRepairMutations.slice(0, 3).join(', ')}`,
+        recommendation: 'PARP inhibitor sensitivity panel recommended. May qualify for olaparib/rucaparib.'
+      })
+    }
+
+    // Non-SOC treatments
+    const diagnoses = patientTimelineData.entitySummary?.diagnosis || []
+    const nonSocTreatments = treatments.filter(t => !isStandardOfCare(t, diagnoses))
+    if (nonSocTreatments.length > 0) {
+      patterns.push({
+        type: 'Treatment-Experienced',
+        description: `${nonSocTreatments.length} non-standard treatments: ${nonSocTreatments.slice(0, 3).join(', ')}`,
+        recommendation: 'Patient may be seeking alternatives. Clinical trial eligibility worth reviewing.'
+      })
+    }
+
+    return patterns
   }
 
   useEffect(() => {
@@ -1596,6 +1736,260 @@ export default function AdminPage() {
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* Patient Timeline - Chronological Clinical Story */}
+            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl shadow p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900">📅 Patient Timeline</h2>
+                  <p className="text-sm text-slate-600 mt-1">
+                    Select a patient to see their chronological clinical story — diagnoses, treatments, biomarkers, and activities over time.
+                  </p>
+                </div>
+                {selectedPatientId && (
+                  <button
+                    onClick={() => {
+                      setSelectedPatientId(null)
+                      setPatientTimelineData(null)
+                    }}
+                    className="text-xs bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-3 py-1 rounded-full"
+                  >
+                    ← Back to List
+                  </button>
+                )}
+              </div>
+
+              {/* Patient Selector */}
+              {!selectedPatientId && (
+                <div>
+                  <p className="text-xs text-slate-500 mb-3 uppercase tracking-wide font-medium">
+                    Select a patient ({patientListData?.totalPatients || 0} patients with entities):
+                  </p>
+                  {!patientListData?.patients?.length ? (
+                    <p className="text-slate-500 text-sm">No patients with extracted entities yet.</p>
+                  ) : (
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-64 overflow-y-auto">
+                      {patientListData.patients.map((patient) => (
+                        <button
+                          key={patient.id}
+                          onClick={() => fetchPatientTimeline(patient.id)}
+                          className="bg-white rounded-lg p-3 text-left hover:bg-indigo-50 border border-slate-200 hover:border-indigo-400 transition-colors"
+                        >
+                          <div className="flex justify-between items-start mb-1">
+                            <span className="text-sm font-medium text-slate-900 truncate">{patient.email}</span>
+                            <span className="text-xs bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded ml-1">{patient.entityCount}</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {patient.entityTypes.slice(0, 3).map((type, i) => (
+                              <span key={i} className="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded">{type}</span>
+                            ))}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Loading State */}
+              {loadingTimeline && (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                </div>
+              )}
+
+              {/* Timeline View */}
+              {selectedPatientId && patientTimelineData && !loadingTimeline && (
+                <div>
+                  {/* Patient Header */}
+                  <div className="bg-white rounded-lg p-4 mb-4 border border-indigo-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <h3 className="font-semibold text-slate-900">{patientTimelineData.patientEmail}</h3>
+                        <p className="text-xs text-slate-500">
+                          {patientTimelineData.stats.totalEntities} entities • {patientTimelineData.stats.totalRecords} records • {patientTimelineData.stats.totalActivities} activities
+                        </p>
+                      </div>
+                      <div className="text-right text-xs text-slate-500">
+                        <p>First: {patientTimelineData.stats.firstEvent ? new Date(patientTimelineData.stats.firstEvent).toLocaleDateString() : 'N/A'}</p>
+                        <p>Last: {patientTimelineData.stats.lastEvent ? new Date(patientTimelineData.stats.lastEvent).toLocaleDateString() : 'N/A'}</p>
+                      </div>
+                    </div>
+
+                    {/* Filter Toggles */}
+                    <div className="flex flex-wrap gap-2 pt-3 border-t border-slate-100">
+                      <span className="text-xs text-slate-500 font-medium mr-2">Filters:</span>
+                      <button
+                        onClick={() => setTimelineFilters(prev => ({ ...prev, diagnosis: !prev.diagnosis }))}
+                        className={`px-2 py-0.5 text-xs rounded-full transition-colors ${
+                          timelineFilters.diagnosis
+                            ? 'bg-blue-100 text-blue-700 border border-blue-300'
+                            : 'bg-slate-100 text-slate-400 border border-slate-200'
+                        }`}
+                      >
+                        Diagnoses
+                      </button>
+                      <button
+                        onClick={() => setTimelineFilters(prev => ({ ...prev, biomarker: !prev.biomarker }))}
+                        className={`px-2 py-0.5 text-xs rounded-full transition-colors ${
+                          timelineFilters.biomarker
+                            ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                            : 'bg-slate-100 text-slate-400 border border-slate-200'
+                        }`}
+                      >
+                        Biomarkers
+                      </button>
+                      <button
+                        onClick={() => setTimelineFilters(prev => ({ ...prev, treatment: !prev.treatment }))}
+                        className={`px-2 py-0.5 text-xs rounded-full transition-colors ${
+                          timelineFilters.treatment
+                            ? 'bg-orange-100 text-orange-700 border border-orange-300'
+                            : 'bg-slate-100 text-slate-400 border border-slate-200'
+                        }`}
+                      >
+                        Treatments
+                      </button>
+                      <button
+                        onClick={() => setTimelineFilters(prev => ({ ...prev, records: !prev.records }))}
+                        className={`px-2 py-0.5 text-xs rounded-full transition-colors ${
+                          timelineFilters.records
+                            ? 'bg-violet-100 text-violet-700 border border-violet-300'
+                            : 'bg-slate-100 text-slate-400 border border-slate-200'
+                        }`}
+                      >
+                        Records
+                      </button>
+                      <button
+                        onClick={() => setTimelineFilters(prev => ({ ...prev, activities: !prev.activities }))}
+                        className={`px-2 py-0.5 text-xs rounded-full transition-colors ${
+                          timelineFilters.activities
+                            ? 'bg-pink-100 text-pink-700 border border-pink-300'
+                            : 'bg-slate-100 text-slate-400 border border-slate-200'
+                        }`}
+                      >
+                        Activities
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Entity Summary Pills */}
+                  {patientTimelineData.entitySummary && Object.keys(patientTimelineData.entitySummary).length > 0 && (
+                    <div className="bg-white rounded-lg p-4 mb-4 border border-indigo-200">
+                      <p className="text-xs text-slate-500 font-medium mb-3">Entity Summary:</p>
+                      <div className="space-y-2">
+                        {Object.entries(patientTimelineData.entitySummary).map(([type, values]) => (
+                          <div key={type} className="flex items-start gap-2">
+                            <span className={`text-xs font-medium capitalize px-2 py-0.5 rounded ${
+                              type === 'diagnosis' ? 'bg-blue-100 text-blue-700' :
+                              type === 'biomarker' ? 'bg-emerald-100 text-emerald-700' :
+                              type === 'treatment' ? 'bg-orange-100 text-orange-700' :
+                              'bg-slate-100 text-slate-600'
+                            }`}>
+                              {type}
+                            </span>
+                            <div className="flex flex-wrap gap-1 flex-1">
+                              {values.slice(0, 8).map((val, i) => {
+                                const isSoc = type === 'treatment' ? isStandardOfCare(val, patientTimelineData.entitySummary?.diagnosis || []) : true
+                                return (
+                                  <span
+                                    key={i}
+                                    className={`text-xs px-1.5 py-0.5 rounded ${
+                                      type === 'treatment' && !isSoc
+                                        ? 'bg-red-50 text-red-700 border border-red-200'
+                                        : 'bg-slate-50 text-slate-700'
+                                    }`}
+                                  >
+                                    {val}
+                                    {type === 'treatment' && !isSoc && <span className="ml-1 text-[10px] text-red-500">Non-SOC</span>}
+                                  </span>
+                                )
+                              })}
+                              {values.length > 8 && (
+                                <span className="text-xs text-slate-400">+{values.length - 8}</span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Timeline Events */}
+                  <div className="bg-white rounded-lg p-4 border border-indigo-200">
+                    <p className="text-xs text-slate-500 font-medium mb-3">Chronological Timeline ({getFilteredTimeline().length} events):</p>
+                    <div className="relative pl-4 border-l-2 border-indigo-200 space-y-4 max-h-96 overflow-y-auto">
+                      {getFilteredTimeline().map((event, i) => (
+                        <div key={i} className="relative">
+                          <div className={`absolute -left-[9px] w-4 h-4 rounded-full border-2 border-white ${
+                            event.type === 'entity' ? (
+                              event.category === 'diagnosis' ? 'bg-blue-500' :
+                              event.category === 'biomarker' ? 'bg-emerald-500' :
+                              event.category === 'treatment' ? 'bg-orange-500' :
+                              'bg-slate-400'
+                            ) :
+                            event.type === 'record' ? 'bg-violet-500' :
+                            'bg-pink-500'
+                          }`}></div>
+                          <div className="ml-4">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-xs text-slate-400">
+                                {new Date(event.timestamp).toLocaleDateString()} {new Date(event.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-medium ${
+                                event.type === 'entity' ? (
+                                  event.category === 'diagnosis' ? 'bg-blue-100 text-blue-700' :
+                                  event.category === 'biomarker' ? 'bg-emerald-100 text-emerald-700' :
+                                  event.category === 'treatment' ? 'bg-orange-100 text-orange-700' :
+                                  'bg-slate-100 text-slate-600'
+                                ) :
+                                event.type === 'record' ? 'bg-violet-100 text-violet-700' :
+                                'bg-pink-100 text-pink-700'
+                              }`}>
+                                {event.type === 'entity' ? event.category : event.type}
+                              </span>
+                            </div>
+                            <p className="text-sm text-slate-900">{event.value}</p>
+                            {event.source && (
+                              <p className="text-xs text-slate-400 mt-0.5">{event.source}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                      {getFilteredTimeline().length === 0 && (
+                        <p className="text-slate-500 text-sm py-4">No events match the current filters.</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Pattern Detection Strip */}
+                  {getTimelinePatterns().length > 0 && (
+                    <div className="mt-4 bg-gradient-to-r from-amber-900 via-orange-900 to-red-900 rounded-lg p-4 border border-amber-700">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-8 h-8 bg-amber-500/20 rounded-full flex items-center justify-center">
+                          <span className="text-lg">🔬</span>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-amber-200 font-semibold text-sm mb-2">Pattern Detection</h4>
+                          <div className="space-y-3">
+                            {getTimelinePatterns().map((pattern, i) => (
+                              <div key={i}>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="bg-amber-600 text-white text-xs px-2 py-0.5 rounded font-medium">{pattern.type}</span>
+                                </div>
+                                <p className="text-white text-sm">{pattern.description}</p>
+                                {pattern.recommendation && (
+                                  <p className="text-amber-300 text-xs mt-1">💡 {pattern.recommendation}</p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Entity Co-occurrence & Similar Patients */}
