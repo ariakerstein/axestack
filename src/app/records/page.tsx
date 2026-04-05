@@ -171,9 +171,11 @@ export default function RecordsVaultPage() {
   const [isChatLoading, setIsChatLoading] = useState(false)
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['summary', 'terms', 'questions']))
   const [showSaveModal, setShowSaveModal] = useState(false)
-  const [savedTranslations, setSavedTranslations] = useState<Array<{id: string, fileName: string, date: string, documentType: string}>>([])
+  const [savedTranslations, setSavedTranslations] = useState<Array<{id: string, fileName: string, date: string, documentType: string, notes?: string}>>([])
   const [editingRecordId, setEditingRecordId] = useState<string | null>(null)
   const [editingLabel, setEditingLabel] = useState('')
+  const [editingNotes, setEditingNotes] = useState('')
+  const [editMode, setEditMode] = useState<'label' | 'notes'>('label')
   const [saveSuccess, setSaveSuccess] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
   const [showSendReportModal, setShowSendReportModal] = useState(false)
@@ -1587,6 +1589,47 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
 
     setEditingRecordId(null)
     setEditingLabel('')
+    setEditMode('label')
+  }
+
+  // Update record notes/annotation
+  const updateRecordNotes = async (id: string, newNotes: string) => {
+    // Update in savedTranslations state
+    const updatedList = savedTranslations.map(t =>
+      t.id === id ? { ...t, notes: newNotes } : t
+    )
+    setSavedTranslations(updatedList)
+
+    // Update in localStorage index
+    localStorage.setItem('axestack-translations', JSON.stringify(updatedList))
+
+    // Update in localStorage data
+    const data = localStorage.getItem('axestack-translations-data')
+    if (data) {
+      const translations = JSON.parse(data)
+      if (translations[id]) {
+        translations[id].notes = newNotes
+        localStorage.setItem('axestack-translations-data', JSON.stringify(translations))
+      }
+    }
+
+    // Update in Supabase if authenticated
+    if (user) {
+      try {
+        const { supabase } = await import('@/lib/supabase')
+        await supabase
+          .from('medical_records')
+          .update({ notes: newNotes })
+          .eq('id', id)
+          .eq('user_id', user.id)
+      } catch (err) {
+        console.error('Failed to update record notes in Supabase:', err)
+      }
+    }
+
+    setEditingRecordId(null)
+    setEditingNotes('')
+    setEditMode('label')
   }
 
   // Portal connection handler
@@ -1774,54 +1817,83 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-slate-900 truncate">{t.fileName}</p>
-                        <div className="flex items-center gap-2 text-xs text-slate-500">
-                          {editingRecordId === t.id ? (
-                            <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                        {editingRecordId === t.id ? (
+                          <div className="mt-1 space-y-1.5" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-slate-400 w-12">Type:</span>
                               <input
                                 type="text"
                                 value={editingLabel}
                                 onChange={(e) => setEditingLabel(e.target.value)}
                                 onKeyDown={(e) => {
-                                  if (e.key === 'Enter') updateRecordLabel(t.id, editingLabel)
-                                  if (e.key === 'Escape') { setEditingRecordId(null); setEditingLabel('') }
+                                  if (e.key === 'Escape') { setEditingRecordId(null); setEditingLabel(''); setEditingNotes('') }
                                 }}
-                                className="px-2 py-0.5 border border-slate-300 rounded text-xs w-32 focus:outline-none focus:ring-1 focus:ring-slate-400"
+                                className="px-2 py-0.5 border border-slate-300 rounded text-xs flex-1 focus:outline-none focus:ring-1 focus:ring-slate-400"
                                 placeholder="e.g., PSA Results"
                                 autoFocus
                               />
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-slate-400 w-12">Notes:</span>
+                              <input
+                                type="text"
+                                value={editingNotes}
+                                onChange={(e) => setEditingNotes(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    updateRecordLabel(t.id, editingLabel)
+                                    if (editingNotes !== (t.notes || '')) updateRecordNotes(t.id, editingNotes)
+                                  }
+                                  if (e.key === 'Escape') { setEditingRecordId(null); setEditingLabel(''); setEditingNotes('') }
+                                }}
+                                className="px-2 py-0.5 border border-slate-300 rounded text-xs flex-1 focus:outline-none focus:ring-1 focus:ring-slate-400"
+                                placeholder="e.g., Pre-surgery baseline"
+                              />
+                            </div>
+                            <div className="flex items-center gap-1 mt-1">
                               <button
-                                onClick={(e) => { e.stopPropagation(); updateRecordLabel(t.id, editingLabel) }}
-                                className="p-1 text-green-600 hover:bg-green-50 rounded"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  updateRecordLabel(t.id, editingLabel)
+                                  if (editingNotes !== (t.notes || '')) updateRecordNotes(t.id, editingNotes)
+                                }}
+                                className="px-2 py-0.5 text-xs bg-slate-900 text-white rounded hover:bg-slate-800"
                               >
-                                <Check className="w-3 h-3" />
+                                Save
                               </button>
                               <button
-                                onClick={(e) => { e.stopPropagation(); setEditingRecordId(null); setEditingLabel('') }}
-                                className="p-1 text-slate-400 hover:bg-slate-100 rounded"
+                                onClick={(e) => { e.stopPropagation(); setEditingRecordId(null); setEditingLabel(''); setEditingNotes('') }}
+                                className="px-2 py-0.5 text-xs text-slate-500 hover:text-slate-700"
                               >
-                                <X className="w-3 h-3" />
+                                Cancel
                               </button>
                             </div>
-                          ) : (
-                            <>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-2 text-xs text-slate-500">
                               <span>{t.documentType}</span>
                               <span>·</span>
                               <span>{new Date(t.date).toLocaleDateString()}</span>
-                            </>
-                          )}
-                        </div>
+                            </div>
+                            {t.notes && (
+                              <p className="text-xs text-slate-400 italic mt-0.5 truncate">{t.notes}</p>
+                            )}
+                          </>
+                        )}
                       </div>
                       <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-slate-600 transition-colors" />
                     </button>
-                    {/* Edit label button */}
+                    {/* Edit label & notes button */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
                         setEditingRecordId(t.id)
                         setEditingLabel(t.documentType)
+                        setEditingNotes(t.notes || '')
                       }}
                       className="p-2 text-slate-300 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all"
-                      title="Edit label"
+                      title="Edit label & notes"
                     >
                       <Pencil className="w-4 h-4" />
                     </button>
