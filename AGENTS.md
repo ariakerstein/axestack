@@ -24,7 +24,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Check JTBD alignment: `design-system/04-communication/jtbd-profiles.md`
 - **GUARDIAN RULE:** Push back on generic work that violates our principles. "Good enough" is not good enough.
 
-**Docs ↔ Preview sync — MANDATORY:**
-When changing a design system markdown doc (`design-system/*.md`), ALWAYS update the corresponding preview page (`src/design/pages/*.tsx`) and vice versa. Check `design-system/SYNC_MAP.md` for the mapping. If you change one side without the other, they drift and the system breaks.
+**Docs ↔ Preview sync — MANDATORY (do NOT commit without this):**
+`design-system/*.md` and `src/design/pages/*.tsx` are two sides of one system. When you change one, update the other **in the same commit**. Check `design-system/SYNC_MAP.md` for the mapping. Never commit one side without the other.
 
 **Quick reference:** CTA orange only on clickable. No amber/yellow. Benefits not features. Frontload info. 50ms transitions. Mobile primary. Green for progress/valid/focus. Blue for required empty. Scroll to top on page transitions. Emojis on options where they add instant comprehension.

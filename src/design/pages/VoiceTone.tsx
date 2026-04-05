@@ -35,7 +35,7 @@ const benefitsNotFeatures = [
 ];
 
 const forbiddenLanguage = [
-  { bad: 'Loved one', replacement: 'Their actual name or "them"', why: 'Patronizing, generic' },
+  { bad: 'Loved one (repeated / in-app)', replacement: 'Their actual name or "them" — see Loved One Rule below', why: 'Generic when you already know their name' },
   { bad: 'The patient', replacement: 'Their name or "you"', why: 'Dehumanizing' },
   { bad: 'Fight/battle/warrior', replacement: 'Your care journey', why: 'Not everyone identifies with combat metaphors' },
   { bad: 'We understand how you feel', replacement: 'We\'ve been there — here\'s what helped us', why: 'Founded by survivors, so empathy is authentic. But keep it specific, not generic.' },
@@ -191,6 +191,70 @@ export default function PreviewVoiceTone() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </section>
+
+        {/* Loved One Rule */}
+        <section className="mb-10">
+          <SectionHeading className="mb-4">The &ldquo;Loved One&rdquo; Rule</SectionHeading>
+          <p className="text-sm mb-4" style={{ color: 'var(--p-text-muted)' }}>
+            &ldquo;Loved one&rdquo; is how caregivers naturally describe the person they&rsquo;re caring for &mdash; it&rsquo;s identity language, not a euphemism.
+            The real problem is lazy repetition and using it as a substitute for specificity.
+          </p>
+          <p className="text-sm font-medium mb-4" style={{ color: 'var(--p-text)' }}>
+            Prefer the patient&rsquo;s name when you have it. Use &ldquo;loved one&rdquo; sparingly in contexts where you don&rsquo;t.
+          </p>
+          <div className="rounded-2xl overflow-hidden mb-4" style={{ border: '1px solid var(--p-border)' }}>
+            <table className="w-full">
+              <thead>
+                <tr style={{ backgroundColor: 'var(--p-surface-alt)' }}>
+                  <th className="text-left text-xs font-semibold uppercase tracking-wider px-5 py-3" style={{ color: 'var(--p-text-muted)' }}>Context</th>
+                  <th className="text-left text-xs font-semibold uppercase tracking-wider px-5 py-3" style={{ color: 'var(--p-text-muted)' }}>Use it?</th>
+                  <th className="text-left text-xs font-semibold uppercase tracking-wider px-5 py-3" style={{ color: 'var(--p-text-muted)' }}>Why</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { context: 'Ads / SEO / first-visit copy', ok: true, why: 'Matches caregiver search intent, no name available yet' },
+                  { context: 'Caregiver onboarding (pre-profile)', ok: true, why: 'Identity-affirming, builds trust before you have a name' },
+                  { context: 'Caregiver onboarding (post-name)', ok: false, why: 'Now you have specificity — use their name' },
+                  { context: 'In-app after profile exists', ok: false, why: 'You know who they\'re caring for' },
+                  { context: 'Patient-facing copy', ok: false, why: 'Patients don\'t refer to themselves this way' },
+                  { context: 'Overused on the same page', ok: false, why: 'If it starts feeling like a refrain, you\'ve overdone it' },
+                ].map((row, i) => (
+                  <tr
+                    key={i}
+                    style={{
+                      backgroundColor: i % 2 === 0 ? 'var(--p-surface)' : 'var(--p-surface-alt)',
+                      borderTop: '1px solid var(--p-border-subtle)',
+                    }}
+                  >
+                    <td className="px-5 py-3">
+                      <span className="text-sm" style={{ color: 'var(--p-text)' }}>{row.context}</span>
+                    </td>
+                    <td className="px-5 py-3">
+                      <span className="text-sm font-medium" style={{ color: row.ok ? 'var(--p-green-text)' : 'var(--p-red-text)' }}>
+                        {row.ok ? 'Yes, sparingly' : 'No'}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3">
+                      <span className="text-xs" style={{ color: 'var(--p-text-muted)' }}>{row.why}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div
+            className="rounded-xl p-4"
+            style={{ backgroundColor: 'var(--p-surface-alt)', border: '1px solid var(--p-border-subtle)' }}
+          >
+            <p className="text-sm" style={{ color: 'var(--p-text-body)' }}>
+              <strong>Don&rsquo;t lean on it.</strong> A couple of natural uses on a page is fine. But if it starts feeling like a refrain, vary your language &mdash;
+              &ldquo;them,&rdquo; &ldquo;they,&rdquo; the patient&rsquo;s name, or a natural alternative that fits the tone
+              (e.g., &ldquo;someone you care about,&rdquo; &ldquo;the person you&rsquo;re supporting,&rdquo; &ldquo;your family member&rdquo;).
+              Use your judgment to pick what reads best in context.
+            </p>
           </div>
         </section>
 
