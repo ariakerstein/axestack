@@ -275,7 +275,7 @@ export default function Wizard() {
                     >
                       <span className={!type.available ? 'text-slate-400' : 'font-medium'}>{type.label}</span>
                       {!type.available && (
-                        <span className="absolute top-2 right-2 text-xs bg-amber-100 text-amber-600 font-medium px-2 py-0.5 rounded-full">
+                        <span className="absolute top-2 right-2 text-xs bg-slate-100 text-slate-500 font-medium px-2 py-0.5 rounded-full">
                           Soon
                         </span>
                       )}
@@ -456,7 +456,7 @@ export default function Wizard() {
                 disabled={!canProceed}
                 className={`px-8 py-3 rounded-xl text-lg font-semibold transition-all ${
                   canProceed
-                    ? 'bg-gradient-to-r from-slate-600 to-teal-500 hover:from-slate-700 hover:to-teal-600 text-white shadow-lg shadow-slate-500/25 hover:shadow-slate-500/40 hover:scale-105'
+                    ? 'bg-[#C66B4A] hover:bg-[#B35E40] text-white shadow-lg shadow-[#C66B4A]/25'
                     : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                 }`}
               >
@@ -464,7 +464,7 @@ export default function Wizard() {
               </button>
             </div>
             {!canProceed && step === 0 && !stage && (
-              <p className="text-sm text-amber-600 mt-2">Select a funding stage to continue</p>
+              <p className="text-sm text-slate-500 mt-2">Select a funding stage to continue</p>
             )}
           </div>
         </div>
