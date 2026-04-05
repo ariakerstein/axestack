@@ -693,7 +693,8 @@ export default function RecordsVaultPage() {
         const newEntry = { id: translationId, fileName: uploadedFile.file.name, date: translation.date, documentType: data.analysis?.document_type || 'Unknown' }
 
         if (user) {
-          // AUTHENTICATED: Cloud is primary storage
+          // AUTHENTICATED: Try cloud first, fallback to localStorage
+          let cloudSaveSucceeded = false
           try {
             const { supabase } = await import('@/lib/supabase')
             const { data: { session } } = await supabase.auth.getSession()
@@ -719,6 +720,7 @@ export default function RecordsVaultPage() {
                 if (saveData.id) {
                   newEntry.id = saveData.id
                   console.log('Record saved to cloud:', saveData.id)
+                  cloudSaveSucceeded = true
                 }
               } else {
                 // Log the actual error from the server
@@ -726,23 +728,28 @@ export default function RecordsVaultPage() {
                 console.error('Cloud save failed:', saveResponse.status, errorData)
               }
             } else {
-              console.warn('No session token available for cloud save')
+              console.warn('No session token available for cloud save - using localStorage fallback')
             }
           } catch (err) {
             console.error('Cloud save exception:', err)
           }
 
-          // Update state immediately (cloud is source of truth)
-          setSavedTranslations(prev => [newEntry, ...prev])
-
-          // Try to cache in localStorage but don't fail if full
+          // ALWAYS save to localStorage as backup (even for authenticated users)
+          // This ensures records aren't lost if cloud save fails
           try {
             const existingData = localStorage.getItem('axestack-translations-data') || '{}'
             const translationData = JSON.parse(existingData)
             translationData[translationId] = translation
             localStorage.setItem('axestack-translations-data', JSON.stringify(translationData))
+
+            // Also update the index
+            const existingIndex = JSON.parse(localStorage.getItem('axestack-translations') || '[]')
+            const updatedIndex = [newEntry, ...existingIndex]
+            localStorage.setItem('axestack-translations', JSON.stringify(updatedIndex))
+            setSavedTranslations(updatedIndex)
           } catch {
-            // localStorage full - that's fine, we have cloud
+            // localStorage full - update state from what we have
+            setSavedTranslations(prev => [newEntry, ...prev])
           }
         } else {
           // ANONYMOUS: localStorage is primary (with quota handling)
