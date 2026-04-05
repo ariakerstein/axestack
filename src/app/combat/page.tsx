@@ -19,11 +19,11 @@ type PerspectiveKey = 'guidelines' | 'aggressive' | 'precision' | 'conservative'
 // Animated AI Five Component - Five AI perspectives visualized
 function AIFiveAnimation({ isActive, activePerspective }: { isActive: boolean, activePerspective?: PerspectiveKey | null }) {
   const perspectives = [
-    { key: 'guidelines' as const, icon: Shield, label: 'Guidelines', gradient: 'from-blue-400 to-blue-600', shadow: 'shadow-blue-500/30', text: 'text-blue-600', activeText: 'text-blue-700', ring: 'ring-blue-400/50' },
-    { key: 'aggressive' as const, icon: Swords, label: 'Aggressive', gradient: 'from-red-400 to-red-600', shadow: 'shadow-red-500/30', text: 'text-red-600', activeText: 'text-red-700', ring: 'ring-red-400/50' },
-    { key: 'precision' as const, icon: Target, label: 'Precision', gradient: 'from-violet-400 to-violet-600', shadow: 'shadow-violet-500/30', text: 'text-violet-600', activeText: 'text-violet-700', ring: 'ring-violet-400/50' },
-    { key: 'conservative' as const, icon: Clock, label: 'Conservative', gradient: 'from-amber-400 to-amber-600', shadow: 'shadow-amber-500/30', text: 'text-amber-600', activeText: 'text-amber-700', ring: 'ring-amber-400/50' },
-    { key: 'integrative' as const, icon: Leaf, label: 'Integrative', gradient: 'from-green-400 to-teal-500', shadow: 'shadow-green-500/30', text: 'text-green-600', activeText: 'text-green-700', ring: 'ring-green-400/50' },
+    { key: 'guidelines' as const, icon: Shield, label: 'Standard of Care', gradient: 'from-blue-400 to-blue-600', shadow: 'shadow-blue-500/30', text: 'text-blue-600', activeText: 'text-blue-700', ring: 'ring-blue-400/50' },
+    { key: 'aggressive' as const, icon: FlaskConical, label: 'Emerging Evidence', gradient: 'from-violet-400 to-violet-600', shadow: 'shadow-violet-500/30', text: 'text-violet-600', activeText: 'text-violet-700', ring: 'ring-violet-400/50' },
+    { key: 'precision' as const, icon: Target, label: 'Molecular/Targeted', gradient: 'from-purple-400 to-purple-600', shadow: 'shadow-purple-500/30', text: 'text-purple-600', activeText: 'text-purple-700', ring: 'ring-purple-400/50' },
+    { key: 'conservative' as const, icon: Clock, label: 'Watch & Wait', gradient: 'from-amber-400 to-amber-600', shadow: 'shadow-amber-500/30', text: 'text-amber-600', activeText: 'text-amber-700', ring: 'ring-amber-400/50' },
+    { key: 'integrative' as const, icon: Leaf, label: 'Whole Person', gradient: 'from-green-400 to-teal-500', shadow: 'shadow-green-500/30', text: 'text-green-600', activeText: 'text-green-700', ring: 'ring-green-400/50' },
   ]
 
   return (
@@ -123,11 +123,11 @@ function DeliberationTheater({
   }, [deliberationLog.length])
 
   const perspectiveConfig = {
-    guidelines: { icon: Shield, gradient: 'from-blue-500 to-blue-600', bgGradient: 'from-blue-50 to-blue-100/50', borderColor: 'border-blue-200', textColor: 'text-blue-700', label: 'Guidelines Board' },
-    aggressive: { icon: Swords, gradient: 'from-red-500 to-red-600', bgGradient: 'from-red-50 to-red-100/50', borderColor: 'border-red-200', textColor: 'text-red-700', label: 'Aggressive Board' },
-    precision: { icon: Target, gradient: 'from-violet-500 to-violet-600', bgGradient: 'from-violet-50 to-violet-100/50', borderColor: 'border-violet-200', textColor: 'text-violet-700', label: 'Precision Medicine' },
-    conservative: { icon: Clock, gradient: 'from-amber-500 to-amber-600', bgGradient: 'from-amber-50 to-amber-100/50', borderColor: 'border-amber-200', textColor: 'text-amber-700', label: 'Conservative Board' },
-    integrative: { icon: Leaf, gradient: 'from-green-500 to-teal-500', bgGradient: 'from-green-50 to-teal-50', borderColor: 'border-green-200', textColor: 'text-green-700', label: 'Integrative Board' },
+    guidelines: { icon: Shield, gradient: 'from-blue-500 to-blue-600', bgGradient: 'from-blue-50 to-blue-100/50', borderColor: 'border-blue-200', textColor: 'text-blue-700', label: 'Standard of Care' },
+    aggressive: { icon: FlaskConical, gradient: 'from-violet-500 to-violet-600', bgGradient: 'from-violet-50 to-violet-100/50', borderColor: 'border-violet-200', textColor: 'text-violet-700', label: 'Emerging Evidence' },
+    precision: { icon: Target, gradient: 'from-purple-500 to-purple-600', bgGradient: 'from-purple-50 to-purple-100/50', borderColor: 'border-purple-200', textColor: 'text-purple-700', label: 'Molecular/Targeted' },
+    conservative: { icon: Clock, gradient: 'from-amber-500 to-amber-600', bgGradient: 'from-amber-50 to-amber-100/50', borderColor: 'border-amber-200', textColor: 'text-amber-700', label: 'Watch & Wait' },
+    integrative: { icon: Leaf, gradient: 'from-green-500 to-teal-500', bgGradient: 'from-green-50 to-teal-50', borderColor: 'border-green-200', textColor: 'text-green-700', label: 'Whole Person' },
   }
 
   return (
@@ -234,7 +234,7 @@ interface SavedTranslation {
 
 interface Perspective {
   name: string
-  icon: 'shield' | 'swords' | 'target' | 'clock' | 'leaf' | 'flask'
+  icon: 'shield' | 'flask' | 'target' | 'clock' | 'leaf' | 'swords'  // flask for Emerging Evidence
   color: string
   argument: string
   evidence: string[]
@@ -942,10 +942,10 @@ export default function CombatPage() {
     const deliberations = [
       { perspective: 'guidelines', thought: 'Reviewing NCCN guidelines for this cancer type and stage...' },
       { perspective: 'guidelines', thought: 'Cross-referencing with standard-of-care protocols...' },
-      { perspective: 'aggressive', thought: 'Evaluating maximum intervention strategies...' },
-      { perspective: 'aggressive', thought: 'Assessing high-intensity combination regimens...' },
+      { perspective: 'aggressive', thought: 'Scanning latest research and clinical trial data...' },
+      { perspective: 'aggressive', thought: 'Reviewing emerging evidence and novel approaches...' },
       { perspective: 'precision', thought: 'Analyzing genomic profile and actionable mutations...' },
-      { perspective: 'precision', thought: 'Matching targeted therapies to biomarkers...' },
+      { perspective: 'precision', thought: 'Matching targeted therapies to your tumor biology...' },
       { perspective: 'conservative', thought: 'Evaluating active surveillance options...' },
       { perspective: 'conservative', thought: 'Assessing treatment de-escalation possibilities...' },
       { perspective: 'integrative', thought: 'Reviewing quality-of-life considerations...' },
@@ -1310,7 +1310,7 @@ export default function CombatPage() {
             <h2 className="text-2xl font-bold text-slate-900 mb-3">Upload Records to Begin</h2>
             <p className="text-slate-600 mb-6 max-w-md mx-auto leading-relaxed">
               CancerCombat analyzes your medical records from five expert perspectives:
-              Guidelines, Aggressive, Precision, Conservative, and Integrative.
+              Standard of Care, Emerging Evidence, Molecular/Targeted, Watch & Wait, and Whole Person.
             </p>
 
             <Link
@@ -1478,7 +1478,7 @@ export default function CombatPage() {
                   </button>
                   <button
                     onClick={() => {
-                      const shareText = `I just analyzed my ${phase} with CancerCombat - 5 AI perspectives (Guidelines, Aggressive, Precision, Conservative, Integrative) reviewed my case.`
+                      const shareText = `I just analyzed my ${phase} with CancerCombat - 5 expert perspectives reviewed my case.`
                       if (navigator.share) {
                         navigator.share({ title: 'CancerCombat Analysis', text: shareText, url: 'https://opencancer.ai/combat' })
                       } else {
