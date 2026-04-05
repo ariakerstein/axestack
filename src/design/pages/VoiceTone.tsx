@@ -54,7 +54,7 @@ const toneContexts = [
   { id: 'onboarding', label: 'Onboarding', tone: 'Encouraging, simple', example: 'Let\'s start with your cancer type.' },
   { id: 'medical', label: 'Medical', tone: 'Clear, factual', example: 'NCCN recommends BRCA testing for all breast cancer patients.' },
   { id: 'empty', label: 'Empty state', tone: 'Helpful, action-oriented', example: 'No records yet. Upload your first to find care gaps.' },
-  { id: 'payment', label: 'Payment', tone: 'Honest, anchor-high-first', example: 'It costs $4,000 elsewhere — OpenCancer is only $199. Expert review of your specific case.' },
+  { id: 'payment', label: 'Payment', tone: 'Honest, anchored', example: 'What costs $4,000 elsewhere — $199 here.' },
 ];
 
 export default function PreviewVoiceTone() {
@@ -291,6 +291,27 @@ export default function PreviewVoiceTone() {
               <p className="text-base" style={{ color: 'var(--p-text)' }}>{activeCtx.example}</p>
             </div>
           </div>
+        </section>
+
+        {/* Patient Name References */}
+        <section className="mb-10">
+          <SectionHeading className="mb-4">Patient Name References</SectionHeading>
+          <ul className="space-y-3">
+            {[
+              { rule: 'Use their actual name when available', example: 'Sarah\u2019s care plan' },
+              { rule: 'When name unknown', example: '\u201cyour\u201d (speaking to patient) or \u201cthem\u201d (speaking to caregiver)' },
+              { rule: 'For caregiver view', example: '[Patient name]\u2019s records \u2014 not \u201cYour loved one\u2019s records\u201d' },
+            ].map((item, i) => (
+              <li
+                key={i}
+                className="flex items-start gap-3 rounded-xl p-4"
+                style={{ backgroundColor: 'var(--p-surface)', border: '1px solid var(--p-border)' }}
+              >
+                <span className="text-sm font-medium" style={{ color: 'var(--p-text)' }}>{item.rule}:</span>
+                <span className="text-sm" style={{ color: 'var(--p-text-body)' }}>{item.example}</span>
+              </li>
+            ))}
+          </ul>
         </section>
       </div>
     </div>
