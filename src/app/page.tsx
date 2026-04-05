@@ -1185,9 +1185,9 @@ function HomeContent() {
           </div>
 
           <div className="text-center mt-8">
-            <a href="https://cancerhackerlab.com" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-900 hover:text-orange-600 font-medium underline underline-offset-2">
+            <Link href="/advisors" className="text-sm text-slate-900 hover:text-orange-600 font-medium underline underline-offset-2">
               View all advisors →
-            </a>
+            </Link>
           </div>
         </div>
       </section>

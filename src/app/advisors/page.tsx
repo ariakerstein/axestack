@@ -2,76 +2,93 @@
 
 import { Navbar } from '@/components/Navbar'
 import { Footer } from '@/components/Footer'
-import { ExternalLink } from 'lucide-react'
 
 interface Advisor {
   name: string
   role: string
-  org?: string
-  image?: string
-  linkedin?: string
+  image: string
 }
 
 const ADVISORS: Advisor[] = [
   {
-    name: 'Chris Apfel, MD, PhD',
-    role: 'Anesthesiologist & Health Tech Founder',
-    org: 'SageMedic',
-  },
-  {
-    name: 'Freddy Nguyen, PhD',
-    role: 'MIT Catalyst Fellow',
-    org: 'Health Innovation',
+    name: 'Chris Apfel, MD, PhD, MBA',
+    role: 'Founder & CEO, @SageMedic',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/5761840d-8d31-4c56-a09e-c6f27510bc5a/Chris-Apfel-Nature-removebg-preview.png',
   },
   {
     name: 'Brad Power',
-    role: 'Founder',
-    org: 'Cancer Patient Lab',
+    role: 'Founder, Cancer Patient Lab | Stanford · Survivor',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/48fdd96b-71a0-41f9-bc5f-f1ae27636b95/Screenshot+2024-09-11+at+7.36.59%E2%80%AFPM.png',
   },
   {
-    name: 'Anthony Magliocco, MD',
-    role: 'Pathologist & CEO',
-    org: 'Protean BioDiagnostics',
+    name: 'Kaumudi Bhawe, PhD',
+    role: 'Chief Scientific Officer | Genentech · Cancer Commons',
+    image: 'https://navis.health/team/kaumudi.jpg',
   },
   {
-    name: 'Malek Faham, MD, PhD',
-    role: 'Venture Partner',
-    org: 'Illumina Ventures',
+    name: 'Malek Faham, PhD',
+    role: 'Inventor & Entrepreneur | Chief Scientist @ Illumina Ventures',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/296ba56a-1771-48d2-a541-c5cd9ec7373a/1517739834418.jpg',
   },
   {
-    name: 'Dan Mosedale, PhD',
-    role: 'Human Genome Project Alum',
-    org: 'Genomics Research',
+    name: 'Anne Aula',
+    role: 'UX Leader | Ex-Google, Verily, One Medical',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/1dda8c88-1974-43c9-a97c-f620c37dc6bb/A-62.JPG',
+  },
+  {
+    name: 'Dan Mosedale',
+    role: 'Engineering Leadership | Human Genome Project · Mozilla',
+    image: 'https://navis.health/team/dan.jpg',
   },
   {
     name: 'Kent Griffin',
-    role: 'Former PayPal, Included Health',
-    org: 'Operations & Growth',
+    role: 'Product Executive | Ex-PayPal, Included Health, Doctor On Demand',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/5312b070-f7e0-4f20-b97a-f01c1b5cc28b/1702698399985.jpg',
   },
   {
-    name: 'Michael Meiners',
-    role: 'Former AthenaHealth',
-    org: 'Healthcare Tech',
+    name: 'Anthony M. Magliocco, MD',
+    role: 'President & CEO, Protean BioDiagnostics',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/de0bbdd8-6a9d-49ec-8631-fc28d5ad0b3b/IMG_1551.jpg',
+  },
+  {
+    name: 'Zoya Mohiuddin, MD',
+    role: 'Clinical Affairs | Specialty Care & Patient Navigation',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/3d97f81c-3d72-4933-acd0-d45a78af3fcf/1556106251882.jpg',
+  },
+  {
+    name: 'Magnus Hillestadt',
+    role: 'Co-founder and CEO @ Sanity.io',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/822cf456-df57-4960-8c0d-72eb59b60f26/Screenshot+2024-09-20+at+11.51.32%E2%80%AFAM.png',
   },
   {
     name: 'Aaron Rich',
-    role: 'Product Leader',
-    org: 'Google',
+    role: 'Product Leader | Google',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/81f70409-4cec-4035-b19c-3a6830f07272/1516263236012.jpg',
   },
   {
-    name: 'Anne Aula, PhD',
-    role: 'UX Research Leader',
-    org: 'Google, Verily',
+    name: 'Michael Meiners',
+    role: 'Director, Enterprise/B2B Sales @AthenaHealth',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/faf0cf26-bf5c-415d-abd7-1c5aa38aac47/1700608757095.jpg',
   },
   {
-    name: 'Magnus Hillestad',
-    role: 'Co-founder',
-    org: 'Sanity.io',
+    name: 'Freddy Nguyen, MD, PhD',
+    role: 'MIT Catalyst Fellow | Health Innovation',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/68ca0a15-37cd-4a0f-9bcb-d2f63f006c60/Freddy_Nguyen_Headshot_V13.png',
   },
   {
-    name: 'Zoya Mohiuddin',
-    role: 'Clinical Affairs',
-    org: 'Medical Devices',
+    name: 'Marty Tenenbaum, PhD',
+    role: 'Founder, Cancer Commons | AI Pioneer',
+    image: 'https://navis.health/pitchAssets/marty.webp',
+  },
+  {
+    name: 'Larry Cornett, PhD',
+    role: 'Coach & Fractional Leader | Ex-Apple, IBM, eBay, Yahoo',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/bb1290d0-64dc-4025-b697-8c6b2688391c/Larry+Cornett+-+Profile+Photos+for+Social+media+-+Alaska+cropped.jpeg',
+  },
+  {
+    name: 'Richard Anders, JD',
+    role: 'Founder, MA Medical Angels | Harvard / MIT',
+    image: 'https://navis.health/pitchAssets/richardAnders.png',
   },
 ]
 
@@ -86,7 +103,8 @@ export default function AdvisorsPage() {
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl font-bold mb-4">Advisors</h1>
             <p className="text-slate-300 text-lg max-w-2xl mx-auto">
-              Experts in oncology, genomics, health tech, and patient advocacy helping guide our mission.
+              Leaders from Google, Meta, Illumina, PayPal, MIT, Stanford, and Harvard.
+              Venture partners, physicians, scientists, and operators helping guide our mission.
             </p>
           </div>
         </section>
@@ -100,24 +118,30 @@ export default function AdvisorsPage() {
                   key={advisor.name}
                   className="bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 hover:shadow-md transition-all"
                 >
-                  {/* Avatar placeholder */}
-                  <div className="w-16 h-16 bg-slate-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <span className="text-2xl font-bold text-slate-400">
-                      {advisor.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                    </span>
+                  {/* Photo */}
+                  <div className="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden bg-slate-100 ring-2 ring-slate-200">
+                    <img
+                      src={advisor.image}
+                      alt={advisor.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Fallback to initials if image fails
+                        const target = e.target as HTMLImageElement
+                        target.style.display = 'none'
+                        const parent = target.parentElement
+                        if (parent) {
+                          parent.innerHTML = `<div class="w-full h-full flex items-center justify-center text-2xl font-bold text-slate-400">${advisor.name.split(' ').map(n => n[0]).join('').slice(0, 2)}</div>`
+                        }
+                      }}
+                    />
                   </div>
 
                   <h3 className="font-semibold text-slate-900 text-center text-sm">
                     {advisor.name}
                   </h3>
-                  <p className="text-xs text-slate-500 text-center mt-1">
+                  <p className="text-xs text-slate-500 text-center mt-1 leading-relaxed">
                     {advisor.role}
                   </p>
-                  {advisor.org && (
-                    <p className="text-xs text-slate-400 text-center">
-                      {advisor.org}
-                    </p>
-                  )}
                 </div>
               ))}
             </div>
