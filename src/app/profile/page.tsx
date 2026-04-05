@@ -196,6 +196,9 @@ export default function ProfilePage() {
               </div>
               <button
                 type="button"
+                role="switch"
+                aria-checked={role === 'caregiver'}
+                aria-label="Toggle caregiver mode"
                 onClick={() => setRole(role === 'caregiver' ? 'patient' : 'caregiver')}
                 className="flex items-center gap-2 min-h-[44px] min-w-[44px]"
               >
@@ -357,7 +360,7 @@ export default function ProfilePage() {
                 : 'bg-slate-200 text-slate-400 cursor-not-allowed'
             }`}
           >
-            {saved ? '✓ Saved!' : 'Save Profile'}
+            {saved ? '✓ Tools Personalized!' : 'Personalize My Tools'}
           </button>
           {!canSave && (name || email || cancerType) && (
             <p className="text-xs text-slate-500 text-center">
