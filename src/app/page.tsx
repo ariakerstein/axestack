@@ -734,175 +734,173 @@ function HomeContent() {
             </>
           )}
 
-          {/* START HERE - Featured tools */}
-          <p className="text-xs font-medium tracking-widest text-slate-400 mb-3">START HERE</p>
+          {/* RECOMMENDED FOR YOU - Only show when profile exists */}
+          {profile && (
+            <>
+              <p className="text-xs font-medium tracking-widest text-[#C66B4A] mb-3">RECOMMENDED FOR YOU</p>
+              <div className="grid md:grid-cols-2 gap-4 mb-8">
+                {/* Primary recommendation based on role */}
+                {profile.role === 'caregiver' ? (
+                  <Link href="/hub" className="group bg-white border-2 border-[#C66B4A] rounded-xl p-5 hover:shadow-lg transition-all relative">
+                    <span className="absolute -top-2.5 left-4 bg-[#C66B4A] text-white text-[10px] font-medium px-2.5 py-1 rounded">
+                      For caregivers
+                    </span>
+                    <div className="mb-3 mt-1">
+                      <Heart className="w-6 h-6 text-rose-500" />
+                    </div>
+                    <h3 className="font-bold text-slate-900 mb-1">CareCircle</h3>
+                    <p className="text-slate-600 text-sm mb-2">Keep family updated without repeating yourself.</p>
+                    <p className="text-xs text-slate-500 italic">Because you shouldn&apos;t have to send the same update 10 times.</p>
+                  </Link>
+                ) : (
+                  <Link href="/records" className="group bg-white border-2 border-[#C66B4A] rounded-xl p-5 hover:shadow-lg transition-all relative">
+                    <span className="absolute -top-2.5 left-4 bg-[#C66B4A] text-white text-[10px] font-medium px-2.5 py-1 rounded">
+                      Start here
+                    </span>
+                    <div className="mb-3 mt-1">
+                      <FolderClosed className="w-6 h-6 text-blue-500" />
+                    </div>
+                    <h3 className="font-bold text-slate-900 mb-1">Upload Your Records</h3>
+                    <p className="text-slate-600 text-sm mb-2">Translate your {CANCER_TYPES[profile.cancerType] || 'cancer'} reports to plain English.</p>
+                    <p className="text-xs text-slate-500 italic">The foundation for everything else.</p>
+                  </Link>
+                )}
+
+                {/* Secondary recommendation - Combat for everyone */}
+                <Link href="/combat" className="group bg-white border-2 border-slate-200 hover:border-[#C66B4A] rounded-xl p-5 hover:shadow-lg transition-all relative">
+                  <span className="absolute -top-2.5 left-4 bg-slate-900 text-white text-[10px] font-medium px-2.5 py-1 rounded">
+                    Get a second opinion
+                  </span>
+                  <div className="mb-3 mt-1">
+                    <span className="text-2xl">⚔️</span>
+                  </div>
+                  <h3 className="font-bold text-slate-900 mb-1">Cancer Combat</h3>
+                  <p className="text-slate-600 text-sm mb-2">5 AI perspectives debate your {CANCER_TYPES[profile.cancerType] || 'cancer'} case.</p>
+                  <p className="text-xs text-slate-500 italic">Find gaps in your treatment plan.</p>
+                </Link>
+              </div>
+            </>
+          )}
+
+          {/* YOUR TOOLKIT - Core 3 tools, always visible */}
+          <p className="text-xs font-medium tracking-widest text-slate-400 mb-3">{profile ? 'YOUR TOOLKIT' : 'START HERE'}</p>
           <div className="grid md:grid-cols-3 gap-4 mb-8">
-            {/* AI Case Review - Most Popular */}
+            {/* Records */}
             <Link href="/records" className="group bg-white border-2 border-slate-900 rounded-xl p-5 hover:shadow-lg transition-all relative">
-              <span className="absolute -top-2.5 left-4 bg-slate-900 text-white text-[10px] font-medium px-2.5 py-1 rounded">
-                Most popular
-              </span>
-              <div className="mb-3 mt-1">
-                <CheckCircle className="w-6 h-6 text-slate-700" />
-              </div>
-              <h3 className="font-bold text-slate-900 mb-1">AI case review</h3>
-              <p className="text-slate-600 text-sm mb-3">Upload your records. Get a complete second opinion based on NCCN guidelines.</p>
-              <div className="flex flex-wrap gap-2">
-                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-900 text-white font-medium">NCCN guidelines</span>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">Minutes, not weeks</span>
-              </div>
-            </Link>
-
-            {/* Combat - Trending */}
-            <Link href="/combat" className="group bg-white border-2 border-slate-900 rounded-xl p-5 hover:shadow-lg transition-all relative">
-              <span className="absolute -top-2.5 left-4 bg-slate-900 text-white text-[10px] font-medium px-2.5 py-1 rounded">
-                Trending
-              </span>
-              <div className="mb-3 mt-1">
-                <span className="text-2xl">⚔️</span>
-              </div>
-              <h3 className="font-bold text-slate-900 mb-1">Cancer Combat</h3>
-              <p className="text-slate-600 text-sm mb-3">Guidelines. Research. Integrative. Three AI perspectives on your case.</p>
-              <div className="flex flex-wrap gap-2">
-                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">Multi-Perspective Analysis</span>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">Upload records</span>
-              </div>
-            </Link>
-
-            {/* Appointment Prep */}
-            <Link href="/cancer-checklist" className="group bg-white border-2 border-slate-900 rounded-xl p-5 hover:shadow-lg transition-all">
-              <div className="mb-3">
-                <CheckCircle className="w-6 h-6 text-slate-700" />
-              </div>
-              <h3 className="font-bold text-slate-900 mb-1">Appointment prep</h3>
-              <p className="text-slate-600 text-sm mb-3">Questions to ask your oncologist, tailored to your diagnosis.</p>
-              <div className="flex flex-wrap gap-2">
-                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">Before your visit</span>
-              </div>
-            </Link>
-          </div>
-
-          {/* Divider */}
-          <div className="border-t border-slate-200 mb-6"></div>
-
-          {/* ALL TOOLS */}
-          <p className="text-xs font-medium tracking-widest text-slate-400 mb-3">ALL TOOLS</p>
-          <div className="grid md:grid-cols-3 gap-4">
-            <Link href="/records" className="group bg-gradient-to-br from-blue-50/60 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
-              <div className="mb-3">
+              {!profile && (
+                <span className="absolute -top-2.5 left-4 bg-slate-900 text-white text-[10px] font-medium px-2.5 py-1 rounded">
+                  Most popular
+                </span>
+              )}
+              <div className={`mb-3 ${!profile ? 'mt-1' : ''}`}>
                 <FolderClosed className="w-6 h-6 text-blue-500" />
               </div>
               <h3 className="font-bold text-slate-900 mb-1">Records Vault</h3>
-              <p className="text-slate-600 text-sm mb-2">Translate confusing medical reports to plain English.</p>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">1,000+ patients</span>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">Private</span>
-              </div>
+              <p className="text-slate-600 text-sm mb-2">Translate medical reports to plain English.</p>
+              <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">NCCN guidelines</span>
             </Link>
 
-            <Link href="/ask" className="group bg-gradient-to-br from-amber-50/60 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
-              <div className="mb-3">
-                <ThinkingIndicator size={24} variant="light" />
+            {/* Combat */}
+            <Link href="/combat" className="group bg-white border-2 border-slate-900 rounded-xl p-5 hover:shadow-lg transition-all relative">
+              {!profile && (
+                <span className="absolute -top-2.5 left-4 bg-slate-900 text-white text-[10px] font-medium px-2.5 py-1 rounded">
+                  Trending
+                </span>
+              )}
+              <div className={`mb-3 ${!profile ? 'mt-1' : ''}`}>
+                <span className="text-2xl">⚔️</span>
               </div>
-              <h3 className="font-bold text-slate-900 mb-1">Ask Navis</h3>
-              <p className="text-slate-600 text-sm mb-2">Questions about treatments, tests, or side effects.</p>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">Claude · OpenAI · Gemini</span>
+              <h3 className="font-bold text-slate-900 mb-1">Cancer Combat</h3>
+              <p className="text-slate-600 text-sm mb-2">5 AI perspectives analyze your case.</p>
+              <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">Second opinion</span>
             </Link>
 
-            <Link href="/trials" className="group bg-gradient-to-br from-indigo-50/60 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
+            {/* Clinical Trials */}
+            <Link href="/trials" className="group bg-white border-2 border-slate-900 rounded-xl p-5 hover:shadow-lg transition-all">
               <div className="mb-3">
                 <Microscope className="w-6 h-6 text-indigo-500" />
               </div>
               <h3 className="font-bold text-slate-900 mb-1">Clinical Trials</h3>
-              <p className="text-slate-600 text-sm mb-2">Trials matched to your diagnosis and location.</p>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">ClinicalTrials.gov</span>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">BioMCP</span>
-              </div>
-            </Link>
-
-            <Link href="/coverage" className="group bg-gradient-to-br from-amber-50/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
-              <div className="mb-3">
-                <DollarSign className="w-6 h-6 text-amber-500" />
-              </div>
-              <h3 className="font-bold text-slate-900 mb-1">Financial Coverage</h3>
-              <p className="text-slate-600 text-sm mb-2">What's covered + financial assistance programs.</p>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">Medicare 2026</span>
-            </Link>
-
-            <Link href="/case-file" className="group bg-gradient-to-br from-blue-50/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
-              <div className="mb-3">
-                <FolderOpen className="w-6 h-6 text-blue-500" />
-              </div>
-              <h3 className="font-bold text-slate-900 mb-1">My Case File</h3>
-              <p className="text-slate-600 text-sm mb-2">All your medical info organized - just the facts.</p>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">No AI commentary</span>
-            </Link>
-
-            <Link href="/tests" className="group bg-gradient-to-br from-violet-50/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
-              <div className="mb-3">
-                <FlaskConical className="w-6 h-6 text-violet-500" />
-              </div>
-              <h3 className="font-bold text-slate-900 mb-1">Precision Testing</h3>
-              <p className="text-slate-600 text-sm mb-2">MRD, genomic tests, and biomarker monitoring.</p>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">OpenOnco</span>
-            </Link>
-
-            <Link href="/research" className="group bg-gradient-to-br from-slate-50/70 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
-              <div className="mb-3">
-                <BookOpen className="w-6 h-6 text-slate-500" />
-              </div>
-              <h3 className="font-bold text-slate-900 mb-1">Research Library</h3>
-              <p className="text-slate-600 text-sm mb-2">Search 200M+ papers with AI summaries.</p>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">BioMCP</span>
-            </Link>
-
-            <Link href="/oncologists" className="group bg-gradient-to-br from-teal-50/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
-              <div className="mb-3">
-                <Stethoscope className="w-6 h-6 text-teal-500" />
-              </div>
-              <h3 className="font-bold text-slate-900 mb-1">Find Oncologist</h3>
-              <p className="text-slate-600 text-sm">Specialists by cancer type, location, insurance.</p>
-            </Link>
-
-            <Link href="/hub" className="group bg-gradient-to-br from-rose-50/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
-              <div className="mb-3">
-                <Heart className="w-6 h-6 text-rose-500" />
-              </div>
-              <h3 className="font-bold text-slate-900 mb-1">CareCircle</h3>
-              <p className="text-slate-600 text-sm">Update family & friends without repeating yourself.</p>
-            </Link>
-
-            <Link href="/expert-review" className="group bg-gradient-to-br from-orange-50/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
-              <div className="flex items-center gap-2 mb-2">
-                <UserCheck className="w-6 h-6 text-orange-500" />
-                <h3 className="font-bold text-slate-900 group-hover:text-[#C66B4A]">Expert Review</h3>
-              </div>
-              <p className="text-slate-600 text-sm">Get your case reviewed by oncology experts.</p>
-              <p className="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1">
-                Partnered with <a href="https://cancercommons.org" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="font-semibold text-slate-600 hover:text-orange-600">Cancer Commons</a>
-              </p>
-            </Link>
-
-            <a href="https://community.cancerpatientlab.org/" target="_blank" rel="noopener noreferrer" className="group bg-gradient-to-br from-green-50/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
-              <div className="flex items-center gap-2 mb-2">
-                <Users className="w-6 h-6 text-green-500" />
-                <h3 className="font-bold text-slate-900 group-hover:text-[#C66B4A]">Community</h3>
-              </div>
-              <p className="text-slate-600 text-sm">Connect with patients and caregivers.</p>
-              <p className="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1">
-                Powered by <img src="/cpl-logo.avif" alt="Cancer Patient Lab" className="h-4 object-contain" />
-              </p>
-            </a>
-
-            <Link href="/profile" className="group bg-gradient-to-br from-slate-100/50 to-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 hover:shadow-md transition-all">
-              <div className="flex items-center gap-2 mb-2">
-                <UserRound className="w-6 h-6 text-slate-500" />
-                <h3 className="font-bold text-slate-900 group-hover:text-[#C66B4A]">My Profile</h3>
-              </div>
-              <p className="text-slate-600 text-sm">Personalize your tools and save your diagnosis.</p>
+              <p className="text-slate-600 text-sm mb-2">{profile ? `Trials for ${CANCER_TYPES[profile.cancerType] || 'your cancer'}` : 'Trials matched to your diagnosis'}.</p>
+              <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">ClinicalTrials.gov</span>
             </Link>
           </div>
+
+          {/* MORE TOOLS - De-emphasized */}
+          <details className="group">
+            <summary className="flex items-center justify-between cursor-pointer mb-4">
+              <p className="text-xs font-medium tracking-widest text-slate-400">MORE TOOLS</p>
+              <span className="text-xs text-slate-400 group-open:hidden">Show all →</span>
+              <span className="text-xs text-slate-400 hidden group-open:inline">Hide</span>
+            </summary>
+            <div className="grid md:grid-cols-4 gap-3">
+              <Link href="/ask" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
+                <ThinkingIndicator size={20} variant="light" />
+                <h3 className="font-semibold text-slate-900 text-sm mt-2">Ask Navis</h3>
+                <p className="text-slate-500 text-xs">AI Q&A</p>
+              </Link>
+
+              <Link href="/cancer-checklist" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
+                <CheckCircle className="w-5 h-5 text-slate-600" />
+                <h3 className="font-semibold text-slate-900 text-sm mt-2">Checklist</h3>
+                <p className="text-slate-500 text-xs">Appointment prep</p>
+              </Link>
+
+              <Link href="/coverage" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
+                <DollarSign className="w-5 h-5 text-amber-500" />
+                <h3 className="font-semibold text-slate-900 text-sm mt-2">Coverage</h3>
+                <p className="text-slate-500 text-xs">Financial help</p>
+              </Link>
+
+              <Link href="/case-file" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
+                <FolderOpen className="w-5 h-5 text-blue-500" />
+                <h3 className="font-semibold text-slate-900 text-sm mt-2">Case File</h3>
+                <p className="text-slate-500 text-xs">Your facts</p>
+              </Link>
+
+              <Link href="/tests" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
+                <FlaskConical className="w-5 h-5 text-violet-500" />
+                <h3 className="font-semibold text-slate-900 text-sm mt-2">Testing</h3>
+                <p className="text-slate-500 text-xs">Genomic & MRD</p>
+              </Link>
+
+              <Link href="/research" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
+                <BookOpen className="w-5 h-5 text-slate-500" />
+                <h3 className="font-semibold text-slate-900 text-sm mt-2">Research</h3>
+                <p className="text-slate-500 text-xs">200M+ papers</p>
+              </Link>
+
+              <Link href="/oncologists" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
+                <Stethoscope className="w-5 h-5 text-teal-500" />
+                <h3 className="font-semibold text-slate-900 text-sm mt-2">Find Doctor</h3>
+                <p className="text-slate-500 text-xs">Specialists</p>
+              </Link>
+
+              <Link href="/hub" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
+                <Heart className="w-5 h-5 text-rose-500" />
+                <h3 className="font-semibold text-slate-900 text-sm mt-2">CareCircle</h3>
+                <p className="text-slate-500 text-xs">Family updates</p>
+              </Link>
+
+              <Link href="/expert-review" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
+                <UserCheck className="w-5 h-5 text-orange-500" />
+                <h3 className="font-semibold text-slate-900 text-sm mt-2">Expert Review</h3>
+                <p className="text-slate-500 text-xs">Cancer Commons</p>
+              </Link>
+
+              <a href="https://community.cancerpatientlab.org/" target="_blank" rel="noopener noreferrer" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
+                <Users className="w-5 h-5 text-green-500" />
+                <h3 className="font-semibold text-slate-900 text-sm mt-2">Community</h3>
+                <p className="text-slate-500 text-xs">Connect</p>
+              </a>
+
+              <Link href="/profile" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
+                <UserRound className="w-5 h-5 text-slate-500" />
+                <h3 className="font-semibold text-slate-900 text-sm mt-2">My Profile</h3>
+                <p className="text-slate-500 text-xs">Settings</p>
+              </Link>
+            </div>
+          </details>
 
         </div>
       </section>
