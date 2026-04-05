@@ -8,6 +8,13 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_A
 // Base number to start from (historical estimates before tracking)
 const BASE_TRANSLATIONS = 12800
 
+// Round down to nearest increment for display (100, 500, 1000)
+function roundForDisplay(n: number): number {
+  if (n >= 1000) return Math.floor(n / 100) * 100
+  if (n >= 500) return Math.floor(n / 50) * 50
+  return Math.floor(n / 10) * 10
+}
+
 export async function GET() {
   try {
     // Use service key to bypass RLS on api_usage table
@@ -22,15 +29,28 @@ export async function GET() {
 
     if (error) {
       console.error('Stats query error:', error)
-      // Return base number if query fails
-      return NextResponse.json({ totalTranslations: BASE_TRANSLATIONS })
     }
 
     const totalTranslations = BASE_TRANSLATIONS + (count || 0)
 
+    // Get unique sessions from last 30 days for social proof
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+    const { data: sessions } = await supabase
+      .from('analytics_events')
+      .select('session_id')
+      .gte('event_timestamp', thirtyDaysAgo.toISOString())
+
+    const uniqueSessions = sessions ? new Set(sessions.map(s => s.session_id)).size : 0
+    const displayCount = roundForDisplay(uniqueSessions)
+
     return NextResponse.json({
       totalTranslations,
       trackedTranslations: count || 0,
+      // For social proof display (only show if > 100)
+      uniqueSessions,
+      displayCount: displayCount >= 100 ? displayCount : null,
     })
   } catch (error) {
     console.error('Stats API error:', error)
