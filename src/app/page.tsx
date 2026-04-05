@@ -333,7 +333,7 @@ function HomeContent() {
               </h1>
 
               <p className="text-xl text-slate-600 mb-6 max-w-lg mx-auto">
-                Find what your treatment plan might be missing — in minutes, not weeks. Free tools built by a survivor.
+                Find what your treatment plan might be missing. In minutes, not weeks. Built by a survivor.
               </p>
 
             </>
@@ -858,43 +858,43 @@ function HomeContent() {
               <Link href="/ask" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
                 <ThinkingIndicator size={20} variant="light" />
                 <h3 className="font-semibold text-slate-900 text-sm mt-2">Ask Navis</h3>
-                <p className="text-slate-500 text-xs">AI Q&A</p>
+                <p className="text-slate-500 text-xs">Claude · OpenAI · Gemini</p>
               </Link>
 
               <Link href="/cancer-checklist" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
                 <CheckCircle className="w-5 h-5 text-slate-600" />
                 <h3 className="font-semibold text-slate-900 text-sm mt-2">Checklist</h3>
-                <p className="text-slate-500 text-xs">Appointment prep</p>
+                <p className="text-slate-500 text-xs">NCCN guidelines</p>
               </Link>
 
               <Link href="/coverage" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
                 <DollarSign className="w-5 h-5 text-amber-500" />
                 <h3 className="font-semibold text-slate-900 text-sm mt-2">Coverage</h3>
-                <p className="text-slate-500 text-xs">Financial help</p>
+                <p className="text-slate-500 text-xs">Medicare 2026</p>
               </Link>
 
               <Link href="/case-file" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
                 <FolderOpen className="w-5 h-5 text-blue-500" />
                 <h3 className="font-semibold text-slate-900 text-sm mt-2">Case File</h3>
-                <p className="text-slate-500 text-xs">Your facts</p>
+                <p className="text-slate-500 text-xs">Your medical facts</p>
               </Link>
 
               <Link href="/tests" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
                 <FlaskConical className="w-5 h-5 text-violet-500" />
                 <h3 className="font-semibold text-slate-900 text-sm mt-2">Testing</h3>
-                <p className="text-slate-500 text-xs">Genomic & MRD</p>
+                <p className="text-slate-500 text-xs">OpenOnco</p>
               </Link>
 
               <Link href="/research" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
                 <BookOpen className="w-5 h-5 text-slate-500" />
                 <h3 className="font-semibold text-slate-900 text-sm mt-2">Research</h3>
-                <p className="text-slate-500 text-xs">200M+ papers</p>
+                <p className="text-slate-500 text-xs">BioMCP · 200M+ papers</p>
               </Link>
 
               <Link href="/oncologists" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
                 <Stethoscope className="w-5 h-5 text-teal-500" />
                 <h3 className="font-semibold text-slate-900 text-sm mt-2">Find Doctor</h3>
-                <p className="text-slate-500 text-xs">Specialists</p>
+                <p className="text-slate-500 text-xs">By cancer type</p>
               </Link>
 
               <Link href="/hub" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
@@ -912,13 +912,13 @@ function HomeContent() {
               <a href="https://community.cancerpatientlab.org/" target="_blank" rel="noopener noreferrer" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
                 <Users className="w-5 h-5 text-green-500" />
                 <h3 className="font-semibold text-slate-900 text-sm mt-2">Community</h3>
-                <p className="text-slate-500 text-xs">Connect</p>
+                <p className="text-slate-500 text-xs">Cancer Patient Lab</p>
               </a>
 
               <Link href="/profile" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
                 <UserRound className="w-5 h-5 text-slate-500" />
                 <h3 className="font-semibold text-slate-900 text-sm mt-2">My Profile</h3>
-                <p className="text-slate-500 text-xs">Settings</p>
+                <p className="text-slate-500 text-xs">Your diagnosis</p>
               </Link>
             </div>
           </details>
