@@ -1674,7 +1674,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
               <p className="text-xs text-slate-600">
                 {user
                   ? 'Encrypted in your account. Your data is yours.'
-                  : 'Stored locally on this device. Sign in to sync.'}
+                  : 'Sign in to save your records.'}
               </p>
             </div>
 
@@ -1779,7 +1779,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 <h1 className="text-3xl font-bold text-slate-900 mb-2">Records Vault</h1>
                 <p className="text-slate-600">Upload records or connect your patient portal to get plain English translations</p>
                 <p className="text-xs text-slate-400 mt-2 flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5" /> Encrypted • Your data is never sold • Only you can access your records
+                  <ShieldCheck className="w-3.5 h-3.5" /> Encrypted • Never shared without your permission
                 </p>
               </>
             )}
@@ -1872,46 +1872,12 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
           </div>
         )}
 
-        {/* Upload Tab Content - only in upload-first mode */}
+        {/* Upload Tab Content - Simplified */}
         {activeTab === 'upload' && !result && (savedTranslations.length === 0 || showAddRecordView) && (
           <div className="bg-white rounded-2xl border border-stone-200 p-8 shadow-sm">
-            {/* Strong Privacy Banner */}
-            <div className="mb-6 flex items-center justify-center gap-3 px-4 py-3 bg-stone-100 border border-stone-200 rounded-xl">
-              <Shield className="w-5 h-5 text-slate-600 flex-shrink-0" />
-              <p className="text-sm text-slate-700 font-medium">
-                {user
-                  ? 'Private. Never sold. Encrypted and synced to your account.'
-                  : 'Private. Never sold. Stored only on your device.'}
-              </p>
-            </div>
-
             <div className="text-center mb-6">
-              <div className="flex justify-center gap-2 mb-4">
-                <span className="inline-flex items-center gap-2 px-3 py-1 bg-slate-100 text-slate-700 text-sm font-medium rounded-full">
-                  NCCN guideline-informed
-                </span>
-                <span className="inline-flex items-center gap-2 px-3 py-1 bg-slate-100 text-slate-700 text-sm font-medium rounded-full">
-                  Bulk upload supported
-                </span>
-              </div>
-              <p className="text-lg text-slate-600">Drop your lab results, pathology report, or doctor's notes</p>
-              <p className="text-sm text-slate-500 mt-1">Upload multiple files at once. We'll translate them all.</p>
-            </div>
-
-            {/* What you'll get */}
-            <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mb-6 text-sm text-slate-600">
-              <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                Plain English summary
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                Questions for your doctor
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                Medical terms explained
-              </span>
+              <p className="text-lg text-slate-700 font-medium">Drop your medical records</p>
+              <p className="text-sm text-slate-500 mt-1">Lab results, pathology reports, doctor&apos;s notes — we&apos;ll translate them to plain English</p>
             </div>
 
             <div
@@ -2187,7 +2153,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 <span>No account required</span>
               </div>
               <p className="text-xs text-slate-400">
-                Your records stay on your device. We never store, share, or sell your data.
+                Encrypted and private. Never shared without your permission.
               </p>
             </div>
           </div>
@@ -2338,7 +2304,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                   <span>256-bit encryption</span>
                 </div>
                 <p className="text-xs text-slate-400">
-                  Your records stay on your device. We never store, share, or sell your data.
+                  Encrypted and private. Never shared without your permission.
                 </p>
               </div>
             </div>
@@ -3249,7 +3215,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                   <p className="text-sm text-slate-600">
                     {user
                       ? 'Encrypted and stored securely in your account. Sync across devices.'
-                      : 'Stored locally on this device. Sign in to sync across devices.'}
+                      : 'Encrypted and secure. Sign in to sync across devices.'}
                   </p>
                 </div>
               </div>

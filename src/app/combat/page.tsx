@@ -13,6 +13,7 @@ import { PerspectiveTuner, PerspectiveWeights } from '@/components/PerspectiveTu
 import { UpgradeModal } from '@/components/UpgradeModal'
 import { Navbar } from '@/components/Navbar'
 import { CombatFollowUpChat } from '@/components/CombatFollowUpChat'
+import { ThinkingIndicator } from '@/components/ThinkingIndicator'
 
 // 5 Perspective Types
 type PerspectiveKey = 'guidelines' | 'aggressive' | 'precision' | 'conservative' | 'integrative'
@@ -136,8 +137,8 @@ function DeliberationTheater({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-gradient-to-r from-slate-500 to-slate-500 animate-pulse" />
-          <span className="text-sm font-semibold text-slate-700">Live Consultation</span>
+          <ThinkingIndicator size={20} variant="light" />
+          <span className="text-sm font-semibold text-slate-700">Finding gaps in your case</span>
         </div>
         {records && records.length > 0 && (
           <div className="text-xs text-slate-500">
@@ -1431,39 +1432,86 @@ export default function CombatPage() {
               </button>
             )}
 
-            {/* Results */}
+            {/* Results - Bottom Line First */}
             {currentResult && !generating && (
-              <div className="space-y-6">
-                {/* Evidence Strength - Persistent gamification */}
-                <EvidenceStrengthMeter
-                  strength={calculateEvidenceStrength()}
-                  missingData={getMissingData()}
-                />
+              <div className="space-y-5">
+                {/* THE BOTTOM LINE - Synthesis first */}
+                <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-6 shadow-lg">
+                  <div className="flex items-center gap-2 mb-3">
+                    <CheckCircle2 className="w-5 h-5 text-green-400" />
+                    <span className="text-sm font-medium text-slate-300 uppercase tracking-wide">Bottom Line</span>
+                  </div>
+                  <p className="text-lg leading-relaxed">{currentResult.synthesis}</p>
 
-                {/* Question being debated - Brand colors */}
-                <div className="bg-slate-900 text-white rounded-2xl p-6 shadow-lg">
-                  <p className="text-sm text-slate-400 mb-2 uppercase tracking-wide font-medium">
-                    {phase === 'diagnosis' ? 'Diagnosis Question' : 'Treatment Question'}
-                  </p>
-                  <h2 className="text-xl font-semibold leading-relaxed">{currentResult.question}</h2>
+                  {/* Compact consensus/divergence */}
+                  <div className="mt-4 pt-4 border-t border-slate-700 grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-xs text-green-400 font-medium mb-1">Agreement</p>
+                      <p className="text-sm text-slate-300">{currentResult.consensus[0]}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-orange-400 font-medium mb-1">Debate</p>
+                      <p className="text-sm text-slate-300">{currentResult.divergence[0]}</p>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Quick Actions - Email, Download, Share */}
-                <div className="flex items-center justify-center gap-3">
+                {/* Question context - smaller */}
+                <div className="text-center">
+                  <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">
+                    {phase === 'diagnosis' ? 'Diagnosis' : 'Treatment'} Question
+                  </p>
+                  <p className="text-sm text-slate-700">{currentResult.question}</p>
+                </div>
+
+                {/* Follow-up Chat - Ask questions about the analysis */}
+                <CombatFollowUpChat
+                  combatResult={currentResult}
+                  combatAnalysisId={lastCombatId || undefined}
+                  onPerspectivesRevised={(updatedResult) => {
+                    if (phase === 'diagnosis') {
+                      setDiagnosisResult(updatedResult)
+                      localStorage.setItem('combat-diagnosis-result', JSON.stringify(updatedResult))
+                    } else {
+                      setTreatmentResult(updatedResult)
+                      localStorage.setItem('combat-treatment-result', JSON.stringify(updatedResult))
+                    }
+                  }}
+                />
+
+                {/* Perspectives - Collapsed by default with confidence bars */}
+                <details className="group">
+                  <summary className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <Swords className="w-5 h-5 text-[#C66B4A]" />
+                      <span className="font-semibold text-slate-900">View 5 Expert Perspectives</span>
+                    </div>
+                    <ChevronDown className="w-5 h-5 text-slate-400 group-open:rotate-180 transition-transform" />
+                  </summary>
+                  <div className="mt-3 space-y-3">
+                    {currentResult.perspectives.map((p) => (
+                      <PerspectiveCard
+                        key={p.name}
+                        perspective={p}
+                        isExpanded={expandedPerspectives.has(p.name)}
+                        onToggle={() => togglePerspective(p.name)}
+                      />
+                    ))}
+                  </div>
+                </details>
+
+                {/* Simple Actions */}
+                <div className="flex gap-3">
                   <button
-                    onClick={() => {
-                      const subject = encodeURIComponent(`CancerCombat: ${phase === 'diagnosis' ? 'Diagnosis' : 'Treatment'} Analysis`)
-                      const body = encodeURIComponent(`View my CancerCombat analysis at opencancer.ai/combat\n\nQuestion: ${currentResult.question}\n\nGenerated by opencancer.ai`)
-                      window.open(`mailto:?subject=${subject}&body=${body}`)
-                    }}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+                    onClick={() => handleShareClick('oncologist')}
+                    className="flex-1 py-3 px-4 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
                   >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                    Email
+                    <FileText className="w-4 h-4" />
+                    Share with Doctor
                   </button>
                   <button
                     onClick={() => {
-                      const content = `CancerCombat Analysis\n${'='.repeat(40)}\n\n${phase.toUpperCase()} QUESTION:\n${currentResult.question}\n\n${currentResult.perspectives.map(p => `${p.name.toUpperCase()}\nConfidence: ${p.confidence}%\n${p.recommendation}\n\nEvidence:\n${p.evidence.map((e, i) => `${i + 1}. ${e}`).join('\n')}\n`).join('\n')}\nSYNTHESIS:\n${currentResult.synthesis}\n\nCONSENSUS:\n${currentResult.consensus.join('\n')}\n\nDIVERGENCE:\n${currentResult.divergence.join('\n')}\n\n---\nGenerated by CancerCombat at opencancer.ai\n${new Date().toLocaleDateString()}`
+                      const content = `CancerCombat Analysis\n${'='.repeat(40)}\n\n${phase.toUpperCase()} QUESTION:\n${currentResult.question}\n\nBOTTOM LINE:\n${currentResult.synthesis}\n\n${currentResult.perspectives.map(p => `${p.name}: ${p.recommendation} (${p.confidence}%)`).join('\n')}\n\n---\nGenerated by CancerCombat at opencancer.ai`
                       const blob = new Blob([content], { type: 'text/plain' })
                       const url = URL.createObjectURL(blob)
                       const a = document.createElement('a')
@@ -1472,96 +1520,27 @@ export default function CombatPage() {
                       a.click()
                       URL.revokeObjectURL(url)
                     }}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+                    className="py-3 px-4 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
                   >
                     <Download className="w-4 h-4" />
-                    Download
                   </button>
                   <button
-                    onClick={() => {
-                      const shareText = `I just analyzed my ${phase} with CancerCombat - 5 expert perspectives reviewed my case.`
-                      if (navigator.share) {
-                        navigator.share({ title: 'CancerCombat Analysis', text: shareText, url: 'https://opencancer.ai/combat' })
-                      } else {
-                        navigator.clipboard.writeText(shareText + ' https://opencancer.ai/combat')
-                        alert('Link copied!')
-                      }
-                    }}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+                    onClick={() => setShowExpertModal(true)}
+                    className="py-3 px-4 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
                   >
-                    <Share2 className="w-4 h-4" />
-                    Share
+                    <Star className="w-4 h-4" />
                   </button>
                 </div>
 
-                {/* Five Perspectives */}
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-slate-900 flex items-center gap-2">
-                    <Swords className="w-5 h-5 text-[#C66B4A]" />
-                    Five Perspectives
-                  </h3>
-
-                  {currentResult.perspectives.map((p) => (
-                    <PerspectiveCard
-                      key={p.name}
-                      perspective={p}
-                      isExpanded={expandedPerspectives.has(p.name)}
-                      onToggle={() => togglePerspective(p.name)}
-                    />
-                  ))}
-                </div>
-
-                {/* Consensus & Divergence Summary */}
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="bg-white rounded-xl p-4 border border-slate-200">
-                    <p className="text-xs font-medium text-green-600 uppercase mb-2">Where They Agree</p>
-                    <ul className="space-y-1">
-                      {currentResult.consensus.map((c, i) => (
-                        <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                          <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                          {c}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="bg-white rounded-xl p-4 border border-slate-200">
-                    <p className="text-xs font-medium text-orange-600 uppercase mb-2">Where They Diverge</p>
-                    <ul className="space-y-1">
-                      {currentResult.divergence.map((d, i) => (
-                        <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                          <Swords className="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" />
-                          {d}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-
-                {/* Synthesis Card - Your Action Plan */}
-                <SynthesisCard result={currentResult} />
-
-                {/* Action Hub - Contextual Next Steps */}
-                <ActionHub
-                  result={currentResult}
-                  records={records}
-                  onExpertClick={() => setShowExpertModal(true)}
-                  onShareClick={handleShareClick}
-                />
-
                 {/* Next Steps */}
-                <div className="flex gap-4">
+                <div className="flex gap-3">
                   {phase === 'diagnosis' && (
                     <button
                       onClick={() => runCombat('treatment')}
-                      className="group flex-1 py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-semibold flex items-center justify-center gap-3 transition-all shadow-lg hover:shadow-xl"
+                      className="group flex-1 py-3 bg-[#C66B4A] hover:bg-[#B35E40] text-white rounded-xl font-semibold flex items-center justify-center gap-2 transition-all shadow-md"
                     >
-                      <span>Continue to Treatment Debate</span>
-                      <div className="flex items-center gap-1">
-                        <div className="w-2 h-2 rounded-full bg-orange-400" />
-                        <div className="w-2 h-2 rounded-full bg-slate-400" />
-                        <div className="w-2 h-2 rounded-full bg-green-400" />
-                      </div>
-                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      Continue to Treatment
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </button>
                   )}
                   <button
@@ -1574,172 +1553,46 @@ export default function CombatPage() {
                         localStorage.removeItem('combat-treatment-result')
                       }
                     }}
-                    className="px-6 py-4 bg-white border-2 border-slate-200 hover:border-slate-300 text-slate-700 rounded-xl font-medium transition-all"
+                    className="py-3 px-5 bg-white border border-slate-200 hover:border-slate-300 text-slate-600 rounded-xl text-sm font-medium transition-all"
                   >
                     Re-run
                   </button>
                 </div>
 
-                {/* Completion & Gamification - Show after treatment phase */}
+                {/* Completion Banner - Compact */}
                 {treatmentResult && phase === 'treatment' && (
-                  <div className="bg-white border-2 border-slate-900 rounded-2xl p-6 space-y-5">
-                    {/* Completion Header */}
-                    <div className="text-center">
-                      <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#C66B4A] text-white rounded-full text-sm font-bold shadow-lg shadow-[#C66B4A]/30 mb-3">
-                        <Trophy className="w-5 h-5" />
-                        Combat Complete!
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                        <CheckCircle2 className="w-5 h-5 text-green-600" />
                       </div>
-                      <h3 className="text-xl font-bold text-slate-900">You've explored all perspectives</h3>
-                      <p className="text-slate-600 text-sm mt-1">Both diagnosis and treatment debates are complete</p>
-                    </div>
-
-                    {/* Progress Stats */}
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="bg-stone-50 rounded-xl p-4 text-center border border-stone-200">
-                        <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                          <Target className="w-5 h-5 text-slate-700" />
-                        </div>
-                        <p className="text-2xl font-bold text-slate-900">2</p>
-                        <p className="text-xs text-slate-500">Phases Completed</p>
-                      </div>
-                      <div className="bg-stone-50 rounded-xl p-4 text-center border border-stone-200">
-                        <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                          <Swords className="w-5 h-5 text-slate-700" />
-                        </div>
-                        <p className="text-2xl font-bold text-slate-900">10</p>
-                        <p className="text-xs text-slate-500">AI Perspectives</p>
-                      </div>
-                      <div className="bg-stone-50 rounded-xl p-4 text-center border border-stone-200">
-                        <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                          <Star className="w-5 h-5 text-slate-700" />
-                        </div>
-                        <p className="text-2xl font-bold text-slate-900">{records.length}</p>
-                        <p className="text-xs text-slate-500">Records Analyzed</p>
+                      <div>
+                        <p className="font-semibold text-green-900">Analysis Complete</p>
+                        <p className="text-sm text-green-700">10 perspectives reviewed across diagnosis & treatment</p>
                       </div>
                     </div>
-
-                    {/* Badges Earned */}
-                    <div className="bg-stone-50 rounded-xl p-4 border border-stone-200">
-                      <p className="text-xs font-medium text-slate-500 uppercase mb-3">Badges Earned</p>
-                      <div className="flex flex-wrap gap-2">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-700 rounded-full text-sm font-medium">
-                          🎯 Diagnosis Debater
-                        </span>
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-700 rounded-full text-sm font-medium">
-                          ⚔️ Treatment Tactician
-                        </span>
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-700 rounded-full text-sm font-medium">
-                          🧠 Multi-Perspective Thinker
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Export & Share Actions - Clean style */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <button
-                        onClick={() => {
-                          // Generate PDF content
-                          const content = `
-CancerCombat Report
-Generated: ${new Date().toLocaleDateString()}
-
-=== DIAGNOSIS DEBATE ===
-Question: ${diagnosisResult?.question}
-
-NCCN Guidelines: ${diagnosisResult?.perspectives.find(p => p.name === 'NCCN Guidelines')?.recommendation}
-Emerging Research: ${diagnosisResult?.perspectives.find(p => p.name === 'Emerging Research')?.recommendation}
-Integrative Oncology: ${diagnosisResult?.perspectives.find(p => p.name === 'Integrative Oncology')?.recommendation}
-
-Synthesis: ${diagnosisResult?.synthesis}
-
-=== TREATMENT DEBATE ===
-Question: ${treatmentResult?.question}
-
-NCCN Guidelines: ${treatmentResult?.perspectives.find(p => p.name === 'NCCN Guidelines')?.recommendation}
-Emerging Research: ${treatmentResult?.perspectives.find(p => p.name === 'Emerging Research')?.recommendation}
-Integrative Oncology: ${treatmentResult?.perspectives.find(p => p.name === 'Integrative Oncology')?.recommendation}
-
-Synthesis: ${treatmentResult?.synthesis}
-
----
-Generated by CancerCombat at opencancer.ai
-                          `.trim()
-
-                          // Create and download file
-                          const blob = new Blob([content], { type: 'text/plain' })
-                          const url = URL.createObjectURL(blob)
-                          const a = document.createElement('a')
-                          a.href = url
-                          a.download = `cancer-combat-report-${new Date().toISOString().split('T')[0]}.txt`
-                          a.click()
-                          URL.revokeObjectURL(url)
-
-                          trackEvent('combat_exported', { format: 'txt' })
-                        }}
-                        className="flex items-center justify-center gap-2 py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-semibold transition-all shadow-sm"
-                      >
-                        <Download className="w-5 h-5" />
-                        Export Report
-                      </button>
-                      <button
-                        onClick={() => {
-                          const shareText = `I just completed CancerCombat on opencancer.ai - explored 10 AI perspectives on my diagnosis and treatment options. Highly recommend for anyone navigating cancer.`
-                          if (navigator.share) {
-                            navigator.share({
-                              title: 'CancerCombat Complete',
-                              text: shareText,
-                              url: 'https://opencancer.ai/combat'
-                            })
-                          } else {
-                            navigator.clipboard.writeText(shareText + ' https://opencancer.ai/combat')
-                            alert('Link copied to clipboard!')
-                          }
-                          trackEvent('combat_shared', {})
-                        }}
-                        className="flex items-center justify-center gap-2 py-3.5 bg-white border-2 border-slate-200 hover:border-slate-900 text-slate-700 hover:text-slate-900 rounded-xl font-semibold transition-all"
-                      >
-                        <Share2 className="w-5 h-5" />
-                        Share
-                      </button>
-                    </div>
-
-                    {/* Bring to your doctor */}
-                    <div className="text-center pt-2">
-                      <p className="text-sm text-slate-600">
-                        📋 <span className="font-medium">Pro tip:</span> Bring this report to your next oncologist appointment as a conversation starter
-                      </p>
-                    </div>
+                    <button
+                      onClick={() => {
+                        const shareText = `I just completed CancerCombat on opencancer.ai - 10 AI perspectives reviewed my cancer case.`
+                        if (navigator.share) {
+                          navigator.share({ title: 'CancerCombat', text: shareText, url: 'https://opencancer.ai/combat' })
+                        } else {
+                          navigator.clipboard.writeText(shareText + ' https://opencancer.ai/combat')
+                          alert('Link copied!')
+                        }
+                      }}
+                      className="text-sm font-medium text-green-700 hover:text-green-800 flex items-center gap-1"
+                    >
+                      <Share2 className="w-4 h-4" />
+                      Share
+                    </button>
                   </div>
                 )}
 
-                {/* Follow-up Chat */}
-                <CombatFollowUpChat
-                  combatResult={currentResult}
-                  onPerspectivesRevised={(updatedResult) => {
-                    // Update the current phase's result with revisions
-                    if (phase === 'diagnosis') {
-                      setDiagnosisResult(updatedResult)
-                      localStorage.setItem('combat-diagnosis-result', JSON.stringify(updatedResult))
-                    } else {
-                      setTreatmentResult(updatedResult)
-                      localStorage.setItem('combat-treatment-result', JSON.stringify(updatedResult))
-                    }
-                  }}
-                />
-
-                {/* Disclaimer */}
-                <div className="bg-stone-100 border border-stone-200 rounded-xl p-4 flex items-start gap-3">
-                  <div className="w-8 h-8 bg-stone-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <span className="text-slate-600 font-bold">!</span>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-800 font-medium">This is not medical advice</p>
-                    <p className="text-sm text-slate-600 mt-1">
-                      CancerCombat presents multiple perspectives to inform your conversations with your oncologist.
-                      Always consult your medical team before making treatment decisions.
-                    </p>
-                  </div>
-                </div>
+                {/* Disclaimer - Compact */}
+                <p className="text-xs text-slate-500 text-center py-2">
+                  Not medical advice. Discuss findings with your oncologist.
+                </p>
               </div>
             )}
           </div>

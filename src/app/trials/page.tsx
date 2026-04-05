@@ -143,7 +143,7 @@ export default function TrialsPage() {
             >
               Create Your Profile
             </Link>
-            <p className="text-xs text-slate-500 mt-4">Takes 30 seconds. Data stays on your device.</p>
+            <p className="text-xs text-slate-500 mt-4">Takes 30 seconds. Encrypted and private.</p>
           </div>
         ) : (
           /* Has profile - show trial search */

@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Shield, FlaskConical, Target, Clock, Leaf, Sliders, Lock, Sparkles, Star } from 'lucide-react'
+import { Shield, FlaskConical, Target, Clock, Leaf, Sliders, Lock, Star } from 'lucide-react'
+import { ThinkingIndicator } from '@/components/ThinkingIndicator'
 
 export interface PerspectiveWeights {
   guidelines: number    // 0-100 - Standard of Care (NCCN)
@@ -150,12 +151,10 @@ export function PerspectiveTuner({
         {/* Current mode indicator */}
         <div className="bg-gradient-to-r from-slate-700 to-slate-800 text-white rounded-xl p-4 mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
-              <Sparkles className="w-5 h-5" />
-            </div>
+            <ThinkingIndicator size={40} variant="dark" />
             <div>
               <p className="font-semibold">Balanced Analysis</p>
-              <p className="text-sm text-white/80">All 5 specialist boards contribute equally</p>
+              <p className="text-sm text-white/80">All 5 perspectives contribute equally</p>
             </div>
           </div>
         </div>

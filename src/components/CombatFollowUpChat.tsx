@@ -1,10 +1,13 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { MessageCircle, Send, HelpCircle, Edit3, Loader2 } from 'lucide-react'
+import { MessageCircle, Send, HelpCircle, Edit3, Loader2, AlertCircle, Plus, HelpCircle as Why } from 'lucide-react'
 import { TypewriterMarkdown } from '@/components/TypewriterMarkdown'
 import { useAuth } from '@/lib/auth'
 import { getSessionId } from '@/lib/supabase'
+
+// Structured action types
+type ActionType = 'correct' | 'add_context' | 'explain' | 'custom'
 
 interface Perspective {
   name: string
@@ -65,7 +68,9 @@ export function CombatFollowUpChat({
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [detectedMode, setDetectedMode] = useState<'ask' | 'revise'>('ask')
+  const [activeAction, setActiveAction] = useState<ActionType | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const { user } = useAuth()
 
   // Auto-scroll to latest message
@@ -200,20 +205,47 @@ export function CombatFollowUpChat({
 
       {/* Messages */}
       <div className="max-h-96 overflow-y-auto p-4 space-y-4">
-        {messages.length === 0 && (
-          <div className="text-center py-8">
-            <p className="text-slate-500 text-sm mb-3">
-              Ask questions about the analysis or provide corrections
-            </p>
-            <div className="flex flex-wrap justify-center gap-2">
-              <SuggestedChip
-                text="Why does Watch & Wait disagree?"
-                onClick={() => handleSuggestedQuestion("Why does Watch & Wait recommend a different approach than Standard of Care?")}
-              />
-              <SuggestedChip
-                text="Explain the evidence"
-                onClick={() => handleSuggestedQuestion("Can you explain the evidence behind the Emerging Evidence perspective?")}
-              />
+        {messages.length === 0 && !activeAction && (
+          <div className="space-y-3">
+            <p className="text-slate-500 text-sm text-center">What would you like to do?</p>
+
+            {/* Structured Action Buttons */}
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                onClick={() => {
+                  setActiveAction('correct')
+                  setInput('')
+                  setTimeout(() => inputRef.current?.focus(), 100)
+                }}
+                className="flex flex-col items-center gap-2 p-4 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl transition-colors"
+              >
+                <AlertCircle className="w-5 h-5 text-amber-600" />
+                <span className="text-xs font-medium text-amber-800">Something&apos;s Wrong</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setActiveAction('add_context')
+                  setInput('')
+                  setTimeout(() => inputRef.current?.focus(), 100)
+                }}
+                className="flex flex-col items-center gap-2 p-4 bg-green-50 hover:bg-green-100 border border-green-200 rounded-xl transition-colors"
+              >
+                <Plus className="w-5 h-5 text-green-600" />
+                <span className="text-xs font-medium text-green-800">Add Context</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setActiveAction('explain')
+                  setInput('')
+                  setTimeout(() => inputRef.current?.focus(), 100)
+                }}
+                className="flex flex-col items-center gap-2 p-4 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-colors"
+              >
+                <HelpCircle className="w-5 h-5 text-blue-600" />
+                <span className="text-xs font-medium text-blue-800">Explain This</span>
+              </button>
             </div>
           </div>
         )}
@@ -280,36 +312,62 @@ export function CombatFollowUpChat({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <form onSubmit={handleSubmit} className="border-t border-slate-100 p-4">
-        <div className="flex items-center gap-3">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={
-              detectedMode === 'revise'
-                ? "Provide your correction..."
-                : "Ask about the reasoning behind any perspective..."
-            }
-            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent"
-            disabled={isLoading}
-          />
-          <button
-            type="submit"
-            disabled={!input.trim() || isLoading}
-            className="w-11 h-11 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
-          >
-            <Send className="w-5 h-5 text-white" />
-          </button>
-        </div>
-        <p className="text-xs text-slate-400 mt-2 text-center">
-          {detectedMode === 'revise'
-            ? "I'll update the affected perspectives based on your correction"
-            : "I'll explain the reasoning without changing recommendations"
-          }
-        </p>
-      </form>
+      {/* Input - Only show when action is selected or has messages */}
+      {(activeAction || messages.length > 0) && (
+        <form onSubmit={handleSubmit} className="border-t border-slate-100 p-4">
+          {/* Action context header */}
+          {activeAction && messages.length === 0 && (
+            <div className="flex items-center justify-between mb-3">
+              <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                activeAction === 'correct' ? 'bg-amber-100 text-amber-700' :
+                activeAction === 'add_context' ? 'bg-green-100 text-green-700' :
+                'bg-blue-100 text-blue-700'
+              }`}>
+                {activeAction === 'correct' ? 'Correction Mode' :
+                 activeAction === 'add_context' ? 'Adding Context' :
+                 'Question Mode'}
+              </span>
+              <button
+                type="button"
+                onClick={() => { setActiveAction(null); setInput('') }}
+                className="text-xs text-slate-400 hover:text-slate-600"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+
+          <div className="flex items-center gap-3">
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={
+                activeAction === 'correct' ? "e.g., 'My HRR mutations are SNPs, not pathogenic'" :
+                activeAction === 'add_context' ? "e.g., 'I also have a BRCA2 mutation'" :
+                activeAction === 'explain' ? "e.g., 'Why does Watch & Wait disagree?'" :
+                "Type your question or correction..."
+              }
+              className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+              disabled={isLoading}
+            />
+            <button
+              type="submit"
+              disabled={!input.trim() || isLoading}
+              className="w-11 h-11 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+            >
+              <Send className="w-5 h-5 text-white" />
+            </button>
+          </div>
+
+          <p className="text-xs text-slate-400 mt-2 text-center">
+            {activeAction === 'correct' ? "This will update affected perspectives" :
+             activeAction === 'add_context' ? "This may refine the recommendations" :
+             "I'll explain without changing the analysis"}
+          </p>
+        </form>
+      )}
     </div>
   )
 }
