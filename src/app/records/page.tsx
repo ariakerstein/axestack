@@ -78,7 +78,7 @@ const SUPABASE_URL = "https://felofmlhqwcdpiyjgstx.supabase.co"
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlbG9mbWxocXdjZHBpeWpnc3R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA2NzQzODAsImV4cCI6MjA1NjI1MDM4MH0._kYA-prwPgxQWoKzWPzJDy2Bf95WgTF5_KnAPN2cGnQ"
 
 // Large file threshold - files over this are uploaded to storage first
-const LARGE_FILE_THRESHOLD_MB = 4
+const LARGE_FILE_THRESHOLD_MB = 3.5 // Lower threshold to avoid Vercel's 4.5MB body limit
 
 // Helper to upload large files using signed URL (bypasses RLS via server endpoint)
 async function uploadLargeFileToStorage(file: File, sessionId: string): Promise<string> {
@@ -531,19 +531,33 @@ export default function RecordsVaultPage() {
 
   const handleTranslate = async () => {
     if (!file) return
+
+    // Validate file before processing
+    if (!file.size || file.size === 0) {
+      setError('File appears empty. Please try selecting the file again.')
+      return
+    }
+
     setIsProcessing(true)
     setError(null)
 
     try {
       const sessionId = localStorage.getItem('opencancer_session_id') || 'anonymous'
       const fileSizeMB = file.size / 1024 / 1024
+      console.log(`Starting upload: ${file.name}, size: ${fileSizeMB.toFixed(2)}MB, type: ${file.type}`)
       const formData = new FormData()
 
-      // For large files (>4MB), upload to storage first to bypass Vercel body limit
+      // For large files (>3.5MB), upload to storage first to bypass Vercel body limit
       if (fileSizeMB > LARGE_FILE_THRESHOLD_MB) {
         console.log(`Large file detected (${fileSizeMB.toFixed(1)}MB), uploading to storage first...`)
-        const storagePath = await uploadLargeFileToStorage(file, sessionId)
-        formData.append('storagePath', storagePath)
+        try {
+          const storagePath = await uploadLargeFileToStorage(file, sessionId)
+          console.log(`Storage upload complete: ${storagePath}`)
+          formData.append('storagePath', storagePath)
+        } catch (storageErr) {
+          console.error('Storage upload failed:', storageErr)
+          throw new Error(`Failed to upload large file: ${storageErr instanceof Error ? storageErr.message : 'Unknown error'}`)
+        }
       } else {
         formData.append('file', file)
       }
@@ -551,9 +565,9 @@ export default function RecordsVaultPage() {
       formData.append('sessionId', sessionId)
       if (user?.id) formData.append('userId', user.id)
 
-      // Add 90-second client-side timeout
+      // Add 2-minute client-side timeout for large files
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 90000)
+      const timeoutId = setTimeout(() => controller.abort(), 120000)
 
       let response: Response
       try {
@@ -637,7 +651,7 @@ export default function RecordsVaultPage() {
 
         // Add 90-second client-side timeout
         const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 90000)
+        const timeoutId = setTimeout(() => controller.abort(), 120000) // 2 minute timeout for large files
 
         let response: Response
         try {
@@ -852,7 +866,7 @@ export default function RecordsVaultPage() {
 
         // Add 90-second client-side timeout
         const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 90000)
+        const timeoutId = setTimeout(() => controller.abort(), 120000) // 2 minute timeout for large files
 
         let response: Response
         try {

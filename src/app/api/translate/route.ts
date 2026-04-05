@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import mammoth from 'mammoth'
 import { createClient } from '@supabase/supabase-js'
 
-// Extend Vercel function timeout to 60 seconds (default is 10s)
-export const maxDuration = 60
+// Extend Vercel function timeout to 300 seconds (Pro plan) for large PDFs
+// If on Hobby plan, this will be capped at 60s
+export const maxDuration = 300
 
 // Use Navis Supabase for AI calls (reuse existing infrastructure)
 const SUPABASE_URL = "https://felofmlhqwcdpiyjgstx.supabase.co"
