@@ -6,7 +6,7 @@ Cancer Combat simulates a virtual tumor board with multiple AI specialists who a
 
 ## The 5 Perspectives
 
-### 1. Guidelines Board (NCCN Standard of Care)
+### 1. Standard of Care (NCCN Guidelines)
 
 **Icon:** Shield | **Color:** Blue (`blue-500`)
 
@@ -36,44 +36,46 @@ Cancer Combat simulates a virtual tumor board with multiple AI specialists who a
 
 ---
 
-### 2. Aggressive Treatment Board
+### 2. Emerging Evidence (Latest Research & Trials)
 
-**Icon:** Swords/Zap | **Color:** Red (`red-500`)
+**Icon:** FlaskConical | **Color:** Violet (`violet-500`)
 
-**Philosophy:** Maximum intervention to achieve best possible outcome. Willing to accept higher toxicity for higher chance of cure or extended survival.
+**Philosophy:** Beyond standard guidelines lies promising research. Clinical trials, novel combinations, and emerging approaches may offer better outcomes with careful consideration of the evidence-to-risk ratio.
 
 **Specialists:**
-- High-Dose Chemotherapy Specialist
-- Interventional Oncologist
-- Transplant Specialist (when applicable)
+- Research Oncologist
+- Clinical Trial Specialist
+- Clinical Pharmacologist
 
 **Core Questions:**
-- What's the most aggressive approach we can take?
-- How do we maximize tumor kill?
-- What combinations offer the best response rates?
+- What does the latest research suggest beyond guidelines?
+- Are there promising clinical trials for this case?
+- What novel approaches show early promise?
 
 **Communication Style:**
-- Focuses on response rates and survival statistics
-- Discusses dose intensification, combination regimens
-- Addresses toxicity management proactively
-- References aggressive protocols from major cancer centers
+- References recent publications and ongoing trials
+- Cites Phase II data and emerging evidence
+- Discusses evidence quality (RCT vs observational)
+- Uses NCT numbers for specific trial recommendations
+- Frames approaches by evidence-to-risk ratio, not aggression
 
 **When This Voice Dominates:**
-- Young, fit patients who can tolerate intensive treatment
-- Aggressive tumor biology requiring aggressive response
-- Curative intent situations
-- Patient prioritizes maximum treatment over quality of life
+- Standard treatments have failed or are limited
+- Tumor has rare mutations with emerging targeted therapies
+- Patient interested in cutting-edge options
+- Strong preference for research-backed novel approaches
 
-**Safety Considerations:**
-- Always discusses expected toxicities
-- Requires performance status assessment
-- May not be appropriate for elderly or frail patients
+**Evidence Quality Focus:**
+- Distinguishes between Phase I/II/III evidence
+- Notes when evidence is preliminary
+- Discusses expected vs observed outcomes
+- Highlights trials with favorable toxicity profiles
 
 ---
 
-### 3. Precision Medicine Board
+### 3. Molecular/Targeted (Precision Medicine)
 
-**Icon:** Target/Crosshair | **Color:** Purple (`violet-500`)
+**Icon:** Target | **Color:** Purple (`purple-500`)
 
 **Philosophy:** The tumor's molecular profile should drive treatment decisions. Every cancer is unique at the genomic level.
 
@@ -109,9 +111,9 @@ Cancer Combat simulates a virtual tumor board with multiple AI specialists who a
 
 ---
 
-### 4. Conservative/Surveillance Board
+### 4. Watch & Wait (Active Surveillance)
 
-**Icon:** Clock/Eye | **Color:** Amber (`amber-500`)
+**Icon:** Clock | **Color:** Amber (`amber-500`)
 
 **Philosophy:** Sometimes less is more. Avoid overtreatment and its long-term consequences. Active surveillance when appropriate.
 
@@ -148,9 +150,9 @@ Cancer Combat simulates a virtual tumor board with multiple AI specialists who a
 
 ---
 
-### 5. Integrative/Whole Person Board
+### 5. Whole Person (Quality of Life)
 
-**Icon:** Leaf/Heart | **Color:** Green (`green-500`)
+**Icon:** Leaf | **Color:** Green (`green-500`)
 
 **Philosophy:** Cancer treatment affects the whole person. Optimize quality of life, manage symptoms, and support healing beyond just tumor shrinkage.
 
@@ -207,15 +209,14 @@ Cancer Combat simulates a virtual tumor board with multiple AI specialists who a
 
 ### Preset Configurations
 
-| Preset | Guidelines | Aggressive | Precision | Conservative | Integrative | Use Case |
-|--------|-----------|------------|-----------|--------------|-------------|----------|
+| Preset | Standard of Care | Emerging Evidence | Molecular/Targeted | Watch & Wait | Whole Person | Use Case |
+|--------|-----------------|-------------------|-------------------|--------------|--------------|----------|
 | **Balanced** | 50 | 50 | 50 | 50 | 50 | Equal weight to all perspectives |
 | **By the Book** | 90 | 30 | 40 | 50 | 30 | Standard of care focus |
-| **Maximum Fight** | 50 | 90 | 70 | 10 | 40 | Aggressive treatment priority |
-| **Precision First** | 40 | 40 | 90 | 40 | 40 | Biomarker-driven decisions |
-| **Watch & Wait** | 60 | 10 | 50 | 90 | 60 | Conservative approach |
+| **Research Forward** | 50 | 90 | 70 | 10 | 40 | Latest research & trials |
+| **Molecular Match** | 40 | 40 | 90 | 40 | 40 | Biomarker-driven decisions |
+| **Watch & Wait** | 60 | 10 | 50 | 90 | 60 | Active surveillance |
 | **Whole Person** | 50 | 30 | 40 | 60 | 90 | Quality of life priority |
-| **All Options** | 40 | 80 | 80 | 30 | 50 | Explore everything |
 
 ---
 
@@ -233,11 +234,11 @@ After all perspectives weigh in, the system generates:
 ```
 Five oncology perspectives have analyzed this cancer case:
 
-GUIDELINES: {guidelines_response}
-AGGRESSIVE: {aggressive_response}
-PRECISION: {precision_response}
-CONSERVATIVE: {conservative_response}
-INTEGRATIVE: {integrative_response}
+STANDARD OF CARE: {guidelines_response}
+EMERGING EVIDENCE: {aggressive_response}
+MOLECULAR/TARGETED: {precision_response}
+WATCH & WAIT: {conservative_response}
+WHOLE PERSON: {integrative_response}
 
 Synthesize these into:
 1. Key consensus (where most agree)
@@ -275,7 +276,7 @@ Each perspective returns structured JSON:
 
 ```
 ┌─────────────────────────────────────────┐
-│ 🛡️ Guidelines Board              75%   │
+│ 🛡️ Standard of Care              75%   │
 ├─────────────────────────────────────────┤
 │ Main argument text here...              │
 │                                         │
@@ -292,11 +293,11 @@ Each perspective returns structured JSON:
 
 | Perspective | Primary | Light BG | Border |
 |-------------|---------|----------|--------|
-| Guidelines | `blue-500` | `blue-50` | `blue-200` |
-| Aggressive | `red-500` | `red-50` | `red-200` |
-| Precision | `violet-500` | `violet-50` | `violet-200` |
-| Conservative | `amber-500` | `amber-50` | `amber-200` |
-| Integrative | `green-500` | `green-50` | `green-200` |
+| Standard of Care | `blue-500` | `blue-50` | `blue-200` |
+| Emerging Evidence | `violet-500` | `violet-50` | `violet-200` |
+| Molecular/Targeted | `purple-500` | `purple-50` | `purple-200` |
+| Watch & Wait | `amber-500` | `amber-50` | `amber-200` |
+| Whole Person | `green-500` | `green-50` | `green-200` |
 
 ---
 
@@ -344,10 +345,10 @@ A real cancer patient shared their Combat analysis with two advisors who natural
 
 **The Case:** Prostate cancer patient considering bipolar androgen therapy (aBAT)
 
-**Allen (Guidelines Perspective):**
+**Allen (Standard of Care Perspective):**
 > "Switch OFF aBAT and onto proven continuous hormone suppression (ADT)"
 
-**Russ (Cutting Edge Perspective):**
+**Russ (Emerging Evidence Perspective):**
 > "Continue experimental aBAT - emerging research shows promise"
 
 **Key Insight:** The divergence section became the most valuable output - it highlighted exactly where the patient needed to focus their questions with their oncologist. Real experts naturally identify with specific perspectives, validating that the multi-voice model reflects genuine clinical debates.
