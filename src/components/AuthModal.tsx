@@ -69,13 +69,16 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         return
       }
 
-      // Login successful - now migrate localStorage records
-      if (data.user) {
-        await migrateLocalStorageRecords(data.user.id, data.session?.access_token)
-      }
-
+      // Login successful - close immediately, migrate in background
       setLoading(false)
       onClose()
+
+      // Migrate localStorage records in background (don't block login)
+      if (data.user && data.session?.access_token) {
+        migrateLocalStorageRecords(data.user.id, data.session.access_token)
+          .catch(err => console.error('Migration error:', err))
+      }
+
       window.location.reload() // Refresh to show synced state
     } catch (e) {
       setLoading(false)
