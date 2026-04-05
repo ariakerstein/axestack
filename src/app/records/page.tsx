@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { TypewriterMarkdown } from '@/components/TypewriterMarkdown'
-import { FileText, Search, FlaskConical, Ribbon, MessageCircle, BookOpen, ArrowRight, Upload, Link2, Building2, Shield, ShieldCheck, CheckCircle2, Share2, Download, Cloud, User, Mail, Sparkles, Trash2, Eye, Inbox, Paperclip, RefreshCw } from 'lucide-react'
+import { FileText, Search, FlaskConical, Ribbon, MessageCircle, BookOpen, ArrowRight, Upload, Link2, Building2, Shield, ShieldCheck, CheckCircle2, Share2, Download, Cloud, User, Mail, Sparkles, Trash2, Eye, Inbox, Paperclip, RefreshCw, Pencil, Check, X } from 'lucide-react'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { useAuth } from '@/lib/auth'
 import { AuthModal } from '@/components/AuthModal'
@@ -172,6 +172,8 @@ export default function RecordsVaultPage() {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['summary', 'terms', 'questions']))
   const [showSaveModal, setShowSaveModal] = useState(false)
   const [savedTranslations, setSavedTranslations] = useState<Array<{id: string, fileName: string, date: string, documentType: string}>>([])
+  const [editingRecordId, setEditingRecordId] = useState<string | null>(null)
+  const [editingLabel, setEditingLabel] = useState('')
   const [saveSuccess, setSaveSuccess] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
   const [showSendReportModal, setShowSendReportModal] = useState(false)
@@ -329,10 +331,30 @@ export default function RecordsVaultPage() {
     }
   }, [trackEvent])
 
-  // Load saved data on mount + fetch from Supabase if authenticated
+  // Load saved data on mount - but ONLY for guests (not authenticated users)
+  // Authenticated users get their data ONLY from Supabase to prevent cross-user data leakage
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      // First load localStorage (fast)
+    if (typeof window === 'undefined') return
+
+    // Wait for auth to be determined before loading any records
+    if (authLoading) return
+
+    // For authenticated users: DON'T load localStorage records
+    // They will be loaded from Supabase in the next useEffect
+    // This prevents User A's cached data from showing when User B logs in
+    if (user) {
+      // User is authenticated - clear any stale localStorage and wait for Supabase
+      // Check if localStorage belongs to a different user
+      const lastUserId = localStorage.getItem('opencancer_last_user_id')
+      if (lastUserId && lastUserId !== user.id) {
+        // Different user! Clear records localStorage
+        console.log('[Records] Different user detected, clearing localStorage')
+        localStorage.removeItem('axestack-translations')
+        localStorage.removeItem('axestack-translations-data')
+      }
+      // Records will load from Supabase in the next useEffect
+    } else {
+      // Guest user - load from localStorage (no cross-user issue for guests)
       const saved = localStorage.getItem('axestack-translations')
       if (saved) {
         try {
@@ -341,23 +363,24 @@ export default function RecordsVaultPage() {
           console.error('Failed to load saved translations')
         }
       }
+    }
 
-      const portals = localStorage.getItem('opencancer-portals')
-      if (portals) {
-        try {
-          setConnectedPortals(JSON.parse(portals))
-        } catch (e) {
-          console.error('Failed to load connected portals')
-        }
-      }
-
-      // Check if privacy was previously acknowledged
-      const privacyAck = localStorage.getItem('opencancer-privacy-acknowledged')
-      if (privacyAck === 'true') {
-        setPrivacyAcknowledged(true)
+    // Portals and privacy acknowledgement are safe to load for all users
+    const portals = localStorage.getItem('opencancer-portals')
+    if (portals) {
+      try {
+        setConnectedPortals(JSON.parse(portals))
+      } catch (e) {
+        console.error('Failed to load connected portals')
       }
     }
-  }, [])
+
+    // Check if privacy was previously acknowledged
+    const privacyAck = localStorage.getItem('opencancer-privacy-acknowledged')
+    if (privacyAck === 'true') {
+      setPrivacyAcknowledged(true)
+    }
+  }, [authLoading, user])
 
   // Fetch records from Supabase when user is authenticated
   useEffect(() => {
@@ -1527,6 +1550,45 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
     localStorage.setItem('axestack-translations', JSON.stringify(updatedList))
   }
 
+  // Update record label/annotation
+  const updateRecordLabel = async (id: string, newLabel: string) => {
+    // Update in savedTranslations state
+    const updatedList = savedTranslations.map(t =>
+      t.id === id ? { ...t, documentType: newLabel } : t
+    )
+    setSavedTranslations(updatedList)
+
+    // Update in localStorage index
+    localStorage.setItem('axestack-translations', JSON.stringify(updatedList))
+
+    // Update in localStorage data
+    const data = localStorage.getItem('axestack-translations-data')
+    if (data) {
+      const translations = JSON.parse(data)
+      if (translations[id]) {
+        translations[id].documentType = newLabel
+        localStorage.setItem('axestack-translations-data', JSON.stringify(translations))
+      }
+    }
+
+    // Update in Supabase if authenticated
+    if (user) {
+      try {
+        const { supabase } = await import('@/lib/supabase')
+        await supabase
+          .from('medical_records')
+          .update({ document_type: newLabel })
+          .eq('id', id)
+          .eq('user_id', user.id)
+      } catch (err) {
+        console.error('Failed to update record in Supabase:', err)
+      }
+    }
+
+    setEditingRecordId(null)
+    setEditingLabel('')
+  }
+
   // Portal connection handler
   const handleConnectPortal = async () => {
     if (!selectedProvider || !portalEmail) return
@@ -1713,12 +1775,55 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-slate-900 truncate">{t.fileName}</p>
                         <div className="flex items-center gap-2 text-xs text-slate-500">
-                          <span>{t.documentType}</span>
-                          <span>·</span>
-                          <span>{new Date(t.date).toLocaleDateString()}</span>
+                          {editingRecordId === t.id ? (
+                            <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                              <input
+                                type="text"
+                                value={editingLabel}
+                                onChange={(e) => setEditingLabel(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') updateRecordLabel(t.id, editingLabel)
+                                  if (e.key === 'Escape') { setEditingRecordId(null); setEditingLabel('') }
+                                }}
+                                className="px-2 py-0.5 border border-slate-300 rounded text-xs w-32 focus:outline-none focus:ring-1 focus:ring-slate-400"
+                                placeholder="e.g., PSA Results"
+                                autoFocus
+                              />
+                              <button
+                                onClick={(e) => { e.stopPropagation(); updateRecordLabel(t.id, editingLabel) }}
+                                className="p-1 text-green-600 hover:bg-green-50 rounded"
+                              >
+                                <Check className="w-3 h-3" />
+                              </button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setEditingRecordId(null); setEditingLabel('') }}
+                                className="p-1 text-slate-400 hover:bg-slate-100 rounded"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ) : (
+                            <>
+                              <span>{t.documentType}</span>
+                              <span>·</span>
+                              <span>{new Date(t.date).toLocaleDateString()}</span>
+                            </>
+                          )}
                         </div>
                       </div>
                       <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-slate-600 transition-colors" />
+                    </button>
+                    {/* Edit label button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setEditingRecordId(t.id)
+                        setEditingLabel(t.documentType)
+                      }}
+                      className="p-2 text-slate-300 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all"
+                      title="Edit label"
+                    >
+                      <Pencil className="w-4 h-4" />
                     </button>
                     <button
                       onClick={(e) => viewOriginalDocument(t.id, e)}
