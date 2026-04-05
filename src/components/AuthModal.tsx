@@ -269,7 +269,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
               <button
                 onClick={() => email && setMode('magic')}
                 disabled={!email}
-                className="w-full bg-orange-600 hover:bg-slate-500 disabled:bg-slate-200 disabled:text-slate-400 text-white py-3.5 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+                className="w-full bg-[#C66B4A] hover:bg-[#B35E40] disabled:bg-slate-200 disabled:text-slate-400 text-white py-3.5 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
               >
                 <Mail className="w-5 h-5" />
                 Send magic link
@@ -312,7 +312,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-orange-600 hover:bg-slate-500 disabled:bg-slate-300 text-white py-3.5 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+                className="w-full bg-[#C66B4A] hover:bg-[#B35E40] disabled:bg-slate-300 text-white py-3.5 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
@@ -366,7 +366,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-orange-600 hover:bg-slate-500 disabled:bg-slate-300 text-white py-3.5 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+                className="w-full bg-[#C66B4A] hover:bg-[#B35E40] disabled:bg-slate-300 text-white py-3.5 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
@@ -431,7 +431,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
               <button
                 type="submit"
                 disabled={loading || password.length < 6}
-                className="w-full bg-orange-600 hover:bg-slate-500 disabled:bg-slate-300 text-white py-3.5 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+                className="w-full bg-[#C66B4A] hover:bg-[#B35E40] disabled:bg-slate-300 text-white py-3.5 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
