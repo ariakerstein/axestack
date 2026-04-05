@@ -273,6 +273,38 @@ export default function PreviewValueDelivery() {
           <p className="text-xs mt-4" style={{ color: 'var(--p-text-faint)' }}>If value takes &gt; 5 minutes, show intermediate value earlier in the flow.</p>
         </div>
 
+        {/* Value Delivery Patterns */}
+        <div className="rounded-2xl p-6 mb-8" style={{ backgroundColor: 'var(--p-surface)', border: '1px solid var(--p-border)' }}>
+          <SectionHeading variant="info" className="mb-1">Value Delivery Patterns</SectionHeading>
+          <p className="text-sm mb-5" style={{ color: 'var(--p-text-muted)' }}>Always deliver quick value BEFORE requiring deep investment. Don&rsquo;t gate everything behind upload.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--p-green-light)', border: '1px solid var(--p-green)' }}>
+              <p className="text-sm font-semibold mb-2" style={{ color: 'var(--p-green-text)' }}>Instant Value (No Input)</p>
+              <ul className="space-y-1 text-xs" style={{ color: 'var(--p-text-body)' }}>
+                <li>Show sample results for their cancer type on the landing page</li>
+                <li>Display aggregate stats (&ldquo;35% of second opinions change treatment&rdquo;)</li>
+                <li>Preview what they&rsquo;ll get: &ldquo;Here&rsquo;s what a checklist looks like&rdquo;</li>
+              </ul>
+            </div>
+            <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--p-blue-light)', border: '1px solid var(--p-blue)' }}>
+              <p className="text-sm font-semibold mb-2" style={{ color: 'var(--p-blue-text)' }}>Quick Value (Minimal Input)</p>
+              <ul className="space-y-1 text-xs" style={{ color: 'var(--p-text-body)' }}>
+                <li>Cancer type &rarr; personalized test checklist (2 inputs, 30 seconds)</li>
+                <li>Single question &rarr; AI answer (type and wait)</li>
+                <li>Upload &rarr; immediate &ldquo;processing&rdquo; with partial results</li>
+              </ul>
+            </div>
+            <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--p-orange-light)', border: '1px solid var(--p-orange)' }}>
+              <p className="text-sm font-semibold mb-2" style={{ color: 'var(--p-orange)' }}>Deep Value (Requires Investment)</p>
+              <ul className="space-y-1 text-xs" style={{ color: 'var(--p-text-body)' }}>
+                <li>Full record upload &rarr; comprehensive gap analysis</li>
+                <li>Multi-step wizard &rarr; expert-reviewed report</li>
+                <li>Profile completion &rarr; ongoing care monitoring</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
         {/* 5-Second Test */}
         <div className="rounded-2xl p-6 mb-8" style={{ backgroundColor: 'var(--p-surface)', border: '1px solid var(--p-border)' }}>
           <SectionHeading variant="info" className="mb-1">5-Second Test</SectionHeading>

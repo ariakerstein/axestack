@@ -348,16 +348,18 @@ function ThumbsDemo() {
 /* ---------- Placement Rules ---------- */
 const doRules = [
   'Inline, below the action they just completed',
-  'One question at a time, styled as conversational',
+  'One question at a time',
   'Optional and never blocking the user',
   'Contextual to what they just did',
+  'Styled as conversational (not "SURVEY" header)',
 ];
 
 const dontRules = [
   'Popup modals that interrupt the flow',
+  'Long multi-question surveys',
   'Feedback competing with the primary CTA',
   'Asking before they have experienced value',
-  'Asking every session (rate-limit per key action)',
+  'Asking every session (rate-limit: once per key action per user)',
 ];
 
 /* ---------- When to Collect ---------- */
