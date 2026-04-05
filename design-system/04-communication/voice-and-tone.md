@@ -38,7 +38,7 @@ Every piece of copy frames what the USER gets, not what the PRODUCT does.
 
 | Never Say | Why | Say Instead |
 |-----------|-----|-------------|
-| "Loved one" | Patronizing, generic | Their actual name or "them" |
+| "Loved one" (repeated / in-app) | Generic when you already know their name | Their actual name or "them" — see "Loved One" Rule below |
 | "The patient" | Dehumanizing | Their name or "you" |
 | "Fight/battle/warrior" | Not everyone identifies with combat metaphors | "Your care journey" |
 | "We understand how you feel" | Generic empathy falls flat | "We've been there — here's what helped us" (founded by survivors, so be specific) |
@@ -49,6 +49,25 @@ Every piece of copy frames what the USER gets, not what the PRODUCT does.
 | "Submit" | Cold, form-like | "Get My Results" / "Continue" |
 | "AI" (prominent) | Creates distance | "Expert-backed" or just don't mention it |
 | "Comprehensive/robust" | Marketing fluff | Be specific about what's included |
+
+---
+
+## The "Loved One" Rule
+
+"Loved one" is how caregivers naturally describe the person they're caring for — it's identity language, not a euphemism. Banning it entirely forces clinical alternatives ("the person you care for") that create distance from our caregiver audience. The real problem is lazy repetition and using it as a substitute for specificity.
+
+**Guideline: prefer the patient's name when you have it. Use "loved one" sparingly in contexts where you don't.**
+
+| Context | Use "loved one"? | Why |
+|---------|------------------|-----|
+| Ads / SEO / first-visit copy | Yes | Matches caregiver search intent, no name available yet |
+| Caregiver onboarding (pre-profile) | Yes, sparingly | Identity-affirming, builds trust before you have a name |
+| Caregiver onboarding (post-name) | No — use their name | Now you have specificity, use it |
+| In-app after profile exists | No — use their name | You know who they're caring for |
+| Patient-facing copy | Never | Patients don't refer to themselves this way |
+| Overused on the same page | No | If it starts feeling like a refrain, you've overdone it |
+
+**Don't lean on it.** A couple of natural uses on a page is fine. But if it starts feeling like a refrain, vary your language — "them," "they," the patient's name, or a natural alternative that fits the tone (e.g., "someone you care about," "the person you're supporting," "your family member"). Use your judgment to pick what reads best in context.
 
 ---
 

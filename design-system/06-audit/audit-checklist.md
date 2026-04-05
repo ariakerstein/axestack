@@ -81,10 +81,10 @@ See `04-communication/influence-patterns.md` for technique details.
 ## 7. Communication Quality
 
 - [ ] **Benefits, not features.** Copy describes what user GETS, not what product DOES.
-- [ ] **No forbidden language.** No "loved one", "just", "click here", "learn more", "submit".
+- [ ] **No forbidden language.** No "just", "click here", "learn more", "submit". "Loved one" allowed once in pre-profile caregiver contexts — see voice-and-tone.md.
 - [ ] **Specific, not vague.** Numbers, timeframes, concrete outcomes.
 - [ ] **Tone matches context.** Calm for medical, direct for errors, encouraging for onboarding.
-- [ ] **Patient referred to correctly.** Name or "you"/"them", never "the patient" or "loved one".
+- [ ] **Patient referred to correctly.** Name or "you"/"them", never "the patient". "Loved one" only pre-profile, never repeated.
 
 See `04-communication/voice-and-tone.md` and `copy-patterns.md`.
 
