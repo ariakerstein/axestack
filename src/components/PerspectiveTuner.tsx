@@ -1,14 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { Shield, Swords, Target, Clock, Leaf, Sliders, Lock, Sparkles, Star } from 'lucide-react'
+import { Shield, FlaskConical, Target, Clock, Leaf, Sliders, Lock, Sparkles, Star } from 'lucide-react'
 
 export interface PerspectiveWeights {
-  guidelines: number    // 0-100 - Standard of care
-  aggressive: number    // 0-100 - Maximum intervention
-  precision: number     // 0-100 - Biomarker-driven
-  conservative: number  // 0-100 - Watch & wait
-  integrative: number   // 0-100 - Whole person
+  guidelines: number    // 0-100 - Standard of Care (NCCN)
+  aggressive: number    // 0-100 - Emerging Evidence (research/trials)
+  precision: number     // 0-100 - Molecular/Targeted
+  conservative: number  // 0-100 - Watch & Wait
+  integrative: number   // 0-100 - Whole Person (QoL)
 }
 
 // Preset configurations for common analysis styles
@@ -21,69 +21,69 @@ const PRESETS = {
   by_the_book: {
     guidelines: 90, aggressive: 30, precision: 40, conservative: 50, integrative: 30,
     label: 'By the Book',
-    description: 'Standard of care focus'
+    description: 'Follow NCCN guidelines'
   },
-  maximum_fight: {
+  research_forward: {
     guidelines: 50, aggressive: 90, precision: 70, conservative: 10, integrative: 40,
-    label: 'Maximum Fight',
-    description: 'Aggressive treatment priority'
+    label: 'Research Forward',
+    description: 'Latest evidence & clinical trials'
   },
-  precision_first: {
+  molecular_match: {
     guidelines: 40, aggressive: 40, precision: 90, conservative: 40, integrative: 40,
-    label: 'Precision First',
-    description: 'Biomarker-driven decisions'
+    label: 'Molecular Match',
+    description: 'Target your tumor\'s biology'
   },
   watch_and_wait: {
     guidelines: 60, aggressive: 10, precision: 50, conservative: 90, integrative: 60,
     label: 'Watch & Wait',
-    description: 'Conservative approach'
+    description: 'Avoid overtreatment'
   },
   whole_person: {
     guidelines: 50, aggressive: 30, precision: 40, conservative: 60, integrative: 90,
     label: 'Whole Person',
-    description: 'Quality of life priority'
+    description: 'Quality of life focus'
   },
 }
 
-// The 5 perspective definitions
+// The 5 perspective definitions - renamed for clarity
 const PERSPECTIVES = [
   {
     key: 'guidelines' as const,
     icon: Shield,
-    label: 'Guidelines Board',
-    description: 'Medical, Radiation & Surgical Oncologists',
+    label: 'Standard of Care',
+    description: 'NCCN guidelines, proven protocols',
     color: 'blue',
     colorClasses: { bg: 'bg-blue-100', icon: 'text-blue-600', fill: '#3B82F6' }
   },
   {
     key: 'aggressive' as const,
-    icon: Swords,
-    label: 'Aggressive Board',
-    description: 'High-Dose Chemo, Interventional & Transplant',
-    color: 'red',
-    colorClasses: { bg: 'bg-red-100', icon: 'text-red-600', fill: '#EF4444' }
+    icon: FlaskConical,
+    label: 'Emerging Evidence',
+    description: 'Latest research, clinical trials',
+    color: 'violet',
+    colorClasses: { bg: 'bg-violet-100', icon: 'text-violet-600', fill: '#8B5CF6' }
   },
   {
     key: 'precision' as const,
     icon: Target,
-    label: 'Precision Medicine Board',
-    description: 'Molecular Pathologist, Genomics & Targeted Therapy',
+    label: 'Molecular/Targeted',
+    description: 'Match treatment to your tumor\'s biology',
     color: 'purple',
-    colorClasses: { bg: 'bg-violet-100', icon: 'text-violet-600', fill: '#8B5CF6' }
+    colorClasses: { bg: 'bg-purple-100', icon: 'text-purple-600', fill: '#A855F7' }
   },
   {
     key: 'conservative' as const,
     icon: Clock,
-    label: 'Conservative Board',
-    description: 'Surveillance, Toxicity & Geriatric Oncology',
+    label: 'Watch & Wait',
+    description: 'Active surveillance, avoid overtreatment',
     color: 'amber',
     colorClasses: { bg: 'bg-amber-100', icon: 'text-amber-600', fill: '#F59E0B' }
   },
   {
     key: 'integrative' as const,
     icon: Leaf,
-    label: 'Integrative Board',
-    description: 'Nutrition, Exercise & Palliative Care',
+    label: 'Whole Person',
+    description: 'Quality of life, supportive care',
     color: 'green',
     colorClasses: { bg: 'bg-green-100', icon: 'text-green-600', fill: '#10B981' }
   },
