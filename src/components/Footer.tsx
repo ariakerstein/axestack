@@ -52,7 +52,7 @@ export function Footer() {
             <h3 className="font-semibold text-slate-900 text-sm mb-2">Community</h3>
             <ul className="space-y-0 text-sm">
               <li>
-                <a href="https://cancerhackerlab.com" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:text-slate-600 transition-colors py-2 min-h-[44px] flex items-center gap-1">
+                <a href="https://axestack-app.vercel.app/founders/chl" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:text-slate-600 transition-colors py-2 min-h-[44px] flex items-center gap-1">
                   Cancer Hacker Lab <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
@@ -61,6 +61,7 @@ export function Footer() {
                   Discussion Forum <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
+              <li><Link href="/advisors" className="text-slate-600 hover:text-slate-600 transition-colors py-2 min-h-[44px] flex items-center">Advisors</Link></li>
               <li><Link href="/about" className="text-slate-600 hover:text-slate-600 transition-colors py-2 min-h-[44px] flex items-center">About</Link></li>
               <li><Link href="/privacy" className="text-slate-600 hover:text-slate-600 transition-colors py-2 min-h-[44px] flex items-center">Privacy & Terms</Link></li>
             </ul>
@@ -76,7 +77,7 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <a href="https://axestack.com" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:text-slate-600 transition-colors py-2 min-h-[44px] flex items-center gap-1">
+                <a href="https://axestack-app.vercel.app/founders" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:text-slate-600 transition-colors py-2 min-h-[44px] flex items-center gap-1">
                   Axestack <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
@@ -91,10 +92,10 @@ export function Footer() {
         <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-500">
           <p>
             © {new Date().getFullYear()} opencancer.ai. An{' '}
-            <a href="https://axestack.com" target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-slate-600">
+            <a href="https://axestack-app.vercel.app/founders" target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-slate-600">
               Axestack
             </a>{' '}
-            product.
+            project.
           </p>
           <p className="flex items-center gap-1">
             <Heart className="w-3 h-3 text-pink-500" />
