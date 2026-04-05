@@ -195,6 +195,25 @@ function HomeContent() {
   const [wizardSaving, setWizardSaving] = useState(false)
   const [wizardEmailSent, setWizardEmailSent] = useState(false)
 
+  // Dynamic social proof count (null = hide, number = show)
+  const [socialProofCount, setSocialProofCount] = useState<number | null>(null)
+
+  // Fetch social proof count
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const response = await fetch('/api/stats')
+        if (response.ok) {
+          const data = await response.json()
+          setSocialProofCount(data.displayCount)
+        }
+      } catch (error) {
+        console.error('Failed to fetch stats:', error)
+      }
+    }
+    fetchStats()
+  }, [])
+
   // Load profile - prefer Supabase for authenticated users
   useEffect(() => {
     if (authLoading) return
@@ -472,15 +491,17 @@ function HomeContent() {
                     </div>
                   </div>
 
-                  {/* Social proof */}
-                  <div className="mt-6 flex items-center justify-center gap-2 text-sm text-slate-500">
-                    <div className="flex -space-x-2">
-                      <div className="w-6 h-6 rounded-full bg-slate-300 ring-2 ring-white" />
-                      <div className="w-6 h-6 rounded-full bg-slate-400 ring-2 ring-white" />
-                      <div className="w-6 h-6 rounded-full bg-slate-500 ring-2 ring-white" />
+                  {/* Social proof - only show if we have enough users */}
+                  {socialProofCount && (
+                    <div className="mt-6 flex items-center justify-center gap-2 text-sm text-slate-500">
+                      <div className="flex -space-x-2">
+                        <div className="w-6 h-6 rounded-full bg-slate-300 ring-2 ring-white" />
+                        <div className="w-6 h-6 rounded-full bg-slate-400 ring-2 ring-white" />
+                        <div className="w-6 h-6 rounded-full bg-slate-500 ring-2 ring-white" />
+                      </div>
+                      <span>Join <span className="font-semibold text-slate-700">{socialProofCount.toLocaleString()}+</span> patients & caregivers</span>
                     </div>
-                    <span>Join <span className="font-semibold text-slate-700">2,400+</span> patients & caregivers</span>
-                  </div>
+                  )}
                 </div>
               )}
 
@@ -527,7 +548,7 @@ function HomeContent() {
                     </button>
                     {/* Privacy notice */}
                     <p className="text-xs text-slate-400 text-center">
-                      🔒 Your data stays on your device. Never shared or sold.
+                      🔒 Encrypted and private. Never shared without your permission.
                     </p>
                   </div>
                 </div>
