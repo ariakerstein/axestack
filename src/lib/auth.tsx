@@ -125,8 +125,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session)
         setUser(session?.user ?? null)
 
-        // On sign in, migrate data and sync profile
+        // On sign in, check if different user and clear localStorage
         if (event === 'SIGNED_IN' && session?.user) {
+          // CRITICAL: Check if this is a different user than last signed in
+          const lastUserId = typeof window !== 'undefined'
+            ? localStorage.getItem('opencancer_last_user_id')
+            : null
+
+          if (lastUserId && lastUserId !== session.user.id) {
+            // Different user! Clear all user-specific localStorage
+            console.log('[Auth] Different user detected, clearing localStorage')
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('axestack-translations')
+              localStorage.removeItem('axestack-translations-data')
+              localStorage.removeItem('axestack-patient-notes')
+              localStorage.removeItem('axestack-case-brief')
+              localStorage.removeItem('patient-profile')
+            }
+          }
+
+          // Store current user ID for future comparison
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('opencancer_last_user_id', session.user.id)
+          }
+
           await migrateSessionDecks(session.user.id)
 
           // Sync localStorage profile to Supabase
@@ -136,9 +158,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
 
-        // On sign out, clear profile
+        // On sign out, clear profile and records localStorage
         if (event === 'SIGNED_OUT') {
           setProfile(null)
+          // CRITICAL: Clear records localStorage to prevent data leakage between users
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('axestack-translations')
+            localStorage.removeItem('axestack-translations-data')
+            localStorage.removeItem('axestack-patient-notes')
+            localStorage.removeItem('axestack-case-brief')
+            localStorage.removeItem('opencancer_last_user_id')
+          }
         }
       }
     )
@@ -228,10 +258,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(null)
       setProfile(null)
 
-      // Clear localStorage profile to prevent stale UI after sign out
-      // Profile data is saved to Supabase, so it will restore on next sign in
+      // Clear localStorage to prevent data leakage between users
+      // All data is saved to Supabase, so it will restore on next sign in
       if (typeof window !== 'undefined') {
         localStorage.removeItem('patient-profile')
+        // CRITICAL: Clear records to prevent other users seeing previous user's data
+        localStorage.removeItem('axestack-translations')
+        localStorage.removeItem('axestack-translations-data')
+        localStorage.removeItem('axestack-patient-notes')
+        localStorage.removeItem('axestack-case-brief')
       }
 
       // Sign out from Supabase (clears auth tokens)
