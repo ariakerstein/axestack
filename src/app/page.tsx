@@ -218,16 +218,27 @@ function HomeContent() {
   useEffect(() => {
     if (authLoading) return
 
-    // Use Supabase profile for authenticated users
-    if (user && authProfile) {
-      setProfile({
-        role: authProfile.role,
-        name: authProfile.name,
-        email: authProfile.email,
-        cancerType: authProfile.cancer_type,
-        stage: authProfile.stage || undefined,
-        location: authProfile.location || undefined,
-      })
+    // For authenticated users: use Supabase profile if available, else create minimal profile from user
+    if (user) {
+      if (authProfile) {
+        setProfile({
+          role: authProfile.role,
+          name: authProfile.name,
+          email: authProfile.email,
+          cancerType: authProfile.cancer_type,
+          stage: authProfile.stage || undefined,
+          location: authProfile.location || undefined,
+        })
+      } else {
+        // User is logged in but hasn't completed profile - show basic logged-in state
+        // Use email as display name, generic cancer type
+        setProfile({
+          role: 'patient',
+          name: user.email?.split('@')[0] || 'User',
+          email: user.email || '',
+          cancerType: 'other',
+        })
+      }
     } else {
       // Fall back to localStorage for guest users
       const saved = localStorage.getItem('patient-profile')

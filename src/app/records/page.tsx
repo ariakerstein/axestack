@@ -160,6 +160,8 @@ export default function RecordsVaultPage() {
   const [isBulkMode, setIsBulkMode] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [processingStartTime, setProcessingStartTime] = useState<number | null>(null)
+  const [processingElapsed, setProcessingElapsed] = useState(0)
   const [result, setResult] = useState<TranslationResult | null>(null)
   const [currentStoragePath, setCurrentStoragePath] = useState<string | null>(null)
   const [documentText, setDocumentText] = useState<string>('')
@@ -302,6 +304,18 @@ export default function RecordsVaultPage() {
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [isProcessing])
+
+  // Track elapsed processing time for smart messaging
+  useEffect(() => {
+    if (isProcessing && processingStartTime) {
+      const interval = setInterval(() => {
+        setProcessingElapsed(Math.floor((Date.now() - processingStartTime) / 1000))
+      }, 1000)
+      return () => clearInterval(interval)
+    } else {
+      setProcessingElapsed(0)
+    }
+  }, [isProcessing, processingStartTime])
 
   // Fetch total translations count for social proof
   useEffect(() => {
@@ -539,6 +553,7 @@ export default function RecordsVaultPage() {
     }
 
     setIsProcessing(true)
+    setProcessingStartTime(Date.now())
     setError(null)
 
     try {
@@ -617,6 +632,7 @@ export default function RecordsVaultPage() {
   const handleBulkTranslate = async () => {
     if (uploadedFiles.length === 0) return
     setIsProcessing(true)
+    setProcessingStartTime(Date.now())
     setError(null)
     setBulkComplete(false)
     setBulkProgress({ current: 0, total: uploadedFiles.length })
@@ -2171,7 +2187,13 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 className="w-full mt-5 bg-[#C66B4A] hover:bg-[#B35E40] disabled:bg-slate-300 text-white font-semibold py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-2 text-lg shadow-lg shadow-[#C66B4A]/20"
               >
                 {isProcessing ? (
-                  <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />Analyzing your document...</>
+                  <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    {processingElapsed < 30 ? 'Analyzing your document...' :
+                     processingElapsed < 60 ? 'Still processing large file...' :
+                     processingElapsed < 120 ? 'Analyzing with AI (this can take a minute)...' :
+                     'Taking longer than usual...'}
+                    <span className="text-white/60 ml-1">({Math.floor(processingElapsed / 60)}:{(processingElapsed % 60).toString().padStart(2, '0')})</span>
+                  </>
                 ) : (
                   <>Translate to Plain English →</>
                 )}
@@ -2181,15 +2203,20 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
             {/* Bulk upload file queue */}
             {isBulkMode && uploadedFiles.length > 0 && (
               <div className="mt-5 space-y-3">
-                {/* Prominent progress indicator at TOP during processing */}
-                {/* Show when isProcessing OR when any file has 'processing' status (more robust) */}
-                {(isProcessing || uploadedFiles.some(f => f.status === 'processing')) && (
+                {/* PROMINENT CTA AT TOP - Translate All button or Progress */}
+                {(isProcessing || uploadedFiles.some(f => f.status === 'processing')) ? (
+                  // Processing state - show progress
                   <div className="bg-slate-900 rounded-xl p-4 text-white shadow-lg">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span className="font-semibold">
-                        Processing file {Math.max(bulkProgress.current, uploadedFiles.filter(f => f.status === 'completed' || f.status === 'error').length + 1)} of {bulkProgress.total || uploadedFiles.length}
-                      </span>
+                      <div className="flex-1">
+                        <span className="font-semibold">
+                          Processing file {Math.max(bulkProgress.current, uploadedFiles.filter(f => f.status === 'completed' || f.status === 'error').length + 1)} of {bulkProgress.total || uploadedFiles.length}
+                        </span>
+                        <span className="text-white/60 text-sm ml-2">
+                          ({Math.floor(processingElapsed / 60)}:{(processingElapsed % 60).toString().padStart(2, '0')})
+                        </span>
+                      </div>
                     </div>
                     <div className="w-full bg-white/30 rounded-full h-3">
                       <div
@@ -2200,56 +2227,83 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                     <p className="text-sm text-white/80 mt-2">
                       {uploadedFiles.filter(f => f.status === 'completed').length} completed · {uploadedFiles.filter(f => f.status === 'error').length} errors
                     </p>
-                  </div>
-                )}
-
-                {/* Completion banner */}
-                {bulkComplete && !isProcessing && (
-                  <div className={`rounded-xl p-4 shadow-lg ${
-                    uploadedFiles.filter(f => f.status === 'error').length > 0
-                      ? 'bg-[#C66B4A] text-white'
-                      : 'bg-slate-900 text-white'
-                  }`}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">
-                          {uploadedFiles.filter(f => f.status === 'error').length > 0 ? '⚠️' : '✅'}
-                        </span>
-                        <div>
-                          <p className="font-bold text-lg">
-                            Processing Complete!
-                          </p>
-                          <p className="text-sm opacity-90">
-                            {uploadedFiles.filter(f => f.status === 'completed').length} of {uploadedFiles.length} files processed successfully
-                            {uploadedFiles.filter(f => f.status === 'error').length > 0 && (
-                              <> · {uploadedFiles.filter(f => f.status === 'error').length} failed</>
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => setBulkComplete(false)}
-                        className="text-white/80 hover:text-white p-1"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                    {uploadedFiles.filter(f => f.status === 'error').length > 0 && (
-                      <div className="mt-3 pt-3 border-t border-white/20">
-                        <p className="text-sm opacity-90 mb-2">
-                          Failed: {uploadedFiles.filter(f => f.status === 'error').map(f => f.file.name).join(', ')}
-                        </p>
-                        <button
-                          onClick={retryFailedFiles}
-                          className="bg-white text-orange-600 font-semibold px-4 py-2 rounded-lg text-sm hover:bg-orange-50 transition-colors"
-                        >
-                          🔄 Retry Failed Files
-                        </button>
-                      </div>
+                    {processingElapsed > 30 && processingElapsed < 60 && (
+                      <p className="text-sm text-amber-300 mt-2">Large files may take a minute to process...</p>
+                    )}
+                    {processingElapsed >= 60 && processingElapsed < 120 && (
+                      <p className="text-sm text-amber-300 mt-2">Still processing — analyzing document with AI...</p>
+                    )}
+                    {processingElapsed >= 120 && (
+                      <p className="text-sm text-amber-300 mt-2">Taking longer than usual. If stuck, try refreshing and uploading again.</p>
                     )}
                   </div>
+                ) : uploadedFiles.every(f => f.status === 'completed' || f.status === 'error') ? (
+                  // Completed state
+                  <div className="space-y-3">
+                    <div className={`rounded-xl p-4 shadow-lg ${
+                      uploadedFiles.filter(f => f.status === 'error').length > 0
+                        ? 'bg-[#C66B4A] text-white'
+                        : 'bg-slate-900 text-white'
+                    }`}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">
+                            {uploadedFiles.filter(f => f.status === 'error').length > 0 ? '⚠️' : '✅'}
+                          </span>
+                          <div>
+                            <p className="font-bold text-lg">Processing Complete!</p>
+                            <p className="text-sm opacity-90">
+                              {uploadedFiles.filter(f => f.status === 'completed').length} of {uploadedFiles.length} files processed
+                              {uploadedFiles.filter(f => f.status === 'error').length > 0 && (
+                                <> · {uploadedFiles.filter(f => f.status === 'error').length} failed</>
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      {uploadedFiles.filter(f => f.status === 'error').length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-white/20">
+                          <button
+                            onClick={retryFailedFiles}
+                            className="bg-white text-orange-600 font-semibold px-4 py-2 rounded-lg text-sm hover:bg-orange-50 transition-colors"
+                          >
+                            🔄 Retry Failed Files
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => {
+                          setShowAddRecordView(false)
+                          setUploadedFiles([])
+                          setBulkProgress({ current: 0, total: 0 })
+                        }}
+                        className="bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
+                      >
+                        View My Records ({savedTranslations.length})
+                      </button>
+                      <button
+                        onClick={resetUpload}
+                        className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-4 rounded-xl transition-all"
+                      >
+                        Upload More
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  // Ready to translate - show big CTA button
+                  <button
+                    onClick={handleBulkTranslate}
+                    disabled={isProcessing}
+                    className="w-full bg-[#C66B4A] hover:bg-[#B35E40] disabled:bg-slate-300 text-white font-bold py-5 px-6 rounded-xl transition-all flex items-center justify-center gap-3 text-xl shadow-lg shadow-[#C66B4A]/30 animate-pulse-subtle"
+                  >
+                    <Sparkles className="w-6 h-6" />
+                    Translate All {uploadedFiles.filter(f => f.status === 'pending').length} Files →
+                  </button>
                 )}
 
+                {/* File count and clear */}
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-slate-900">
                     {uploadedFiles.length} files selected
@@ -2263,16 +2317,16 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                   </button>
                 </div>
 
-                {/* File list */}
-                <div className="max-h-48 overflow-y-auto space-y-2">
-                  {uploadedFiles.map((uf, index) => (
+                {/* File list - collapsible when many files */}
+                <div className="max-h-40 overflow-y-auto space-y-2 border border-slate-200 rounded-xl p-2 bg-slate-50">
+                  {uploadedFiles.map((uf) => (
                     <div
                       key={uf.id}
                       className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
                         uf.status === 'completed' ? 'bg-green-50 border-green-200' :
                         uf.status === 'error' ? 'bg-red-50 border-red-200' :
-                        uf.status === 'processing' ? 'bg-stone-100 border-slate-400 ring-2 ring-slate-400 ring-offset-1' :
-                        'bg-slate-50 border-slate-200'
+                        uf.status === 'processing' ? 'bg-white border-slate-400 ring-2 ring-slate-400 ring-offset-1' :
+                        'bg-white border-slate-200'
                       }`}
                     >
                       <span className="text-lg flex-shrink-0">
@@ -2311,51 +2365,6 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                     </div>
                   ))}
                 </div>
-
-                {/* Progress hint when scrolled - removed duplicate, main progress is at top */}
-
-                {/* Bulk translate button or completion state */}
-                {uploadedFiles.every(f => f.status === 'completed' || f.status === 'error') ? (
-                  <div className="space-y-3">
-                    <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
-                      <div className="text-2xl mb-2">✓</div>
-                      <p className="font-semibold text-green-800">
-                        {uploadedFiles.filter(f => f.status === 'completed').length} of {uploadedFiles.length} files processed
-                      </p>
-                      <p className="text-sm text-green-600 mt-1">All translations saved automatically</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <button
-                        onClick={() => {
-                          setShowAddRecordView(false)
-                          setUploadedFiles([])
-                          setBulkProgress({ current: 0, total: 0 })
-                        }}
-                        className="bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
-                      >
-                        View My Records ({savedTranslations.length})
-                      </button>
-                      <button
-                        onClick={resetUpload}
-                        className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-4 rounded-xl transition-all"
-                      >
-                        Upload More
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <button
-                    onClick={handleBulkTranslate}
-                    disabled={isProcessing}
-                    className="w-full bg-[#C66B4A] hover:bg-[#B35E40] disabled:bg-slate-300 text-white font-semibold py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-2 text-lg shadow-lg shadow-[#C66B4A]/20"
-                  >
-                    {isProcessing ? (
-                      <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />Processing files...</>
-                    ) : (
-                      <>Translate All {uploadedFiles.filter(f => f.status === 'pending').length} Files →</>
-                    )}
-                  </button>
-                )}
               </div>
             )}
 

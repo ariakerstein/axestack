@@ -74,19 +74,15 @@ export function Navbar({ showBack = false, backHref = '/', backLabel = 'Home' }:
               <div className="w-20 h-6 bg-stone-200 rounded animate-pulse" />
             ) : user ? (
               <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1.5 text-sm text-slate-700">
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-1.5 text-sm text-slate-700 hover:text-slate-900 transition-colors"
+                >
                   <User className="w-4 h-4 text-slate-500" />
                   {user.email?.split('@')[0]}
-                </span>
+                </Link>
                 <button
-                  onClick={async () => {
-                    try {
-                      await signOut()
-                      window.location.reload()
-                    } catch (err) {
-                      console.error('Sign out error:', err)
-                    }
-                  }}
+                  onClick={() => signOut()}
                   className="flex items-center gap-1 text-sm text-slate-500 hover:text-red-600 transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
@@ -162,15 +158,16 @@ export function Navbar({ showBack = false, backHref = '/', backLabel = 'Home' }:
                   <div className="py-2 text-slate-400">Loading...</div>
                 ) : user ? (
                   <div className="flex items-center justify-between py-2">
-                    <span className="text-slate-700 flex items-center gap-2">
+                    <Link
+                      href="/profile"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="text-slate-700 flex items-center gap-2 hover:text-slate-900"
+                    >
                       <User className="w-4 h-4 text-slate-500" />
                       {user.email?.split('@')[0]}
-                    </span>
+                    </Link>
                     <button
-                      onClick={async () => {
-                        await signOut()
-                        window.location.reload()
-                      }}
+                      onClick={() => signOut()}
                       className="text-red-600 text-sm"
                     >
                       Sign out

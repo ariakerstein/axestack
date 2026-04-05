@@ -476,24 +476,33 @@ Return JSON: {"bottomLine":"2-3 sentence summary","keyFindings":["finding1"],"ga
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; color: #1e293b; line-height: 1.6; }
-    .header { border-bottom: 2px solid #8b5cf6; padding-bottom: 20px; margin-bottom: 24px; }
-    .logo { font-size: 24px; font-weight: bold; background: linear-gradient(to right, #8b5cf6, #d946ef); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .header { border-bottom: 2px solid #C66B4A; padding-bottom: 20px; margin-bottom: 24px; }
+    .logo-container { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+    .logo-icon { width: 40px; height: 40px; }
+    .logo-text { font-size: 24px; font-weight: bold; color: #1e293b; }
+    .logo-text .highlight { color: #C66B4A; }
     .meta { color: #64748b; font-size: 14px; margin-top: 8px; }
     .disclaimer { background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 16px; margin-bottom: 24px; }
     .disclaimer p { color: #92400e; font-size: 14px; }
     h1 { font-size: 20px; margin-bottom: 8px; color: #1e293b; }
-    h2 { font-size: 16px; color: #7c3aed; margin: 24px 0 12px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
+    h2 { font-size: 16px; color: #C66B4A; margin: 24px 0 12px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
     p { margin-bottom: 12px; }
     ul { margin-left: 20px; margin-bottom: 16px; }
     li { margin-bottom: 8px; }
-    .bottom-line { background: #f5f3ff; border: 1px solid #c4b5fd; border-radius: 8px; padding: 16px; margin-bottom: 24px; }
+    .bottom-line { background: #faf5f3; border: 1px solid #e8d5ce; border-radius: 8px; padding: 16px; margin-bottom: 24px; }
     .cancer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
     .cancer-item { background: #f8fafc; padding: 12px; border-radius: 8px; }
     .cancer-item .label { font-size: 12px; color: #64748b; margin-bottom: 4px; }
     .cancer-item .value { font-weight: 600; color: #1e293b; }
     .finding { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 12px; margin-bottom: 8px; border-radius: 0 8px 8px 0; }
     .gap { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px; margin-bottom: 8px; border-radius: 0 8px 8px 0; }
-    .question { background: #f5f3ff; border-left: 4px solid #8b5cf6; padding: 12px; margin-bottom: 8px; border-radius: 0 8px 8px 0; }
+    .question { background: #faf5f3; border-left: 4px solid #C66B4A; padding: 12px; margin-bottom: 8px; border-radius: 0 8px 8px 0; }
+    .timeline { margin-top: 24px; }
+    .timeline-item { display: flex; gap: 12px; margin-bottom: 12px; }
+    .timeline-date { width: 100px; font-size: 12px; color: #64748b; text-align: right; flex-shrink: 0; }
+    .timeline-dot { width: 12px; height: 12px; background: #C66B4A; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+    .timeline-event { flex: 1; font-size: 14px; color: #1e293b; }
+    .timeline-source { font-size: 11px; color: #94a3b8; margin-top: 2px; }
     .records { margin-top: 24px; }
     .record { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 8px; }
     .record .name { font-weight: 600; color: #1e293b; }
@@ -504,7 +513,14 @@ Return JSON: {"bottomLine":"2-3 sentence summary","keyFindings":["finding1"],"ga
 </head>
 <body>
   <div class="header">
-    <div class="logo">opencancer.ai</div>
+    <div class="logo-container">
+      <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="20" cy="20" r="18" stroke="#C66B4A" stroke-width="3"/>
+        <path d="M20 8 L20 32 M8 20 L32 20" stroke="#C66B4A" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="20" cy="20" r="6" fill="#C66B4A"/>
+      </svg>
+      <div class="logo-text">open<span class="highlight">cancer</span>.ai</div>
+    </div>
     <h1>AI Case Review</h1>
     <div class="meta">Generated on ${new Date().toLocaleDateString()} • ${records.length} records analyzed</div>
   </div>
@@ -802,7 +818,7 @@ Provide a helpful, educational response. Reference specific records when relevan
           </p>
           <Link
             href="/records"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 hover:bg-orange-500 text-white font-medium rounded-xl transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-[#C66B4A] hover:bg-[#B35E40] text-white font-medium rounded-xl transition-colors"
           >
             <FileText className="w-5 h-5" />
             Upload Records
@@ -847,10 +863,10 @@ Provide a helpful, educational response. Reference specific records when relevan
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {/* Add Records - prominent */}
+            {/* Add Records - uses primary color */}
             <Link
               href="/records"
-              className="flex items-center gap-2 px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-lg text-sm font-medium transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-[#C66B4A] hover:bg-[#B35E40] text-white rounded-lg text-sm font-semibold transition-colors"
             >
               <FileText className="w-4 h-4" />
               + Add Records
@@ -860,10 +876,10 @@ Provide a helpful, educational response. Reference specific records when relevan
                 <button
                   onClick={handleShareCase}
                   disabled={isSharing}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                  className="flex items-center gap-2 px-4 py-2 bg-stone-100 hover:bg-stone-200 text-slate-700 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
                 >
                   {isSharing ? (
-                    <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <Share2 className="w-4 h-4" />
                   )}
@@ -871,7 +887,7 @@ Provide a helpful, educational response. Reference specific records when relevan
                 </button>
                 <button
                   onClick={handleExportPDF}
-                  className="flex items-center gap-2 px-4 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg text-sm font-medium transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-stone-100 hover:bg-stone-200 text-slate-700 rounded-lg text-sm font-medium transition-colors"
                 >
                   <Download className="w-4 h-4" />
                   Export PDF
@@ -899,16 +915,16 @@ Provide a helpful, educational response. Reference specific records when relevan
         </div>
 
         {/* Patient Notes/Annotations */}
-        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl overflow-hidden">
+        <div className="mb-6 bg-stone-100 border border-stone-200 rounded-xl overflow-hidden">
           <button
             onClick={() => setNotesExpanded(!notesExpanded)}
-            className="w-full px-4 py-3 flex items-center justify-between hover:bg-amber-100 transition-colors"
+            className="w-full px-4 py-3 flex items-center justify-between hover:bg-stone-200 transition-colors"
           >
             <div className="flex items-center gap-2">
-              <PenLine className="w-5 h-5 text-amber-600" />
+              <PenLine className="w-5 h-5 text-[#C66B4A]" />
               <span className="font-medium text-slate-900">Add Notes & Context</span>
               {patientNotes && !notesExpanded && (
-                <span className="text-xs bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">
+                <span className="text-xs bg-[#C66B4A]/10 text-[#C66B4A] px-2 py-0.5 rounded-full">
                   Has notes
                 </span>
               )}
@@ -917,23 +933,23 @@ Provide a helpful, educational response. Reference specific records when relevan
           </button>
 
           {notesExpanded && (
-            <div className="px-4 pb-4 border-t border-amber-200">
-              <p className="text-sm text-amber-800 mt-3 mb-2">
+            <div className="px-4 pb-4 border-t border-stone-200">
+              <p className="text-sm text-slate-600 mt-3 mb-2">
                 Add details the AI might have missed: diagnosis date, treatments, corrections, etc.
               </p>
               <textarea
                 value={patientNotes}
                 onChange={(e) => setPatientNotes(e.target.value)}
                 placeholder="e.g., Dx 2008. Age 52. PSA 135. Gleason 4+5. Treatments: RRP, RT, TARP Vaccine, ADT, ARSI. Current status: M1cHSPC..."
-                className="w-full h-24 px-3 py-2 text-sm border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
+                className="w-full h-24 px-3 py-2 text-sm border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C66B4A]/50 resize-none bg-white"
               />
               <div className="flex items-center justify-between mt-2">
-                <p className="text-xs text-amber-600">
+                <p className="text-xs text-slate-500">
                   These notes will be included when you click Refresh
                 </p>
                 <button
                   onClick={saveNotes}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors"
+                  className="flex items-center gap-1 px-3 py-1.5 bg-[#C66B4A] hover:bg-[#B35E40] text-white text-sm font-medium rounded-lg transition-colors"
                 >
                   {notesSaved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
                   {notesSaved ? 'Saved!' : 'Save Notes'}
@@ -956,8 +972,8 @@ Provide a helpful, educational response. Reference specific records when relevan
               onClick={() => setActiveSection(tab.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
                 activeSection === tab.id
-                  ? 'bg-orange-600 text-white'
-                  : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                  ? 'bg-[#C66B4A] text-white'
+                  : 'bg-white border border-stone-200 text-slate-700 hover:bg-stone-50'
               }`}
             >
               {tab.icon}
