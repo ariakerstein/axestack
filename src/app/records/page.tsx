@@ -1535,7 +1535,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
     }
   }
 
-  const deleteSavedTranslation = (id: string, e: React.MouseEvent) => {
+  const deleteSavedTranslation = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
 
     // Remove from data store
@@ -1550,6 +1550,23 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
     const updatedList = savedTranslations.filter(t => t.id !== id)
     setSavedTranslations(updatedList)
     localStorage.setItem('axestack-translations', JSON.stringify(updatedList))
+
+    // ALSO delete from Supabase if authenticated
+    if (user) {
+      try {
+        const { supabase } = await import('@/lib/supabase')
+        const { error } = await supabase
+          .from('medical_records')
+          .delete()
+          .eq('id', id)
+          .eq('user_id', user.id)
+        if (error) {
+          console.error('Failed to delete record from Supabase:', error)
+        }
+      } catch (err) {
+        console.error('Error deleting from Supabase:', err)
+      }
+    }
   }
 
   // Update record label/annotation
@@ -1789,11 +1806,30 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 <p className="text-sm font-medium text-slate-700">Your Records</p>
                 {savedTranslations.length > 0 && (
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       if (confirm('Delete all saved records? This cannot be undone.')) {
+                        // Clear localStorage
                         localStorage.removeItem('axestack-translations')
                         localStorage.removeItem('axestack-translations-data')
                         setSavedTranslations([])
+
+                        // ALSO delete from Supabase if authenticated
+                        if (user) {
+                          try {
+                            const { supabase } = await import('@/lib/supabase')
+                            const { error } = await supabase
+                              .from('medical_records')
+                              .delete()
+                              .eq('user_id', user.id)
+                            if (error) {
+                              console.error('Failed to delete records from Supabase:', error)
+                            } else {
+                              console.log('[Records] Deleted all records from Supabase for user:', user.id)
+                            }
+                          } catch (err) {
+                            console.error('Error deleting from Supabase:', err)
+                          }
+                        }
                       }
                     }}
                     className="text-xs text-slate-400 hover:text-red-500 transition-colors"
