@@ -2321,15 +2321,25 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                         </p>
                         <p className="text-xs text-white/60 mb-3">Processing will continue in the background. Want us to email you when done?</p>
                         <form
-                          onSubmit={(e) => {
+                          onSubmit={async (e) => {
                             e.preventDefault()
                             if (bulkEmailCapture && bulkEmailCapture.includes('@')) {
+                              // Save to localStorage
                               try {
                                 const saved = localStorage.getItem('patient-profile')
                                 const profile = saved ? JSON.parse(saved) : {}
                                 profile.email = bulkEmailCapture
                                 localStorage.setItem('patient-profile', JSON.stringify(profile))
                               } catch { /* ignore */ }
+
+                              // Track email capture event
+                              trackEvent('email_captured', {
+                                source: 'bulk_upload_wait',
+                                email: bulkEmailCapture,
+                                files_processing: uploadedFiles.filter(f => f.status === 'processing').length,
+                                files_total: uploadedFiles.length,
+                              })
+
                               setBulkEmailSubmitted(true)
                             }
                           }}

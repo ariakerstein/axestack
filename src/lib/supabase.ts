@@ -251,66 +251,40 @@ export async function saveProfile(data: {
 }): Promise<OpenCancerProfile | null> {
   const sessionId = getSessionId()
 
-  // Check if profile exists for this email
-  const { data: existing } = await supabase
-    .from('opencancer_profiles')
-    .select('id')
-    .eq('email', data.email)
-    .single()
-
-  if (existing) {
-    // Update existing profile
-    const { data: profile, error } = await supabase
-      .from('opencancer_profiles')
-      .update({
-        session_id: sessionId,
+  try {
+    // Use API route which has service key (bypasses RLS)
+    const response = await fetch('/api/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: data.email,
         name: data.name,
         role: data.role,
-        cancer_type: data.cancerType,
+        cancerType: data.cancerType,
         stage: data.stage || null,
         location: data.location || null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', existing.id)
-      .select()
-      .single()
+        sessionId,
+      }),
+    })
 
-    if (error) {
-      console.error('Error updating profile:', error)
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      console.error('Error saving profile:', errorData)
       return null
     }
 
-    // Update profile entities in knowledge graph (async, non-blocking)
+    const result = await response.json()
+    const profile = result.profile as OpenCancerProfile
+
+    // Save profile entities to knowledge graph (async, non-blocking)
     if (profile) {
       saveProfileToGraph(profile, sessionId)
     }
 
     return profile
-  } else {
-    // Create new profile
-    const { data: profile, error } = await supabase
-      .from('opencancer_profiles')
-      .insert({
-        session_id: sessionId,
-        email: data.email,
-        name: data.name,
-        role: data.role,
-        cancer_type: data.cancerType,
-        stage: data.stage || null,
-        location: data.location || null,
-      })
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Error creating profile:', error)
-      return null
-    }
-
-    // Save profile entities to knowledge graph (async, non-blocking)
-    saveProfileToGraph(profile, sessionId)
-
-    return profile
+  } catch (err) {
+    console.error('Error saving profile:', err)
+    return null
   }
 }
 
