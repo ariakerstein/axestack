@@ -759,13 +759,13 @@ function ExpertModal({
   const experts: ExpertOption[] = [
     {
       id: 'tony-magliocco',
-      name: 'Tony Magliocco, MD, PhD',
-      title: 'Medical Oncologist & Pathologist',
+      name: 'Tony Magliocco, MD, FRCPC, FCAP',
+      title: 'President & CEO, Board-Certified Pathologist',
       organization: 'Protean BioDiagnostics',
-      specialty: 'Precision oncology, biomarker-driven therapy',
-      image: 'https://images.squarespace-cdn.com/content/v1/5a4c3e3ebff200d1651f0273/1634675812299-RI7TI4MCKGMOUFE167LX/IMG_1551.jpg',
-      bio: 'Former Chief Medical Officer at Protean BioDiagnostics. Expert in molecular diagnostics and personalized cancer treatment strategies.',
-      availability: '2-3 days',
+      specialty: 'Precision oncology, molecular diagnostics, biomarker-driven therapy',
+      image: '/team/tony-magliocco.png',
+      bio: '25+ years in pathology and molecular diagnostics. 200+ peer-reviewed publications. Expert in precision medicine and cancer diagnostics.',
+      availability: '2-3 business days',
       price: '$650',
       priceAmount: 650,
       isFree: false

@@ -828,19 +828,24 @@ function HomeContent() {
               <span className="absolute -top-2.5 left-4 bg-emerald-600 text-white text-[10px] font-medium px-2.5 py-1 rounded">
                 Expert review
               </span>
-              <div className="mb-3 mt-1">
+              <div className="mb-3 mt-1 flex items-center gap-2">
+                <img
+                  src="/team/tony-magliocco.png"
+                  alt="Dr. Tony Magliocco"
+                  className="w-8 h-8 rounded-full object-cover"
+                />
                 <img
                   src="https://images.squarespace-cdn.com/content/v1/5a4c3e3ebff200d1651f0273/1612204851498-UYVYCYQRCXVHMA08T0TS/protean_logo.png"
                   alt="Protean BioDiagnostics"
-                  className="h-6 w-auto"
+                  className="h-5 w-auto"
                   onError={(e) => { e.currentTarget.style.display = 'none' }}
                 />
               </div>
               <h3 className="font-bold text-slate-900 mb-1">Expert Pathology Review</h3>
-              <p className="text-slate-600 text-sm mb-2">Board-certified pathologists verify diagnosis.</p>
+              <p className="text-slate-600 text-sm mb-2">Dr. Magliocco · 25+ yrs · 200+ publications</p>
               <div className="flex items-center justify-between">
                 <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">$650</span>
-                <span className="text-[10px] text-slate-400">Powered by Protean</span>
+                <span className="text-[10px] text-slate-400">2-3 business days</span>
               </div>
             </Link>
           </div>
