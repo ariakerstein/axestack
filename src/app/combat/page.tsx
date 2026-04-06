@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
-import { FileText, Shield, FlaskConical, Leaf, ChevronDown, ChevronUp, Swords, ArrowRight, Sparkles, Target, CheckCircle2, Download, Share2, Trophy, Star, Play, Mail, Users, Sliders, Clock } from 'lucide-react'
+import { FileText, Shield, FlaskConical, Leaf, ChevronDown, ChevronUp, Swords, ArrowRight, Sparkles, Target, CheckCircle2, Download, Share2, Trophy, Star, Play, Mail, Users, Sliders, Clock, Waves, Scale, Heart, GraduationCap } from 'lucide-react'
 import { TypewriterMarkdown } from '@/components/TypewriterMarkdown'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { useActivityLog } from '@/hooks/useActivityLog'
@@ -14,6 +14,7 @@ import { UpgradeModal } from '@/components/UpgradeModal'
 import { Navbar } from '@/components/Navbar'
 import { CombatFollowUpChat } from '@/components/CombatFollowUpChat'
 import { ThinkingIndicator } from '@/components/ThinkingIndicator'
+import { CombatVerification, DetectedFinding, FindingCorrection } from '@/components/CombatVerification'
 
 // 5 Perspective Types
 type PerspectiveKey = 'guidelines' | 'aggressive' | 'precision' | 'conservative' | 'integrative'
@@ -843,10 +844,59 @@ export default function CombatPage() {
   const [treatmentResult, setTreatmentResult] = useState<CombatResult | null>(null)
   const [expandedPerspectives, setExpandedPerspectives] = useState<Set<string>>(new Set())
 
+  // Verification step state
+  const [showVerification, setShowVerification] = useState(false)
+  const [verificationFindings, setVerificationFindings] = useState<DetectedFinding[]>([])
+  const [pendingCorrections, setPendingCorrections] = useState<FindingCorrection[]>([])
+  const [extractingFindings, setExtractingFindings] = useState(false)
+  const [pendingPhase, setPendingPhase] = useState<'diagnosis' | 'treatment'>('diagnosis')
+
   // Outcome tracking - simple question after Combat
   const [showOutcomeQuestion, setShowOutcomeQuestion] = useState(false)
   const [outcomeAnswer, setOutcomeAnswer] = useState<string | null>(null)
   const [lastCombatId, setLastCombatId] = useState<string | null>(null)
+
+  // Combat run tracking for upgrade prompts (anxiety loop detection)
+  const [combatRunCount, setCombatRunCount] = useState(0)
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false)
+  const [isPremiumUser, setIsPremiumUser] = useState(false) // TODO: Check actual subscription status
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
+
+  // Load combat run count from localStorage (resets weekly)
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('combat-run-tracker')
+      if (stored) {
+        const data = JSON.parse(stored)
+        const weekStart = getWeekStart()
+        if (data.weekStart === weekStart) {
+          setCombatRunCount(data.count)
+        } else {
+          // New week, reset counter
+          localStorage.setItem('combat-run-tracker', JSON.stringify({ weekStart, count: 0 }))
+          setCombatRunCount(0)
+        }
+      }
+    } catch { /* ignore */ }
+  }, [])
+
+  // Helper to get week start date string
+  function getWeekStart(): string {
+    const now = new Date()
+    const dayOfWeek = now.getDay()
+    const diff = now.getDate() - dayOfWeek
+    const weekStart = new Date(now.setDate(diff))
+    return weekStart.toISOString().split('T')[0]
+  }
+
+  // Increment combat run count
+  function incrementCombatRuns() {
+    const newCount = combatRunCount + 1
+    setCombatRunCount(newCount)
+    const weekStart = getWeekStart()
+    localStorage.setItem('combat-run-tracker', JSON.stringify({ weekStart, count: newCount }))
+    return newCount
+  }
 
   // Load saved combat results from localStorage on mount
   useEffect(() => {
@@ -877,6 +927,23 @@ export default function CombatPage() {
   // Share modal state
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [shareType, setShareType] = useState<'oncologist' | 'family' | 'self'>('oncologist')
+
+  // Communication style preference
+  type CommunicationStyle = 'gentle' | 'balanced' | 'research'
+  const [communicationStyle, setCommunicationStyle] = useState<CommunicationStyle>('balanced')
+
+  // Load communication style from profile on mount
+  useEffect(() => {
+    try {
+      const savedProfile = localStorage.getItem('patient-profile')
+      if (savedProfile) {
+        const p = JSON.parse(savedProfile)
+        if (p.communicationStyle) {
+          setCommunicationStyle(p.communicationStyle)
+        }
+      }
+    } catch { /* ignore */ }
+  }, [])
 
   // Upgrade modal state
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
@@ -972,18 +1039,85 @@ export default function CombatPage() {
     setTimeout(addNext, 500)
   }
 
+  // Helper to fetch cloud records
+  const fetchCloudRecords = async (localRecords: SavedTranslation[]) => {
+    try {
+      const { supabase } = await import('@/lib/supabase')
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (session?.access_token) {
+        console.log('Combat: Fetching cloud records with token')
+        const response = await fetch('/api/records/save', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+        })
+
+        if (response.ok) {
+          const { records: cloudRecords } = await response.json()
+          console.log('Combat: Fetched', cloudRecords?.length || 0, 'records from cloud')
+
+          if (cloudRecords && cloudRecords.length > 0) {
+            // Merge cloud records with localStorage by fileName (more reliable than ID)
+            const localFileNames = new Set(localRecords.map(r => r.fileName?.toLowerCase()))
+            const newRecords = cloudRecords.filter((r: SavedTranslation) =>
+              !localFileNames.has(r.fileName?.toLowerCase())
+            )
+
+            if (newRecords.length > 0) {
+              console.log('Combat: Adding', newRecords.length, 'new records from cloud')
+              // Add to localStorage
+              const existingData = JSON.parse(localStorage.getItem('axestack-translations-data') || '{}')
+              newRecords.forEach((r: SavedTranslation) => {
+                existingData[r.id] = {
+                  id: r.id,
+                  fileName: r.fileName,
+                  date: r.date,
+                  documentType: r.documentType,
+                  result: r.result,
+                  documentText: '',
+                }
+              })
+              localStorage.setItem('axestack-translations-data', JSON.stringify(existingData))
+
+              // Update state with merged records
+              const merged = [...newRecords, ...localRecords]
+              merged.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+              setRecords(merged)
+              return true
+            } else if (localRecords.length === 0) {
+              // No local records - use cloud records directly
+              console.log('Combat: Using cloud records (no local)')
+              setRecords(cloudRecords)
+              // Also save to localStorage for offline access
+              const newData: Record<string, SavedTranslation> = {}
+              cloudRecords.forEach((r: SavedTranslation) => {
+                newData[r.id] = {
+                  id: r.id,
+                  fileName: r.fileName,
+                  date: r.date,
+                  documentType: r.documentType,
+                  result: r.result,
+                  documentText: '',
+                }
+              })
+              localStorage.setItem('axestack-translations-data', JSON.stringify(newData))
+              return true
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Combat: Failed to fetch cloud records:', err)
+    }
+    return false
+  }
+
   // Load records on mount - from localStorage first, then Supabase
   useEffect(() => {
     // Only run on client side
     if (typeof window === 'undefined') return
-
-    // Timeout fallback - don't hang forever
-    const timeout = setTimeout(() => {
-      if (loading) {
-        console.log('Combat: Auth timeout, proceeding without auth')
-        setLoading(false)
-      }
-    }, 3000)
 
     const loadRecords = async () => {
       // Always load from localStorage first (fast, synchronous)
@@ -1004,80 +1138,21 @@ export default function CombatPage() {
         console.log('Combat: No records in localStorage')
       }
 
-      // Wait for auth to settle before fetching from cloud
+      // If auth is still loading, wait for next effect run
       if (authLoading) {
-        // Don't set loading=false yet, wait for auth
+        console.log('Combat: Auth still loading, will retry when ready')
         return
       }
 
-      // Then, fetch from Supabase if user is authenticated
+      // Fetch from cloud if user is authenticated
       if (user) {
-        try {
-          const { supabase } = await import('@/lib/supabase')
-          const { data: { session } } = await supabase.auth.getSession()
-
-          if (session?.access_token) {
-            const response = await fetch('/api/records/save', {
-              method: 'GET',
-              headers: {
-                'Authorization': `Bearer ${session.access_token}`,
-              },
-            })
-
-            if (response.ok) {
-              const { records: cloudRecords } = await response.json()
-              console.log('Combat: Fetched', cloudRecords?.length || 0, 'records from cloud')
-
-              if (cloudRecords && cloudRecords.length > 0) {
-                // Merge cloud records with localStorage by fileName (more reliable than ID)
-                const localFileNames = new Set(localRecords.map(r => r.fileName?.toLowerCase()))
-                const newRecords = cloudRecords.filter((r: SavedTranslation) =>
-                  !localFileNames.has(r.fileName?.toLowerCase())
-                )
-
-                if (newRecords.length > 0) {
-                  console.log('Combat: Adding', newRecords.length, 'new records from cloud')
-                  // Add to localStorage
-                  const existingData = JSON.parse(localStorage.getItem('axestack-translations-data') || '{}')
-                  newRecords.forEach((r: SavedTranslation) => {
-                    existingData[r.id] = {
-                      id: r.id,
-                      fileName: r.fileName,
-                      date: r.date,
-                      documentType: r.documentType,
-                      result: r.result,
-                      documentText: '',
-                    }
-                  })
-                  localStorage.setItem('axestack-translations-data', JSON.stringify(existingData))
-
-                  // Update state with merged records
-                  const merged = [...newRecords, ...localRecords]
-                  merged.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                  setRecords(merged)
-                } else if (localRecords.length === 0) {
-                  // No local records - use cloud records directly
-                  console.log('Combat: Using cloud records (no local)')
-                  setRecords(cloudRecords)
-                  // Also save to localStorage for offline access
-                  const newData: Record<string, SavedTranslation> = {}
-                  cloudRecords.forEach((r: SavedTranslation) => {
-                    newData[r.id] = {
-                      id: r.id,
-                      fileName: r.fileName,
-                      date: r.date,
-                      documentType: r.documentType,
-                      result: r.result,
-                      documentText: '',
-                    }
-                  })
-                  localStorage.setItem('axestack-translations-data', JSON.stringify(newData))
-                }
-              }
-            }
-          }
-        } catch (err) {
-          console.error('Combat: Failed to fetch cloud records:', err)
+        await fetchCloudRecords(localRecords)
+      } else {
+        // No user from useAuth, but try direct session check (auth might have timed out)
+        console.log('Combat: No user from useAuth, trying direct session check')
+        const fetched = await fetchCloudRecords(localRecords)
+        if (fetched) {
+          console.log('Combat: Successfully fetched records via direct session')
         }
       }
 
@@ -1085,12 +1160,101 @@ export default function CombatPage() {
     }
 
     loadRecords()
+  }, [user, authLoading])
+
+  // Timeout fallback - if still loading after 5s, force ready and try cloud fetch
+  useEffect(() => {
+    if (!loading) return
+
+    const timeout = setTimeout(async () => {
+      console.log('Combat: Timeout reached, forcing ready and trying cloud fetch')
+
+      // Try direct cloud fetch regardless of auth state
+      const data = localStorage.getItem('axestack-translations-data')
+      let localRecords: SavedTranslation[] = []
+      if (data) {
+        try {
+          localRecords = Object.values(JSON.parse(data))
+        } catch { /* ignore */ }
+      }
+
+      await fetchCloudRecords(localRecords)
+      setLoading(false)
+    }, 5000)
 
     return () => clearTimeout(timeout)
-  }, [user, authLoading, loading])
+  }, [loading])
 
-  const runCombat = async (targetPhase: 'diagnosis' | 'treatment') => {
+  // Extract findings for verification before running combat
+  const extractFindings = async () => {
     if (records.length === 0) return
+
+    setExtractingFindings(true)
+    try {
+      const response = await fetch('/api/combat/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          records: records.map(r => ({
+            fileName: r.fileName,
+            documentType: r.documentType,
+            result: r.result,
+            documentText: r.documentText?.slice(0, 5000)
+          }))
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setVerificationFindings(data.findings || [])
+        return data.findings || []
+      }
+    } catch (err) {
+      console.error('Failed to extract findings:', err)
+    } finally {
+      setExtractingFindings(false)
+    }
+    return []
+  }
+
+  // Start combat with verification step
+  const startCombatWithVerification = async (targetPhase: 'diagnosis' | 'treatment') => {
+    if (records.length === 0) return
+
+    setPendingPhase(targetPhase)
+    setExtractingFindings(true)
+
+    const findings = await extractFindings()
+
+    // If we found verifiable findings, show verification step
+    if (findings && findings.length > 0) {
+      setShowVerification(true)
+    } else {
+      // No findings to verify, run combat directly
+      runCombat(targetPhase, [])
+    }
+
+    setExtractingFindings(false)
+  }
+
+  // Handle verification completion
+  const handleVerificationConfirm = (corrections: FindingCorrection[]) => {
+    setPendingCorrections(corrections)
+    setShowVerification(false)
+    runCombat(pendingPhase, corrections)
+  }
+
+  // Handle skipping verification
+  const handleVerificationSkip = () => {
+    setShowVerification(false)
+    runCombat(pendingPhase, [])
+  }
+
+  const runCombat = async (targetPhase: 'diagnosis' | 'treatment', corrections: FindingCorrection[] = []) => {
+    if (records.length === 0) return
+
+    // Track combat runs for upgrade prompt (anxiety loop detection)
+    const runCount = incrementCombatRuns()
 
     setGenerating(true)
     setPhase(targetPhase)
@@ -1111,7 +1275,9 @@ export default function CombatPage() {
           })),
           previousDiagnosis: targetPhase === 'treatment' ? diagnosisResult : null,
           weights: weights, // Pass perspective tuning weights
-          userId: user?.id // Pass userId for response_evaluations tracking
+          userId: user?.id, // Pass userId for response_evaluations tracking
+          communicationStyle, // Pass communication preference
+          corrections, // Pass patient corrections from verification step
         })
       })
 
@@ -1265,6 +1431,26 @@ export default function CombatPage() {
 
   return (
     <main className="min-h-screen bg-white">
+      {/* Verification Modal - Shows detected findings before combat analysis */}
+      {showVerification && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            onClick={handleVerificationSkip}
+          />
+          {/* Modal Content */}
+          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <CombatVerification
+              findings={verificationFindings}
+              onConfirm={handleVerificationConfirm}
+              onSkip={handleVerificationSkip}
+              isLoading={generating}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Outcome Question Modal - Simple, non-intrusive */}
       {showOutcomeQuestion && (
         <div className="fixed bottom-4 right-4 z-50 bg-white rounded-2xl shadow-2xl border border-slate-200 p-5 max-w-sm animate-in slide-in-from-bottom-4">
@@ -1330,19 +1516,6 @@ export default function CombatPage() {
         ) : (
           /* Has records - show combat interface */
           <div className="space-y-5">
-            {/* Audit in Progress Banner */}
-            <div className="bg-slate-900 text-white rounded-xl p-4 flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
-                <span className="text-lg">🔬</span>
-              </div>
-              <div>
-                <p className="font-semibold">Medical Audit in Progress</p>
-                <p className="text-sm text-slate-300 mt-0.5">
-                  For informational purposes only. Always consult your oncologist.
-                </p>
-              </div>
-            </div>
-
             {/* Compact Header */}
             <div className="flex items-center justify-between">
               <div>
@@ -1367,32 +1540,117 @@ export default function CombatPage() {
               </div>
             </div>
 
-            {/* Records Summary with Edit */}
+            {/* Records Summary - Loaded and ready */}
             {!generating && (
-              <div className="flex items-center justify-between px-4 py-3 bg-slate-50 rounded-xl">
+              <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl">
                 <div className="flex items-center gap-3">
-                  <FileText className="w-5 h-5 text-slate-400" />
+                  <div className="w-8 h-8 bg-slate-200 rounded-lg flex items-center justify-center">
+                    <FileText className="w-4 h-4 text-slate-600" />
+                  </div>
                   <div>
-                    <span className="font-medium text-slate-900">{records.length} record{records.length !== 1 ? 's' : ''}</span>
-                    <span className="text-slate-400 mx-2">·</span>
-                    <span className="text-slate-500">{records[0]?.result?.cancer_specific?.cancer_type || 'Ready to analyze'}</span>
+                    <p className="font-medium text-slate-900">{records.length} record{records.length !== 1 ? 's' : ''} loaded</p>
+                    <p className="text-sm text-slate-500">{records[0]?.result?.cancer_specific?.cancer_type || 'Ready for analysis'}</p>
                   </div>
                 </div>
-                <Link href="/records" className="text-sm text-slate-900 hover:text-[#C66B4A] font-medium underline underline-offset-2">
+                <Link href="/records" className="text-sm text-slate-500 hover:text-slate-700">
                   Edit
                 </Link>
               </div>
             )}
 
-            {/* Perspective Tuner - Only show before starting or between phases */}
-            {!generating && !currentResult && (
-              <PerspectiveTuner
-                weights={weights}
-                onChange={setWeights}
-                compact={false}
-                isPremium={isPremium}
-                onUpgradeClick={() => setShowUpgradeModal(true)}
-              />
+            {/* PRIMARY ACTION AREA */}
+            {!currentResult && !generating && (
+              <div className="space-y-5">
+                {/* Intrigue text */}
+                <div className="text-center">
+                  <h2 className="text-xl font-semibold text-slate-900 mb-2">
+                    What will five expert perspectives find?
+                  </h2>
+                  <p className="text-slate-500">
+                    They&apos;ll examine your records and debate what your treatment plan might be missing.
+                  </p>
+                </div>
+
+                {/* Pre-flight question: Response style */}
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-slate-700">How should we explain the findings?</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: 'gentle' as CommunicationStyle, label: 'Gentle', desc: 'Plain language', icon: Heart, bgSelected: 'bg-rose-50', borderSelected: 'border-rose-200', iconColor: 'text-rose-500', iconSelected: 'text-rose-600' },
+                      { id: 'balanced' as CommunicationStyle, label: 'Balanced', desc: 'Terms explained', icon: Scale, bgSelected: 'bg-slate-100', borderSelected: 'border-slate-300', iconColor: 'text-slate-400', iconSelected: 'text-slate-600' },
+                      { id: 'research' as CommunicationStyle, label: 'Research', desc: 'With citations', icon: GraduationCap, bgSelected: 'bg-indigo-50', borderSelected: 'border-indigo-200', iconColor: 'text-indigo-400', iconSelected: 'text-indigo-600' },
+                    ].map((style) => {
+                      const Icon = style.icon
+                      const isSelected = communicationStyle === style.id
+                      return (
+                        <button
+                          key={style.id}
+                          onClick={() => {
+                            setCommunicationStyle(style.id)
+                            try {
+                              const saved = localStorage.getItem('patient-profile')
+                              const profile = saved ? JSON.parse(saved) : {}
+                              profile.communicationStyle = style.id
+                              localStorage.setItem('patient-profile', JSON.stringify(profile))
+                            } catch { /* ignore */ }
+                          }}
+                          className={`flex flex-col items-center gap-1.5 p-3 rounded-lg text-center transition-all ${
+                            isSelected
+                              ? `${style.bgSelected} border-2 ${style.borderSelected}`
+                              : 'bg-white border border-slate-200 hover:border-slate-300'
+                          }`}
+                        >
+                          <Icon className={`w-5 h-5 ${isSelected ? style.iconSelected : style.iconColor}`} />
+                          <p className="text-sm font-medium text-slate-900">{style.label}</p>
+                          <p className="text-[10px] text-slate-500 leading-tight">{style.desc}</p>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Standalone CTA Button with shadow */}
+                <button
+                  onClick={() => startCombatWithVerification(diagnosisResult ? 'treatment' : 'diagnosis')}
+                  disabled={extractingFindings}
+                  className="w-full group py-4 px-6 bg-[#C66B4A] hover:bg-[#B35E40] disabled:bg-slate-300 rounded-xl text-white font-semibold text-lg shadow-lg shadow-[#C66B4A]/25 hover:shadow-xl hover:shadow-[#C66B4A]/30 transition-all flex items-center justify-center gap-3"
+                >
+                  {extractingFindings ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Analyzing records...
+                    </>
+                  ) : (
+                    <>
+                      <Swords className="w-5 h-5" />
+                      {diagnosisResult ? 'Start Treatment Debate' : 'Start the Debate'}
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
+                </button>
+
+                {/* Advanced Settings - Collapsed */}
+                <details className="text-center">
+                  <summary className="inline-flex items-center gap-2 cursor-pointer text-sm text-slate-400 hover:text-slate-600">
+                    <Sliders className="w-4 h-4" />
+                    Advanced settings
+                  </summary>
+                  <div className="mt-4 bg-slate-50 rounded-xl p-4">
+                    <PerspectiveTuner
+                      weights={weights}
+                      onChange={setWeights}
+                      compact={true}
+                      isPremium={isPremium}
+                      onUpgradeClick={() => setShowUpgradeModal(true)}
+                    />
+                  </div>
+                </details>
+
+                {/* Small disclaimer */}
+                <p className="text-xs text-slate-400 text-center">
+                  For informational purposes only. Always consult your oncologist.
+                </p>
+              </div>
             )}
 
             {/* Generating State */}
@@ -1410,51 +1668,153 @@ export default function CombatPage() {
               </div>
             )}
 
-            {/* Single CTA Button - Much cleaner */}
-            {!currentResult && !generating && (
-              <button
-                onClick={() => runCombat(diagnosisResult ? 'treatment' : 'diagnosis')}
-                className="w-full group p-5 bg-[#C66B4A] hover:bg-[#B35E40] rounded-xl text-center transition-all shadow-lg shadow-[#C66B4A]/25 hover:shadow-xl text-white"
-              >
-                <div className="flex items-center justify-center gap-3">
-                  <Swords className="w-6 h-6" />
-                  <span className="font-bold text-lg">
-                    {diagnosisResult ? 'Run Treatment Analysis' : 'Run Diagnosis Analysis'}
-                  </span>
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </div>
-                <p className="text-white/80 text-sm mt-2">
-                  {diagnosisResult
-                    ? 'Explore all treatment options with five expert perspectives'
-                    : 'Get five expert perspectives on your diagnosis'
-                  }
-                </p>
-              </button>
-            )}
 
             {/* Results - Bottom Line First */}
             {currentResult && !generating && (
               <div className="space-y-5">
-                {/* THE BOTTOM LINE - Synthesis first */}
-                <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-6 shadow-lg">
-                  <div className="flex items-center gap-2 mb-3">
-                    <CheckCircle2 className="w-5 h-5 text-green-400" />
-                    <span className="text-sm font-medium text-slate-300 uppercase tracking-wide">Bottom Line</span>
+                {/* Analysis Summary Card */}
+                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+                  <div className="p-5 border-b border-slate-100">
+                    <p className="font-semibold text-slate-900">
+                      Analysis complete — {records[0]?.result?.cancer_specific?.cancer_type || 'Your case'}
+                    </p>
                   </div>
-                  <p className="text-lg leading-relaxed">{currentResult.synthesis}</p>
 
-                  {/* Compact consensus/divergence */}
-                  <div className="mt-4 pt-4 border-t border-slate-700 grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-xs text-green-400 font-medium mb-1">Agreement</p>
-                      <p className="text-sm text-slate-300">{currentResult.consensus[0]}</p>
+                  {/* Key Findings - First 2 visible, rest blurred for non-premium */}
+                  <div className="p-5 space-y-3">
+                    {/* Finding 1 - Always visible */}
+                    <div className="flex items-start gap-3">
+                      <div className="w-2 h-2 rounded-full bg-green-500 mt-2 flex-shrink-0" />
+                      <p className="text-slate-700">{currentResult.consensus[0] || currentResult.synthesis.split('.')[0]}</p>
                     </div>
-                    <div>
-                      <p className="text-xs text-orange-400 font-medium mb-1">Debate</p>
-                      <p className="text-sm text-slate-300">{currentResult.divergence[0]}</p>
-                    </div>
+
+                    {/* Finding 2 - Always visible */}
+                    {currentResult.divergence[0] && (
+                      <div className="flex items-start gap-3">
+                        <div className="w-2 h-2 rounded-full bg-amber-500 mt-2 flex-shrink-0" />
+                        <p className="text-slate-700">{currentResult.divergence[0]}</p>
+                      </div>
+                    )}
+
+                    {/* Finding 3+ - Blurred for non-premium */}
+                    {!isPremiumUser && (
+                      <>
+                        <div className="flex items-start gap-3 blur-[3px] select-none">
+                          <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
+                          <p className="text-slate-700">{currentResult.consensus[1] || 'Additional finding from expert analysis...'}</p>
+                        </div>
+                        <div className="flex items-start gap-3 blur-[3px] select-none">
+                          <div className="w-2 h-2 rounded-full bg-purple-500 mt-2 flex-shrink-0" />
+                          <p className="text-slate-700">{currentResult.divergence[1] || 'Clinical trial eligibility assessment...'}</p>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Show all findings for premium users */}
+                    {isPremiumUser && (
+                      <>
+                        {currentResult.consensus.slice(1).map((c, i) => (
+                          <div key={`c-${i}`} className="flex items-start gap-3">
+                            <div className="w-2 h-2 rounded-full bg-green-500 mt-2 flex-shrink-0" />
+                            <p className="text-slate-700">{c}</p>
+                          </div>
+                        ))}
+                        {currentResult.divergence.slice(1).map((d, i) => (
+                          <div key={`d-${i}`} className="flex items-start gap-3">
+                            <div className="w-2 h-2 rounded-full bg-amber-500 mt-2 flex-shrink-0" />
+                            <p className="text-slate-700">{d}</p>
+                          </div>
+                        ))}
+                      </>
+                    )}
                   </div>
                 </div>
+
+                {/* Upgrade Prompt - Show for non-premium users */}
+                {!isPremiumUser && (
+                  <div className="bg-[#fdf5f2] border border-stone-200 rounded-2xl p-6">
+                    <h3 className="text-lg font-semibold text-slate-900 text-center mb-2">
+                      You&apos;ve found something important
+                    </h3>
+                    <p className="text-slate-600 text-center mb-5">
+                      {currentResult.divergence.length} findings worth discussing with your oncologist. Get the full report — formatted for your appointment.
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => setShowUpgradePrompt(false)}
+                        className="p-4 bg-white border border-slate-200 rounded-xl text-center hover:bg-slate-50 transition-colors"
+                      >
+                        <p className="font-semibold text-slate-900">Free</p>
+                        <p className="text-sm text-slate-500">View on screen only</p>
+                      </button>
+                      <button
+                        disabled={checkoutLoading}
+                        onClick={async () => {
+                          setCheckoutLoading(true)
+                          try {
+                            const response = await fetch('/api/checkout', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                productId: 'combat-pdf',
+                                userId: user?.id || null,
+                                email: user?.email || null,
+                                combatResultId: lastCombatId || null,
+                              }),
+                            })
+                            const data = await response.json()
+                            if (data.url) {
+                              window.location.href = data.url
+                            } else {
+                              console.error('No checkout URL returned:', data)
+                              setCheckoutLoading(false)
+                            }
+                          } catch (err) {
+                            console.error('Checkout error:', err)
+                            setCheckoutLoading(false)
+                          }
+                        }}
+                        className="p-4 bg-[#C66B4A] rounded-xl text-center text-white hover:bg-[#B35E40] transition-colors disabled:opacity-50 disabled:cursor-wait cursor-pointer touch-manipulation"
+                      >
+                        <p className="font-semibold">{checkoutLoading ? 'Processing...' : '$29 — PDF Report'}</p>
+                        <p className="text-sm text-white/80">Formatted for your oncologist</p>
+                      </button>
+                    </div>
+
+                    <p className="text-xs text-slate-500 text-center mt-4">
+                      Or <button onClick={() => setShowUpgradeModal(true)} className="underline hover:text-slate-700">upgrade to Pro</button> for unlimited reports →
+                    </p>
+                  </div>
+                )}
+
+                {/* Full synthesis for premium users */}
+                {isPremiumUser && (
+                  <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-6 shadow-lg">
+                    <div className="flex items-center gap-2 mb-3">
+                      <CheckCircle2 className="w-5 h-5 text-green-400" />
+                      <span className="text-sm font-medium text-slate-300 uppercase tracking-wide">Full Analysis</span>
+                    </div>
+                    <p className="text-lg leading-relaxed">{currentResult.synthesis}</p>
+                  </div>
+                )}
+
+                {/* Expert Review CTA */}
+                <Link
+                  href={`/expert-review${lastCombatId ? `?combat=${lastCombatId}` : ''}`}
+                  className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center group-hover:bg-slate-200 transition-colors">
+                      <Users className="w-5 h-5 text-slate-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-slate-900 text-sm">Want a human oncologist to review?</p>
+                      <p className="text-xs text-slate-500">$199 • Written notes in 48 hours</p>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-1 transition-all" />
+                </Link>
 
                 {/* Question context - smaller */}
                 <div className="text-center">
@@ -1536,10 +1896,11 @@ export default function CombatPage() {
                 <div className="flex gap-3">
                   {phase === 'diagnosis' && (
                     <button
-                      onClick={() => runCombat('treatment')}
-                      className="group flex-1 py-3 bg-[#C66B4A] hover:bg-[#B35E40] text-white rounded-xl font-semibold flex items-center justify-center gap-2 transition-all shadow-md"
+                      onClick={() => startCombatWithVerification('treatment')}
+                      disabled={extractingFindings}
+                      className="group flex-1 py-3 bg-[#C66B4A] hover:bg-[#B35E40] disabled:bg-slate-300 text-white rounded-xl font-semibold flex items-center justify-center gap-2 transition-all shadow-md"
                     >
-                      Continue to Treatment
+                      {extractingFindings ? 'Analyzing...' : 'Continue to Treatment'}
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </button>
                   )}

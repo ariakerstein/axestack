@@ -157,6 +157,21 @@ Your perspective:
 - Biomarkers like MSI-H, TMB, PD-L1 guide immunotherapy decisions
 - Targeted drugs (TKIs, ADCs, BiTEs) may work better with fewer side effects than chemo
 
+CRITICAL - VARIANT CLASSIFICATION (you MUST apply these distinctions):
+- PATHOGENIC/LIKELY PATHOGENIC mutations → Clinically actionable, can guide therapy
+- VUS (Variants of Uncertain Significance) → NOT actionable, do NOT recommend therapy based on VUS
+- SNPs (Single Nucleotide Polymorphisms) → Population variants, NOT mutations, NOT actionable
+- Benign/Likely Benign variants → NOT actionable
+
+For HRR genes (BRCA1, BRCA2, ATM, PALB2, CHEK2, RAD51C, RAD51D, BARD1):
+- Only PATHOGENIC mutations qualify for PARP inhibitors
+- SNPs in these genes do NOT indicate HRR deficiency
+- A "BRCA variant" or "HRR finding" is NOT the same as a "BRCA mutation" unless classified as pathogenic
+
+Always distinguish:
+- Germline (inherited, in all cells) vs Somatic (tumor only)
+- If variant classification is unclear, explicitly state this uncertainty
+
 ${getWeightModifier(weight)}
 
 Reference specific mutations (EGFR, ALK, BRAF, HER2, KRAS G12C, etc.) and matching targeted therapies.
@@ -258,7 +273,8 @@ async function getPersonaPerspective(
   phase: 'diagnosis' | 'treatment',
   question: string,
   weight: number,
-  userId?: string
+  userId?: string,
+  communicationStyle: CommunicationStyle = 'balanced'
 ): Promise<{
   argument: string
   evidence: string[]
@@ -271,8 +287,11 @@ async function getPersonaPerspective(
     : `Evaluate treatment options for this patient. What approach would you recommend and why?`
 
   const systemContext = persona.getSystemContext(weight)
+  const styleInstructions = getCommunicationStyleInstructions(communicationStyle)
 
   const fullPrompt = `${systemContext}
+
+${styleInstructions}
 
 ${caseContext}
 
@@ -347,7 +366,8 @@ Be specific to THIS patient's case. Reference their actual biomarkers, stage, an
 async function synthesizePerspectives(
   perspectives: Array<{ name: string; argument: string; recommendation: string }>,
   phase: 'diagnosis' | 'treatment',
-  userId?: string
+  userId?: string,
+  communicationStyle: CommunicationStyle = 'balanced'
 ): Promise<{
   synthesis: string
   consensus: string[]
@@ -357,7 +377,11 @@ async function synthesizePerspectives(
     .map(p => `${p.name}: ${p.argument}\nRecommendation: ${p.recommendation}`)
     .join('\n\n')
 
-  const synthesisPrompt = `Five oncology perspectives have analyzed a cancer case:
+  const styleInstructions = getCommunicationStyleInstructions(communicationStyle)
+
+  const synthesisPrompt = `${styleInstructions}
+
+Five oncology perspectives have analyzed a cancer case:
 
 ${perspectiveSummary}
 
@@ -419,12 +443,257 @@ Focus on actionable insights for the patient's next doctor conversation.`
   }
 }
 
+// Communication style adjustments for AI responses
+type CommunicationStyle = 'gentle' | 'balanced' | 'research'
+
+function getCommunicationStyleInstructions(style: CommunicationStyle): string {
+  switch (style) {
+    case 'gentle':
+      return `COMMUNICATION STYLE: GENTLE (Grade 6-8 reading level)
+
+WRITING RULES:
+- Maximum 15 words per sentence
+- Use bullet points, not paragraphs
+- NO medical jargon - use plain language alternatives:
+  • "spread" not "metastasis"
+  • "tissue sample" not "biopsy"
+  • "gene change" not "mutation"
+  • "imaging scan" not "PET-CT"
+- NO statistics, percentages, or survival numbers
+- Focus on: what to do next, who to talk to, what questions to ask
+- Tone: Warm, reassuring, like explaining to a worried family member
+- Always end with encouragement and clear next steps
+
+FORMAT:
+• Use short bullet points
+• Bold the most important action items
+• Include "Questions for your doctor" as simple yes/no questions`
+
+    case 'research':
+      return `COMMUNICATION STYLE: RESEARCH (College+ reading level, medical literacy assumed)
+
+WRITING RULES:
+- Use precise medical terminology without explanation
+- Include specific citations: NCT numbers, PMID references, trial names
+- Provide statistical details: hazard ratios (HR), confidence intervals (95% CI), p-values
+- Discuss mechanism of action for each treatment option
+- Include level of evidence (Phase I/II/III, retrospective, meta-analysis)
+- Note limitations, caveats, and conflicting data
+- Compare response rates, PFS, OS across options
+- Reference specific mutations/biomarkers and matching drugs
+
+FORMAT:
+• Use structured paragraphs with clinical detail
+• Include a "Key Evidence" section with citations
+• Note "Data Quality" for each recommendation (strong/moderate/limited evidence)
+• Include "What We Don't Know Yet" section for emerging questions`
+
+    case 'balanced':
+    default:
+      return `COMMUNICATION STYLE: BALANCED (Grade 10-12 reading level)
+
+WRITING RULES:
+- Use medical terms but define them on first use: "metastasis (cancer spread)"
+- Include key statistics in plain language: "about 7 out of 10 patients respond"
+- Mix of bullet points and short paragraphs
+- Explain WHY something is recommended, not just what
+- Mention relevant trials by name but don't cite PMIDs
+- Be informative but not overwhelming - 3-4 key points per perspective
+
+FORMAT:
+• Lead with the bottom line recommendation
+• Support with 2-3 evidence points
+• Include "Ask Your Oncologist" questions
+• Note any important caveats simply`
+  }
+}
+
+// Correction type from verification step
+interface FindingCorrection {
+  findingId: string
+  originalValue: string
+  correctedValue: string
+  correctionType: 'wrong' | 'incomplete' | 'misclassified'
+  note?: string
+}
+
+// Detected finding for verification step
+interface DetectedFinding {
+  id: string
+  category: 'biomarker' | 'mutation' | 'diagnosis' | 'stage' | 'treatment'
+  label: string
+  value: string
+  source: string
+  confidence: 'high' | 'medium' | 'low'
+  clinicalNote?: string
+}
+
+// Extract verifiable findings from records for the verification step
+function extractVerifiableFindings(records: RecordInput[]): DetectedFinding[] {
+  const findings: DetectedFinding[] = []
+  let idCounter = 0
+
+  for (const record of records) {
+    const source = record.fileName || record.documentType || 'Unknown document'
+    const cs = record.result?.cancer_specific
+
+    // Extract diagnosis
+    if (cs?.cancer_type) {
+      findings.push({
+        id: `finding-${idCounter++}`,
+        category: 'diagnosis',
+        label: 'Cancer Type',
+        value: cs.cancer_type,
+        source,
+        confidence: 'high',
+      })
+    }
+
+    // Extract stage
+    if (cs?.stage) {
+      findings.push({
+        id: `finding-${idCounter++}`,
+        category: 'stage',
+        label: 'Stage',
+        value: cs.stage,
+        source,
+        confidence: 'high',
+      })
+    }
+
+    // Extract grade
+    if (cs?.grade) {
+      findings.push({
+        id: `finding-${idCounter++}`,
+        category: 'stage',
+        label: 'Grade',
+        value: cs.grade,
+        source,
+        confidence: 'high',
+      })
+    }
+
+    // Extract biomarkers - these are critical for verification
+    if (cs?.biomarkers && cs.biomarkers.length > 0) {
+      for (const biomarker of cs.biomarkers) {
+        // Determine category and clinical note based on biomarker type
+        const upperBiomarker = biomarker.toUpperCase()
+        let category: 'biomarker' | 'mutation' = 'biomarker'
+        let clinicalNote: string | undefined
+        let confidence: 'high' | 'medium' | 'low' = 'high'
+
+        // HRR genes - flag for special attention
+        if (/\b(BRCA|ATM|PALB2|CHEK2|RAD51|CDK12|FANCA|HRR)\b/.test(upperBiomarker)) {
+          category = 'mutation'
+          clinicalNote = 'If pathogenic, may qualify for PARP inhibitor therapy. Please verify this is a pathogenic mutation vs SNP/VUS.'
+          confidence = 'medium' // Flag for verification
+        }
+        // HER2
+        else if (/\bHER2\b/.test(upperBiomarker)) {
+          clinicalNote = 'HER2 status determines eligibility for targeted therapies like trastuzumab or T-DXd.'
+        }
+        // MSI/MMR
+        else if (/\b(MSI|MMR|dMMR)\b/.test(upperBiomarker)) {
+          clinicalNote = 'MSI-High/dMMR tumors often respond to immunotherapy.'
+        }
+        // PD-L1
+        else if (/\bPD-?L1\b/.test(upperBiomarker)) {
+          clinicalNote = 'PD-L1 expression level influences immunotherapy decisions.'
+        }
+        // Lung cancer mutations
+        else if (/\b(EGFR|ALK|ROS1|KRAS|RET|MET|NTRK|BRAF)\b/.test(upperBiomarker)) {
+          category = 'mutation'
+          clinicalNote = 'If positive, targeted therapy options may be available.'
+        }
+
+        findings.push({
+          id: `finding-${idCounter++}`,
+          category,
+          label: extractBiomarkerLabel(biomarker),
+          value: biomarker,
+          source,
+          confidence,
+          clinicalNote,
+        })
+      }
+    }
+
+    // Extract diagnoses array
+    if (record.result?.diagnosis && record.result.diagnosis.length > 0) {
+      for (const dx of record.result.diagnosis) {
+        // Skip if we already captured this as cancer_type
+        if (dx === cs?.cancer_type) continue
+        findings.push({
+          id: `finding-${idCounter++}`,
+          category: 'diagnosis',
+          label: 'Diagnosis',
+          value: dx,
+          source,
+          confidence: 'high',
+        })
+      }
+    }
+  }
+
+  // Dedupe findings by value
+  const seen = new Set<string>()
+  return findings.filter(f => {
+    const key = `${f.category}-${f.value}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
+// Extract a clean label from biomarker string
+function extractBiomarkerLabel(biomarker: string): string {
+  // Extract gene name from strings like "BRCA1 positive" or "HER2 3+"
+  const match = biomarker.match(/^([A-Z0-9-]+)/i)
+  if (match) {
+    return match[1].toUpperCase()
+  }
+  return biomarker.split(/[\s:]/)[0]
+}
+
+// Build correction context for the analysis
+function buildCorrectionContext(corrections: FindingCorrection[]): string {
+  if (!corrections || corrections.length === 0) return ''
+
+  const correctionLines = corrections.map(c => {
+    let line = `- "${c.originalValue}" is INCORRECT. Correct value: "${c.correctedValue}"`
+    if (c.note) line += ` (Note: ${c.note})`
+    return line
+  })
+
+  return `
+⚠️ CRITICAL PATIENT CORRECTIONS - YOU MUST APPLY THESE:
+The patient has verified their records and provided these corrections:
+${correctionLines.join('\n')}
+
+IMPORTANT: These corrections OVERRIDE what appears in the records. Adjust your analysis accordingly.
+Do NOT recommend treatments based on the incorrect original values.
+`
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { phase, records, weights, userId, sessionId } = await request.json()
+    const { phase, records, weights, userId, sessionId, communicationStyle, corrections, verifyFirst } = await request.json()
 
     if (!records || records.length === 0) {
       return NextResponse.json({ error: 'No records provided' }, { status: 400 })
+    }
+
+    // Extract findings for verification step
+    const detectedFindings = extractVerifiableFindings(records)
+
+    // If verifyFirst is true, just return findings without running full analysis
+    // This supports the verification-first flow
+    if (verifyFirst) {
+      return NextResponse.json({
+        phase: 'verification',
+        findings: detectedFindings,
+        recordCount: records.length,
+      })
     }
 
     // Default weights if not provided (balanced = 50 for all)
@@ -442,6 +711,14 @@ export async function POST(request: NextRequest) {
     // Build case context from current records + graph history
     let caseContext = buildCaseContext(records)
 
+    // Apply patient corrections if provided (from verification step)
+    const correctionContext = buildCorrectionContext(corrections as FindingCorrection[] || [])
+    if (correctionContext) {
+      caseContext = `${correctionContext}
+
+${caseContext}`
+    }
+
     if (graphContext) {
       caseContext = `PATIENT HISTORY FROM KNOWLEDGE GRAPH:
 ${graphContext}
@@ -458,13 +735,16 @@ ${caseContext}`
       ? `Is the diagnosis of ${cancerType}${stage ? ` (${stage})` : ''} correct and complete? What should be confirmed or explored?`
       : `What are the best treatment options for ${cancerType}${stage ? ` ${stage}` : ''}?`
 
-    // Get all five perspectives in parallel, passing their respective weights
+    // Get the communication style preference (default to balanced)
+    const style: CommunicationStyle = communicationStyle || 'balanced'
+
+    // Get all five perspectives in parallel, passing their respective weights and communication style
     const [guidelinesResponse, aggressiveResponse, precisionResponse, conservativeResponse, integrativeResponse] = await Promise.all([
-      getPersonaPerspective(PERSONAS.guidelines, caseContext, phase, question, perspectiveWeights.guidelines, userId),
-      getPersonaPerspective(PERSONAS.aggressive, caseContext, phase, question, perspectiveWeights.aggressive, userId),
-      getPersonaPerspective(PERSONAS.precision, caseContext, phase, question, perspectiveWeights.precision, userId),
-      getPersonaPerspective(PERSONAS.conservative, caseContext, phase, question, perspectiveWeights.conservative, userId),
-      getPersonaPerspective(PERSONAS.integrative, caseContext, phase, question, perspectiveWeights.integrative, userId)
+      getPersonaPerspective(PERSONAS.guidelines, caseContext, phase, question, perspectiveWeights.guidelines, userId, style),
+      getPersonaPerspective(PERSONAS.aggressive, caseContext, phase, question, perspectiveWeights.aggressive, userId, style),
+      getPersonaPerspective(PERSONAS.precision, caseContext, phase, question, perspectiveWeights.precision, userId, style),
+      getPersonaPerspective(PERSONAS.conservative, caseContext, phase, question, perspectiveWeights.conservative, userId, style),
+      getPersonaPerspective(PERSONAS.integrative, caseContext, phase, question, perspectiveWeights.integrative, userId, style)
     ])
 
     const perspectives = [
@@ -479,14 +759,20 @@ ${caseContext}`
     const synthesis = await synthesizePerspectives(
       perspectives.map(p => ({ name: p.name, argument: p.argument, recommendation: p.recommendation })),
       phase,
-      userId
+      userId,
+      style
     )
 
     const result = {
       phase,
       question,
       perspectives,
-      ...synthesis
+      ...synthesis,
+      // Include findings for reference (already verified if corrections were applied)
+      detectedFindings,
+      // Flag if this was a re-run with corrections
+      hasCorrections: corrections && corrections.length > 0,
+      correctionsApplied: corrections || [],
     }
 
     return NextResponse.json(result)
