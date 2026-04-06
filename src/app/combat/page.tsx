@@ -1425,12 +1425,14 @@ function CombatPageContent() {
   const [showExpertModal, setShowExpertModal] = useState(false)
   const [preSelectExpertId, setPreSelectExpertId] = useState<string | null>(null)
 
-  // Check URL params for expert selection (e.g., ?expert=pathology)
+  // Check URL params for expert selection (e.g., ?expert=tony-magliocco)
   const searchParams = useSearchParams()
   useEffect(() => {
     const expertParam = searchParams.get('expert')
-    if (expertParam === 'pathology') {
-      setPreSelectExpertId('tony-magliocco')
+    if (expertParam) {
+      // Handle both 'pathology' (legacy) and direct expert IDs
+      const expertId = expertParam === 'pathology' ? 'tony-magliocco' : expertParam
+      setPreSelectExpertId(expertId)
       setShowExpertModal(true)
     }
   }, [searchParams])
