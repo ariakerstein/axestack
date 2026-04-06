@@ -273,6 +273,32 @@ function isSymptomQuestion(message: string): boolean {
   return symptomPatterns.some(pattern => pattern.test(message))
 }
 
+// Detect if question involves specialist care pathways (haematologist, oncologist, etc.)
+function detectsSpecialistCare(message: string, history: Array<{role: string, content: string}> = []): {
+  isSpecialistCare: boolean
+  specialistType?: string
+} {
+  const specialistPatterns = [
+    { pattern: /\b(haematolog|hematolog)/i, type: 'haematologist' },
+    { pattern: /\b(oncolog)/i, type: 'oncologist' },
+    { pattern: /\bconsultant\b/i, type: 'consultant' },
+    { pattern: /\bspecialist\b/i, type: 'specialist' },
+    { pattern: /\b(cancer (center|centre)|treatment (center|centre))/i, type: 'cancer center' },
+    { pattern: /\bunder (the )?care (of)?\b/i, type: 'specialist' },
+    { pattern: /\b(my|the) (doctor at|team at)\b/i, type: 'specialist team' },
+  ]
+
+  const allText = [message, ...history.map(h => h.content)].join(' ')
+
+  for (const { pattern, type } of specialistPatterns) {
+    if (pattern.test(allText)) {
+      return { isSpecialistCare: true, specialistType: type }
+    }
+  }
+
+  return { isSpecialistCare: false }
+}
+
 // Check if RAG response indicates low confidence or lack of info
 function needsFallback(response: string, confidenceScore?: number): boolean {
   const lowConfidenceIndicators = [
@@ -301,6 +327,14 @@ When discussing symptoms:
 3. Distinguish between common/expected symptoms vs. concerning ones that need immediate attention
 4. Always recommend discussing with their care team, but provide helpful context first
 5. For symptoms like tingling, numbness, cold extremities - explain paraneoplastic syndromes, neuropathy, and treatment-related causes when relevant
+
+CRITICAL - SPECIALIST CARE PATHWAYS:
+When a patient is under the care of a specialist (haematologist, oncologist, consultant):
+- The SPECIALIST should be ordering tests and managing care, not the GP
+- Physical examinations by the specialist are essential - blood tests alone may not detect relapse (e.g., lymphoma can be active even with normal blood work)
+- The specialist has the patient's complete history, baseline values, and knows their specific patterns
+- GPs can support/facilitate, but treatment strategy comes from the specialist
+- Surveillance protocols (imaging, blood work, physical exams) should be directed by the specialist team
 
 Be warm, informative, and reassuring while being honest about when to seek medical attention. Avoid medical jargon - explain in plain language.`
 
@@ -336,6 +370,9 @@ export async function POST(request: NextRequest) {
 
     // Detect if this is a symptom question upfront
     const isSymptom = isSymptomQuestion(message)
+
+    // Detect if question involves specialist care (haematologist, oncologist, etc.)
+    const specialistCareCheck = detectsSpecialistCare(message, history)
 
     // Fetch patient's knowledge graph context for personalization
     const patientContext = await getPatientContext(userId, sessionId)
@@ -504,6 +541,9 @@ ${enrichedQuestion}`
       model: 'claude-3-5-haiku',
       inputTokens,
       outputTokens,
+      // Specialist care flagging for expert review
+      involvesSpecialistCare: specialistCareCheck.isSpecialistCare,
+      specialistType: specialistCareCheck.specialistType,
     }).catch(() => {})
 
     // direct-navis returns: { response, confidenceScore, citations, citationUrls, followUpQuestions }
@@ -517,6 +557,9 @@ ${enrichedQuestion}`
       followUpQuestions: data.followUpQuestions,
       // Indicate if patient context was used
       hasPatientContext: !!patientContext,
+      // Flag for expert review when specialist care pathways are involved
+      needsExpertReview: specialistCareCheck.isSpecialistCare,
+      specialistType: specialistCareCheck.specialistType,
     })
   } catch (error) {
     console.error('Ask API error:', error)

@@ -80,7 +80,7 @@ export default function SharedRecordPage() {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['summary', 'questions', 'answer']))
   const [copied, setCopied] = useState(false)
   const [followUpQuestion, setFollowUpQuestion] = useState('')
-  const [followUpAnswer, setFollowUpAnswer] = useState<string | null>(null)
+  const [followUpMessages, setFollowUpMessages] = useState<Array<{role: 'user' | 'assistant', content: string}>>([])
   const [isAskingFollowUp, setIsAskingFollowUp] = useState(false)
 
   useEffect(() => {
@@ -235,33 +235,69 @@ export default function SharedRecordPage() {
 
             {/* Continue asking - inline input with context preservation */}
             <div className="px-6 pb-6 border-t border-slate-100 pt-4">
-              <p className="text-sm text-slate-500 mb-3">Have a follow-up question?</p>
+              {/* Show previous follow-up messages */}
+              {followUpMessages.length > 0 && (
+                <div className="space-y-3 mb-4">
+                  {followUpMessages.map((msg, i) => (
+                    <div key={i} className={`p-3 rounded-xl ${msg.role === 'user' ? 'bg-slate-900 text-white ml-8' : 'bg-slate-50 mr-8'}`}>
+                      {msg.role === 'assistant' && (
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+                            <span className="text-white text-[10px] font-bold">N</span>
+                          </div>
+                          <span className="font-medium text-slate-900 text-xs">Navis</span>
+                        </div>
+                      )}
+                      <div className={`prose prose-sm max-w-none ${msg.role === 'user' ? 'prose-invert' : 'prose-slate'}`}>
+                        {msg.role === 'assistant' ? (
+                          <TypewriterMarkdown text={msg.content} speed={15} instantRender={i < followUpMessages.length - 1} />
+                        ) : (
+                          <p className="text-sm m-0">{msg.content}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <p className="text-sm text-slate-500 mb-3">
+                {followUpMessages.length > 0 ? 'Continue the conversation:' : 'Have a follow-up question?'}
+              </p>
               <form
                 onSubmit={async (e) => {
                   e.preventDefault()
                   if (!followUpQuestion.trim() || isAskingFollowUp) return
 
+                  const userQuestion = followUpQuestion.trim()
+                  setFollowUpQuestion('')
                   setIsAskingFollowUp(true)
-                  setFollowUpAnswer(null)
+
+                  // Add user message immediately
+                  setFollowUpMessages(prev => [...prev, { role: 'user', content: userQuestion }])
 
                   try {
+                    // Build full history including original Q&A and all follow-ups
+                    const fullHistory = [
+                      { role: 'user', content: result.question || '' },
+                      { role: 'assistant', content: result.answer || '' },
+                      ...followUpMessages,
+                    ]
+
                     const response = await fetch('/api/ask', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
-                        message: followUpQuestion,
+                        message: userQuestion,
                         cancerType: result.cancerType || '',
-                        history: [
-                          { role: 'user', content: result.question || '' },
-                          { role: 'assistant', content: result.answer || '' },
-                        ],
+                        history: fullHistory,
                       }),
                     })
 
                     const data = await response.json()
-                    setFollowUpAnswer(data.answer || data.response || 'Sorry, I could not process that.')
-                  } catch (err) {
-                    setFollowUpAnswer('Sorry, something went wrong. Please try again.')
+                    const answer = data.answer || data.response || 'Sorry, I could not process that.'
+                    setFollowUpMessages(prev => [...prev, { role: 'assistant', content: answer }])
+                  } catch {
+                    setFollowUpMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, something went wrong. Please try again.' }])
                   } finally {
                     setIsAskingFollowUp(false)
                   }
@@ -289,21 +325,6 @@ export default function SharedRecordPage() {
                   Ask
                 </button>
               </form>
-
-              {/* Follow-up answer */}
-              {followUpAnswer && (
-                <div className="mt-4 p-4 bg-slate-50 rounded-xl">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">N</span>
-                    </div>
-                    <span className="font-medium text-slate-900 text-sm">Navis</span>
-                  </div>
-                  <div className="prose prose-slate prose-sm max-w-none">
-                    <TypewriterMarkdown text={followUpAnswer} speed={15} />
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
