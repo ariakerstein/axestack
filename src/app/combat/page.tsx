@@ -58,15 +58,32 @@ function AIFiveAnimation({ isActive, activePerspective }: { isActive: boolean, a
   )
 }
 
-// Evidence Strength Meter - Sophisticated, professional design
-function EvidenceStrengthMeter({ strength, missingData }: { strength: number, missingData: string[] }) {
-  const getLevel = () => {
-    if (strength >= 80) return { label: 'Comprehensive', color: 'terracotta' }
-    if (strength >= 60) return { label: 'Substantial', color: 'terracotta' }
-    if (strength >= 40) return { label: 'Partial', color: 'slate' }
-    return { label: 'Limited', color: 'slate' }
+// Evidence Strength Meter - Shows what records you have and what's missing
+function EvidenceStrengthMeter({ strength, missingData, recordTypes }: { strength: number, missingData: string[], recordTypes?: string[] }) {
+  // Get human-readable description based on what they have
+  const getDescription = () => {
+    const types = recordTypes || []
+    const hasPathology = types.some(t => t?.toLowerCase().includes('pathology') || t?.toLowerCase().includes('biopsy'))
+    const hasImaging = types.some(t => t?.toLowerCase().includes('imaging') || t?.toLowerCase().includes('scan') || t?.toLowerCase().includes('mri') || t?.toLowerCase().includes('ct'))
+    const hasLabs = types.some(t => t?.toLowerCase().includes('lab') || t?.toLowerCase().includes('blood') || t?.toLowerCase().includes('psa'))
+    const hasGenomics = types.some(t => t?.toLowerCase().includes('genomic') || t?.toLowerCase().includes('genetic') || t?.toLowerCase().includes('molecular'))
+
+    if (strength >= 80) {
+      return { label: 'Strong case file', desc: 'Multiple record types for detailed analysis' }
+    }
+    if (strength >= 60) {
+      if (hasPathology && hasImaging) return { label: 'Good foundation', desc: 'Has pathology + imaging' }
+      if (hasPathology) return { label: 'Good foundation', desc: 'Has pathology report' }
+      return { label: 'Good foundation', desc: `${types.length} record${types.length !== 1 ? 's' : ''} uploaded` }
+    }
+    if (strength >= 40) {
+      return { label: 'Partial picture', desc: 'Add more records for deeper insights' }
+    }
+    return { label: 'Getting started', desc: 'Upload more records when available' }
   }
-  const level = getLevel()
+
+  const level = getDescription()
+  const isStrong = strength >= 60
 
   return (
     <div className="bg-gradient-to-r from-slate-900 to-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg">
@@ -82,13 +99,13 @@ function EvidenceStrengthMeter({ strength, missingData }: { strength: number, mi
           <span className="text-sm font-semibold text-white">Perspectives Engaging</span>
         </div>
         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-          level.color === 'terracotta' ? 'bg-[#C66B4A]/20 text-[#C66B4A]' : 'bg-slate-600 text-slate-300'
+          isStrong ? 'bg-[#C66B4A]/20 text-[#C66B4A]' : 'bg-slate-600 text-slate-300'
         }`}>
-          {level.label} Evidence
+          {level.label}
         </span>
       </div>
 
-      {/* Animated progress bar with glow */}
+      {/* Progress bar with explanation */}
       <div className="relative h-2 bg-slate-700 rounded-full overflow-hidden">
         <div
           className="h-full bg-gradient-to-r from-[#C66B4A] to-[#E88B6A] rounded-full transition-all duration-1000 ease-out"
@@ -100,10 +117,13 @@ function EvidenceStrengthMeter({ strength, missingData }: { strength: number, mi
         />
       </div>
 
-      {/* Status text */}
-      <div className="mt-2 flex items-center gap-2">
-        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-        <span className="text-xs text-slate-400">5 AI perspectives analyzing your case...</span>
+      {/* Status text - now explains what the bar means */}
+      <div className="mt-2 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+          <span className="text-xs text-slate-400">5 AI perspectives analyzing...</span>
+        </div>
+        <span className="text-xs text-slate-500">{level.desc}</span>
       </div>
 
       {/* Missing data suggestions - only show if significant gaps */}
@@ -2066,6 +2086,7 @@ function CombatPageContent() {
                 <EvidenceStrengthMeter
                   strength={calculateEvidenceStrength()}
                   missingData={getMissingData()}
+                  recordTypes={records.map(r => r.documentType)}
                 />
                 <DeliberationTheater
                   activePerspective={activePerspective}
