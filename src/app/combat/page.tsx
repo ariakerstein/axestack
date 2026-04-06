@@ -1713,7 +1713,11 @@ function CombatPageContent() {
         })
       })
 
-      if (!response.ok) throw new Error('Combat failed')
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('Combat API error response:', errorData)
+        throw new Error(errorData.details || errorData.error || 'Combat failed')
+      }
 
       // Handle streaming response
       const reader = response.body?.getReader()

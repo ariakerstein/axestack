@@ -3,8 +3,8 @@ import { createClient } from '@supabase/supabase-js'
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit'
 
 // Use the same Supabase project as other AI calls
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://felofmlhqwcdpiyjgstx.supabase.co"
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlbG9mbWxocXdjZHBpeWpnc3R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA2NzQzODAsImV4cCI6MjA1NjI1MDM4MH0._kYA-prwPgxQWoKzWPzJDy2Bf95WgTF5_KnAPN2cGnQ"
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ""
 
 function getSupabase() {
@@ -311,6 +311,17 @@ Respond in this exact JSON format:
 Be specific to THIS patient's case. Reference their actual biomarkers, stage, and findings.`
 
   try {
+    // Check for required environment variables
+    if (!SUPABASE_URL) {
+      console.error('[Combat] Missing SUPABASE_URL')
+      throw new Error('Server configuration error: Missing SUPABASE_URL')
+    }
+    if (!SUPABASE_ANON_KEY) {
+      console.error('[Combat] Missing SUPABASE_ANON_KEY')
+      throw new Error('Server configuration error: Missing SUPABASE_ANON_KEY')
+    }
+
+    console.log(`[Combat] Calling direct-navis for ${persona.name}...`)
     const response = await fetch(`${SUPABASE_URL}/functions/v1/direct-navis`, {
       method: 'POST',
       headers: {
@@ -328,7 +339,9 @@ Be specific to THIS patient's case. Reference their actual biomarkers, stage, an
     })
 
     if (!response.ok) {
-      throw new Error(`API error: ${response.status}`)
+      const errorText = await response.text().catch(() => 'Could not read error response')
+      console.error(`[Combat] direct-navis error for ${persona.name}:`, response.status, errorText)
+      throw new Error(`direct-navis API error: ${response.status} - ${errorText.slice(0, 200)}`)
     }
 
     const data = await response.json()
@@ -403,6 +416,7 @@ The divergence section is especially important - highlight where aggressive vs c
 Focus on actionable insights for the patient's next doctor conversation.`
 
   try {
+    console.log('[Combat] Calling direct-navis for synthesis...')
     const response = await fetch(`${SUPABASE_URL}/functions/v1/direct-navis`, {
       method: 'POST',
       headers: {
@@ -420,6 +434,8 @@ Focus on actionable insights for the patient's next doctor conversation.`
     })
 
     if (!response.ok) {
+      const errorText = await response.text().catch(() => 'Could not read error response')
+      console.error('[Combat] direct-navis synthesis error:', response.status, errorText)
       throw new Error(`API error: ${response.status}`)
     }
 
@@ -683,20 +699,25 @@ Do NOT recommend treatments based on the incorrect original values.
 }
 
 export async function POST(request: NextRequest) {
+  console.log('[Combat] POST request received')
   try {
     // Rate limiting - AI routes are expensive
     const clientId = getClientIdentifier(request)
     const rateLimit = checkRateLimit(`combat:${clientId}`, RATE_LIMITS.ai)
     if (!rateLimit.success) {
+      console.log('[Combat] Rate limited:', clientId)
       return NextResponse.json(
         { error: 'Rate limit exceeded. Please wait before making another request.' },
         { status: 429, headers: { 'Retry-After': String(Math.ceil((rateLimit.resetTime - Date.now()) / 1000)) } }
       )
     }
 
-    const { phase, records, weights, userId, sessionId, communicationStyle, corrections, verifyFirst } = await request.json()
+    const body = await request.json()
+    const { phase, records, weights, userId, sessionId, communicationStyle, corrections, verifyFirst } = body
+    console.log('[Combat] Parsed request:', { phase, recordCount: records?.length, verifyFirst, hasWeights: !!weights })
 
     if (!records || records.length === 0) {
+      console.log('[Combat] No records provided')
       return NextResponse.json({ error: 'No records provided' }, { status: 400 })
     }
 
@@ -755,6 +776,9 @@ ${caseContext}`
     // Get the communication style preference (default to balanced)
     const style: CommunicationStyle = communicationStyle || 'balanced'
 
+    console.log('[Combat] Starting 5 perspective calls in parallel...')
+    console.log('[Combat] Weights:', perspectiveWeights)
+
     // Get all five perspectives in parallel, passing their respective weights and communication style
     const [guidelinesResponse, aggressiveResponse, precisionResponse, conservativeResponse, integrativeResponse] = await Promise.all([
       getPersonaPerspective(PERSONAS.guidelines, caseContext, phase, question, perspectiveWeights.guidelines, userId, style),
@@ -763,6 +787,8 @@ ${caseContext}`
       getPersonaPerspective(PERSONAS.conservative, caseContext, phase, question, perspectiveWeights.conservative, userId, style),
       getPersonaPerspective(PERSONAS.integrative, caseContext, phase, question, perspectiveWeights.integrative, userId, style)
     ])
+
+    console.log('[Combat] All 5 perspectives completed')
 
     const perspectives = [
       { name: PERSONAS.guidelines.name, icon: 'shield' as const, color: 'blue', weight: perspectiveWeights.guidelines, ...guidelinesResponse },
@@ -795,7 +821,14 @@ ${caseContext}`
     return NextResponse.json(result)
 
   } catch (err) {
-    console.error('Combat API error:', err)
-    return NextResponse.json({ error: 'Combat analysis failed' }, { status: 500 })
+    const errorMessage = err instanceof Error ? err.message : String(err)
+    const errorStack = err instanceof Error ? err.stack : undefined
+    console.error('Combat API error:', { message: errorMessage, stack: errorStack })
+    return NextResponse.json({
+      error: 'Combat analysis failed',
+      details: errorMessage,
+      // Only include stack in non-production for debugging
+      ...(process.env.NODE_ENV !== 'production' && { stack: errorStack })
+    }, { status: 500 })
   }
 }

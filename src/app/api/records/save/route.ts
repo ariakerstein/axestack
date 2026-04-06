@@ -3,36 +3,56 @@ import { createClient } from '@supabase/supabase-js'
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit'
 
 // Use the same Supabase as insight-guide-query (navis)
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://felofmlhqwcdpiyjgstx.supabase.co"
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ""
 
 // Helper to verify auth token and get user ID securely
 async function getAuthenticatedUserId(request: NextRequest): Promise<string | null> {
   const authHeader = request.headers.get('authorization')
   if (!authHeader?.startsWith('Bearer ')) {
+    console.log('[Auth] No bearer token in request')
     return null
   }
 
   const token = authHeader.substring(7)
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
-  // Verify the token and get user
-  const { data: { user }, error } = await supabase.auth.getUser(token)
-
-  if (error || !user) {
-    console.error('Auth verification failed:', error)
+  // Check for required env vars
+  if (!SUPABASE_URL) {
+    console.error('[Auth] SUPABASE_URL is not set!')
+    return null
+  }
+  if (!SUPABASE_SERVICE_KEY) {
+    console.error('[Auth] SUPABASE_SERVICE_ROLE_KEY is not set!')
     return null
   }
 
-  return user.id
+  try {
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+
+    // Verify the token and get user
+    const { data: { user }, error } = await supabase.auth.getUser(token)
+
+    if (error || !user) {
+      console.error('[Auth] Verification failed:', error?.message || 'No user returned')
+      return null
+    }
+
+    console.log('[Auth] Verified user:', user.id)
+    return user.id
+  } catch (err) {
+    console.error('[Auth] Exception during verification:', err)
+    return null
+  }
 }
 
 export async function POST(request: NextRequest) {
+  console.log('[Records/Save] POST request received')
   try {
     // Rate limiting
     const clientId = getClientIdentifier(request)
     const rateLimit = checkRateLimit(`records-save:${clientId}`, RATE_LIMITS.upload)
     if (!rateLimit.success) {
+      console.log('[Records/Save] Rate limited:', clientId)
       return NextResponse.json(
         { error: 'Rate limit exceeded' },
         { status: 429, headers: { 'Retry-After': String(Math.ceil((rateLimit.resetTime - Date.now()) / 1000)) } }
@@ -43,15 +63,21 @@ export async function POST(request: NextRequest) {
     const userId = await getAuthenticatedUserId(request)
 
     if (!userId) {
+      console.log('[Records/Save] No authenticated user - returning 401')
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
     const { fileName, documentType, result, documentText, chatMessages } = await request.json()
+    console.log('[Records/Save] Saving record:', fileName, 'for user:', userId)
 
     // Check if we have service role key (required for bypassing RLS)
     const hasServiceKey = SUPABASE_SERVICE_KEY && SUPABASE_SERVICE_KEY.startsWith('eyJ')
     if (!hasServiceKey) {
-      console.error('No valid service role key found - using anon key will fail')
+      console.error('[Records/Save] SUPABASE_SERVICE_ROLE_KEY is not set or invalid!')
+      return NextResponse.json({
+        error: 'Server configuration error',
+        details: 'Service role key not configured'
+      }, { status: 500 })
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
@@ -93,9 +119,16 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, id: data?.id })
   } catch (error) {
-    console.error('Records save error:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    const errorStack = error instanceof Error ? error.stack : undefined
+    console.error('[Records/Save] Error:', { message: errorMessage, stack: errorStack })
     return NextResponse.json(
-      { error: 'Failed to save record' },
+      {
+        error: 'Failed to save record',
+        details: errorMessage,
+        // Only include stack in dev
+        ...(process.env.NODE_ENV !== 'production' && { stack: errorStack })
+      },
       { status: 500 }
     )
   }
