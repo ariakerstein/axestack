@@ -66,6 +66,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
+    // Check Resend is configured first
+    const resend = getResend()
+    if (!resend) {
+      console.error('RESEND_API_KEY not configured')
+      return NextResponse.json(
+        { error: 'Email service not configured. Please contact support.' },
+        { status: 500 }
+      )
+    }
+
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
     // Save consultation to database
@@ -255,34 +265,33 @@ Submitted via opencancer.ai
 Consultation ID: ${consultation?.id || 'pending'}
 `
 
-    // Send email via Resend
-    const resend = getResend()
-    if (!resend) {
-      console.error('RESEND_API_KEY not configured')
+    // Send email via Resend (resend was already validated at start of function)
+    try {
+      const emailResult = await resend.emails.send({
+        from: 'opencancer.ai <hello@opencancer.ai>',
+        to: [EXPERT_EMAIL],
+        replyTo: userEmail,
+        subject: subject,
+        html: html,
+        text: text,
+      })
+
+      if (emailResult.error) {
+        console.error('Email send failed:', emailResult.error)
+        return NextResponse.json(
+          { error: `Email failed: ${emailResult.error.message}` },
+          { status: 500 }
+        )
+      }
+
+      console.log('Consultation email sent:', emailResult.data?.id)
+    } catch (emailError: any) {
+      console.error('Email exception:', emailError)
       return NextResponse.json(
-        { error: 'Email service not configured' },
+        { error: `Email error: ${emailError.message || 'Unknown error'}` },
         { status: 500 }
       )
     }
-
-    const emailResult = await resend.emails.send({
-      from: 'opencancer.ai <hello@opencancer.ai>',
-      to: [EXPERT_EMAIL],
-      replyTo: userEmail,
-      subject: subject,
-      html: html,
-      text: text,
-    })
-
-    if (emailResult.error) {
-      console.error('Email send failed:', emailResult.error)
-      return NextResponse.json(
-        { error: emailResult.error.message || 'Failed to send consultation email' },
-        { status: 500 }
-      )
-    }
-
-    console.log('Consultation email sent:', emailResult.data?.id)
 
     // Update consultation status
     if (consultation?.id) {
