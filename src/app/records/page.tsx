@@ -2245,6 +2245,9 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                       <span key={format} className="px-3 py-1 bg-orange-50 text-orange-700 text-sm rounded-full border border-orange-100">{format}</span>
                     ))}
                   </div>
+                  <p className="mt-4 text-xs text-slate-400 flex items-center justify-center gap-1">
+                    <span className="text-green-500">🔒</span> 15,000+ records analyzed securely
+                  </p>
                 </div>
               )}
             </div>
