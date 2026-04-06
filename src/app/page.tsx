@@ -446,12 +446,6 @@ function HomeContent() {
                     60 seconds • Personalized guidance • 200+ cancer types
                   </p>
                 </div>
-                <div className="flex items-center justify-center gap-3 mt-4 pt-4 border-t border-slate-200/50">
-                  <Link href="/about" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                    <img src="/ari.png" alt="Ari" className="w-8 h-8 rounded-full object-cover ring-2 ring-slate-200" />
-                    <p className="text-xs text-slate-500"><span className="font-medium text-slate-700">Built by a survivor</span></p>
-                  </Link>
-                </div>
               </div>
             </div>
           </div>
@@ -909,16 +903,8 @@ function HomeContent() {
               <h2 className="text-3xl font-bold text-center mb-3 text-slate-900">
                 Facing cancer?
               </h2>
-              <p className="text-slate-500 text-center mb-4 text-sm max-w-lg mx-auto">
+              <p className="text-slate-500 text-center mb-8 text-sm max-w-lg mx-auto">
                 The average patient waits 6+ weeks for a second opinion. Get AI-powered guidance in minutes, grounded in NCCN guidelines.
-              </p>
-              <p className="text-center mb-8">
-                <button
-                  onClick={() => { setShowWizardModal(true); setWizardStep(1); setWizardRole(null); }}
-                  className="text-sm text-slate-900 hover:text-slate-600 font-medium underline underline-offset-4"
-                >
-                  Not sure where to start — let us guide you →
-                </button>
               </p>
             </>
           )}
