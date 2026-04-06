@@ -195,6 +195,8 @@ export default function RecordsVaultPage() {
   const [privacyAcknowledged, setPrivacyAcknowledged] = useState(false)
   const [showAllTerms, setShowAllTerms] = useState(false)
   const [showAddRecordView, setShowAddRecordView] = useState(false)
+  const [bulkEmailCapture, setBulkEmailCapture] = useState('')
+  const [bulkEmailSubmitted, setBulkEmailSubmitted] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
@@ -1185,6 +1187,8 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
     setError(null)
     setChatMessages([])
     setBulkProgress({ current: 0, total: 0 })
+    setBulkEmailSubmitted(false)
+    setBulkEmailCapture('')
     setShowAddRecordView(false) // Return to records-first view if user has records
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
@@ -2275,17 +2279,24 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
               <div className="mt-5 space-y-3">
                 {/* PROMINENT CTA AT TOP - Translate All button or Progress */}
                 {(isProcessing || uploadedFiles.some(f => f.status === 'processing')) ? (
-                  // Processing state - show progress
+                  // Processing state - show progress with filename
                   <div className="bg-slate-900 rounded-xl p-4 text-white shadow-lg">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <div className="flex-1">
+                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
                         <span className="font-semibold">
-                          Processing file {Math.max(bulkProgress.current, uploadedFiles.filter(f => f.status === 'completed' || f.status === 'error').length + 1)} of {bulkProgress.total || uploadedFiles.length}
+                          Processing {bulkProgress.current} of {bulkProgress.total || uploadedFiles.length}
                         </span>
                         <span className="text-white/60 text-sm ml-2">
                           ({Math.floor(processingElapsed / 60)}:{(processingElapsed % 60).toString().padStart(2, '0')})
                         </span>
+                        {/* Show current filename */}
+                        {(() => {
+                          const currentFile = uploadedFiles.find(f => f.status === 'processing')
+                          return currentFile ? (
+                            <p className="text-sm text-white/70 truncate mt-1">{currentFile.file.name}</p>
+                          ) : null
+                        })()}
                       </div>
                     </div>
                     <div className="w-full bg-white/30 rounded-full h-3">
@@ -2303,8 +2314,48 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                     {processingElapsed >= 60 && processingElapsed < 120 && (
                       <p className="text-sm text-amber-300 mt-2">Still processing — analyzing document with AI...</p>
                     )}
-                    {processingElapsed >= 120 && (
-                      <p className="text-sm text-amber-300 mt-2">Taking longer than usual. If stuck, try refreshing and uploading again.</p>
+                    {processingElapsed >= 60 && !bulkEmailSubmitted && (
+                      <div className="mt-3 pt-3 border-t border-white/20">
+                        <p className="text-sm text-amber-300 mb-2">
+                          {processingElapsed >= 120 ? 'Complex document — still analyzing...' : 'Large file detected — this may take a minute...'}
+                        </p>
+                        <p className="text-xs text-white/60 mb-3">Processing will continue in the background. Want us to email you when done?</p>
+                        <form
+                          onSubmit={(e) => {
+                            e.preventDefault()
+                            if (bulkEmailCapture && bulkEmailCapture.includes('@')) {
+                              try {
+                                const saved = localStorage.getItem('patient-profile')
+                                const profile = saved ? JSON.parse(saved) : {}
+                                profile.email = bulkEmailCapture
+                                localStorage.setItem('patient-profile', JSON.stringify(profile))
+                              } catch { /* ignore */ }
+                              setBulkEmailSubmitted(true)
+                            }
+                          }}
+                          className="flex gap-2"
+                        >
+                          <input
+                            type="email"
+                            value={bulkEmailCapture}
+                            onChange={(e) => setBulkEmailCapture(e.target.value)}
+                            placeholder="your@email.com"
+                            className="flex-1 px-3 py-2 text-sm text-slate-900 border border-white/30 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-white/50"
+                          />
+                          <button
+                            type="submit"
+                            className="px-4 py-2 bg-white text-slate-900 text-sm font-medium rounded-lg hover:bg-white/90 transition-colors"
+                          >
+                            Notify me
+                          </button>
+                        </form>
+                      </div>
+                    )}
+                    {bulkEmailSubmitted && (
+                      <div className="mt-3 pt-3 border-t border-white/20 text-center">
+                        <p className="text-sm text-green-300">✓ We'll email {bulkEmailCapture} when processing completes</p>
+                        <p className="text-xs text-white/60 mt-1">Feel free to close this tab — we'll keep processing</p>
+                      </div>
                     )}
                   </div>
                 ) : uploadedFiles.every(f => f.status === 'completed' || f.status === 'error') ? (
@@ -2348,16 +2399,30 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                           setShowAddRecordView(false)
                           setUploadedFiles([])
                           setBulkProgress({ current: 0, total: 0 })
+                          setBulkEmailSubmitted(false)
+                          setBulkEmailCapture('')
                         }}
                         className="bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
                       >
                         View My Records ({savedTranslations.length})
                       </button>
                       <button
-                        onClick={resetUpload}
-                        className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-4 rounded-xl transition-all"
+                        onClick={() => {
+                          // Stay in upload view, just clear files for new upload
+                          setUploadedFiles([])
+                          setFile(null)
+                          setBulkProgress({ current: 0, total: 0 })
+                          setBulkComplete(false)
+                          setBulkEmailSubmitted(false)
+                          setBulkEmailCapture('')
+                          setError(null)
+                          if (fileInputRef.current) fileInputRef.current.value = ''
+                          // Trigger file picker immediately
+                          setTimeout(() => fileInputRef.current?.click(), 100)
+                        }}
+                        className="bg-[#C66B4A] hover:bg-[#B35E40] text-white font-semibold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
                       >
-                        Upload More
+                        <span>+</span> Upload More Files
                       </button>
                     </div>
                   </div>
