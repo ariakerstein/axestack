@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { RefreshCw, AlertTriangle, CheckCircle, XCircle, Zap, Database, Brain, Star, BarChart3 } from 'lucide-react'
+import { RefreshCw, AlertTriangle, CheckCircle, XCircle, Zap, Database, Brain, Star, BarChart3, Share2 } from 'lucide-react'
 
 interface EvalLog {
   id: string
@@ -129,6 +129,7 @@ export default function AdminEvalsPage() {
   const [viewMode, setViewMode] = useState<'list' | 'rollup'>('list')
   const [rollupBy, setRollupBy] = useState<'cancer_type' | 'question_type' | 'has_context'>('cancer_type')
   const [totalInDatabase, setTotalInDatabase] = useState<number>(0)
+  const [referralStats, setReferralStats] = useState<{total: number, bySource: Record<string, number>, recent: {ref: string, timestamp: string}[]}>({total: 0, bySource: {}, recent: []})
 
   // Compute rollups from logs
   const computeRollups = (logs: EvalLog[], groupBy: string): Rollup[] => {
@@ -171,7 +172,40 @@ export default function AdminEvalsPage() {
 
   useEffect(() => {
     fetchLogs()
+    fetchReferralStats()
   }, [filter])
+
+  const fetchReferralStats = async () => {
+    try {
+      const response = await fetch('/api/eval/log?source=activity&limit=500')
+      const data = await response.json()
+
+      // Filter for share_referral events
+      const referrals = (data.logs || []).filter((l: EvalLog) =>
+        l.question_type === 'share_referral' || l.question?.includes('share_')
+      )
+
+      // Count by source
+      const bySource: Record<string, number> = {}
+      const recent: {ref: string, timestamp: string}[] = []
+
+      for (const r of referrals) {
+        const ref = r.question || 'unknown'
+        bySource[ref] = (bySource[ref] || 0) + 1
+        if (recent.length < 10) {
+          recent.push({ ref, timestamp: r.created_at })
+        }
+      }
+
+      setReferralStats({
+        total: referrals.length,
+        bySource,
+        recent
+      })
+    } catch (err) {
+      console.error('Error fetching referral stats:', err)
+    }
+  }
 
   const fetchLogs = async () => {
     setLoading(true)
@@ -289,6 +323,44 @@ export default function AdminEvalsPage() {
                 <p className="text-2xl font-bold text-amber-600">{stats.needsReview}</p>
               </div>
             </div>
+
+            {/* Viral Referrals Card */}
+            {referralStats.total > 0 && (
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-5 border border-purple-200 mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Share2 className="w-5 h-5 text-purple-600" />
+                    <h3 className="font-semibold text-purple-900">Viral Referrals</h3>
+                  </div>
+                  <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-bold">
+                    {referralStats.total} total
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-purple-600 uppercase mb-2">By Share Link</p>
+                    <div className="space-y-1">
+                      {Object.entries(referralStats.bySource).slice(0, 5).map(([ref, count]) => (
+                        <div key={ref} className="flex justify-between text-sm">
+                          <span className="text-purple-700 truncate max-w-[150px]">{ref.replace('share_', '')}</span>
+                          <span className="font-medium text-purple-900">{count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs text-purple-600 uppercase mb-2">Recent Activity</p>
+                    <div className="space-y-1">
+                      {referralStats.recent.slice(0, 5).map((r, i) => (
+                        <div key={i} className="text-xs text-purple-600">
+                          {new Date(r.timestamp).toLocaleDateString()} - {r.ref.replace('share_', '').slice(0, 8)}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Three Dimension Cards */}
             <div className="grid grid-cols-3 gap-4 mb-6">

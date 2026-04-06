@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { CANCER_TYPES, PRIMARY_CATEGORIES, BLOOD_CANCERS, CANCER_CATEGORIES } from '@/lib/cancer-data'
 import { useAuth } from '@/lib/auth'
 import { AuthModal } from '@/components/AuthModal'
@@ -49,11 +50,13 @@ interface Message {
   feedbackComment?: string
 }
 
-export default function AskPage() {
+function AskPageContent() {
+  const searchParams = useSearchParams()
   const { user, profile: authProfile, loading: authLoading } = useAuth()
   const { trackEvent } = useAnalytics()
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
+  const [hasTrackedRef, setHasTrackedRef] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [cancerType, setCancerType] = useState<string>('')
   const [showSettingsModal, setShowSettingsModal] = useState(false)
@@ -127,6 +130,33 @@ export default function AskPage() {
   useEffect(() => {
     loadSuggestedQuestions(cancerType || null)
   }, [cancerType, loadSuggestedQuestions])
+
+  // Handle URL params: pre-fill question and track referrals
+  useEffect(() => {
+    const q = searchParams.get('q')
+    const ref = searchParams.get('ref')
+
+    // Pre-fill question from URL
+    if (q && !input) {
+      setInput(q)
+    }
+
+    // Track referral source
+    if (ref && !hasTrackedRef) {
+      setHasTrackedRef(true)
+      trackEvent('share_referral', {
+        ref_source: ref,
+        page: 'ask',
+        timestamp: new Date().toISOString(),
+      })
+      // Store in localStorage for conversion tracking
+      localStorage.setItem('opencancer-referral', JSON.stringify({
+        ref,
+        timestamp: new Date().toISOString(),
+        page: 'ask'
+      }))
+    }
+  }, [searchParams, input, hasTrackedRef, trackEvent])
 
   // Show welcome message on mount
   useEffect(() => {
@@ -1161,5 +1191,14 @@ I can help you with:
         onClose={() => setShowAuthModal(false)}
       />
     </div>
+  )
+}
+
+// Wrap with Suspense for useSearchParams
+export default function AskPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-white flex items-center justify-center"><div className="animate-pulse text-slate-400">Loading...</div></div>}>
+      <AskPageContent />
+    </Suspense>
   )
 }

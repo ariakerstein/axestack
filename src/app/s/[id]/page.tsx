@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { FileText, ChevronDown, ChevronUp, AlertCircle, Clock, Eye, MessageCircle, Swords, Shield, FlaskConical, Target, Leaf, ArrowRight, Share2, Copy, Check } from 'lucide-react'
+import { FileText, ChevronDown, ChevronUp, AlertCircle, Clock, Eye, MessageCircle, Swords, Shield, FlaskConical, Target, Leaf, ArrowRight, Share2, Copy, Check, Send } from 'lucide-react'
 import { Navbar } from '@/components/Navbar'
+import { TypewriterMarkdown } from '@/components/TypewriterMarkdown'
 
 // Icon mapping for Combat perspectives
 const PERSPECTIVE_ICONS: Record<string, React.ReactNode> = {
@@ -78,6 +79,7 @@ export default function SharedRecordPage() {
   const [error, setError] = useState<string | null>(null)
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['summary', 'questions', 'answer']))
   const [copied, setCopied] = useState(false)
+  const [followUpQuestion, setFollowUpQuestion] = useState('')
 
   useEffect(() => {
     const fetchRecord = async () => {
@@ -207,7 +209,7 @@ export default function SharedRecordPage() {
                 <span className="font-medium text-slate-900">Navis</span>
               </div>
               <div className="prose prose-slate prose-sm max-w-none">
-                <p className="text-slate-700 leading-relaxed whitespace-pre-wrap">{result.answer}</p>
+                <TypewriterMarkdown text={result.answer || ''} instantRender={true} />
               </div>
             </div>
 
@@ -219,7 +221,7 @@ export default function SharedRecordPage() {
                   {result.followUpQuestions.slice(0, 3).map((q, i) => (
                     <Link
                       key={i}
-                      href={`/ask?q=${encodeURIComponent(q)}`}
+                      href={`/ask?q=${encodeURIComponent(q)}&ref=share_${shareId}`}
                       className="block text-sm text-slate-600 hover:text-slate-900 hover:underline"
                     >
                       → {q}
@@ -228,6 +230,36 @@ export default function SharedRecordPage() {
                 </div>
               </div>
             )}
+
+            {/* Continue asking - inline input */}
+            <div className="px-6 pb-6 border-t border-slate-100 pt-4">
+              <p className="text-sm text-slate-500 mb-3">Have a follow-up question?</p>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  if (followUpQuestion.trim()) {
+                    window.location.href = `/ask?q=${encodeURIComponent(followUpQuestion)}&ref=share_${shareId}`
+                  }
+                }}
+                className="flex gap-2"
+              >
+                <input
+                  type="text"
+                  value={followUpQuestion}
+                  onChange={(e) => setFollowUpQuestion(e.target.value)}
+                  placeholder="Ask your own question..."
+                  className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                />
+                <button
+                  type="submit"
+                  disabled={!followUpQuestion.trim()}
+                  className="px-4 py-3 bg-slate-900 text-white rounded-xl font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                >
+                  <Send className="w-4 h-4" />
+                  Ask
+                </button>
+              </form>
+            </div>
           </div>
 
           {/* Disclaimer */}
@@ -247,7 +279,7 @@ export default function SharedRecordPage() {
               Ask Navis - our AI assistant trained on NCCN guidelines - any question about your cancer journey.
             </p>
             <Link
-              href="/ask"
+              href={`/ask?ref=share_${shareId}`}
               className="inline-flex items-center gap-2 px-8 py-4 bg-white text-slate-900 rounded-xl font-semibold hover:bg-slate-100 transition-all shadow-lg"
             >
               Ask Navis
@@ -421,7 +453,7 @@ export default function SharedRecordPage() {
               CancerCombat analyzes your diagnosis from 10 different expert perspectives to help you understand all your options.
             </p>
             <Link
-              href="/combat"
+              href={`/combat?ref=share_${shareId}`}
               className="inline-flex items-center gap-2 px-8 py-4 bg-white text-purple-900 rounded-xl font-semibold hover:bg-purple-50 transition-all shadow-lg"
             >
               Run CancerCombat
