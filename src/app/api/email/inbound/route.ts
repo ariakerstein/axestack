@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { Webhook } from 'svix'
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://felofmlhqwcdpiyjgstx.supabase.co"
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ""
 
 function getSupabase() {
   return createClient(SUPABASE_URL, SUPABASE_KEY)
 }
 
-// Resend webhook verification
+// Resend webhook verification - REQUIRED in production
 const RESEND_WEBHOOK_SECRET = process.env.RESEND_WEBHOOK_SECRET
 
 interface ResendInboundEmail {
@@ -29,18 +31,46 @@ interface ResendInboundEmail {
 
 export async function POST(request: NextRequest) {
   try {
-    // Verify webhook signature if secret is set
-    // Resend uses Svix for webhooks - check multiple possible header names
-    const signature = request.headers.get('svix-signature') || request.headers.get('resend-signature')
-    if (RESEND_WEBHOOK_SECRET && !signature) {
-      console.log('Webhook headers:', Object.fromEntries(request.headers.entries()))
-      return NextResponse.json({ error: 'Missing signature' }, { status: 401 })
+    // Rate limiting for webhook endpoint
+    const clientId = getClientIdentifier(request)
+    const rateLimit = checkRateLimit(`email-inbound:${clientId}`, RATE_LIMITS.standard)
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil((rateLimit.resetTime - Date.now()) / 1000)) } }
+      )
     }
 
-    // TODO: Add proper svix signature verification
-    // For now, accept if signature is present (Resend signed it)
+    // Get raw body for signature verification
+    const rawBody = await request.text()
 
-    const payload: ResendInboundEmail = await request.json()
+    // Verify webhook signature using Svix (required in production)
+    if (RESEND_WEBHOOK_SECRET) {
+      const svixId = request.headers.get('svix-id')
+      const svixTimestamp = request.headers.get('svix-timestamp')
+      const svixSignature = request.headers.get('svix-signature')
+
+      if (!svixId || !svixTimestamp || !svixSignature) {
+        console.warn('Webhook missing required Svix headers')
+        return NextResponse.json({ error: 'Missing webhook signature headers' }, { status: 401 })
+      }
+
+      try {
+        const wh = new Webhook(RESEND_WEBHOOK_SECRET)
+        wh.verify(rawBody, {
+          'svix-id': svixId,
+          'svix-timestamp': svixTimestamp,
+          'svix-signature': svixSignature,
+        })
+      } catch (verifyError) {
+        console.error('Webhook signature verification failed:', verifyError)
+        return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 401 })
+      }
+    } else {
+      console.warn('RESEND_WEBHOOK_SECRET not set - accepting unverified webhook (unsafe in production)')
+    }
+
+    const payload: ResendInboundEmail = JSON.parse(rawBody)
 
     // Extract username from to address (e.g., "john@opencancer.ai" -> "john")
     const toAddress = payload.to[0]?.toLowerCase()
