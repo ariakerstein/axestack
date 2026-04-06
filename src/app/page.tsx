@@ -842,79 +842,51 @@ function HomeContent() {
             </>
           )}
 
-          {/* YOUR TOOLKIT - Core 3 tools, always visible */}
-          <p className="text-xs font-medium tracking-widest text-slate-400 mb-3">{profile ? 'YOUR TOOLKIT' : 'START HERE'}</p>
+          {/* PRIMARY TOOLS - 3 cards: Upload, Combat, Expert Review */}
+          <p className="text-xs font-medium tracking-widest text-slate-400 mb-3">{profile ? 'YOUR TOOLS' : 'START HERE'}</p>
           <div className="grid md:grid-cols-3 gap-4 mb-8">
-            {/* Records */}
+            {/* Upload Records */}
             <Link href="/records" className="group bg-white border-2 border-slate-900 rounded-xl p-5 hover:shadow-lg transition-all relative">
-              {!profile && (
-                <span className="absolute -top-2.5 left-4 bg-slate-900 text-white text-[10px] font-medium px-2.5 py-1 rounded">
-                  Most popular
-                </span>
-              )}
-              <div className={`mb-3 ${!profile ? 'mt-1' : ''}`}>
-                <ShieldCheck className="w-6 h-6 text-blue-500" />
+              <span className="absolute -top-2.5 left-4 bg-slate-900 text-white text-[10px] font-medium px-2.5 py-1 rounded">
+                Start here
+              </span>
+              <div className="mb-3 mt-1">
+                <FolderClosed className="w-6 h-6 text-blue-500" />
               </div>
-              <h3 className="font-bold text-slate-900 mb-1">Records Vault</h3>
-              <p className="text-slate-600 text-sm mb-2">Private, secure medical record translation.</p>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-blue-50 text-blue-700">🔒 Privacy-first</span>
+              <h3 className="font-bold text-slate-900 mb-1">Upload Records</h3>
+              <p className="text-slate-600 text-sm mb-2">Translate medical reports to plain English.</p>
+              <span className="text-[10px] px-2 py-0.5 rounded bg-blue-50 text-blue-700">🔒 Private & secure</span>
             </Link>
 
-            {/* Combat */}
+            {/* Cancer Combat */}
             <Link href="/combat" className="group bg-white border-2 border-slate-900 rounded-xl p-5 hover:shadow-lg transition-all relative">
-              {!profile && (
-                <span className="absolute -top-2.5 left-4 bg-slate-900 text-white text-[10px] font-medium px-2.5 py-1 rounded">
-                  Trending
-                </span>
-              )}
-              <div className={`mb-3 ${!profile ? 'mt-1' : ''}`}>
+              <span className="absolute -top-2.5 left-4 bg-slate-900 text-white text-[10px] font-medium px-2.5 py-1 rounded">
+                AI second opinion
+              </span>
+              <div className="mb-3 mt-1">
                 <span className="text-2xl">⚔️</span>
               </div>
               <h3 className="font-bold text-slate-900 mb-1">Cancer Combat</h3>
               <p className="text-slate-600 text-sm mb-2">5 AI experts debate your case.</p>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">5 expert perspectives</span>
+              <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">Free</span>
             </Link>
 
-            {/* Clinical Trials */}
-            <Link href="/trials" className="group bg-white border-2 border-slate-900 rounded-xl p-5 hover:shadow-lg transition-all">
-              <div className="mb-3">
-                <Microscope className="w-6 h-6 text-indigo-500" />
-              </div>
-              <h3 className="font-bold text-slate-900 mb-1">Clinical Trials</h3>
-              <p className="text-slate-600 text-sm mb-2">{profile ? `Trials for ${CANCER_TYPES[profile.cancerType] || 'your cancer'}` : 'Trials matched to your diagnosis'}.</p>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">ClinicalTrials.gov</span>
-            </Link>
-          </div>
-
-          {/* EXPERT SERVICES - Protean Pathology Review */}
-          <p className="text-xs font-medium tracking-widest text-slate-400 mb-3">EXPERT SERVICES</p>
-          <div className="mb-8">
-            <Link
-              href="/combat?expert=pathology"
-              className="group flex items-center gap-4 bg-gradient-to-r from-white to-emerald-50/50 border-2 border-emerald-200 hover:border-emerald-400 rounded-xl p-5 hover:shadow-lg transition-all"
-            >
-              {/* Protean Logo */}
-              <div className="flex-shrink-0">
+            {/* Expert Pathology Review */}
+            <Link href="/combat?expert=pathology" className="group bg-gradient-to-r from-white to-emerald-50/50 border-2 border-emerald-200 hover:border-emerald-400 rounded-xl p-5 hover:shadow-lg transition-all relative">
+              <span className="absolute -top-2.5 left-4 bg-emerald-600 text-white text-[10px] font-medium px-2.5 py-1 rounded">
+                Expert review
+              </span>
+              <div className="mb-3 mt-1">
                 <img
                   src="https://images.squarespace-cdn.com/content/v1/5a4c3e3ebff200d1651f0273/1612204851498-UYVYCYQRCXVHMA08T0TS/protean_logo.png"
-                  alt="Protean BioDiagnostics"
-                  className="h-10 w-auto"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none'
-                  }}
+                  alt="Protean"
+                  className="h-6 w-auto"
+                  onError={(e) => { e.currentTarget.style.display = 'none' }}
                 />
               </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-bold text-slate-900">Expert Pathology Review</h3>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">$650</span>
-                </div>
-                <p className="text-slate-600 text-sm">Board-certified pathologists verify your diagnosis</p>
-                <p className="text-xs text-slate-400 mt-1">Powered by Protean BioDiagnostics</p>
-              </div>
-              <div className="flex-shrink-0 text-emerald-600 group-hover:translate-x-1 transition-transform">
-                →
-              </div>
+              <h3 className="font-bold text-slate-900 mb-1">Pathology Review</h3>
+              <p className="text-slate-600 text-sm mb-2">Board-certified pathologists verify diagnosis.</p>
+              <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">$650</span>
             </Link>
           </div>
 
@@ -926,6 +898,12 @@ function HomeContent() {
               <span className="text-xs text-slate-400 hidden group-open:inline">Hide</span>
             </summary>
             <div className="grid md:grid-cols-4 gap-3">
+              <Link href="/trials" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
+                <Microscope className="w-5 h-5 text-indigo-500" />
+                <h3 className="font-semibold text-slate-900 text-sm mt-2">Clinical Trials</h3>
+                <p className="text-slate-500 text-xs">ClinicalTrials.gov</p>
+              </Link>
+
               <Link href="/ask" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
                 <ThinkingIndicator size={20} variant="light" />
                 <h3 className="font-semibold text-slate-900 text-sm mt-2">Ask Navis</h3>
