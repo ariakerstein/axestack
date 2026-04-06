@@ -1093,36 +1093,53 @@ function ExpertModal({
               <div>
                 <h3 className="font-semibold text-slate-900 mb-3">What would you like to share?</h3>
 
-                {/* Quick options */}
-                <div className="space-y-3 mb-4">
-                  <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 transition-all">
-                    <input
-                      type="radio"
-                      name="recordSelection"
-                      checked={recordSelection === 'all'}
-                      onChange={() => setRecordSelection('all')}
-                      className="mt-1"
-                    />
-                    <div>
-                      <p className="font-medium text-slate-900">Share all my records ({records.length})</p>
-                      <p className="text-sm text-slate-500">Includes all uploaded documents and analyses</p>
-                    </div>
-                  </label>
+                {/* Zero records - prompt to upload first */}
+                {records.length === 0 ? (
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+                    <p className="text-sm font-medium text-amber-900 mb-2">No records uploaded yet</p>
+                    <p className="text-sm text-amber-700 mb-3">
+                      Upload your pathology report, lab results, or imaging records first so the expert can review your case.
+                    </p>
+                    <Link
+                      href="/records"
+                      className="inline-flex items-center gap-2 text-sm font-medium text-amber-900 hover:text-amber-700 underline underline-offset-2"
+                    >
+                      <FileText className="w-4 h-4" />
+                      Upload your first record →
+                    </Link>
+                  </div>
+                ) : (
+                  /* Quick options */
+                  <div className="space-y-3 mb-4">
+                    <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 transition-all">
+                      <input
+                        type="radio"
+                        name="recordSelection"
+                        checked={recordSelection === 'all'}
+                        onChange={() => setRecordSelection('all')}
+                        className="mt-1"
+                      />
+                      <div>
+                        <p className="font-medium text-slate-900">Share all my records ({records.length})</p>
+                        <p className="text-sm text-slate-500">Includes all uploaded documents and analyses</p>
+                      </div>
+                    </label>
 
-                  <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 transition-all">
-                    <input
-                      type="radio"
-                      name="recordSelection"
-                      checked={recordSelection === 'choose'}
-                      onChange={() => setRecordSelection('choose')}
-                      className="mt-1"
-                    />
-                    <div>
-                      <p className="font-medium text-slate-900">Let me choose specific records</p>
-                      <p className="text-sm text-slate-500">Select which documents to include</p>
-                    </div>
-                  </label>
-                </div>
+                    <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 transition-all">
+                      <input
+                        type="radio"
+                        name="recordSelection"
+                        checked={recordSelection === 'choose'}
+                        onChange={() => setRecordSelection('choose')}
+                        className="mt-1"
+                      />
+                      <div>
+                        <p className="font-medium text-slate-900">Let me choose specific records</p>
+                        <p className="text-sm text-slate-500">Select which documents to include</p>
+                      </div>
+                    </label>
+                  </div>
+                )}
 
                 {/* Record list when "choose" is selected */}
                 {recordSelection === 'choose' && records.length > 0 && (

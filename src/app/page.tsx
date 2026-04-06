@@ -435,17 +435,23 @@ function HomeContent() {
               </div>
               {/* CTA + Social proof */}
               <div className="border-t border-slate-200 p-5 bg-gradient-to-r from-slate-50 to-orange-50/30">
-                <div className="text-center">
+                <div className="flex items-center justify-between gap-4">
+                  {/* Built by a survivor - left side */}
+                  <Link href="/about" className="flex items-center gap-2 hover:opacity-80 transition-opacity flex-shrink-0">
+                    <img src="/ari.png" alt="Ari" className="w-10 h-10 rounded-full object-cover ring-2 ring-slate-200" />
+                    <p className="text-xs text-slate-500"><span className="font-medium text-slate-700">Built by a survivor</span></p>
+                  </Link>
+                  {/* CTA - right side */}
                   <button
                     onClick={() => { setShowWizardModal(true); setWizardStep(1); setWizardRole(null); setWizardRedirectTo(null); }}
-                    className="bg-[#C66B4A] hover:bg-[#B35E40] text-white font-bold px-10 py-4 rounded-xl transition-all shadow-lg shadow-[#C66B4A]/30 hover:shadow-xl hover:scale-[1.02] min-h-[52px] text-lg"
+                    className="bg-[#C66B4A] hover:bg-[#B35E40] text-white font-bold px-8 py-3 rounded-xl transition-all shadow-lg shadow-[#C66B4A]/30 hover:shadow-xl hover:scale-[1.02]"
                   >
                     Start Your Cancer Journey →
                   </button>
-                  <p className="text-xs text-slate-500 mt-3">
-                    60 seconds • Personalized guidance • 200+ cancer types
-                  </p>
                 </div>
+                <p className="text-xs text-slate-500 mt-3 text-center">
+                  60 seconds • Personalized guidance • 200+ cancer types
+                </p>
               </div>
             </div>
           </div>
@@ -786,12 +792,7 @@ function HomeContent() {
                         }
 
                         setWizardSaving(false)
-
-                        // Wait for profile save
-                        const savedProfile = await profilePromise
-                        if (savedProfile) {
-                          localStorage.setItem('opencancer-onboarding-dismissed', 'true')
-                        }
+                        localStorage.setItem('opencancer-onboarding-dismissed', 'true')
 
                         // Send welcome email (only for valid emails)
                         if (emailLooksValid && !isDomainBlocked) {
