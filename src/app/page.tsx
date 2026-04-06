@@ -274,9 +274,20 @@ function HomeContent() {
         }
       }
     } else {
-      // Guest users (not authenticated) - don't show "Welcome back" personalization
-      // They should see the marketing homepage, not the logged-in dashboard
-      setProfile(null)
+      // Guest users (not authenticated) - check localStorage for wizard-created profile
+      const savedProfile = localStorage.getItem('patient-profile')
+      if (savedProfile) {
+        try {
+          const parsed = JSON.parse(savedProfile) as PatientProfile
+          setProfile(parsed)
+        } catch (e) {
+          console.error('Failed to parse saved profile:', e)
+          setProfile(null)
+        }
+      } else {
+        // No saved profile - show marketing homepage
+        setProfile(null)
+      }
     }
 
     // Check for success message

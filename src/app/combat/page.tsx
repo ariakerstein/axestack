@@ -1625,62 +1625,38 @@ function CombatPageContent() {
     return false
   }
 
-  // Load records on mount - from localStorage first, then Supabase
+  // Load records on mount - from localStorage IMMEDIATELY, then cloud in background
   useEffect(() => {
-    // Only run on client side
     if (typeof window === 'undefined') return
 
-    const loadRecords = async () => {
-      // Always load from localStorage first (fast, synchronous)
-      const data = localStorage.getItem('axestack-translations-data')
-      let localRecords: SavedTranslation[] = []
+    // FAST: Load from localStorage synchronously and show UI immediately
+    const data = localStorage.getItem('axestack-translations-data')
+    let localRecords: SavedTranslation[] = []
 
-      if (data) {
-        try {
-          const translations = JSON.parse(data)
-          localRecords = Object.values(translations)
-          localRecords.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-          console.log('Combat: Loaded', localRecords.length, 'records from localStorage')
-          setRecords(localRecords)
-        } catch (e) {
-          console.error('Combat: Failed to load local records:', e)
-        }
-      } else {
-        console.log('Combat: No records in localStorage')
+    if (data) {
+      try {
+        const translations = JSON.parse(data)
+        localRecords = Object.values(translations)
+        localRecords.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        console.log('Combat: Loaded', localRecords.length, 'records from localStorage')
+        setRecords(localRecords)
+      } catch (e) {
+        console.error('Combat: Failed to load local records:', e)
       }
-
-      // If auth is still loading, wait for next effect run
-      if (authLoading) {
-        console.log('Combat: Auth still loading, will retry when ready')
-        return
-      }
-
-      // Fetch from cloud if user is authenticated
-      if (user) {
-        await fetchCloudRecords(localRecords)
-      } else {
-        // No user from useAuth, but try direct session check (auth might have timed out)
-        console.log('Combat: No user from useAuth, trying direct session check')
-        const fetched = await fetchCloudRecords(localRecords)
-        if (fetched) {
-          console.log('Combat: Successfully fetched records via direct session')
-        }
-      }
-
-      setLoading(false)
+    } else {
+      console.log('Combat: No records in localStorage')
     }
 
-    loadRecords()
-  }, [user, authLoading])
+    // Show UI immediately - don't block on auth
+    setLoading(false)
+  }, []) // Run once on mount
 
-  // Timeout fallback - if still loading after 5s, force ready and try cloud fetch
+  // Fetch cloud records in background when auth is ready
   useEffect(() => {
-    if (!loading) return
+    if (typeof window === 'undefined') return
+    if (authLoading) return // Wait for auth to settle
 
-    const timeout = setTimeout(async () => {
-      console.log('Combat: Timeout reached, forcing ready and trying cloud fetch')
-
-      // Try direct cloud fetch regardless of auth state
+    const fetchCloud = async () => {
       const data = localStorage.getItem('axestack-translations-data')
       let localRecords: SavedTranslation[] = []
       if (data) {
@@ -1689,12 +1665,12 @@ function CombatPageContent() {
         } catch { /* ignore */ }
       }
 
+      // Fetch from cloud (works with or without user - uses direct session check)
       await fetchCloudRecords(localRecords)
-      setLoading(false)
-    }, 5000)
+    }
 
-    return () => clearTimeout(timeout)
-  }, [loading])
+    fetchCloud()
+  }, [authLoading, user])
 
   // Verification functions disabled - were causing page load issues
   /*

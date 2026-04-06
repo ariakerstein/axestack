@@ -16,8 +16,26 @@ export function Navbar({ showBack = false, backHref = '/', backLabel = 'Home' }:
   const { user, loading, signOut } = useAuth()
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  // Removed localStorage profile check - only authenticated users get personalized navbar
-  // This ensures consistency: Sign in button for all guests, profile for logged-in users
+  const [localProfile, setLocalProfile] = useState<{ name: string; email: string } | null>(null)
+
+  // Check localStorage for wizard-created profile (for guests who completed onboarding)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (user) return // Don't need localStorage if user is authenticated
+
+    const saved = localStorage.getItem('patient-profile')
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        if (parsed.name) {
+          setLocalProfile({ name: parsed.name, email: parsed.email || '' })
+        }
+      } catch { /* ignore */ }
+    }
+  }, [user])
+
+  // Display name: prefer authenticated user, then localStorage profile
+  const displayName = user?.email?.split('@')[0] || localProfile?.name?.split(' ')[0] || null
 
   return (
     <>
@@ -69,7 +87,7 @@ export function Navbar({ showBack = false, backHref = '/', backLabel = 'Home' }:
                   className="flex items-center gap-1.5 text-sm text-slate-700 hover:text-slate-900 transition-colors"
                 >
                   <User className="w-4 h-4 text-slate-500" />
-                  {user.email?.split('@')[0]}
+                  {displayName}
                 </Link>
                 <button
                   onClick={() => signOut()}
@@ -79,6 +97,15 @@ export function Navbar({ showBack = false, backHref = '/', backLabel = 'Home' }:
                   Sign out
                 </button>
               </div>
+            ) : displayName ? (
+              // Guest with localStorage profile (completed wizard but not signed in)
+              <Link
+                href="/profile"
+                className="flex items-center gap-1.5 text-sm text-slate-700 hover:text-slate-900 transition-colors"
+              >
+                <User className="w-4 h-4 text-slate-500" />
+                Hi, {displayName}
+              </Link>
             ) : (
               <button
                 onClick={() => setShowAuthModal(true)}
@@ -143,7 +170,7 @@ export function Navbar({ showBack = false, backHref = '/', backLabel = 'Home' }:
                       className="text-slate-700 flex items-center gap-2 hover:text-slate-900"
                     >
                       <User className="w-4 h-4 text-slate-500" />
-                      {user.email?.split('@')[0]}
+                      {displayName}
                     </Link>
                     <button
                       onClick={() => signOut()}
@@ -152,6 +179,15 @@ export function Navbar({ showBack = false, backHref = '/', backLabel = 'Home' }:
                       Sign out
                     </button>
                   </div>
+                ) : displayName ? (
+                  <Link
+                    href="/profile"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="py-2 text-slate-700 flex items-center gap-2 hover:text-slate-900"
+                  >
+                    <User className="w-4 h-4 text-slate-500" />
+                    Hi, {displayName}
+                  </Link>
                 ) : (
                   <button
                     onClick={() => {
