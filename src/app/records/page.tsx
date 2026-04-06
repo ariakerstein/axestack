@@ -1862,6 +1862,30 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
               </div>
             </Link>
 
+            {/* Expert Pathology Review - Protean */}
+            <Link
+              href="/combat?expert=pathology"
+              className="block bg-gradient-to-r from-white to-emerald-50/50 border-2 border-emerald-200 hover:border-emerald-400 rounded-2xl p-4 transition-all hover:shadow-lg"
+            >
+              <div className="flex items-center gap-4">
+                <div className="flex-shrink-0">
+                  <img
+                    src="https://images.squarespace-cdn.com/content/v1/5a4c3e3ebff200d1651f0273/1612204851498-UYVYCYQRCXVHMA08T0TS/protean_logo.png"
+                    alt="Protean BioDiagnostics"
+                    className="h-10 w-auto"
+                  />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="font-bold text-slate-900">Expert Pathology Review</p>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">$650</span>
+                  </div>
+                  <p className="text-slate-600 text-sm">Board-certified pathologists verify your diagnosis</p>
+                </div>
+                <ArrowRight className="w-5 h-5 text-emerald-400" />
+              </div>
+            </Link>
+
             {/* Email Inbox */}
             <button
               onClick={() => {
@@ -2195,11 +2219,6 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
         {/* Upload Tab Content - Simplified */}
         {activeTab === 'upload' && !result && (savedTranslations.length === 0 || showAddRecordView) && (
           <div className="bg-white rounded-2xl border border-stone-200 p-8 shadow-sm">
-            <div className="text-center mb-6">
-              <p className="text-lg text-slate-700 font-medium">Drop your medical records</p>
-              <p className="text-sm text-slate-500 mt-1">Lab results, pathology reports, doctor&apos;s notes — we&apos;ll translate them to plain English</p>
-            </div>
-
             <div
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -2238,15 +2257,15 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                   <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl flex items-center justify-center border border-orange-100">
                     <FileText className="w-8 h-8 text-[#C66B4A]" />
                   </div>
-                  <p className="font-semibold text-slate-900 text-lg">Drop your medical document here</p>
-                  <p className="text-slate-500 mt-1">or click to browse your files</p>
+                  <p className="font-semibold text-slate-900 text-lg">Drop your medical records here</p>
+                  <p className="text-slate-500 mt-1">Lab results, pathology reports, doctor&apos;s notes — we&apos;ll translate to plain English</p>
                   <div className="mt-4 flex flex-wrap gap-2 justify-center">
                     {['PDF', 'Word', 'Images', 'Text'].map(format => (
                       <span key={format} className="px-3 py-1 bg-orange-50 text-orange-700 text-sm rounded-full border border-orange-100">{format}</span>
                     ))}
                   </div>
                   <p className="mt-4 text-xs text-slate-400 flex items-center justify-center gap-1">
-                    <span className="text-green-500">🔒</span> 15,000+ records analyzed securely
+                    <span className="text-green-500">🔒</span> {totalTranslations.toLocaleString()}+ records analyzed securely
                   </p>
                 </div>
               )}
@@ -2460,13 +2479,9 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
             </div>
 
             <div className="mt-4 pt-4 border-t border-slate-200 flex flex-col items-center gap-2 text-sm">
-              <div className="flex items-center gap-4 text-slate-500">
-                <span className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                  HIPAA-compliant
-                </span>
-                <span className="text-slate-300">·</span>
-                <span>No account required</span>
+              <div className="flex items-center gap-2 text-slate-500">
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span>HIPAA-compliant</span>
               </div>
               <p className="text-xs text-slate-400">
                 Encrypted and private. Never shared without your permission.

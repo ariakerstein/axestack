@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
 import { FileText, Shield, FlaskConical, Leaf, ChevronDown, ChevronUp, Swords, ArrowRight, Sparkles, Target, CheckCircle2, Download, Share2, Trophy, Star, Play, Mail, Users, Sliders, Clock, Waves, Scale, Heart, GraduationCap } from 'lucide-react'
 import { TypewriterMarkdown } from '@/components/TypewriterMarkdown'
@@ -729,12 +730,14 @@ function ExpertModal({
   isOpen,
   onClose,
   records,
-  combatResult
+  combatResult,
+  preSelectExpertId
 }: {
   isOpen: boolean
   onClose: () => void
   records: SavedTranslation[]
   combatResult?: CombatResult | null
+  preSelectExpertId?: string | null
 }) {
   const { user } = useAuth()
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1)
@@ -795,6 +798,17 @@ function ExpertModal({
       setQuestion('')
     }
   }, [isOpen])
+
+  // Pre-select expert when modal opens with preSelectExpertId
+  useEffect(() => {
+    if (isOpen && preSelectExpertId && !selectedExpert) {
+      const expert = experts.find(e => e.id === preSelectExpertId)
+      if (expert) {
+        setSelectedExpert(expert)
+        setStep(2) // Skip to step 2 (record selection)
+      }
+    }
+  }, [isOpen, preSelectExpertId])
 
   const handleExpertSelect = (expert: ExpertOption) => {
     setSelectedExpert(expert)
@@ -1408,6 +1422,17 @@ export default function CombatPage() {
 
   // Expert modal state
   const [showExpertModal, setShowExpertModal] = useState(false)
+  const [preSelectExpertId, setPreSelectExpertId] = useState<string | null>(null)
+
+  // Check URL params for expert selection (e.g., ?expert=pathology)
+  const searchParams = useSearchParams()
+  useEffect(() => {
+    const expertParam = searchParams.get('expert')
+    if (expertParam === 'pathology') {
+      setPreSelectExpertId('tony-magliocco')
+      setShowExpertModal(true)
+    }
+  }, [searchParams])
 
   // Share modal state
   const [shareModalOpen, setShareModalOpen] = useState(false)
@@ -2290,9 +2315,13 @@ export default function CombatPage() {
       {/* Expert Consultation Modal */}
       <ExpertModal
         isOpen={showExpertModal}
-        onClose={() => setShowExpertModal(false)}
+        onClose={() => {
+          setShowExpertModal(false)
+          setPreSelectExpertId(null)
+        }}
         records={records}
         combatResult={diagnosisResult || treatmentResult}
+        preSelectExpertId={preSelectExpertId}
       />
 
       {/* Share Modal */}

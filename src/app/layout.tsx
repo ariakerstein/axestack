@@ -10,17 +10,19 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'opencancer.ai | AI-powered tools for cancer patients',
-  description: 'Navigate your diagnosis with clarity. AI tools for cancer patients and caregivers. Built by a cancer survivor.',
+  description: 'Navigate your diagnosis with clarity. AI tools for cancer patients and caregivers.',
   icons: {
     icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
-      { url: '/favicon.ico', sizes: '32x32' },
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon-16x16.png', type: 'image/png', sizes: '16x16' },
+      { url: '/favicon-32x32.png', type: 'image/png', sizes: '32x32' },
+      { url: '/favicon-192x192.png', type: 'image/png', sizes: '192x192' },
     ],
     apple: '/apple-touch-icon.png',
   },
   openGraph: {
     title: 'opencancer.ai | AI-powered tools for cancer patients',
-    description: 'Navigate your diagnosis with clarity. AI tools for cancer patients and caregivers. Built by a cancer survivor.',
+    description: 'Navigate your diagnosis with clarity. AI tools for cancer patients and caregivers.',
     url: 'https://opencancer.ai',
     siteName: 'opencancer.ai',
     images: [

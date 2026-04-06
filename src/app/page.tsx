@@ -886,6 +886,38 @@ function HomeContent() {
             </Link>
           </div>
 
+          {/* EXPERT SERVICES - Protean Pathology Review */}
+          <p className="text-xs font-medium tracking-widest text-slate-400 mb-3">EXPERT SERVICES</p>
+          <div className="mb-8">
+            <Link
+              href="/combat?expert=pathology"
+              className="group flex items-center gap-4 bg-gradient-to-r from-white to-emerald-50/50 border-2 border-emerald-200 hover:border-emerald-400 rounded-xl p-5 hover:shadow-lg transition-all"
+            >
+              {/* Protean Logo */}
+              <div className="flex-shrink-0">
+                <img
+                  src="https://images.squarespace-cdn.com/content/v1/5a4c3e3ebff200d1651f0273/1612204851498-UYVYCYQRCXVHMA08T0TS/protean_logo.png"
+                  alt="Protean BioDiagnostics"
+                  className="h-10 w-auto"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none'
+                  }}
+                />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-bold text-slate-900">Expert Pathology Review</h3>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">$650</span>
+                </div>
+                <p className="text-slate-600 text-sm">Board-certified pathologists verify your diagnosis</p>
+                <p className="text-xs text-slate-400 mt-1">Powered by Protean BioDiagnostics</p>
+              </div>
+              <div className="flex-shrink-0 text-emerald-600 group-hover:translate-x-1 transition-transform">
+                →
+              </div>
+            </Link>
+          </div>
+
           {/* MORE TOOLS - De-emphasized */}
           <details className="group">
             <summary className="flex items-center justify-between cursor-pointer mb-4">
@@ -1207,8 +1239,8 @@ function HomeContent() {
               { name: "Ari Akerstein, MS", title: "Co-Founder/CEO", subtitle: "Meta · Survivor", image: "https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/64694c7d-e3e3-414f-af72-288d201bb060/Screenshot+2024-10-02+at+10.59.02%E2%80%AFAM.jpg" },
               { name: "Brad Power", title: "Co-Founder/Chief Trust", subtitle: "Stanford · Survivor", image: "https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/48fdd96b-71a0-41f9-bc5f-f1ae27636b95/Screenshot+2024-09-11+at+7.36.59%E2%80%AFPM.png" },
               { name: "Chris Apfel, MD/PhD", title: "Chief Medical Officer", subtitle: "UCSF · 500+ publications", image: "https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/5761840d-8d31-4c56-a09e-c6f27510bc5a/Chris-Apfel-Nature-removebg-preview.png" },
-              { name: "Kaumudi Bhawe, PhD", title: "Chief Scientific Officer", subtitle: "Genentech · Cancer Commons", image: "https://navis.health/pitchAssets/kaumudi.jpg" },
-              { name: "Viktor Tabori", title: "Head of Growth", subtitle: "Stanford · Deloitte", image: "https://navis.health/pitchAssets/viktor.jpg" },
+              { name: "Kaumudi Bhawe, PhD", title: "Chief Scientific Officer", subtitle: "Genentech · Cancer Commons", image: "https://media.licdn.com/dms/image/v2/D5603AQE7QM7TE-4Z2w/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1674576744652?e=1749686400&v=beta&t=0_p8xU9iJJUPY-MF8_qkL7NzS4KsXa-F25gAw3mGGVw" },
+              { name: "Viktor Tabori", title: "Head of Growth", subtitle: "Stanford · Deloitte", image: "https://media.licdn.com/dms/image/v2/D5603AQFHc0VPBWeFqQ/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1716559093892?e=1749686400&v=beta&t=RQyxOdKsKlOlX6X1zj8XTqnD_u-0lUuYrYZ8_F2Kqho" },
             ].map((person, i) => (
               <div key={i} className="text-center">
                 <img
@@ -1278,9 +1310,6 @@ function HomeContent() {
       {/* Footer */}
       <footer className="py-8 px-8 border-t border-stone-200">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-sm text-slate-600 mb-2">
-            Free for every patient. Built by a cancer survivor.
-          </p>
           <div className="flex items-center justify-center gap-4 text-xs text-slate-400">
             <Link href="/about" className="hover:text-slate-600">About</Link>
             <span>·</span>
