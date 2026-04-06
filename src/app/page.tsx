@@ -957,8 +957,8 @@ function HomeContent() {
 
             {/* Expert Pathology Review */}
             <Link
-              href="/expert-review?expert=protean"
-              onClick={(e) => handleToolClick(e, '/expert-review?expert=protean')}
+              href="/combat?expert=tony-magliocco"
+              onClick={(e) => handleToolClick(e, '/combat?expert=tony-magliocco')}
               className="group bg-gradient-to-r from-white to-emerald-50/50 border-2 border-emerald-200 hover:border-emerald-400 rounded-xl p-5 hover:shadow-lg transition-all relative"
             >
               <span className="absolute -top-2.5 left-4 bg-emerald-600 text-white text-[10px] font-medium px-2.5 py-1 rounded">
