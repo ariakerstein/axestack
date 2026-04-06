@@ -20,7 +20,7 @@ const ADVISORS: Advisor[] = [
   {
     name: 'Ari Akerstein, MS',
     role: 'Co-Founder/CEO @CHL | Product Leader | Ex-Meta',
-    image: '/team/ari.webp',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/64694c7d-e3e3-414f-af72-288d201bb060/Screenshot+2024-10-02+at+10.59.02%E2%80%AFAM.jpg',
   },
   {
     name: 'Richard Anders, JD',
@@ -30,7 +30,7 @@ const ADVISORS: Advisor[] = [
   {
     name: 'Chris Apfel, MD, PhD, MBA',
     role: 'Founder & CEO, @SageMedic',
-    image: '/team/chris.webp',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/5761840d-8d31-4c56-a09e-c6f27510bc5a/Chris-Apfel-Nature-removebg-preview.png',
   },
   {
     name: 'Anne Aula',
@@ -115,7 +115,7 @@ const ADVISORS: Advisor[] = [
   {
     name: 'Brad Power',
     role: 'CEO CancerPatientLab | Co-Founder @CHL Accelerator',
-    image: '/team/brad.webp',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/48fdd96b-71a0-41f9-bc5f-f1ae27636b95/Screenshot+2024-09-11+at+7.36.59%E2%80%AFPM.png',
   },
   {
     name: 'Aaron Rich',

@@ -437,9 +437,12 @@ function HomeContent() {
               <div className="border-t border-slate-200 p-5 bg-gradient-to-r from-slate-50 to-orange-50/30">
                 <div className="flex items-center justify-between gap-4">
                   {/* Built by a survivor - left side */}
-                  <Link href="/about" className="flex items-center gap-2 hover:opacity-80 transition-opacity flex-shrink-0">
-                    <img src="/ari.png" alt="Ari" className="w-10 h-10 rounded-full object-cover ring-2 ring-slate-200" />
-                    <p className="text-xs text-slate-500"><span className="font-medium text-slate-700">Built by a survivor</span></p>
+                  <Link href="/about" className="flex items-center gap-3 hover:opacity-80 transition-opacity flex-shrink-0 group">
+                    <img src="/ari.png" alt="Ari" className="w-12 h-12 rounded-full object-cover ring-2 ring-slate-300 group-hover:ring-[#C66B4A] transition-all" />
+                    <div>
+                      <p className="text-sm font-medium text-slate-700">Built by a survivor</p>
+                      <p className="text-xs text-slate-400">Read my story →</p>
+                    </div>
                   </Link>
                   {/* CTA - right side */}
                   <button
@@ -900,9 +903,8 @@ function HomeContent() {
             </>
           ) : (
             <>
-              <p className="text-xs font-medium tracking-widest text-slate-400 text-center mb-2">PATIENT TOOLS</p>
               <h2 className="text-3xl font-bold text-center mb-3 text-slate-900">
-                Facing cancer?
+                Facing cancer? Start here.
               </h2>
               <p className="text-slate-500 text-center mb-8 text-sm max-w-lg mx-auto">
                 The average patient waits 6+ weeks for a second opinion. Get AI-powered guidance in minutes, grounded in NCCN guidelines.
@@ -911,7 +913,7 @@ function HomeContent() {
           )}
 
           {/* PRIMARY TOOLS - 3 cards: Upload, Combat, Expert Review */}
-          <p className="text-xs font-medium tracking-widest text-slate-400 mb-3">{profile ? 'YOUR TOOLS' : 'START HERE'}</p>
+          {profile && <p className="text-xs font-medium tracking-widest text-slate-400 mb-3">YOUR TOOLS</p>}
           <div className="grid md:grid-cols-3 gap-4 mb-8">
             {/* Upload Records */}
             <Link
@@ -1302,9 +1304,9 @@ function HomeContent() {
 
           <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
             {[
-              { name: "Ari Akerstein, MS", title: "Co-Founder/CEO", subtitle: "Meta · Survivor", image: "/team/ari.webp" },
-              { name: "Brad Power", title: "Co-Founder/Chief Trust", subtitle: "Stanford · Survivor", image: "/team/brad.webp" },
-              { name: "Chris Apfel, MD/PhD", title: "Chief Medical Officer", subtitle: "UCSF · 500+ publications", image: "/team/chris.webp" },
+              { name: "Ari Akerstein, MS", title: "Co-Founder/CEO", subtitle: "Meta · Survivor", image: "https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/64694c7d-e3e3-414f-af72-288d201bb060/Screenshot+2024-10-02+at+10.59.02%E2%80%AFAM.jpg" },
+              { name: "Brad Power", title: "Co-Founder/Chief Trust", subtitle: "Stanford · Survivor", image: "https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/48fdd96b-71a0-41f9-bc5f-f1ae27636b95/Screenshot+2024-09-11+at+7.36.59%E2%80%AFPM.png" },
+              { name: "Chris Apfel, MD/PhD", title: "Chief Medical Officer", subtitle: "UCSF · 500+ publications", image: "https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/5761840d-8d31-4c56-a09e-c6f27510bc5a/Chris-Apfel-Nature-removebg-preview.png" },
               { name: "Kaumudi Bhawe, PhD", title: "Chief Scientific Officer", subtitle: "Genentech · Cancer Commons", image: "/team/kaumudi.webp" },
               { name: "Viktor Tabori", title: "Head of Growth", subtitle: "Stanford · Deloitte", image: "/team/viktor.webp" },
             ].map((person, i) => (
