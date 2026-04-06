@@ -270,21 +270,21 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
               />
 
               <button
-                onClick={() => email && setMode('magic')}
+                onClick={() => email && setMode('password')}
                 disabled={!email}
                 className="w-full bg-[#C66B4A] hover:bg-[#B35E40] disabled:bg-slate-200 disabled:text-slate-400 text-white py-3.5 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
               >
-                <Mail className="w-5 h-5" />
-                Send magic link
+                <Lock className="w-5 h-5" />
+                Sign in with password
               </button>
 
               <button
-                onClick={() => email && setMode('password')}
+                onClick={() => email && setMode('magic')}
                 disabled={!email}
                 className="w-full bg-slate-100 hover:bg-slate-200 disabled:bg-slate-50 disabled:text-slate-300 text-slate-700 py-3.5 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
               >
-                <Lock className="w-5 h-5" />
-                Sign in with password
+                <Mail className="w-5 h-5" />
+                Send magic link
               </button>
             </div>
 
