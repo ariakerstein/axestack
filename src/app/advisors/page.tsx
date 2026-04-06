@@ -20,22 +20,22 @@ const ADVISORS: Advisor[] = [
   {
     name: 'Ari Akerstein, MS',
     role: 'Co-Founder/CEO @CHL | Product Leader | Ex-Meta',
-    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/64694c7d-e3e3-414f-af72-288d201bb060/Screenshot+2024-10-02+at+10.59.02%E2%80%AFAM.jpg',
+    image: '/team/ari.webp',
   },
   {
     name: 'Richard Anders, JD',
     role: 'Founder, MA Medical Angels | Harvard / MIT',
-    image: 'https://navis.health/pitchAssets/richardAnders.png',
+    image: '/team/richard.webp',
   },
   {
     name: 'Chris Apfel, MD, PhD, MBA',
     role: 'Founder & CEO, @SageMedic',
-    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/5761840d-8d31-4c56-a09e-c6f27510bc5a/Chris-Apfel-Nature-removebg-preview.png',
+    image: '/team/chris.webp',
   },
   {
     name: 'Anne Aula',
     role: 'UX Leader | Ex-Google, Verily, One Medical',
-    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/1dda8c88-1974-43c9-a97c-f620c37dc6bb/A-62.JPG',
+    image: '/team/anne.webp',
   },
   {
     name: 'Larry Cornett, PhD',
@@ -50,7 +50,7 @@ const ADVISORS: Advisor[] = [
   {
     name: 'Dan Mosedale',
     role: 'Engineering Leadership | Human Genome Project · Mozilla',
-    image: 'https://navis.health/team/dan.jpg',
+    image: '/team/dan.webp',
   },
   {
     name: 'Kent Griffin',
@@ -60,7 +60,7 @@ const ADVISORS: Advisor[] = [
   {
     name: 'Eric Grossberg',
     role: 'Co-Founder/Executive Chairman | Brilliant Earth',
-    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/12bb19aa-c454-4a7a-84cb-81b56bce00ad/1638331200353-2.jpg',
+    image: '/team/eric.webp',
   },
   {
     name: 'Magnus Hillestadt',
@@ -70,12 +70,12 @@ const ADVISORS: Advisor[] = [
   {
     name: 'Anthony M. Magliocco, MD FRCPC FCAP',
     role: 'President & CEO, Protean BioDiagnostics',
-    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/de0bbdd8-6a9d-49ec-8631-fc28d5ad0b3b/IMG_1551.jpg',
+    image: '/team/anthony.webp',
   },
   {
     name: 'Zoya Mohiuddin, MD',
     role: 'Clinical Affairs | Specialty Care & Patient Navigation',
-    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/3d97f81c-3d72-4933-acd0-d45a78af3fcf/1556106251882.jpg',
+    image: '/team/zoya.webp',
   },
   {
     name: 'Michael Meiners',
@@ -115,17 +115,17 @@ const ADVISORS: Advisor[] = [
   {
     name: 'Brad Power',
     role: 'CEO CancerPatientLab | Co-Founder @CHL Accelerator',
-    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/48fdd96b-71a0-41f9-bc5f-f1ae27636b95/Screenshot+2024-09-11+at+7.36.59%E2%80%AFPM.png',
+    image: '/team/brad.webp',
   },
   {
     name: 'Aaron Rich',
     role: 'UX Research Leader | Project Starline @ Google',
-    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/81f70409-4cec-4035-b19c-3a6830f07272/1516263236012.jpg',
+    image: '/team/aaron.webp',
   },
   {
     name: 'Roger Royse',
     role: 'Corporate and Tax Partner at Haynes and Boone, LLP',
-    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/37e483f4-a5b9-407d-9aab-d16a8a6e6e0c/Screenshot+2024-09-11+at+7.39.34%E2%80%AFPM.png',
+    image: '/team/roger.webp',
   },
   {
     name: 'Chris Schuler',
@@ -145,7 +145,7 @@ const ADVISORS: Advisor[] = [
   {
     name: 'Marty Tenenbaum, PhD',
     role: 'AI Pioneer | Founder, Cancer Commons',
-    image: 'https://navis.health/pitchAssets/marty.webp',
+    image: '/team/marty.webp',
   },
   {
     name: 'David Thompson',
@@ -165,7 +165,7 @@ const ADVISORS: Advisor[] = [
   {
     name: 'Jane Wilkinson, PhD',
     role: 'Co-Founder & President CANCollaborate | (Fmr) Exec Dir @MIT Koch Institute',
-    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/e075f295-a096-4801-bc95-9e2e9f9b2930/Screenshot+2024-09-25+at+1.03.10%E2%80%AFPM.jpg',
+    image: '/team/jane.webp',
   },
 ]
 
