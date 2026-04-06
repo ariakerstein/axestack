@@ -1863,30 +1863,6 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
               </div>
             </Link>
 
-            {/* Expert Pathology Review - Protean */}
-            <Link
-              href="/combat?expert=pathology"
-              className="block bg-gradient-to-r from-white to-emerald-50/50 border-2 border-emerald-200 hover:border-emerald-400 rounded-2xl p-4 transition-all hover:shadow-lg"
-            >
-              <div className="flex items-center gap-4">
-                <div className="flex-shrink-0">
-                  <img
-                    src="https://images.squarespace-cdn.com/content/v1/5a4c3e3ebff200d1651f0273/1612204851498-UYVYCYQRCXVHMA08T0TS/protean_logo.png"
-                    alt="Protean BioDiagnostics"
-                    className="h-10 w-auto"
-                  />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="font-bold text-slate-900">Expert Pathology Review</p>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">$650</span>
-                  </div>
-                  <p className="text-slate-600 text-sm">Board-certified pathologists verify your diagnosis</p>
-                </div>
-                <ArrowRight className="w-5 h-5 text-emerald-400" />
-              </div>
-            </Link>
-
             {/* Email Inbox */}
             <button
               onClick={() => {
