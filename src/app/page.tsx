@@ -745,16 +745,18 @@ function HomeContent() {
                         localStorage.setItem('patient-profile', JSON.stringify(newProfile))
                         setProfile(newProfile)
 
-                        // Save to Supabase profile table (non-blocking, with timeout)
-                        const profilePromise = Promise.race([
-                          saveProfile({
+                        // Save to Supabase via API (uses service key, bypasses RLS)
+                        fetch('/api/profile', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
                             email: wizardEmail.trim(),
                             name: wizardName.trim(),
-                            role: wizardRole!,
+                            role: wizardRole,
                             cancerType: wizardCancerType,
+                            sessionId: typeof window !== 'undefined' ? localStorage.getItem('session-id') : null,
                           }),
-                          new Promise((_, reject) => setTimeout(() => reject(new Error('Profile save timeout')), 5000))
-                        ]).catch(err => console.warn('Profile sync failed:', err))
+                        }).catch(err => console.warn('Profile sync failed:', err))
 
                         // Send magic link - only for valid-looking emails to reduce bounces
                         const emailLooksValid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(wizardEmail.trim())
@@ -847,15 +849,18 @@ function HomeContent() {
                         localStorage.setItem('patient-profile', JSON.stringify(newProfile))
                         setProfile(newProfile)
 
-                        await Promise.race([
-                          saveProfile({
+                        // Save to Supabase via API (uses service key, bypasses RLS)
+                        await fetch('/api/profile', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
                             email: wizardEmail.trim(),
                             name: wizardName.trim(),
-                            role: wizardRole!,
+                            role: wizardRole,
                             cancerType: wizardCancerType,
+                            sessionId: typeof window !== 'undefined' ? localStorage.getItem('session-id') : null,
                           }),
-                          new Promise((_, reject) => setTimeout(() => reject(new Error('Profile save timeout')), 5000))
-                        ]).catch(err => console.warn('Profile sync failed:', err))
+                        }).catch(err => console.warn('Profile sync failed:', err))
 
                         localStorage.setItem('opencancer-onboarding-dismissed', 'true')
                         setWizardSaving(false)
