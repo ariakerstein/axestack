@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
 import { FileText, Shield, FlaskConical, Leaf, ChevronDown, ChevronUp, Swords, ArrowRight, Sparkles, Target, CheckCircle2, Download, Share2, Trophy, Star, Play, Mail, Users, Sliders, Clock, Waves, Scale, Heart, GraduationCap } from 'lucide-react'
@@ -1334,7 +1335,7 @@ function ExpertModal({
   )
 }
 
-export default function CombatPage() {
+function CombatPageContent() {
   const [records, setRecords] = useState<SavedTranslation[]>([])
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
@@ -2343,5 +2344,13 @@ export default function CombatPage() {
         feature="tuning"
       />
     </main>
+  )
+}
+
+export default function CombatPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-stone-50 flex items-center justify-center"><div className="animate-spin w-8 h-8 border-2 border-slate-300 border-t-slate-600 rounded-full" /></div>}>
+      <CombatPageContent />
+    </Suspense>
   )
 }
