@@ -823,21 +823,55 @@ function ExpertModal({
     setSubmitting(true)
 
     try {
+      // Prepare records to share (full records with results for email)
+      const recordsToShare = recordSelection === 'all'
+        ? records
+        : records.filter(r => selectedRecordIds.has(r.id))
+
+      // For free consultations (Cancer Commons), use the email API
+      if (selectedExpert.isFree) {
+        const consultRes = await fetch('/api/expert/consult', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.id,
+            userEmail: user.email,
+            expertId: selectedExpert.id,
+            expertName: selectedExpert.name,
+            question: question || 'Please review my case and Combat analysis.',
+            signature: signature,
+            records: recordsToShare.map(r => ({
+              id: r.id,
+              fileName: r.fileName,
+              documentType: r.documentType,
+              result: r.result
+            })),
+            combatResult: includeCombatAnalysis ? combatResult : null,
+            includePatientBrief,
+            includeCombatAnalysis
+          })
+        })
+
+        if (!consultRes.ok) {
+          const errorData = await consultRes.json()
+          throw new Error(errorData.error || 'Failed to send consultation request')
+        }
+
+        // Success - show confirmation
+        setStep(4)
+        return
+      }
+
+      // For paid consultations, use Supabase + Stripe
       const { supabase } = await import('@/lib/supabase')
 
-      // Prepare records to share
-      const recordsToShare = recordSelection === 'all'
-        ? records.map(r => r.id)
-        : Array.from(selectedRecordIds)
-
-      // Create consultation request
       const consultationData = {
         user_id: user.id,
         user_email: user.email,
         expert_id: selectedExpert.id,
         expert_name: selectedExpert.name,
         question: question || 'Please review my case and Combat analysis.',
-        selected_records: recordsToShare,
+        selected_records: recordsToShare.map(r => r.id),
         include_patient_brief: includePatientBrief,
         include_combat_analysis: includeCombatAnalysis,
         combat_result: includeCombatAnalysis ? combatResult : null,
@@ -846,7 +880,7 @@ function ExpertModal({
         consent_not_medical_advice: consentChecks.notMedicalAdvice,
         consent_agree_terms: consentChecks.agreeTerms,
         price_amount: selectedExpert.priceAmount,
-        status: selectedExpert.isFree ? 'pending' : 'awaiting_payment',
+        status: 'awaiting_payment',
         created_at: new Date().toISOString()
       }
 
@@ -858,44 +892,37 @@ function ExpertModal({
 
       if (error) throw error
 
-      // For paid consultations, redirect to payment
-      if (!selectedExpert.isFree && data) {
-        // Map expert to product ID
-        const productId = selectedExpert.id === 'tony-magliocco'
-          ? 'expert-tony-magliocco'
-          : 'expert-review'
+      // Map expert to product ID
+      const productId = selectedExpert.id === 'tony-magliocco'
+        ? 'expert-tony-magliocco'
+        : 'expert-review'
 
-        // Create Stripe checkout session
-        const checkoutRes = await fetch('/api/checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            productId,
-            userId: user.id,
-            email: user.email,
-            metadata: {
-              consultationId: data.id,
-              expertId: selectedExpert.id,
-              expertName: selectedExpert.name
-            }
-          })
-        })
-
-        if (checkoutRes.ok) {
-          const { url } = await checkoutRes.json()
-          if (url) {
-            window.location.href = url
-            return
+      // Create Stripe checkout session
+      const checkoutRes = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId,
+          userId: user.id,
+          email: user.email,
+          metadata: {
+            consultationId: data.id,
+            expertId: selectedExpert.id,
+            expertName: selectedExpert.name
           }
-        } else {
-          // Payment creation failed
-          const errorData = await checkoutRes.json()
-          throw new Error(errorData.error || 'Failed to create payment session')
-        }
-      }
+        })
+      })
 
-      // For free consultations, show success
-      setStep(4)
+      if (checkoutRes.ok) {
+        const { url } = await checkoutRes.json()
+        if (url) {
+          window.location.href = url
+          return
+        }
+      } else {
+        const errorData = await checkoutRes.json()
+        throw new Error(errorData.error || 'Failed to create payment session')
+      }
     } catch (err) {
       console.error('Error submitting consultation:', err)
       alert('Failed to submit consultation request. Please try again.')
