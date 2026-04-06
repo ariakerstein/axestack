@@ -1186,10 +1186,9 @@ export default function CombatPage() {
   }, [loading])
 
   // Extract findings for verification before running combat
-  const extractFindings = async () => {
-    if (records.length === 0) return
+  const extractFindings = async (): Promise<DetectedFinding[]> => {
+    if (records.length === 0) return []
 
-    setExtractingFindings(true)
     try {
       const response = await fetch('/api/combat/extract', {
         method: 'POST',
@@ -1206,13 +1205,10 @@ export default function CombatPage() {
 
       if (response.ok) {
         const data = await response.json()
-        setVerificationFindings(data.findings || [])
         return data.findings || []
       }
     } catch (err) {
       console.error('Failed to extract findings:', err)
-    } finally {
-      setExtractingFindings(false)
     }
     return []
   }
@@ -1224,17 +1220,24 @@ export default function CombatPage() {
     setPendingPhase(targetPhase)
     setExtractingFindings(true)
 
-    const findings = await extractFindings()
+    try {
+      const findings = await extractFindings()
 
-    // If we found verifiable findings, show verification step
-    if (findings && findings.length > 0) {
-      setShowVerification(true)
-    } else {
-      // No findings to verify, run combat directly
+      // If we found verifiable findings, show verification step
+      if (findings && findings.length > 0) {
+        setVerificationFindings(findings)
+        setShowVerification(true)
+      } else {
+        // No findings to verify, run combat directly
+        runCombat(targetPhase, [])
+      }
+    } catch (err) {
+      console.error('Verification extraction failed:', err)
+      // On error, skip verification and run combat directly
       runCombat(targetPhase, [])
+    } finally {
+      setExtractingFindings(false)
     }
-
-    setExtractingFindings(false)
   }
 
   // Handle verification completion
@@ -1611,22 +1614,12 @@ export default function CombatPage() {
 
                 {/* Standalone CTA Button with shadow */}
                 <button
-                  onClick={() => startCombatWithVerification(diagnosisResult ? 'treatment' : 'diagnosis')}
-                  disabled={extractingFindings}
-                  className="w-full group py-4 px-6 bg-[#C66B4A] hover:bg-[#B35E40] disabled:bg-slate-300 rounded-xl text-white font-semibold text-lg shadow-lg shadow-[#C66B4A]/25 hover:shadow-xl hover:shadow-[#C66B4A]/30 transition-all flex items-center justify-center gap-3"
+                  onClick={() => runCombat(diagnosisResult ? 'treatment' : 'diagnosis', [])}
+                  className="w-full group py-4 px-6 bg-[#C66B4A] hover:bg-[#B35E40] rounded-xl text-white font-semibold text-lg shadow-lg shadow-[#C66B4A]/25 hover:shadow-xl hover:shadow-[#C66B4A]/30 transition-all flex items-center justify-center gap-3"
                 >
-                  {extractingFindings ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Analyzing records...
-                    </>
-                  ) : (
-                    <>
-                      <Swords className="w-5 h-5" />
-                      {diagnosisResult ? 'Start Treatment Debate' : 'Start the Debate'}
-                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                    </>
-                  )}
+                  <Swords className="w-5 h-5" />
+                  {diagnosisResult ? 'Start Treatment Debate' : 'Start the Debate'}
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
 
                 {/* Advanced Settings - Collapsed */}
@@ -1800,9 +1793,9 @@ export default function CombatPage() {
                 )}
 
                 {/* Expert Review CTA */}
-                <Link
-                  href={`/expert-review${lastCombatId ? `?combat=${lastCombatId}` : ''}`}
-                  className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all group"
+                <button
+                  onClick={() => setShowExpertModal(true)}
+                  className="w-full flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all group text-left"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center group-hover:bg-slate-200 transition-colors">
@@ -1814,7 +1807,7 @@ export default function CombatPage() {
                     </div>
                   </div>
                   <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-1 transition-all" />
-                </Link>
+                </button>
 
                 {/* Question context - smaller */}
                 <div className="text-center">
@@ -1896,11 +1889,10 @@ export default function CombatPage() {
                 <div className="flex gap-3">
                   {phase === 'diagnosis' && (
                     <button
-                      onClick={() => startCombatWithVerification('treatment')}
-                      disabled={extractingFindings}
-                      className="group flex-1 py-3 bg-[#C66B4A] hover:bg-[#B35E40] disabled:bg-slate-300 text-white rounded-xl font-semibold flex items-center justify-center gap-2 transition-all shadow-md"
+                      onClick={() => runCombat('treatment', [])}
+                      className="group flex-1 py-3 bg-[#C66B4A] hover:bg-[#B35E40] text-white rounded-xl font-semibold flex items-center justify-center gap-2 transition-all shadow-md"
                     >
-                      {extractingFindings ? 'Analyzing...' : 'Continue to Treatment'}
+                      Continue to Treatment
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </button>
                   )}
