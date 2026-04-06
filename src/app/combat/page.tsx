@@ -14,7 +14,8 @@ import { UpgradeModal } from '@/components/UpgradeModal'
 import { Navbar } from '@/components/Navbar'
 import { CombatFollowUpChat } from '@/components/CombatFollowUpChat'
 import { ThinkingIndicator } from '@/components/ThinkingIndicator'
-import { CombatVerification, DetectedFinding, FindingCorrection } from '@/components/CombatVerification'
+// Verification disabled - was causing page load issues
+// import { CombatVerification, DetectedFinding, FindingCorrection } from '@/components/CombatVerification'
 
 // 5 Perspective Types
 type PerspectiveKey = 'guidelines' | 'aggressive' | 'precision' | 'conservative' | 'integrative'
@@ -689,33 +690,209 @@ function SynthesisCard({ result }: { result: CombatResult }) {
   )
 }
 
-// Expert Consultation Modal
-function ExpertModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
-  if (!isOpen) return null
+// Expert type for the modal
+interface ExpertOption {
+  id: string
+  name: string
+  title: string
+  organization?: string
+  specialty: string
+  image: string
+  bio: string
+  availability: string
+  price: string
+  priceAmount: number
+  isFree: boolean
+}
 
-  const experts = [
+// Expert Consultation Modal with multi-step flow
+function ExpertModal({
+  isOpen,
+  onClose,
+  records,
+  combatResult
+}: {
+  isOpen: boolean
+  onClose: () => void
+  records: SavedTranslation[]
+  combatResult?: CombatResult | null
+}) {
+  const { user } = useAuth()
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1)
+  const [selectedExpert, setSelectedExpert] = useState<ExpertOption | null>(null)
+  const [recordSelection, setRecordSelection] = useState<'all' | 'choose'>('all')
+  const [selectedRecordIds, setSelectedRecordIds] = useState<Set<string>>(new Set())
+  const [includePatientBrief, setIncludePatientBrief] = useState(true)
+  const [includeCombatAnalysis, setIncludeCombatAnalysis] = useState(true)
+  const [signature, setSignature] = useState('')
+  const [consentChecks, setConsentChecks] = useState({
+    shareData: false,
+    notMedicalAdvice: false,
+    agreeTerms: false
+  })
+  const [submitting, setSubmitting] = useState(false)
+  const [question, setQuestion] = useState('')
+
+  const experts: ExpertOption[] = [
     {
+      id: 'tony-magliocco',
       name: 'Tony Magliocco, MD, PhD',
       title: 'Medical Oncologist & Pathologist',
+      organization: 'Protean BioDiagnostics',
       specialty: 'Precision oncology, biomarker-driven therapy',
-      image: '/experts/tony-magliocco.jpg',
+      image: 'https://images.squarespace-cdn.com/content/v1/5a4c3e3ebff200d1651f0273/1634675812299-RI7TI4MCKGMOUFE167LX/IMG_1551.jpg',
       bio: 'Former Chief Medical Officer at Protean BioDiagnostics. Expert in molecular diagnostics and personalized cancer treatment strategies.',
       availability: '2-3 days',
       price: '$650',
+      priceAmount: 650,
       isFree: false
     },
     {
+      id: 'emma-shtivelman',
       name: 'Emma Shtivelman, PhD',
       title: 'Cancer Research Scientist',
       organization: 'Cancer Commons',
       specialty: 'Integrative oncology, clinical trials',
-      image: '/experts/emma-shtibelman.jpg',
+      image: 'https://cdn.prod.website-files.com/68e0582d152c96961cd60580/6911c701f74c0c25d0ff3bc0_Emma-photo-cropped-600x600.jpeg',
       bio: 'Research scientist at Cancer Commons specializing in novel cancer therapies and integrative approaches. Extensive experience guiding patients through clinical trial options.',
       availability: '3-5 days',
       price: 'Free',
+      priceAmount: 0,
       isFree: true
     }
   ]
+
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setStep(1)
+      setSelectedExpert(null)
+      setRecordSelection('all')
+      setSelectedRecordIds(new Set())
+      setIncludePatientBrief(true)
+      setIncludeCombatAnalysis(true)
+      setSignature('')
+      setConsentChecks({ shareData: false, notMedicalAdvice: false, agreeTerms: false })
+      setQuestion('')
+    }
+  }, [isOpen])
+
+  const handleExpertSelect = (expert: ExpertOption) => {
+    setSelectedExpert(expert)
+    setStep(2)
+  }
+
+  const handleRecordToggle = (recordId: string) => {
+    const newSet = new Set(selectedRecordIds)
+    if (newSet.has(recordId)) {
+      newSet.delete(recordId)
+    } else {
+      newSet.add(recordId)
+    }
+    setSelectedRecordIds(newSet)
+  }
+
+  const canProceedFromStep2 = recordSelection === 'all' || selectedRecordIds.size > 0 || includePatientBrief || includeCombatAnalysis
+
+  const canProceedFromStep3 = signature.trim().length >= 2 &&
+    consentChecks.shareData &&
+    consentChecks.notMedicalAdvice &&
+    consentChecks.agreeTerms
+
+  const handleSubmit = async () => {
+    if (!selectedExpert || !user) return
+    setSubmitting(true)
+
+    try {
+      const { supabase } = await import('@/lib/supabase')
+
+      // Prepare records to share
+      const recordsToShare = recordSelection === 'all'
+        ? records.map(r => r.id)
+        : Array.from(selectedRecordIds)
+
+      // Create consultation request
+      const consultationData = {
+        user_id: user.id,
+        user_email: user.email,
+        expert_id: selectedExpert.id,
+        expert_name: selectedExpert.name,
+        question: question || 'Please review my case and Combat analysis.',
+        selected_records: recordsToShare,
+        include_patient_brief: includePatientBrief,
+        include_combat_analysis: includeCombatAnalysis,
+        combat_result: includeCombatAnalysis ? combatResult : null,
+        signature: signature,
+        consent_share_data: consentChecks.shareData,
+        consent_not_medical_advice: consentChecks.notMedicalAdvice,
+        consent_agree_terms: consentChecks.agreeTerms,
+        price_amount: selectedExpert.priceAmount,
+        status: selectedExpert.isFree ? 'pending' : 'awaiting_payment',
+        created_at: new Date().toISOString()
+      }
+
+      const { data, error } = await supabase
+        .from('expert_consultations')
+        .insert(consultationData)
+        .select()
+        .single()
+
+      if (error) throw error
+
+      // For paid consultations, redirect to payment
+      if (!selectedExpert.isFree && data) {
+        // Map expert to product ID
+        const productId = selectedExpert.id === 'tony-magliocco'
+          ? 'expert-tony-magliocco'
+          : 'expert-review'
+
+        // Create Stripe checkout session
+        const checkoutRes = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            productId,
+            userId: user.id,
+            email: user.email,
+            metadata: {
+              consultationId: data.id,
+              expertId: selectedExpert.id,
+              expertName: selectedExpert.name
+            }
+          })
+        })
+
+        if (checkoutRes.ok) {
+          const { url } = await checkoutRes.json()
+          if (url) {
+            window.location.href = url
+            return
+          }
+        } else {
+          // Payment creation failed
+          const errorData = await checkoutRes.json()
+          throw new Error(errorData.error || 'Failed to create payment session')
+        }
+      }
+
+      // For free consultations, show success
+      setStep(4)
+    } catch (err) {
+      console.error('Error submitting consultation:', err)
+      alert('Failed to submit consultation request. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  if (!isOpen) return null
+
+  const stepTitles = {
+    1: 'Select Expert',
+    2: 'Share Records',
+    3: 'Consent & Review',
+    4: 'Confirmation'
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -725,7 +902,7 @@ function ExpertModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
       {/* Modal */}
       <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-slate-900 p-6 rounded-t-2xl">
+        <div className="sticky top-0 bg-slate-900 p-6 rounded-t-2xl z-10">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-white/80 hover:text-white"
@@ -735,100 +912,362 @@ function ExpertModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
             </svg>
           </button>
           <h2 className="text-2xl font-bold text-white">Expert Consultation</h2>
-          <p className="text-slate-400 mt-1">Get personalized guidance from leading oncology experts</p>
+          <p className="text-slate-400 mt-1">Step {step} of 4: {stepTitles[step]}</p>
+
+          {/* Progress bar */}
+          <div className="flex gap-2 mt-4">
+            {[1, 2, 3, 4].map((s) => (
+              <div
+                key={s}
+                className={`h-1.5 flex-1 rounded-full transition-all ${
+                  s <= step ? 'bg-green-400' : 'bg-slate-700'
+                }`}
+              />
+            ))}
+          </div>
         </div>
 
-        {/* Experts */}
-        <div className="p-6 space-y-4">
-          {experts.map((expert, i) => (
-            <div key={i} className={`border rounded-xl p-5 transition-all ${
-              expert.isFree
-                ? 'border-green-200 bg-gradient-to-r from-green-50/50 to-white hover:border-green-300'
-                : 'border-slate-200 hover:border-slate-300 hover:shadow-md'
-            }`}>
-              <div className="flex gap-4">
-                {/* Avatar - will use image when available */}
-                <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-slate-100 to-slate-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                  {expert.image && (
-                    <img
-                      src={expert.image}
-                      alt={expert.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none'
-                        e.currentTarget.nextElementSibling?.classList.remove('hidden')
-                      }}
+        <div className="p-6">
+          {/* Step 1: Select Expert */}
+          {step === 1 && (
+            <div className="space-y-4">
+              {experts.map((expert) => (
+                <div
+                  key={expert.id}
+                  onClick={() => handleExpertSelect(expert)}
+                  className={`border rounded-xl p-5 transition-all cursor-pointer ${
+                    expert.isFree
+                      ? 'border-green-200 bg-gradient-to-r from-green-50/50 to-white hover:border-green-400 hover:shadow-lg'
+                      : 'border-slate-200 hover:border-slate-400 hover:shadow-lg'
+                  }`}
+                >
+                  <div className="flex gap-4">
+                    <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-slate-100 to-slate-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      <img
+                        src={expert.image}
+                        alt={expert.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none'
+                        }}
+                      />
+                    </div>
+
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h3 className="font-bold text-slate-900">{expert.name}</h3>
+                          <p className="text-sm text-slate-600 font-medium">{expert.title}</p>
+                          {expert.organization && (
+                            <p className="text-xs text-green-600 font-medium">{expert.organization}</p>
+                          )}
+                        </div>
+                        {expert.isFree ? (
+                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
+                            FREE
+                          </span>
+                        ) : (
+                          <span className="px-2 py-1 bg-slate-100 text-slate-700 text-xs font-bold rounded-full">
+                            {expert.price}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">{expert.specialty}</p>
+                      <p className="text-sm text-slate-600 mt-2 line-clamp-2">{expert.bio}</p>
+
+                      <div className="flex items-center justify-between mt-4">
+                        <div className="flex items-center gap-2 text-xs text-slate-500">
+                          <Clock className="w-3 h-3" />
+                          <span>Response: {expert.availability}</span>
+                        </div>
+                        <span className={`px-4 py-2 text-sm font-semibold rounded-lg ${
+                          expert.isFree
+                            ? 'bg-slate-900 text-white'
+                            : 'bg-[#C66B4A] text-white'
+                        }`}>
+                          Select →
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Step 2: Record Selection */}
+          {step === 2 && selectedExpert && (
+            <div className="space-y-6">
+              {/* Selected expert summary */}
+              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                <img src={selectedExpert.image} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                <div>
+                  <p className="font-semibold text-slate-900 text-sm">{selectedExpert.name}</p>
+                  <p className="text-xs text-slate-500">{selectedExpert.organization}</p>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-slate-900 mb-3">What would you like to share?</h3>
+
+                {/* Quick options */}
+                <div className="space-y-3 mb-4">
+                  <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 transition-all">
+                    <input
+                      type="radio"
+                      name="recordSelection"
+                      checked={recordSelection === 'all'}
+                      onChange={() => setRecordSelection('all')}
+                      className="mt-1"
                     />
-                  )}
-                  <span className={`text-2xl font-bold text-slate-600 ${expert.image ? 'hidden' : ''}`}>
-                    {expert.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
-                  </span>
+                    <div>
+                      <p className="font-medium text-slate-900">Share all my records ({records.length})</p>
+                      <p className="text-sm text-slate-500">Includes all uploaded documents and analyses</p>
+                    </div>
+                  </label>
+
+                  <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 transition-all">
+                    <input
+                      type="radio"
+                      name="recordSelection"
+                      checked={recordSelection === 'choose'}
+                      onChange={() => setRecordSelection('choose')}
+                      className="mt-1"
+                    />
+                    <div>
+                      <p className="font-medium text-slate-900">Let me choose specific records</p>
+                      <p className="text-sm text-slate-500">Select which documents to include</p>
+                    </div>
+                  </label>
                 </div>
 
-                <div className="flex-1">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-bold text-slate-900">{expert.name}</h3>
-                      <p className="text-sm text-slate-600 font-medium">{expert.title}</p>
-                      {expert.organization && (
-                        <p className="text-xs text-green-600 font-medium">{expert.organization}</p>
-                      )}
-                    </div>
-                    {expert.isFree && (
-                      <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
-                        FREE
-                      </span>
-                    )}
+                {/* Record list when "choose" is selected */}
+                {recordSelection === 'choose' && records.length > 0 && (
+                  <div className="border rounded-lg p-3 max-h-48 overflow-y-auto space-y-2">
+                    {records.map((record) => (
+                      <label key={record.id} className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedRecordIds.has(record.id)}
+                          onChange={() => handleRecordToggle(record.id)}
+                          className="rounded"
+                        />
+                        <FileText className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                        <span className="text-sm text-slate-700 truncate">{record.fileName}</span>
+                      </label>
+                    ))}
                   </div>
-                  <p className="text-xs text-slate-500 mt-1">{expert.specialty}</p>
-                  <p className="text-sm text-slate-600 mt-2 line-clamp-2">{expert.bio}</p>
+                )}
 
-                  <div className="flex items-center justify-between mt-4">
-                    <div className="flex items-center gap-3 text-xs">
-                      <span className="text-slate-500">Response time:</span>
-                      <span className="text-slate-700 font-medium">{expert.availability}</span>
-                      {!expert.isFree && (
-                        <>
-                          <span className="text-slate-300">•</span>
-                          <span className="text-slate-900 font-bold">{expert.price}</span>
-                        </>
-                      )}
+                {/* Additional options */}
+                <div className="border-t mt-4 pt-4 space-y-3">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={includePatientBrief}
+                      onChange={(e) => setIncludePatientBrief(e.target.checked)}
+                      className="rounded"
+                    />
+                    <div>
+                      <p className="font-medium text-slate-900 text-sm">Include Patient Brief</p>
+                      <p className="text-xs text-slate-500">AI-generated summary of your case</p>
                     </div>
-                    <button className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all shadow-md hover:shadow-lg ${
-                      expert.isFree
-                        ? 'bg-slate-900 hover:bg-slate-800 text-white'
-                        : 'bg-[#C66B4A] hover:bg-[#B35E40] text-white'
-                    }`}>
-                      {expert.isFree ? 'Request Consultation' : 'Book Consultation'}
-                    </button>
+                  </label>
+
+                  {combatResult && (
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={includeCombatAnalysis}
+                        onChange={(e) => setIncludeCombatAnalysis(e.target.checked)}
+                        className="rounded"
+                      />
+                      <div>
+                        <p className="font-medium text-slate-900 text-sm">Include Combat Analysis</p>
+                        <p className="text-xs text-slate-500">Share the AI multi-perspective analysis</p>
+                      </div>
+                    </label>
+                  )}
+                </div>
+
+                {/* Optional question */}
+                <div className="border-t mt-4 pt-4">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Any specific questions? (optional)
+                  </label>
+                  <textarea
+                    value={question}
+                    onChange={(e) => setQuestion(e.target.value)}
+                    placeholder="e.g., Should I consider clinical trials? What additional tests might help?"
+                    className="w-full p-3 border rounded-lg text-sm resize-none h-20"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => setStep(1)}
+                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900"
+                >
+                  ← Back
+                </button>
+                <button
+                  onClick={() => setStep(3)}
+                  disabled={!canProceedFromStep2}
+                  className={`flex-1 px-4 py-3 text-sm font-semibold rounded-lg transition-all ${
+                    canProceedFromStep2
+                      ? 'bg-slate-900 text-white hover:bg-slate-800'
+                      : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                  }`}
+                >
+                  Continue to Consent →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Consent Form */}
+          {step === 3 && selectedExpert && (
+            <div className="space-y-6">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <h4 className="font-semibold text-amber-800 mb-2">Important Information</h4>
+                <p className="text-sm text-amber-700">
+                  This consultation provides educational information and a second perspective on your case.
+                  It does not establish a physician-patient relationship and should not replace advice from your treating oncologist.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="font-semibold text-slate-900">Please confirm:</h3>
+
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={consentChecks.shareData}
+                    onChange={(e) => setConsentChecks(prev => ({ ...prev, shareData: e.target.checked }))}
+                    className="mt-1 rounded"
+                  />
+                  <span className="text-sm text-slate-700">
+                    I consent to sharing my medical records and information with <strong>{selectedExpert.name}</strong> for the purpose of receiving educational guidance about my cancer care.
+                  </span>
+                </label>
+
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={consentChecks.notMedicalAdvice}
+                    onChange={(e) => setConsentChecks(prev => ({ ...prev, notMedicalAdvice: e.target.checked }))}
+                    className="mt-1 rounded"
+                  />
+                  <span className="text-sm text-slate-700">
+                    I understand this consultation provides educational information only and does not constitute medical advice, diagnosis, or treatment recommendations.
+                  </span>
+                </label>
+
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={consentChecks.agreeTerms}
+                    onChange={(e) => setConsentChecks(prev => ({ ...prev, agreeTerms: e.target.checked }))}
+                    className="mt-1 rounded"
+                  />
+                  <span className="text-sm text-slate-700">
+                    I agree to the <a href="/terms" className="text-blue-600 underline" target="_blank">Terms of Service</a> and <a href="/privacy" className="text-blue-600 underline" target="_blank">Privacy Policy</a>.
+                  </span>
+                </label>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Electronic Signature (type your full name)
+                </label>
+                <input
+                  type="text"
+                  value={signature}
+                  onChange={(e) => setSignature(e.target.value)}
+                  placeholder="Your full name"
+                  className="w-full p-3 border rounded-lg text-sm"
+                />
+              </div>
+
+              {/* Summary */}
+              <div className="bg-slate-50 rounded-lg p-4">
+                <h4 className="font-semibold text-slate-900 mb-3">Summary</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Expert:</span>
+                    <span className="font-medium">{selectedExpert.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Records:</span>
+                    <span className="font-medium">
+                      {recordSelection === 'all' ? `All (${records.length})` : `${selectedRecordIds.size} selected`}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Patient Brief:</span>
+                    <span className="font-medium">{includePatientBrief ? 'Yes' : 'No'}</span>
+                  </div>
+                  {combatResult && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Combat Analysis:</span>
+                      <span className="font-medium">{includeCombatAnalysis ? 'Yes' : 'No'}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between border-t pt-2 mt-2">
+                    <span className="text-slate-900 font-semibold">Total:</span>
+                    <span className={`font-bold ${selectedExpert.isFree ? 'text-green-600' : 'text-slate-900'}`}>
+                      {selectedExpert.isFree ? 'Free' : selectedExpert.price}
+                    </span>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
 
-          {/* What you get */}
-          <div className="bg-slate-50 rounded-xl p-4 mt-6">
-            <h4 className="font-semibold text-slate-900 mb-3">What's included:</h4>
-            <ul className="space-y-2">
-              <li className="flex items-start gap-2 text-sm text-slate-600">
-                <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                30-minute video consultation reviewing your CancerCombat analysis
-              </li>
-              <li className="flex items-start gap-2 text-sm text-slate-600">
-                <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                Personalized written summary with actionable next steps
-              </li>
-              <li className="flex items-start gap-2 text-sm text-slate-600">
-                <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                Questions to bring to your oncologist appointment
-              </li>
-              <li className="flex items-start gap-2 text-sm text-slate-600">
-                <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                7-day follow-up support via secure messaging
-              </li>
-            </ul>
-          </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => setStep(2)}
+                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900"
+                >
+                  ← Back
+                </button>
+                <button
+                  onClick={handleSubmit}
+                  disabled={!canProceedFromStep3 || submitting}
+                  className={`flex-1 px-4 py-3 text-sm font-semibold rounded-lg transition-all ${
+                    canProceedFromStep3 && !submitting
+                      ? selectedExpert.isFree
+                        ? 'bg-green-600 text-white hover:bg-green-700'
+                        : 'bg-[#C66B4A] text-white hover:bg-[#B35E40]'
+                      : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                  }`}
+                >
+                  {submitting ? 'Submitting...' : selectedExpert.isFree ? 'Submit Request' : `Pay ${selectedExpert.price} →`}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: Confirmation */}
+          {step === 4 && selectedExpert && (
+            <div className="text-center py-8">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle2 className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">Request Submitted!</h3>
+              <p className="text-slate-600 mb-6">
+                {selectedExpert.name} will review your case and respond within {selectedExpert.availability}.
+              </p>
+              <p className="text-sm text-slate-500 mb-6">
+                You'll receive an email notification when the response is ready.
+              </p>
+              <button
+                onClick={onClose}
+                className="px-6 py-3 bg-slate-900 text-white font-semibold rounded-lg hover:bg-slate-800 transition-all"
+              >
+                Done
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -844,12 +1283,12 @@ export default function CombatPage() {
   const [treatmentResult, setTreatmentResult] = useState<CombatResult | null>(null)
   const [expandedPerspectives, setExpandedPerspectives] = useState<Set<string>>(new Set())
 
-  // Verification step state
-  const [showVerification, setShowVerification] = useState(false)
-  const [verificationFindings, setVerificationFindings] = useState<DetectedFinding[]>([])
-  const [pendingCorrections, setPendingCorrections] = useState<FindingCorrection[]>([])
-  const [extractingFindings, setExtractingFindings] = useState(false)
-  const [pendingPhase, setPendingPhase] = useState<'diagnosis' | 'treatment'>('diagnosis')
+  // Verification step state - disabled for now
+  // const [showVerification, setShowVerification] = useState(false)
+  // const [verificationFindings, setVerificationFindings] = useState<DetectedFinding[]>([])
+  // const [pendingCorrections, setPendingCorrections] = useState<FindingCorrection[]>([])
+  // const [extractingFindings, setExtractingFindings] = useState(false)
+  // const [pendingPhase, setPendingPhase] = useState<'diagnosis' | 'treatment'>('diagnosis')
 
   // Outcome tracking - simple question after Combat
   const [showOutcomeQuestion, setShowOutcomeQuestion] = useState(false)
@@ -1185,75 +1624,15 @@ export default function CombatPage() {
     return () => clearTimeout(timeout)
   }, [loading])
 
-  // Extract findings for verification before running combat
-  const extractFindings = async (): Promise<DetectedFinding[]> => {
-    if (records.length === 0) return []
+  // Verification functions disabled - were causing page load issues
+  /*
+  const extractFindings = async () => { ... }
+  const startCombatWithVerification = async () => { ... }
+  const handleVerificationConfirm = () => { ... }
+  const handleVerificationSkip = () => { ... }
+  */
 
-    try {
-      const response = await fetch('/api/combat/extract', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          records: records.map(r => ({
-            fileName: r.fileName,
-            documentType: r.documentType,
-            result: r.result,
-            documentText: r.documentText?.slice(0, 5000)
-          }))
-        })
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        return data.findings || []
-      }
-    } catch (err) {
-      console.error('Failed to extract findings:', err)
-    }
-    return []
-  }
-
-  // Start combat with verification step
-  const startCombatWithVerification = async (targetPhase: 'diagnosis' | 'treatment') => {
-    if (records.length === 0) return
-
-    setPendingPhase(targetPhase)
-    setExtractingFindings(true)
-
-    try {
-      const findings = await extractFindings()
-
-      // If we found verifiable findings, show verification step
-      if (findings && findings.length > 0) {
-        setVerificationFindings(findings)
-        setShowVerification(true)
-      } else {
-        // No findings to verify, run combat directly
-        runCombat(targetPhase, [])
-      }
-    } catch (err) {
-      console.error('Verification extraction failed:', err)
-      // On error, skip verification and run combat directly
-      runCombat(targetPhase, [])
-    } finally {
-      setExtractingFindings(false)
-    }
-  }
-
-  // Handle verification completion
-  const handleVerificationConfirm = (corrections: FindingCorrection[]) => {
-    setPendingCorrections(corrections)
-    setShowVerification(false)
-    runCombat(pendingPhase, corrections)
-  }
-
-  // Handle skipping verification
-  const handleVerificationSkip = () => {
-    setShowVerification(false)
-    runCombat(pendingPhase, [])
-  }
-
-  const runCombat = async (targetPhase: 'diagnosis' | 'treatment', corrections: FindingCorrection[] = []) => {
+  const runCombat = async (targetPhase: 'diagnosis' | 'treatment', corrections: { findingId: string; originalValue: string; correctedValue: string; correctionType: string; note?: string }[] = []) => {
     if (records.length === 0) return
 
     // Track combat runs for upgrade prompt (anxiety loop detection)
@@ -1434,26 +1813,6 @@ export default function CombatPage() {
 
   return (
     <main className="min-h-screen bg-white">
-      {/* Verification Modal - Shows detected findings before combat analysis */}
-      {showVerification && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-            onClick={handleVerificationSkip}
-          />
-          {/* Modal Content */}
-          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <CombatVerification
-              findings={verificationFindings}
-              onConfirm={handleVerificationConfirm}
-              onSkip={handleVerificationSkip}
-              isLoading={generating}
-            />
-          </div>
-        </div>
-      )}
-
       {/* Outcome Question Modal - Simple, non-intrusive */}
       {showOutcomeQuestion && (
         <div className="fixed bottom-4 right-4 z-50 bg-white rounded-2xl shadow-2xl border border-slate-200 p-5 max-w-sm animate-in slide-in-from-bottom-4">
@@ -1662,68 +2021,10 @@ export default function CombatPage() {
             )}
 
 
-            {/* Results - Bottom Line First */}
+            {/* Results - Summary First */}
             {currentResult && !generating && (
               <div className="space-y-5">
-                {/* Analysis Summary Card */}
-                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-                  <div className="p-5 border-b border-slate-100">
-                    <p className="font-semibold text-slate-900">
-                      Analysis complete — {records[0]?.result?.cancer_specific?.cancer_type || 'Your case'}
-                    </p>
-                  </div>
-
-                  {/* Key Findings - First 2 visible, rest blurred for non-premium */}
-                  <div className="p-5 space-y-3">
-                    {/* Finding 1 - Always visible */}
-                    <div className="flex items-start gap-3">
-                      <div className="w-2 h-2 rounded-full bg-green-500 mt-2 flex-shrink-0" />
-                      <p className="text-slate-700">{currentResult.consensus[0] || currentResult.synthesis.split('.')[0]}</p>
-                    </div>
-
-                    {/* Finding 2 - Always visible */}
-                    {currentResult.divergence[0] && (
-                      <div className="flex items-start gap-3">
-                        <div className="w-2 h-2 rounded-full bg-amber-500 mt-2 flex-shrink-0" />
-                        <p className="text-slate-700">{currentResult.divergence[0]}</p>
-                      </div>
-                    )}
-
-                    {/* Finding 3+ - Blurred for non-premium */}
-                    {!isPremiumUser && (
-                      <>
-                        <div className="flex items-start gap-3 blur-[3px] select-none">
-                          <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
-                          <p className="text-slate-700">{currentResult.consensus[1] || 'Additional finding from expert analysis...'}</p>
-                        </div>
-                        <div className="flex items-start gap-3 blur-[3px] select-none">
-                          <div className="w-2 h-2 rounded-full bg-purple-500 mt-2 flex-shrink-0" />
-                          <p className="text-slate-700">{currentResult.divergence[1] || 'Clinical trial eligibility assessment...'}</p>
-                        </div>
-                      </>
-                    )}
-
-                    {/* Show all findings for premium users */}
-                    {isPremiumUser && (
-                      <>
-                        {currentResult.consensus.slice(1).map((c, i) => (
-                          <div key={`c-${i}`} className="flex items-start gap-3">
-                            <div className="w-2 h-2 rounded-full bg-green-500 mt-2 flex-shrink-0" />
-                            <p className="text-slate-700">{c}</p>
-                          </div>
-                        ))}
-                        {currentResult.divergence.slice(1).map((d, i) => (
-                          <div key={`d-${i}`} className="flex items-start gap-3">
-                            <div className="w-2 h-2 rounded-full bg-amber-500 mt-2 flex-shrink-0" />
-                            <p className="text-slate-700">{d}</p>
-                          </div>
-                        ))}
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {/* Full synthesis - available to all users */}
+                {/* Full synthesis at TOP - the main takeaway */}
                 <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-6 shadow-lg">
                   <div className="flex items-center gap-2 mb-3">
                     <CheckCircle2 className="w-5 h-5 text-green-400" />
@@ -1732,22 +2033,49 @@ export default function CombatPage() {
                   <p className="text-lg leading-relaxed">{currentResult.synthesis}</p>
                 </div>
 
-                {/* Expert Review CTA */}
+                {/* Expert Review CTA - Orange, prominent */}
                 <button
                   onClick={() => setShowExpertModal(true)}
-                  className="w-full flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all group text-left"
+                  className="w-full flex items-center justify-between p-4 bg-[#C66B4A] hover:bg-[#B55D3E] rounded-xl shadow-sm transition-all group text-left"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center group-hover:bg-slate-200 transition-colors">
-                      <Users className="w-5 h-5 text-slate-600" />
+                    <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
+                      <Users className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <p className="font-semibold text-slate-900 text-sm">Want a human oncologist to review?</p>
-                      <p className="text-xs text-slate-500">$199 • Written notes in 48 hours</p>
+                      <p className="font-semibold text-white text-sm">Want a human oncologist to review?</p>
+                      <p className="text-xs text-white/80">$199 • Written notes in 48 hours</p>
                     </div>
                   </div>
-                  <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-1 transition-all" />
+                  <ArrowRight className="w-5 h-5 text-white/80 group-hover:text-white group-hover:translate-x-1 transition-all" />
                 </button>
+
+                {/* Key Findings Card */}
+                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+                  <div className="p-5 border-b border-slate-100">
+                    <p className="font-semibold text-slate-900">
+                      Key Findings — {records[0]?.result?.cancer_specific?.cancer_type || 'Your case'}
+                    </p>
+                  </div>
+
+                  {/* Consensus & Divergence findings */}
+                  <div className="p-5 space-y-3">
+                    {/* Consensus findings */}
+                    {currentResult.consensus.map((c, i) => (
+                      <div key={`c-${i}`} className="flex items-start gap-3">
+                        <div className="w-2 h-2 rounded-full bg-green-500 mt-2 flex-shrink-0" />
+                        <p className="text-slate-700">{c}</p>
+                      </div>
+                    ))}
+                    {/* Divergence findings */}
+                    {currentResult.divergence.map((d, i) => (
+                      <div key={`d-${i}`} className="flex items-start gap-3">
+                        <div className="w-2 h-2 rounded-full bg-amber-500 mt-2 flex-shrink-0" />
+                        <p className="text-slate-700">{d}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
                 {/* Question context - smaller */}
                 <div className="text-center">
@@ -1893,7 +2221,12 @@ export default function CombatPage() {
       </div>
 
       {/* Expert Consultation Modal */}
-      <ExpertModal isOpen={showExpertModal} onClose={() => setShowExpertModal(false)} />
+      <ExpertModal
+        isOpen={showExpertModal}
+        onClose={() => setShowExpertModal(false)}
+        records={records}
+        combatResult={diagnosisResult || treatmentResult}
+      />
 
       {/* Share Modal */}
       {currentResult && (
