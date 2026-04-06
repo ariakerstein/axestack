@@ -2169,14 +2169,22 @@ export default function CombatPage() {
                   </div>
                 </details>
 
-                {/* Secondary Actions - minimal */}
-                <div className="flex gap-2">
+                {/* Refine Analysis - Re-run with modifications */}
+                <div className="flex items-center gap-2 text-sm">
                   <button
-                    onClick={() => handleShareClick('oncologist')}
-                    className="flex-1 py-2.5 px-4 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
+                    onClick={() => {
+                      if (phase === 'diagnosis') {
+                        setDiagnosisResult(null)
+                        localStorage.removeItem('combat-diagnosis-result')
+                      } else {
+                        setTreatmentResult(null)
+                        localStorage.removeItem('combat-treatment-result')
+                      }
+                    }}
+                    className="py-2 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors flex items-center gap-2"
                   >
-                    <FileText className="w-4 h-4" />
-                    Share with Doctor
+                    <Sliders className="w-4 h-4" />
+                    Adjust & Re-run
                   </button>
                   <button
                     onClick={() => {
@@ -2189,38 +2197,23 @@ export default function CombatPage() {
                       a.click()
                       URL.revokeObjectURL(url)
                     }}
-                    className="py-2.5 px-3 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+                    className="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors"
+                    title="Download analysis"
                   >
                     <Download className="w-4 h-4" />
                   </button>
                 </div>
 
-                {/* Next Steps */}
-                <div className="flex gap-3">
-                  {phase === 'diagnosis' && (
-                    <button
-                      onClick={() => runCombat('treatment', [])}
-                      className="group flex-1 py-3 bg-[#C66B4A] hover:bg-[#B35E40] text-white rounded-xl font-semibold flex items-center justify-center gap-2 transition-all shadow-md"
-                    >
-                      Continue to Treatment
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </button>
-                  )}
+                {/* Primary Action - Continue to Treatment (only after diagnosis) */}
+                {phase === 'diagnosis' && (
                   <button
-                    onClick={() => {
-                      if (phase === 'diagnosis') {
-                        setDiagnosisResult(null)
-                        localStorage.removeItem('combat-diagnosis-result')
-                      } else {
-                        setTreatmentResult(null)
-                        localStorage.removeItem('combat-treatment-result')
-                      }
-                    }}
-                    className="py-3 px-5 bg-white border border-slate-200 hover:border-slate-300 text-slate-600 rounded-xl text-sm font-medium transition-all"
+                    onClick={() => runCombat('treatment', [])}
+                    className="group w-full py-3 bg-[#C66B4A] hover:bg-[#B35E40] text-white rounded-xl font-semibold flex items-center justify-center gap-2 transition-all shadow-md"
                   >
-                    Re-run
+                    Diagnosis looks right → Continue to Treatment
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </button>
-                </div>
+                )}
 
                 {/* Completion Banner - Compact */}
                 {treatmentResult && phase === 'treatment' && (
