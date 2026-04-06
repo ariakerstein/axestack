@@ -382,16 +382,22 @@ async function synthesizePerspectives(
   const synthesisPrompt = `${styleInstructions}
 
 Five oncology perspectives have analyzed a cancer case:
+1. Standard of Care (NCCN guidelines)
+2. Emerging Evidence (clinical trials, cutting edge)
+3. Molecular/Targeted (precision medicine)
+4. Watch & Wait (conservative, de-escalation)
+5. Whole Person (quality of life, integrative)
 
 ${perspectiveSummary}
 
-Synthesize these perspectives. Respond in this exact JSON format:
+Synthesize ALL FIVE perspectives. Respond in this exact JSON format:
 {
-  "synthesis": "A 2-3 sentence synthesis of the key takeaways for the patient",
-  "consensus": ["Point where most/all perspectives agree", "Another point of agreement"],
+  "synthesis": "A 2-3 sentence synthesis of the key takeaways from all five expert perspectives",
+  "consensus": ["Point where most/all of the five perspectives agree", "Another point of agreement"],
   "divergence": ["Key disagreement between perspectives", "Another area where they diverge"]
 }
 
+IMPORTANT: When referencing agreement, be specific about which perspectives agree (e.g., "Four of five perspectives recommend..." or "All five perspectives agree...").
 The divergence section is especially important - highlight where aggressive vs conservative approaches differ, where precision medicine suggests something guidelines don't, etc.
 Focus on actionable insights for the patient's next doctor conversation.`
 

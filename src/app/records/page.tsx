@@ -538,6 +538,13 @@ export default function RecordsVaultPage() {
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
+
+    // Gate behind email - require auth to upload
+    if (!user) {
+      setShowAuthModal(true)
+      return
+    }
+
     const files = Array.from(e.dataTransfer.files)
 
     if (files.length > 1) {
@@ -562,9 +569,16 @@ export default function RecordsVaultPage() {
       setError(null)
       setChatMessages([])
     }
-  }, [])
+  }, [user])
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    // Gate behind email - require auth to upload
+    if (!user) {
+      setShowAuthModal(true)
+      e.target.value = '' // Reset file input
+      return
+    }
+
     const files = Array.from(e.target.files || [])
 
     if (files.length > 1) {
@@ -589,7 +603,7 @@ export default function RecordsVaultPage() {
       setError(null)
       setChatMessages([])
     }
-  }, [])
+  }, [user])
 
   const handleTranslate = async () => {
     if (!file) return
