@@ -393,6 +393,28 @@ async function synthesizePerspectives(
 
   const styleInstructions = getCommunicationStyleInstructions(communicationStyle)
 
+  // Tailor synthesis format based on communication style
+  const synthesisFormat = communicationStyle === 'gentle'
+    ? `{
+  "headline": "One sentence (max 15 words) in plain language summarizing the key finding",
+  "bullets": ["Key point 1 in plain language", "Key point 2", "Key point 3"],
+  "consensus": ["Point where perspectives agree, in plain language"],
+  "divergence": ["Where perspectives differ, explained simply"]
+}`
+    : communicationStyle === 'research'
+    ? `{
+  "headline": "One sentence summarizing the clinical bottom line",
+  "synthesis": "2-3 sentences with specific clinical details, citing perspective names",
+  "consensus": ["Specific point of agreement with clinical rationale"],
+  "divergence": ["Specific disagreement noting which perspectives differ and why"]
+}`
+    : `{
+  "headline": "One sentence summarizing the most important takeaway",
+  "synthesis": "2-3 sentences explaining the key findings in accessible language",
+  "consensus": ["Point where most/all perspectives agree"],
+  "divergence": ["Key disagreement between perspectives"]
+}`
+
   const synthesisPrompt = `${styleInstructions}
 
 Five oncology perspectives have analyzed a cancer case:
@@ -405,15 +427,12 @@ Five oncology perspectives have analyzed a cancer case:
 ${perspectiveSummary}
 
 Synthesize ALL FIVE perspectives. Respond in this exact JSON format:
-{
-  "synthesis": "A 2-3 sentence synthesis of the key takeaways from all five expert perspectives",
-  "consensus": ["Point where most/all of the five perspectives agree", "Another point of agreement"],
-  "divergence": ["Key disagreement between perspectives", "Another area where they diverge"]
-}
+${synthesisFormat}
 
-IMPORTANT: When referencing agreement, be specific about which perspectives agree (e.g., "Four of five perspectives recommend..." or "All five perspectives agree...").
-The divergence section is especially important - highlight where aggressive vs conservative approaches differ, where precision medicine suggests something guidelines don't, etc.
-Focus on actionable insights for the patient's next doctor conversation.`
+IMPORTANT:
+- The "headline" field is the most important - make it actionable and clear
+- Be specific about which perspectives agree or disagree
+- Focus on what the patient should discuss with their oncologist`
 
   try {
     console.log('[Combat] Calling direct-navis for synthesis...')

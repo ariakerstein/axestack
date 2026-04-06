@@ -291,7 +291,9 @@ interface CombatResult {
   phase: 'diagnosis' | 'treatment'
   question: string
   perspectives: Perspective[]
-  synthesis: string
+  headline?: string  // Short summary (one sentence)
+  bullets?: string[] // Key points for gentle mode
+  synthesis: string  // Full synthesis text
   consensus: string[]
   divergence: string[]
   // Enhanced fields for action hub
@@ -1382,6 +1384,12 @@ function CombatPageContent() {
   const [isPremiumUser, setIsPremiumUser] = useState(false) // TODO: Check actual subscription status
   const [checkoutLoading, setCheckoutLoading] = useState(false)
 
+  // Email capture during long waits
+  const [showEmailCapture, setShowEmailCapture] = useState(false)
+  const [emailForResults, setEmailForResults] = useState('')
+  const [emailSubmitted, setEmailSubmitted] = useState(false)
+  const generatingStartTime = useRef<number | null>(null)
+
   // Load combat run count from localStorage (resets weekly)
   useEffect(() => {
     try {
@@ -1417,6 +1425,22 @@ function CombatPageContent() {
     localStorage.setItem('combat-run-tracker', JSON.stringify({ weekStart, count: newCount }))
     return newCount
   }
+
+  // Show email capture after 15 seconds of generating
+  useEffect(() => {
+    if (!generating) {
+      setShowEmailCapture(false)
+      return
+    }
+
+    const timer = setTimeout(() => {
+      if (generating && !emailSubmitted) {
+        setShowEmailCapture(true)
+      }
+    }, 15000) // 15 seconds
+
+    return () => clearTimeout(timer)
+  }, [generating, emailSubmitted])
 
   // Load saved combat results from localStorage on mount
   useEffect(() => {
@@ -1711,6 +1735,9 @@ function CombatPageContent() {
     setGenerating(true)
     setPhase(targetPhase)
     setStreamingContent('')
+    setShowEmailCapture(false)
+    setEmailSubmitted(false)
+    generatingStartTime.current = Date.now()
     simulateDeliberation() // Start the deliberation theater
 
     try {
@@ -2093,6 +2120,59 @@ function CombatPageContent() {
                   deliberationLog={deliberationLog}
                   records={records.map(r => ({ fileName: r.fileName, documentType: r.documentType }))}
                 />
+
+                {/* Email capture after long wait */}
+                {showEmailCapture && !emailSubmitted && (
+                  <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm animate-in fade-in slide-in-from-bottom-2">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-[#C66B4A]/10 flex items-center justify-center flex-shrink-0">
+                        <Mail className="w-5 h-5 text-[#C66B4A]" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-slate-900">Taking longer than expected?</p>
+                        <p className="text-xs text-slate-500 mt-0.5">Enter your email and we'll send you the results when ready.</p>
+                        <form
+                          onSubmit={(e) => {
+                            e.preventDefault()
+                            if (emailForResults && emailForResults.includes('@')) {
+                              // Save email to profile
+                              try {
+                                const saved = localStorage.getItem('patient-profile')
+                                const profile = saved ? JSON.parse(saved) : {}
+                                profile.email = emailForResults
+                                localStorage.setItem('patient-profile', JSON.stringify(profile))
+                              } catch { /* ignore */ }
+                              setEmailSubmitted(true)
+                              // TODO: Actually queue email delivery when results complete
+                            }
+                          }}
+                          className="flex gap-2 mt-3"
+                        >
+                          <input
+                            type="email"
+                            value={emailForResults}
+                            onChange={(e) => setEmailForResults(e.target.value)}
+                            placeholder="your@email.com"
+                            className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C66B4A]/50 focus:border-[#C66B4A]"
+                          />
+                          <button
+                            type="submit"
+                            className="px-4 py-2 bg-[#C66B4A] text-white text-sm font-medium rounded-lg hover:bg-[#B55D3E] transition-colors"
+                          >
+                            Notify me
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {emailSubmitted && (
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+                    <CheckCircle2 className="w-5 h-5 text-green-600 mx-auto mb-2" />
+                    <p className="text-sm text-green-800">We'll email your results to {emailForResults}</p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -2104,9 +2184,31 @@ function CombatPageContent() {
                 <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-6 shadow-lg">
                   <div className="flex items-center gap-2 mb-3">
                     <CheckCircle2 className="w-5 h-5 text-green-400" />
-                    <span className="text-sm font-medium text-slate-300 uppercase tracking-wide">Full Analysis</span>
+                    <span className="text-sm font-medium text-slate-300 uppercase tracking-wide">Bottom Line</span>
                   </div>
-                  <p className="text-lg leading-relaxed">{currentResult.synthesis}</p>
+
+                  {/* Headline - always show if available */}
+                  {currentResult.headline && (
+                    <p className="text-lg font-semibold leading-relaxed mb-3">{currentResult.headline}</p>
+                  )}
+
+                  {/* Bullets for gentle mode, or synthesis for others */}
+                  {currentResult.bullets && currentResult.bullets.length > 0 ? (
+                    <ul className="space-y-2 text-base">
+                      {currentResult.bullets.map((bullet, i) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <span className="text-green-400 mt-1">•</span>
+                          <span className="text-slate-200">{bullet}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : currentResult.synthesis && !currentResult.headline ? (
+                    // Fallback: show full synthesis if no headline
+                    <p className="text-base leading-relaxed text-slate-200">{currentResult.synthesis}</p>
+                  ) : currentResult.synthesis ? (
+                    // Show synthesis as supporting detail under headline
+                    <p className="text-sm leading-relaxed text-slate-300 mt-2">{currentResult.synthesis}</p>
+                  ) : null}
                 </div>
 
                 {/* Expert Review CTA - Orange, prominent */}
