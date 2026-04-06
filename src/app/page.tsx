@@ -229,6 +229,18 @@ function HomeContent() {
           stage: authProfile.stage || undefined,
           location: authProfile.location || undefined,
         })
+
+        // Auto-show onboarding for users with default "other" cancer type
+        // Only show if they haven't dismissed it before
+        const dismissedOnboarding = localStorage.getItem('opencancer-onboarding-dismissed')
+        if (authProfile.cancer_type === 'other' && !dismissedOnboarding) {
+          // Pre-fill wizard with existing data
+          setWizardRole(authProfile.role)
+          setWizardName(authProfile.name || '')
+          setWizardEmail(authProfile.email || '')
+          setWizardStep(3) // Jump to cancer type step since we have name/email
+          setShowWizardModal(true)
+        }
       } else {
         // User is logged in but hasn't completed profile - show basic logged-in state
         // Use email as display name, generic cancer type
@@ -238,16 +250,19 @@ function HomeContent() {
           email: user.email || '',
           cancerType: 'other',
         })
+
+        // Auto-show onboarding for new users without profile
+        const dismissedOnboarding = localStorage.getItem('opencancer-onboarding-dismissed')
+        if (!dismissedOnboarding) {
+          setWizardEmail(user.email || '')
+          setWizardStep(1) // Start from beginning
+          setShowWizardModal(true)
+        }
       }
     } else {
-      // Fall back to localStorage for guest users
-      const saved = localStorage.getItem('patient-profile')
-      if (saved) {
-        setProfile(JSON.parse(saved))
-      } else {
-        // No profile - guest mode
-        setProfile(null)
-      }
+      // Guest users (not authenticated) - don't show "Welcome back" personalization
+      // They should see the marketing homepage, not the logged-in dashboard
+      setProfile(null)
     }
 
     // Check for success message
@@ -314,7 +329,7 @@ function HomeContent() {
             <>
               {/* Patient name is the hero - most important element on page */}
               <h1 className="text-4xl md:text-5xl font-bold mb-3">
-                Welcome back, {profile.name.split(' ')[0]}
+                Welcome back, {profile.name?.split(' ')[0] || 'there'}
               </h1>
 
               {/* Personalization row - all in one clean line */}
@@ -323,7 +338,7 @@ function HomeContent() {
                   {profile.role === 'caregiver' ? <><Heart className="w-3.5 h-3.5" /> Caregiver</> : <><Ribbon className="w-3.5 h-3.5" /> Patient</>}
                 </span>
                 <span className="text-slate-300">·</span>
-                <span className="text-slate-700 font-medium">{CANCER_TYPES[profile.cancerType] || profile.cancerType}</span>
+                <span className="text-slate-700 font-medium">{CANCER_TYPES[profile.cancerType || ''] || profile.cancerType || 'Cancer'}</span>
                 {profile.stage && (
                   <>
                     <span className="text-slate-300">·</span>
@@ -352,8 +367,8 @@ function HomeContent() {
         </div>
       </section>
 
-      {/* Value Demo - Clean and focused - only show when auth is loaded and no profile */}
-      {!authLoading && !profile && (
+      {/* Value Demo - Clean and focused - only show for guests without profile */}
+      {!authLoading && !profile && !user && (
         <section className="px-8 pb-10 -mt-2">
           <div className="max-w-2xl mx-auto">
             <div className="bg-white border-2 border-slate-900 rounded-2xl shadow-sm overflow-hidden">
@@ -402,7 +417,7 @@ function HomeContent() {
                   </Link>
                   <button
                     onClick={() => { setShowWizardModal(true); setWizardStep(1); setWizardRole(null); }}
-                    className="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-4 sm:px-8 py-3 rounded-xl transition-all shadow-lg shadow-orange-600/25 hover:shadow-xl min-h-[44px] whitespace-nowrap flex-shrink-0"
+                    className="bg-[#C66B4A] hover:bg-[#B35E40] text-white font-semibold px-4 sm:px-8 py-3 rounded-xl transition-all shadow-lg shadow-[#C66B4A]/25 hover:shadow-xl min-h-[44px] whitespace-nowrap flex-shrink-0"
                   >
                     Start Here →
                   </button>
@@ -422,14 +437,14 @@ function HomeContent() {
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => { setShowWizardModal(false); setWizardEmailSent(false); }}
+            onClick={() => { setShowWizardModal(false); setWizardEmailSent(false); localStorage.setItem('opencancer-onboarding-dismissed', 'true'); }}
           />
 
           {/* Modal */}
           <div className="relative w-full max-w-xl mx-4 mb-0 sm:mb-0 bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom">
             {/* Close button */}
             <button
-              onClick={() => { setShowWizardModal(false); setWizardEmailSent(false); }}
+              onClick={() => { setShowWizardModal(false); setWizardEmailSent(false); localStorage.setItem('opencancer-onboarding-dismissed', 'true'); }}
               className="absolute top-4 right-4 z-10 text-slate-400 hover:text-slate-600 p-1"
             >
               <span className="sr-only">Close</span>
@@ -691,8 +706,14 @@ function HomeContent() {
                         setWizardSaving(false)
                         setWizardEmailSent(true)
 
-                        // Wait for profile save to complete (already started)
-                        await profilePromise
+                        // Wait for profile save to complete
+                        const savedProfile = await profilePromise
+
+                        // Only mark as dismissed if profile was successfully saved
+                        // This ensures wizard shows again if save failed
+                        if (savedProfile) {
+                          localStorage.setItem('opencancer-onboarding-dismissed', 'true')
+                        }
 
                         // Send welcome email (non-blocking)
                         fetch('/api/email/welcome', {
@@ -807,7 +828,7 @@ function HomeContent() {
                     <span className="text-2xl">⚔️</span>
                   </div>
                   <h3 className="font-bold text-slate-900 mb-1">Cancer Combat</h3>
-                  <p className="text-slate-600 text-sm mb-2">5 AI perspectives debate your {CANCER_TYPES[profile.cancerType] || 'cancer'} case.</p>
+                  <p className="text-slate-600 text-sm mb-2">5 AI experts debate your {CANCER_TYPES[profile.cancerType] || 'cancer'} case.</p>
                   <p className="text-xs text-slate-500 italic">Find gaps in your treatment plan.</p>
                 </Link>
               </div>
@@ -825,11 +846,11 @@ function HomeContent() {
                 </span>
               )}
               <div className={`mb-3 ${!profile ? 'mt-1' : ''}`}>
-                <FolderClosed className="w-6 h-6 text-blue-500" />
+                <ShieldCheck className="w-6 h-6 text-blue-500" />
               </div>
               <h3 className="font-bold text-slate-900 mb-1">Records Vault</h3>
-              <p className="text-slate-600 text-sm mb-2">Translate medical reports to plain English.</p>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">NCCN guidelines</span>
+              <p className="text-slate-600 text-sm mb-2">Private, secure medical record translation.</p>
+              <span className="text-[10px] px-2 py-0.5 rounded bg-blue-50 text-blue-700">🔒 Privacy-first</span>
             </Link>
 
             {/* Combat */}
@@ -843,8 +864,8 @@ function HomeContent() {
                 <span className="text-2xl">⚔️</span>
               </div>
               <h3 className="font-bold text-slate-900 mb-1">Cancer Combat</h3>
-              <p className="text-slate-600 text-sm mb-2">5 AI perspectives analyze your case.</p>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">Second opinion</span>
+              <p className="text-slate-600 text-sm mb-2">5 AI experts debate your case.</p>
+              <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">5 expert perspectives</span>
             </Link>
 
             {/* Clinical Trials */}
@@ -893,13 +914,13 @@ function HomeContent() {
               <Link href="/tests" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
                 <FlaskConical className="w-5 h-5 text-violet-500" />
                 <h3 className="font-semibold text-slate-900 text-sm mt-2">Testing</h3>
-                <p className="text-slate-500 text-xs">OpenOnco</p>
+                <p className="text-slate-500 text-xs">Partnered with OpenOnco</p>
               </Link>
 
               <Link href="/research" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
                 <BookOpen className="w-5 h-5 text-slate-500" />
                 <h3 className="font-semibold text-slate-900 text-sm mt-2">Research</h3>
-                <p className="text-slate-500 text-xs">BioMCP · 200M+ papers</p>
+                <p className="text-slate-500 text-xs">with BioMCP · 200M+ papers</p>
               </Link>
 
               <Link href="/oncologists" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
@@ -923,7 +944,7 @@ function HomeContent() {
               <a href="https://community.cancerpatientlab.org/" target="_blank" rel="noopener noreferrer" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
                 <Users className="w-5 h-5 text-green-500" />
                 <h3 className="font-semibold text-slate-900 text-sm mt-2">Community</h3>
-                <p className="text-slate-500 text-xs">Cancer Patient Lab</p>
+                <p className="text-slate-500 text-xs">Partnered with Cancer Patient Lab</p>
               </a>
 
               <Link href="/profile" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
@@ -1021,7 +1042,7 @@ function HomeContent() {
                 setWizardStep(1)
                 setWizardRole('caregiver')
               }}
-              className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-orange-600/25 hover:shadow-xl transition-all min-h-[44px]"
+              className="inline-flex items-center gap-2 bg-[#C66B4A] hover:bg-[#B35E40] text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-[#C66B4A]/25 hover:shadow-xl transition-all min-h-[44px]"
             >
               <Heart className="w-5 h-5" />
               Get Started as a Caregiver
@@ -1059,7 +1080,7 @@ function HomeContent() {
               </button>
               <a
                 href="sms:?body=I thought these free cancer tools might help: https://opencancer.ai - built by a survivor, NCCN-informed"
-                className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-medium px-5 py-2.5 rounded-lg transition-all"
+                className="inline-flex items-center gap-2 bg-[#C66B4A] hover:bg-[#B35E40] text-white font-medium px-5 py-2.5 rounded-lg transition-all"
               >
                 <Share2 className="w-4 h-4" />
                 Text a Friend

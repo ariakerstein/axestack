@@ -201,9 +201,16 @@ export default function TrialsPage() {
             {searched && !searching && trials.length > 0 && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-4">
-                  <p className="text-sm text-slate-600">
-                    Found <strong>{trials.length}</strong> recruiting trials
-                  </p>
+                  <div className="flex items-center gap-3">
+                    <p className="text-sm text-slate-600">
+                      Found <strong>{trials.length}</strong> recruiting trials
+                    </p>
+                    <span className="text-slate-300">•</span>
+                    <span className="flex items-center gap-1 text-xs text-slate-400">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                      Data from ClinicalTrials.gov
+                    </span>
+                  </div>
                   <button
                     onClick={searchTrials}
                     className="text-sm text-blue-600 hover:text-blue-800"

@@ -48,6 +48,7 @@ interface SavedTranslation {
   result: TranslationResult
   documentText?: string
   corrections?: Record<string, FieldCorrection>
+  corrections_history?: CorrectionVersion[]  // Version history
 }
 
 interface FieldCorrection {
@@ -57,6 +58,20 @@ interface FieldCorrection {
   note?: string
   corrected_at: string
 }
+
+interface CorrectionVersion {
+  version: number
+  timestamp: string
+  corrections: Record<string, FieldCorrection>
+  changedFields: string[]  // What changed in this version
+  synthesis_invalidated?: boolean  // If this change affects clinical conclusions
+}
+
+// Clinical fields that affect synthesis/conclusions
+const CLINICAL_FIELDS = [
+  'patient_name', 'date_of_service', 'diagnosis', 'cancer_type', 'stage',
+  'grade', 'biomarkers', 'treatment_timeline', 'lab_values'
+]
 
 interface CaseBrief {
   bottomLine: string
@@ -115,6 +130,14 @@ export default function CaseReviewPage() {
   const [editValue, setEditValue] = useState('')
   const [editNote, setEditNote] = useState('')
   const [isSavingCorrection, setIsSavingCorrection] = useState(false)
+  const [showVersionHistory, setShowVersionHistory] = useState<string | null>(null) // recordId or null
+  const [showResynthesisPrompt, setShowResynthesisPrompt] = useState(false)
+  const [pendingClinicalChange, setPendingClinicalChange] = useState<{
+    recordId: string
+    field: string
+    oldValue: string
+    newValue: string
+  } | null>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
   const { trackEvent } = useAnalytics()
 
@@ -150,7 +173,7 @@ export default function CaseReviewPage() {
     setEditNote(record?.corrections?.[field]?.note || '')
   }
 
-  // Save a correction
+  // Save a correction with version history
   const saveCorrection = async () => {
     if (!editModal) return
     setIsSavingCorrection(true)
@@ -164,29 +187,61 @@ export default function CaseReviewPage() {
         corrected_at: new Date().toISOString(),
       }
 
-      // Update local records state
+      // Check if this is a clinical field that affects synthesis
+      const isClinicalField = CLINICAL_FIELDS.some(f => editModal.field.toLowerCase().includes(f.toLowerCase()))
+      const valueChanged = editValue !== editModal.currentValue
+
+      // Update local records state with version history
       setRecords(prev => prev.map(r => {
         if (r.id === editModal.recordId) {
+          const currentCorrections = r.corrections || {}
+          const newCorrections = {
+            ...currentCorrections,
+            [editModal.field]: correction,
+          }
+
+          // Create new version entry
+          const history = r.corrections_history || []
+          const newVersion: CorrectionVersion = {
+            version: history.length + 1,
+            timestamp: new Date().toISOString(),
+            corrections: newCorrections,
+            changedFields: [editModal.field],
+            synthesis_invalidated: isClinicalField && valueChanged,
+          }
+
           return {
             ...r,
-            corrections: {
-              ...r.corrections,
-              [editModal.field]: correction,
-            },
+            corrections: newCorrections,
+            corrections_history: [...history, newVersion],
           }
         }
         return r
       }))
 
-      // Save to localStorage
+      // Save to localStorage with version history
       const data = localStorage.getItem('axestack-translations-data')
       if (data) {
         const translations = JSON.parse(data)
         if (translations[editModal.recordId]) {
-          translations[editModal.recordId].corrections = {
-            ...translations[editModal.recordId].corrections,
+          const currentCorrections = translations[editModal.recordId].corrections || {}
+          const history = translations[editModal.recordId].corrections_history || []
+
+          const newCorrections = {
+            ...currentCorrections,
             [editModal.field]: correction,
           }
+
+          const newVersion: CorrectionVersion = {
+            version: history.length + 1,
+            timestamp: new Date().toISOString(),
+            corrections: newCorrections,
+            changedFields: [editModal.field],
+            synthesis_invalidated: isClinicalField && valueChanged,
+          }
+
+          translations[editModal.recordId].corrections = newCorrections
+          translations[editModal.recordId].corrections_history = [...history, newVersion]
           localStorage.setItem('axestack-translations-data', JSON.stringify(translations))
         }
       }
@@ -208,7 +263,19 @@ export default function CaseReviewPage() {
       trackEvent('record_correction', {
         field: editModal.field,
         has_note: !!editNote,
+        is_clinical: isClinicalField,
       })
+
+      // If clinical field changed, prompt for re-synthesis
+      if (isClinicalField && valueChanged) {
+        setPendingClinicalChange({
+          recordId: editModal.recordId,
+          field: editModal.field,
+          oldValue: editModal.currentValue,
+          newValue: editValue,
+        })
+        setShowResynthesisPrompt(true)
+      }
 
       setEditModal(null)
       setEditValue('')
@@ -218,6 +285,57 @@ export default function CaseReviewPage() {
     } finally {
       setIsSavingCorrection(false)
     }
+  }
+
+  // Revert to a previous version
+  const revertToVersion = (recordId: string, version: number) => {
+    setRecords(prev => prev.map(r => {
+      if (r.id === recordId && r.corrections_history) {
+        const targetVersion = r.corrections_history.find(v => v.version === version)
+        if (targetVersion) {
+          // Create revert entry in history
+          const revertVersion: CorrectionVersion = {
+            version: r.corrections_history.length + 1,
+            timestamp: new Date().toISOString(),
+            corrections: targetVersion.corrections,
+            changedFields: ['__revert__'],
+            synthesis_invalidated: false,
+          }
+
+          return {
+            ...r,
+            corrections: targetVersion.corrections,
+            corrections_history: [...r.corrections_history, revertVersion],
+          }
+        }
+      }
+      return r
+    }))
+
+    // Update localStorage
+    const data = localStorage.getItem('axestack-translations-data')
+    if (data) {
+      const translations = JSON.parse(data)
+      if (translations[recordId]?.corrections_history) {
+        const history = translations[recordId].corrections_history
+        const targetVersion = history.find((v: CorrectionVersion) => v.version === version)
+        if (targetVersion) {
+          const revertVersion: CorrectionVersion = {
+            version: history.length + 1,
+            timestamp: new Date().toISOString(),
+            corrections: targetVersion.corrections,
+            changedFields: ['__revert__'],
+            synthesis_invalidated: false,
+          }
+          translations[recordId].corrections = targetVersion.corrections
+          translations[recordId].corrections_history = [...history, revertVersion]
+          localStorage.setItem('axestack-translations-data', JSON.stringify(translations))
+        }
+      }
+    }
+
+    setShowVersionHistory(null)
+    trackEvent('version_revert', { recordId, toVersion: version })
   }
 
   // Remove a correction
@@ -1177,6 +1295,21 @@ Provide a helpful, educational response. Reference specific records when relevan
                       <span>{record.documentType}</span>
                       <span>·</span>
                       <span>{new Date(record.date).toLocaleDateString()}</span>
+                      {record.corrections_history && record.corrections_history.length > 0 && (
+                        <>
+                          <span>·</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setShowVersionHistory(record.id)
+                            }}
+                            className="inline-flex items-center gap-1 text-[#C66B4A] hover:text-[#B35E40] font-medium"
+                          >
+                            <RefreshCw className="w-3 h-3" />
+                            v{record.corrections_history.length}
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                   {expandedRecords.has(record.id) ? (
@@ -1616,6 +1749,166 @@ Provide a helpful, educational response. Reference specific records when relevan
                 Click &quot;Refresh&quot; after correcting to update the case brief
               </p>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Version History Modal */}
+      {showVersionHistory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setShowVersionHistory(null)}
+          />
+          <div className="relative bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl max-h-[80vh] overflow-hidden flex flex-col">
+            <button
+              onClick={() => setShowVersionHistory(null)}
+              className="absolute top-4 right-4 p-1 text-slate-400 hover:text-slate-600"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="mb-4">
+              <div className="w-12 h-12 mb-3 bg-slate-100 rounded-xl flex items-center justify-center">
+                <RefreshCw className="w-6 h-6 text-slate-600" />
+              </div>
+              <h2 className="text-xl font-bold text-slate-900">Version History</h2>
+              <p className="text-slate-600 text-sm mt-1">
+                View and restore previous versions of your corrections
+              </p>
+            </div>
+
+            <div className="flex-1 overflow-y-auto">
+              {(() => {
+                const record = records.find(r => r.id === showVersionHistory)
+                const history = record?.corrections_history || []
+
+                if (history.length === 0) {
+                  return (
+                    <div className="text-center py-8 text-slate-500">
+                      <p>No version history yet</p>
+                      <p className="text-sm mt-1">Corrections will be tracked here</p>
+                    </div>
+                  )
+                }
+
+                return (
+                  <div className="space-y-3">
+                    {[...history].reverse().map((version) => (
+                      <div
+                        key={version.version}
+                        className={`p-4 rounded-xl border ${
+                          version.version === history.length
+                            ? 'border-[#C66B4A] bg-orange-50'
+                            : 'border-slate-200 bg-white'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className={`text-sm font-medium ${
+                              version.version === history.length ? 'text-[#C66B4A]' : 'text-slate-700'
+                            }`}>
+                              Version {version.version}
+                              {version.version === history.length && ' (current)'}
+                            </span>
+                            {version.synthesis_invalidated && (
+                              <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full">
+                                Clinical change
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-xs text-slate-500">
+                            {new Date(version.timestamp).toLocaleDateString()} {new Date(version.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+
+                        <div className="text-sm text-slate-600">
+                          {version.changedFields[0] === '__revert__' ? (
+                            <span className="italic">Reverted to earlier version</span>
+                          ) : (
+                            <span>Changed: {version.changedFields.join(', ')}</span>
+                          )}
+                        </div>
+
+                        {version.version !== history.length && (
+                          <button
+                            onClick={() => revertToVersion(showVersionHistory, version.version)}
+                            className="mt-3 text-sm text-[#C66B4A] hover:text-[#B35E40] font-medium"
+                          >
+                            Restore this version →
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )
+              })()}
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-slate-200">
+              <button
+                onClick={() => setShowVersionHistory(null)}
+                className="w-full px-4 py-3 bg-slate-900 text-white font-medium rounded-xl hover:bg-slate-800 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Re-synthesis Prompt Modal */}
+      {showResynthesisPrompt && pendingClinicalChange && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => {
+              setShowResynthesisPrompt(false)
+              setPendingClinicalChange(null)
+            }}
+          />
+          <div className="relative bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+            <div className="text-center mb-6">
+              <div className="w-14 h-14 mx-auto mb-3 bg-amber-100 rounded-full flex items-center justify-center">
+                <AlertTriangle className="w-7 h-7 text-amber-600" />
+              </div>
+              <h2 className="text-xl font-bold text-slate-900">Clinical Data Changed</h2>
+              <p className="text-slate-600 text-sm mt-2">
+                You&apos;ve corrected <strong>{pendingClinicalChange.field}</strong> from &quot;{pendingClinicalChange.oldValue}&quot; to &quot;{pendingClinicalChange.newValue}&quot;.
+              </p>
+              <p className="text-slate-600 text-sm mt-2">
+                This may affect your case brief and recommendations.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  // Trigger re-synthesis by regenerating case brief
+                  setShowResynthesisPrompt(false)
+                  setPendingClinicalChange(null)
+                  setCaseBrief(null)
+                  generateCaseBrief()
+                }}
+                className="w-full px-4 py-3 bg-[#C66B4A] hover:bg-[#B35E40] text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Re-analyze with correction
+              </button>
+              <button
+                onClick={() => {
+                  setShowResynthesisPrompt(false)
+                  setPendingClinicalChange(null)
+                }}
+                className="w-full px-4 py-3 border border-slate-200 text-slate-700 font-medium rounded-xl hover:bg-slate-50 transition-colors"
+              >
+                Keep current analysis
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-500 text-center mt-4">
+              You can always re-analyze later using the Refresh button
+            </p>
           </div>
         </div>
       )}

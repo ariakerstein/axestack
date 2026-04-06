@@ -8,7 +8,7 @@ import { useAnalytics } from '@/hooks/useAnalytics'
 import { useAuth } from '@/lib/auth'
 import { AuthModal } from '@/components/AuthModal'
 import { ClaimEmailModal } from '@/components/ClaimEmailModal'
-import { EntityAnnotation } from '@/components/EntityAnnotation'
+// EntityAnnotation removed from patient view - knowledge graph is backend-only for Ask Navis personalization
 import { getSessionId } from '@/lib/supabase'
 import { Navbar } from '@/components/Navbar'
 import { ThinkingIndicator } from '@/components/ThinkingIndicator'
@@ -203,6 +203,9 @@ export default function RecordsVaultPage() {
   const [isConnecting, setIsConnecting] = useState(false)
   const [portalEmail, setPortalEmail] = useState('')
   const [portalPassword, setPortalPassword] = useState('')
+
+  // Cloud records loading state (prevents "no records" UI while fetching)
+  const [cloudRecordsLoading, setCloudRecordsLoading] = useState(false)
 
   // Analytics
   const { trackEvent } = useAnalytics()
@@ -400,14 +403,43 @@ export default function RecordsVaultPage() {
 
   // Fetch records from Supabase when user is authenticated
   useEffect(() => {
+    let cancelled = false
+
     const fetchCloudRecords = async () => {
-      if (!user || authLoading) return
+      // Wait for auth to be fully ready
+      if (authLoading) {
+        console.log('[Records] Auth still loading, waiting...')
+        return
+      }
+
+      // No user = guest mode, don't fetch cloud records
+      if (!user?.id) {
+        console.log('[Records] No user, skipping cloud fetch')
+        setCloudRecordsLoading(false)
+        return
+      }
+
+      console.log('[Records] Starting cloud records fetch for user:', user.email)
+      setCloudRecordsLoading(true)
+
+      // Safety timeout - 8 seconds max
+      const loadingTimeout = setTimeout(() => {
+        if (!cancelled) {
+          console.warn('[Records] Loading timeout reached after 8s')
+          setCloudRecordsLoading(false)
+        }
+      }, 8000)
 
       try {
         const { supabase } = await import('@/lib/supabase')
-        const { data: { session } } = await supabase.auth.getSession()
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
-        if (!session?.access_token) return
+        if (cancelled) return
+
+        if (sessionError || !session?.access_token) {
+          console.log('[Records] No valid session:', sessionError?.message || 'No token')
+          return
+        }
 
         const response = await fetch('/api/records/save', {
           method: 'GET',
@@ -416,11 +448,16 @@ export default function RecordsVaultPage() {
           },
         })
 
+        if (cancelled) return
+
+        console.log('[Records] Fetch response status:', response.status)
         if (response.ok) {
           const { records } = await response.json()
+          console.log('[Records] Fetched cloud records:', records?.length || 0)
+
+          if (cancelled) return
+
           if (records && records.length > 0) {
-            // For authenticated users: cloud records are the source of truth
-            // Don't try to merge with localStorage - it has quota limits
             const cloudRecords = records.map((r: { id: string; fileName: string; date: string; documentType: string; result: TranslationResult }) => ({
               id: r.id,
               fileName: r.fileName,
@@ -428,19 +465,16 @@ export default function RecordsVaultPage() {
               documentType: r.documentType,
             }))
 
-            // Get any local-only records (uploaded this session before sync)
+            // Merge with any local-only records from this session
             const localIndex = JSON.parse(localStorage.getItem('axestack-translations') || '[]')
             const cloudIds = new Set(cloudRecords.map((r: { id: string }) => r.id))
             const localOnlyRecords = localIndex.filter((r: { id: string }) => !cloudIds.has(r.id))
-
-            // Cloud records first, then any local-only records
             const allRecords = [...cloudRecords, ...localOnlyRecords]
             setSavedTranslations(allRecords)
 
-            // Store cloud record data in memory (not localStorage) for viewing
+            // Cache cloud record data
             const existingData = JSON.parse(localStorage.getItem('axestack-translations-data') || '{}')
             records.forEach((r: { id: string; fileName: string; date: string; documentType: string; result: TranslationResult }) => {
-              // Only store in memory map, don't persist to localStorage
               existingData[r.id] = {
                 id: r.id,
                 fileName: r.fileName,
@@ -451,22 +485,36 @@ export default function RecordsVaultPage() {
                 chatMessages: [],
               }
             })
-            // Try to save but don't fail if quota exceeded
             try {
               localStorage.setItem('axestack-translations-data', JSON.stringify(existingData))
             } catch {
-              // localStorage full - that's OK, we have cloud records
-              console.log('localStorage full, using cloud records directly')
+              console.log('[Records] localStorage full, using cloud records directly')
             }
+          } else {
+            console.log('[Records] No cloud records, showing upload UI')
+            setSavedTranslations([])
           }
+        } else {
+          console.error('[Records] API failed:', response.status, response.statusText)
         }
       } catch (err) {
-        console.error('Failed to fetch cloud records:', err)
+        if (!cancelled) {
+          console.error('[Records] Fetch error:', err)
+        }
+      } finally {
+        clearTimeout(loadingTimeout)
+        if (!cancelled) {
+          setCloudRecordsLoading(false)
+        }
       }
     }
 
     fetchCloudRecords()
-  }, [user, authLoading])
+
+    return () => {
+      cancelled = true
+    }
+  }, [user?.id, authLoading])  // Use user?.id not user object to prevent unnecessary refetches
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev => {
@@ -2009,8 +2057,16 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
           </div>
         )}
 
+        {/* Loading indicator for authenticated users - show subtly, don't block UI */}
+        {!result && user && cloudRecordsLoading && savedTranslations.length === 0 && (
+          <div className="flex items-center justify-center gap-2 text-sm text-slate-500 mb-4 py-2">
+            <div className="animate-spin w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full" />
+            <span>Syncing your records...</span>
+          </div>
+        )}
+
         {/* UPLOAD-FIRST VIEW: Show when no records OR explicitly adding new */}
-        {/* Page Header */}
+        {/* Page Header - show immediately, don't wait for cloud records */}
         {!result && (savedTranslations.length === 0 || showAddRecordView) && (
           <div className="text-center mb-6">
             {showAddRecordView && savedTranslations.length > 0 ? (
@@ -2062,13 +2118,13 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
 
         {/* Claimed email banner */}
         {!result && claimedEmail && (savedTranslations.length === 0 || showAddRecordView) && (
-          <div className="w-full mb-4 p-4 bg-stone-100 border border-stone-200 rounded-xl">
+          <div className="w-full mb-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
-                <CheckCircle2 className="w-5 h-5 text-slate-600" />
+              <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+                <CheckCircle2 className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="font-semibold text-slate-900">Your email: <span className="text-slate-700">{claimedEmail}</span></p>
+                <p className="font-semibold text-slate-900">Your email: <span className="text-green-700">{claimedEmail}</span></p>
                 <p className="text-sm text-slate-600">Forward medical documents there and they'll appear here automatically!</p>
               </div>
             </div>
@@ -2082,11 +2138,11 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
               onClick={() => setActiveTab('upload')}
               className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium transition-all ${
                 activeTab === 'upload'
-                  ? 'bg-white text-slate-900 shadow-sm'
+                  ? 'bg-white text-slate-900 shadow-sm ring-2 ring-[#C66B4A]/20'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Upload className="w-4 h-4" />
+              <Upload className={`w-4 h-4 ${activeTab === 'upload' ? 'text-[#C66B4A]' : ''}`} />
               Upload Records
             </button>
             <button
@@ -2149,7 +2205,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 }
               }}
               className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all
-                ${isDragging ? 'border-slate-500 bg-stone-100' : file ? 'border-green-400 bg-green-50' : 'border-stone-300 bg-white hover:border-slate-500 hover:bg-stone-50'}`}
+                ${isDragging ? 'border-[#C66B4A] bg-orange-50' : file ? 'border-green-400 bg-green-50' : 'border-stone-300 bg-white hover:border-[#C66B4A] hover:bg-orange-50/30'}`}
             >
               <input ref={fileInputRef} type="file" onChange={handleFileSelect} accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg" multiple className="hidden" />
               {file ? (
@@ -2165,14 +2221,14 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 </div>
               ) : (
                 <div>
-                  <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-2xl flex items-center justify-center">
-                    <span className="text-3xl">📄</span>
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl flex items-center justify-center border border-orange-100">
+                    <FileText className="w-8 h-8 text-[#C66B4A]" />
                   </div>
                   <p className="font-semibold text-slate-900 text-lg">Drop your medical document here</p>
                   <p className="text-slate-500 mt-1">or click to browse your files</p>
                   <div className="mt-4 flex flex-wrap gap-2 justify-center">
                     {['PDF', 'Word', 'Images', 'Text'].map(format => (
-                      <span key={format} className="px-3 py-1 bg-slate-100 text-slate-600 text-sm rounded-full">{format}</span>
+                      <span key={format} className="px-3 py-1 bg-orange-50 text-orange-700 text-sm rounded-full border border-orange-100">{format}</span>
                     ))}
                   </div>
                 </div>
@@ -2382,7 +2438,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
 
             {/* Social proof */}
             <div className="mt-6 flex items-center justify-center gap-2 text-sm">
-              <span className="font-semibold text-slate-700">{totalTranslations.toLocaleString()}</span>
+              <span className="font-bold text-[#C66B4A]">{totalTranslations.toLocaleString()}</span>
               <span className="text-slate-600">records translated by patients like you</span>
             </div>
 
@@ -2834,11 +2890,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
               <p className="text-slate-800 text-base leading-relaxed">{result.test_summary || 'No summary available'}</p>
             </Section>
 
-            {/* Knowledge Graph - Entity Annotation */}
-            <EntityAnnotation
-              sessionId={typeof window !== 'undefined' ? localStorage.getItem('opencancer_session_id') : null}
-              userId={user?.id || null}
-            />
+            {/* Knowledge Graph - Hidden from patients, used internally for Ask Navis personalization */}
 
             {result.diagnosis && result.diagnosis.length > 0 && result.diagnosis[0] !== 'unknown' && (
               <Section id="findings" icon={<Search className="w-5 h-5" />} title="Key Findings" badge={`${result.diagnosis.length} items`}>

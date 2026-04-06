@@ -388,6 +388,30 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    // Log to patient_activity for analytics dashboard (Records Uploaded count)
+    const activityId = crypto.randomUUID()
+    supabaseForStats.from('patient_activity').insert({
+      id: activityId,
+      activity_type: 'record_upload',
+      activity_category: 'clinical',
+      session_id: sessionId,
+      user_id: userId || null,
+      cancer_type: analysis?.cancer_specific?.cancer_type || null,
+      source_page: '/records',
+      metadata: {
+        file_name: fileName,
+        file_type: fileType,
+        document_type: analysis?.document_type || 'unknown',
+        source: 'opencancer',
+      },
+    }).then(({ error }) => {
+      if (error) {
+        console.error('Failed to log patient activity:', error.message, 'Activity ID:', activityId)
+      } else {
+        console.log('Patient activity logged:', activityId)
+      }
+    })
+
     return NextResponse.json({
       success: true,
       fileName,

@@ -217,9 +217,20 @@ export default function TestsPage() {
           <p className="text-slate-600 mb-2">
             MRD, genomic tests, and biomarker monitoring to guide your treatment decisions.
           </p>
-          <p className="text-xs text-slate-400 flex items-center justify-center gap-1">
-            Partnered with <a href="https://www.openonco.org/" target="_blank" rel="noopener noreferrer" className="text-blue-800 font-semibold hover:underline flex items-center gap-0.5">♥ OpenOnco</a> • NCCN guidelines database
-          </p>
+          <div className="flex items-center justify-center gap-3 mt-3">
+            <span className="text-xs text-slate-400">Powered by</span>
+            <a
+              href="https://www.openonco.org/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors"
+            >
+              <span className="text-sm">🧬</span>
+              <span className="text-xs font-semibold text-slate-700">OpenOnco</span>
+            </a>
+            <span className="text-slate-300">•</span>
+            <span className="text-xs text-slate-400">NCCN guidelines</span>
+          </div>
         </div>
 
         {/* Profile context */}

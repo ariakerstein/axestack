@@ -190,9 +190,17 @@ export async function GET(request: NextRequest) {
         userId = profiles[0].user_id
       }
 
-      // Also check auth.users via admin API
-      const { data: { users } } = await supabase.auth.admin.listUsers()
-      const authUser = users?.find(u => u.email?.toLowerCase().includes(email.toLowerCase()))
+      // Also check auth.users via admin API (paginated search)
+      let authUser = null
+      let page = 1
+      const perPage = 100
+      while (!authUser) {
+        const { data: { users } } = await supabase.auth.admin.listUsers({ page, perPage })
+        if (!users || users.length === 0) break
+        authUser = users.find(u => u.email?.toLowerCase().includes(email.toLowerCase()))
+        if (users.length < perPage) break
+        page++
+      }
       if (authUser) {
         authUserId = authUser.id
         userId = userId || authUser.id

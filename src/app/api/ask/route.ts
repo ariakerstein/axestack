@@ -11,46 +11,178 @@ function getSupabase() {
   return createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 }
 
-// Fetch patient context from knowledge graph
+// Fetch rich patient context from knowledge graph - the "special sauce"
 async function getPatientContext(userId?: string, sessionId?: string): Promise<string | null> {
   if (!userId && !sessionId) return null
 
   const supabase = getSupabase()
+  const userFilter = userId ? { user_id: userId } : { session_id: sessionId }
 
-  // Fetch patient entities
-  let query = supabase
-    .from('patient_entities')
-    .select('entity_type, entity_value, entity_status, entity_date, numeric_value, numeric_unit')
-    .order('created_at', { ascending: false })
-    .limit(50)
+  // Run all queries in parallel for speed
+  const [entitiesResult, recentQuestionsResult, relationshipsResult] = await Promise.all([
+    // 1. Fetch patient entities with full detail
+    supabase
+      .from('patient_entities')
+      .select('entity_type, entity_value, entity_status, entity_date, numeric_value, numeric_unit, created_at, confidence, source_type')
+      .match(userFilter)
+      .order('created_at', { ascending: false })
+      .limit(100),
 
-  if (userId) {
-    query = query.eq('user_id', userId)
-  } else if (sessionId) {
-    query = query.eq('session_id', sessionId)
-  }
+    // 2. Fetch recent questions (shows what's on patient's mind)
+    supabase
+      .from('patient_entities')
+      .select('entity_value, created_at')
+      .match(userFilter)
+      .eq('entity_type', 'question')
+      .order('created_at', { ascending: false })
+      .limit(10),
 
-  const { data: entities } = await query
+    // 3. Fetch entity relationships (treatment responses, biomarker associations)
+    userId ? supabase
+      .from('patient_graph_edges_derived')
+      .select('source_type, source_id, relationship, target_type, target_id, created_at')
+      .or(`source_id.eq.${userId},target_id.eq.${userId}`)
+      .order('created_at', { ascending: false })
+      .limit(30) : Promise.resolve({ data: null }),
+  ])
+
+  const entities = entitiesResult.data
+  const recentQuestions = recentQuestionsResult.data
+  const relationships = relationshipsResult.data
 
   if (!entities || entities.length === 0) return null
 
-  // Group by type for a clean summary
-  const grouped: Record<string, string[]> = {}
-  for (const e of entities) {
+  // Build clinical narrative context
+  const sections: string[] = []
+
+  // === SECTION 1: Core Medical Profile ===
+  const coreTypes = ['diagnosis', 'cancer_type', 'stage', 'biomarker', 'treatment', 'medication']
+  const coreEntities = entities.filter(e => coreTypes.includes(e.entity_type))
+
+  // Group by type, prioritizing most recent and high confidence
+  const grouped: Record<string, Array<{ value: string; date?: string; status?: string; confidence?: number }>> = {}
+  const seen = new Set<string>() // Dedupe
+
+  for (const e of coreEntities) {
+    if (!e.entity_value) continue
+    const key = `${e.entity_type}:${e.entity_value.toLowerCase()}`
+    if (seen.has(key)) continue
+    seen.add(key)
+
     if (!grouped[e.entity_type]) grouped[e.entity_type] = []
-    let value = e.entity_value
-    if (e.entity_status) value += ` (${e.entity_status})`
-    if (e.entity_date) value += ` - ${new Date(e.entity_date).toLocaleDateString()}`
-    if (e.numeric_value && e.numeric_unit) value += `: ${e.numeric_value} ${e.numeric_unit}`
-    grouped[e.entity_type].push(value)
+
+    const entry: { value: string; date?: string; status?: string; confidence?: number } = {
+      value: e.entity_value
+    }
+
+    if (e.entity_status && e.entity_status !== 'unknown') entry.status = e.entity_status
+    if (e.entity_date) entry.date = new Date(e.entity_date).toLocaleDateString()
+    if (e.numeric_value && e.numeric_unit) entry.value += ` (${e.numeric_value} ${e.numeric_unit})`
+    if (e.confidence && e.confidence < 0.7) entry.confidence = e.confidence
+
+    grouped[e.entity_type].push(entry)
   }
 
-  // Build context string
-  const lines = Object.entries(grouped).map(([type, values]) => {
-    return `${type.toUpperCase()}: ${values.join(', ')}`
-  })
+  // Format core profile
+  if (Object.keys(grouped).length > 0) {
+    const profileLines: string[] = []
 
-  return lines.join('\n')
+    // Order: diagnosis first, then biomarkers, then treatments
+    const orderedTypes = ['diagnosis', 'cancer_type', 'stage', 'biomarker', 'treatment', 'medication']
+    for (const type of orderedTypes) {
+      if (!grouped[type]) continue
+
+      const items = grouped[type].map(item => {
+        let str = item.value
+        if (item.status) str += ` [${item.status}]`
+        if (item.date) str += ` (${item.date})`
+        return str
+      })
+
+      const label = type === 'cancer_type' ? 'Cancer Type' : type.charAt(0).toUpperCase() + type.slice(1)
+      profileLines.push(`• ${label}: ${items.join(', ')}`)
+    }
+
+    if (profileLines.length > 0) {
+      sections.push(`MEDICAL PROFILE:\n${profileLines.join('\n')}`)
+    }
+  }
+
+  // === SECTION 2: Treatment Timeline ===
+  const treatments = entities.filter(e => e.entity_type === 'treatment' && e.entity_date)
+  if (treatments.length > 0) {
+    const sortedTreatments = treatments
+      .sort((a, b) => new Date(b.entity_date!).getTime() - new Date(a.entity_date!).getTime())
+      .slice(0, 5)
+
+    const timelineLines = sortedTreatments.map(t => {
+      const date = new Date(t.entity_date!).toLocaleDateString()
+      const status = t.entity_status ? ` - ${t.entity_status}` : ''
+      return `• ${date}: ${t.entity_value}${status}`
+    })
+
+    if (timelineLines.length > 0) {
+      sections.push(`TREATMENT TIMELINE (Recent):\n${timelineLines.join('\n')}`)
+    }
+  }
+
+  // === SECTION 3: Lab Values / Metrics ===
+  const labEntities = entities.filter(e =>
+    e.numeric_value && e.numeric_unit &&
+    ['lab_result', 'psa', 'tumor_marker', 'biomarker'].includes(e.entity_type)
+  )
+
+  if (labEntities.length > 0) {
+    const labLines = labEntities.slice(0, 5).map(e => {
+      const date = e.entity_date ? ` (${new Date(e.entity_date).toLocaleDateString()})` : ''
+      return `• ${e.entity_value}: ${e.numeric_value} ${e.numeric_unit}${date}`
+    })
+    sections.push(`LAB VALUES:\n${labLines.join('\n')}`)
+  }
+
+  // === SECTION 4: Key Relationships (if available) ===
+  if (relationships && relationships.length > 0) {
+    const meaningfulRelationships = relationships.filter(r =>
+      ['responds_to', 'sensitive_to', 'resistant_to', 'caused_by', 'treats', 'indicates'].includes(r.relationship)
+    ).slice(0, 5)
+
+    if (meaningfulRelationships.length > 0) {
+      const relLines = meaningfulRelationships.map(r =>
+        `• ${r.source_id} ${r.relationship.replace(/_/g, ' ')} ${r.target_id}`
+      )
+      sections.push(`CLINICAL RELATIONSHIPS:\n${relLines.join('\n')}`)
+    }
+  }
+
+  // === SECTION 5: Recent Questions (patient's concerns) ===
+  if (recentQuestions && recentQuestions.length > 0) {
+    // Filter out duplicates and very recent (probably current question)
+    const uniqueQuestions = recentQuestions
+      .slice(1) // Skip most recent (likely current question)
+      .filter((q, i, arr) =>
+        arr.findIndex(x => x.entity_value.toLowerCase() === q.entity_value.toLowerCase()) === i
+      )
+      .slice(0, 3)
+
+    if (uniqueQuestions.length > 0) {
+      const questionLines = uniqueQuestions.map(q => `• "${q.entity_value.slice(0, 80)}..."`)
+      sections.push(`RECENT QUESTIONS (patient's concerns):\n${questionLines.join('\n')}`)
+    }
+  }
+
+  // === SECTION 6: Symptoms/Side Effects (if any) ===
+  const symptoms = entities.filter(e =>
+    ['symptom', 'side_effect', 'adverse_event'].includes(e.entity_type)
+  )
+
+  if (symptoms.length > 0) {
+    const symptomValues = [...new Set(symptoms.map(s => s.entity_value))].slice(0, 5)
+    sections.push(`REPORTED SYMPTOMS:\n• ${symptomValues.join(', ')}`)
+  }
+
+  if (sections.length === 0) return null
+
+  return sections.join('\n\n')
 }
 
 // Save Q&A interaction to knowledge graph (questions as entities)
@@ -75,17 +207,30 @@ async function saveInteractionToGraph(
   })
 }
 
-// Log eval metrics for quality analysis (async, non-blocking)
-async function logEvalMetrics(params: {
+// Eval metrics interface for the comprehensive quality framework
+interface EvalMetricsParams {
   question: string
   response: string
   userId?: string
   sessionId?: string
   cancerType?: string
+  // Graph metrics
   hasPatientContext: boolean
+  patientContext?: string
+  // RAG metrics
   confidenceScore?: number
+  citationCount?: number
+  sourceTypes?: string[]
   usedFallback?: boolean
-}): Promise<void> {
+  // LLM metrics
+  latencyMs?: number
+  model?: string
+  inputTokens?: number
+  outputTokens?: number
+}
+
+// Log eval metrics for quality analysis (async, non-blocking)
+async function logEvalMetrics(params: EvalMetricsParams): Promise<void> {
   try {
     // Call our eval logging endpoint
     await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://opencancer.ai'}/api/eval/log`, {
@@ -200,14 +345,25 @@ export async function POST(request: NextRequest) {
       ? `[CONCISE MODE - Facts only, no suggestions] ${message}`
       : message
 
-    // Add patient context for personalized answers
+    // Add patient context for personalized answers (the "special sauce")
     if (patientContext) {
-      enrichedQuestion = `[PATIENT CONTEXT - Use this to personalize your response:]
+      enrichedQuestion = `[PATIENT MEDICAL CONTEXT - Use this to personalize your response. This patient has shared their medical history with us:]
 ${patientContext}
+
+IMPORTANT: Use this context to:
+1. Tailor your response to their specific cancer type and stage
+2. Reference their current/past treatments when relevant
+3. Consider their biomarkers when discussing treatment options
+4. Address topics related to their recent questions/concerns
+5. Acknowledge their symptoms if they relate to their question
+DO NOT recite their profile back to them - just use it to give more relevant, personalized answers.
 
 [PATIENT QUESTION:]
 ${enrichedQuestion}`
     }
+
+    // Track latency for LLM metrics
+    const ragStartTime = Date.now()
 
     // Call the Navis direct-navis edge function (RAG pipeline with NCCN guidelines)
     const response = await fetch(`${SUPABASE_URL}/functions/v1/direct-navis`, {
@@ -235,6 +391,8 @@ ${enrichedQuestion}`
       }),
     })
 
+    const ragLatencyMs = Date.now() - ragStartTime
+
     if (!response.ok) {
       const errorData = await response.text()
       console.error('direct-navis error:', errorData)
@@ -246,6 +404,12 @@ ${enrichedQuestion}`
 
     const data = await response.json()
     const ragResponse = data.response || data.answer || ''
+
+    // Extract RAG metrics
+    const citationCount = data.citations?.length || 0
+    const sourceTypes: string[] = data.citations?.map((c: { source?: string }) => c.source || 'unknown') || []
+    const inputTokens = data.usage?.input_tokens || Math.ceil(enrichedQuestion.length / 4) // Estimate if not provided
+    const outputTokens = data.usage?.output_tokens || Math.ceil(ragResponse.length / 4) // Estimate if not provided
 
     // Check if we need to fallback to general LLM (for symptom questions with low confidence)
     if (isSymptom && needsFallback(ragResponse, data.confidenceScore)) {
@@ -277,6 +441,8 @@ ${enrichedQuestion}`
         const fallbackData = await fallbackResponse.json()
         const fallbackResponseText = fallbackData.response || fallbackData.answer || ragResponse
 
+        const fallbackLatencyMs = Date.now() - ragStartTime // Total time including initial RAG attempt
+
         // Log eval metrics for fallback path (async, non-blocking)
         logEvalMetrics({
           question: message,
@@ -284,9 +450,19 @@ ${enrichedQuestion}`
           userId,
           sessionId,
           cancerType,
+          // Graph metrics
           hasPatientContext: !!patientContext,
+          patientContext: patientContext || undefined,
+          // RAG metrics (fallback skips RAG)
           confidenceScore: fallbackData.confidenceScore,
+          citationCount: 0,
+          sourceTypes: [],
           usedFallback: true,
+          // LLM metrics
+          latencyMs: fallbackLatencyMs,
+          model: 'claude-3-5-haiku',
+          inputTokens: Math.ceil(message.length / 4),
+          outputTokens: Math.ceil(fallbackResponseText.length / 4),
         }).catch(() => {})
 
         return NextResponse.json({
@@ -315,9 +491,19 @@ ${enrichedQuestion}`
       userId,
       sessionId,
       cancerType,
+      // Graph metrics
       hasPatientContext: !!patientContext,
+      patientContext: patientContext || undefined,
+      // RAG metrics
       confidenceScore: data.confidenceScore,
+      citationCount,
+      sourceTypes: [...new Set(sourceTypes)], // Dedupe
       usedFallback: false,
+      // LLM metrics
+      latencyMs: ragLatencyMs,
+      model: 'claude-3-5-haiku',
+      inputTokens,
+      outputTokens,
     }).catch(() => {})
 
     // direct-navis returns: { response, confidenceScore, citations, citationUrls, followUpQuestions }

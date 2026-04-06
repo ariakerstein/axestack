@@ -150,9 +150,23 @@ export default function ResearchPage() {
         <div className="text-center mb-8">
           <div className="text-4xl mb-3">📚</div>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Research Library</h1>
-          <p className="text-slate-600">
+          <p className="text-slate-600 mb-3">
             Curated resources from leading cancer research institutions and organizations.
           </p>
+          <div className="flex items-center justify-center gap-3">
+            <span className="text-xs text-slate-400">Powered by</span>
+            <a
+              href="https://biomcp.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors"
+            >
+              <img src="/biomcp-logo.png" alt="BioMCP" className="h-4 w-auto" />
+              <span className="text-xs font-medium text-slate-700">BioMCP</span>
+            </a>
+            <span className="text-slate-300">•</span>
+            <span className="text-xs text-slate-400">200M+ research papers</span>
+          </div>
         </div>
 
         {/* Disclaimer */}

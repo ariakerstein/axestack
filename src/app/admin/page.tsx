@@ -333,12 +333,23 @@ interface QuestionsData {
     needs_expert_review: boolean
     session_id: string | null
     user_id: string | null
+    source: 'eval_log' | 'activity' | 'entity'
+    // Rich eval data (only from navis_eval_logs)
+    llm_score?: number | null
+    rag_score?: number | null
+    graph_score?: number | null
+    quality_score?: number | null
   }>
   stats: {
     total: number
+    totalEvalLogs: number
+    totalActivity: number
+    totalEntity: number
     byCancerType: Record<string, number>
     byQuestionType: Record<string, number>
+    bySource: Record<string, number>
     avgConfidence: number
+    avgQualityScore: number
     feedbackBreakdown: {
       positive: number
       negative: number
@@ -2309,14 +2320,26 @@ export default function AdminPage() {
           <div>
             {/* Stats Overview */}
             {questionsData && (
-              <div className="grid lg:grid-cols-4 gap-4 mb-6">
+              <div className="grid lg:grid-cols-5 gap-4 mb-6">
                 <div className="bg-white rounded-xl shadow p-4">
                   <p className="text-sm text-slate-500">Total Questions</p>
                   <p className="text-2xl font-bold text-slate-900">{questionsData.stats.total}</p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    {questionsData.stats.totalEvalLogs} eval · {questionsData.stats.totalActivity} activity · {questionsData.stats.totalEntity} entity
+                  </p>
+                </div>
+                <div className="bg-white rounded-xl shadow p-4">
+                  <p className="text-sm text-slate-500">Avg Quality</p>
+                  <p className="text-2xl font-bold text-slate-900">
+                    {questionsData.stats.avgQualityScore > 0 ? `${(questionsData.stats.avgQualityScore * 100).toFixed(0)}%` : '-'}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1">3-dimension score</p>
                 </div>
                 <div className="bg-white rounded-xl shadow p-4">
                   <p className="text-sm text-slate-500">Avg Confidence</p>
-                  <p className="text-2xl font-bold text-slate-900">{(questionsData.stats.avgConfidence * 100).toFixed(0)}%</p>
+                  <p className="text-2xl font-bold text-slate-900">
+                    {questionsData.stats.avgConfidence > 0 ? `${(questionsData.stats.avgConfidence * 100).toFixed(0)}%` : '-'}
+                  </p>
                 </div>
                 <div className="bg-white rounded-xl shadow p-4">
                   <p className="text-sm text-slate-500">Needs Review</p>
@@ -2379,6 +2402,14 @@ export default function AdminPage() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-slate-900 line-clamp-2">{q.question}</p>
                         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                          {/* Source indicator */}
+                          <span className={`px-2 py-0.5 rounded font-medium ${
+                            q.source === 'eval_log' ? 'bg-violet-100 text-violet-700' :
+                            q.source === 'activity' ? 'bg-blue-100 text-blue-700' :
+                            'bg-slate-100 text-slate-600'
+                          }`}>
+                            {q.source === 'eval_log' ? '📊 Eval' : q.source === 'activity' ? '📝 Activity' : '🔗 Entity'}
+                          </span>
                           <span className="px-2 py-0.5 bg-slate-100 rounded text-slate-600">
                             {q.question_type || 'general'}
                           </span>
@@ -2387,13 +2418,22 @@ export default function AdminPage() {
                               {q.cancer_type}
                             </span>
                           )}
+                          {q.quality_score && (
+                            <span className={`px-2 py-0.5 rounded ${
+                              q.quality_score >= 0.7 ? 'bg-green-100 text-green-700' :
+                              q.quality_score >= 0.4 ? 'bg-amber-100 text-amber-700' :
+                              'bg-red-100 text-red-700'
+                            }`}>
+                              Q: {(q.quality_score * 100).toFixed(0)}%
+                            </span>
+                          )}
                           {q.confidence_score && (
                             <span className={`px-2 py-0.5 rounded ${
                               q.confidence_score >= 0.7 ? 'bg-green-100 text-green-700' :
                               q.confidence_score >= 0.4 ? 'bg-amber-100 text-amber-700' :
                               'bg-red-100 text-red-700'
                             }`}>
-                              {(q.confidence_score * 100).toFixed(0)}% conf
+                              C: {(q.confidence_score * 100).toFixed(0)}%
                             </span>
                           )}
                           {q.feedback_type === 'positive' && <span className="text-green-600">👍</span>}

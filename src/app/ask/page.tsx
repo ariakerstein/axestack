@@ -564,11 +564,6 @@ I can help you with:
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-end gap-2 bg-gray-50 border border-gray-300 rounded-2xl p-2 focus-within:border-slate-400 focus-within:ring-2 focus-within:ring-slate-100">
-            {/* Status indicator */}
-            <div className="flex-shrink-0 pl-1 pb-1">
-              <ThinkingIndicator size={24} variant="light" />
-            </div>
-
             <textarea
               ref={inputRef}
               value={input}

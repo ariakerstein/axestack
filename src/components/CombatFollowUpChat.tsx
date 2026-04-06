@@ -1,13 +1,10 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { MessageCircle, Send, HelpCircle, Edit3, Loader2, AlertCircle, Plus, HelpCircle as Why } from 'lucide-react'
+import { MessageCircle, Send, Edit3, Loader2, Star } from 'lucide-react'
 import { TypewriterMarkdown } from '@/components/TypewriterMarkdown'
 import { useAuth } from '@/lib/auth'
 import { getSessionId } from '@/lib/supabase'
-
-// Structured action types
-type ActionType = 'correct' | 'add_context' | 'explain' | 'custom'
 
 interface Perspective {
   name: string
@@ -43,6 +40,7 @@ interface CombatFollowUpChatProps {
   combatResult: CombatResult
   combatAnalysisId?: string
   onPerspectivesRevised?: (updatedResult: CombatResult) => void
+  onExpertClick?: () => void
 }
 
 // Detect mode from user input
@@ -62,13 +60,13 @@ function detectMode(message: string): 'ask' | 'revise' {
 export function CombatFollowUpChat({
   combatResult,
   combatAnalysisId,
-  onPerspectivesRevised
+  onPerspectivesRevised,
+  onExpertClick
 }: CombatFollowUpChatProps) {
   const [messages, setMessages] = useState<FollowUpMessage[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [detectedMode, setDetectedMode] = useState<'ask' | 'revise'>('ask')
-  const [activeAction, setActiveAction] = useState<ActionType | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const { user } = useAuth()
@@ -193,165 +191,90 @@ export function CombatFollowUpChat({
   }
 
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/50">
-        <div className="flex items-center gap-2">
-          <MessageCircle className="w-5 h-5 text-slate-600" />
-          <h3 className="font-semibold text-slate-900">Follow-up Questions</h3>
-        </div>
-        <ModeIndicator mode={detectedMode} isTyping={input.length > 5} />
-      </div>
-
-      {/* Messages */}
-      <div className="max-h-96 overflow-y-auto p-4 space-y-4">
-        {messages.length === 0 && !activeAction && (
-          <div className="space-y-3">
-            <p className="text-slate-500 text-sm text-center">What would you like to do?</p>
-
-            {/* Structured Action Buttons */}
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                onClick={() => {
-                  setActiveAction('correct')
-                  setInput('')
-                  setTimeout(() => inputRef.current?.focus(), 100)
-                }}
-                className="flex flex-col items-center gap-2 p-4 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl transition-colors"
+    <div className="space-y-3">
+      {/* Chat with AI */}
+      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+        {/* Messages - only show if there are any */}
+        {messages.length > 0 && (
+          <div className="max-h-80 overflow-y-auto p-4 space-y-4 border-b border-slate-100">
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <AlertCircle className="w-5 h-5 text-amber-600" />
-                <span className="text-xs font-medium text-amber-800">Something&apos;s Wrong</span>
-              </button>
+                <div className={`max-w-[85%] ${
+                  msg.role === 'user'
+                    ? 'bg-slate-900 text-white rounded-2xl rounded-br-md px-4 py-3'
+                    : 'bg-slate-50 text-slate-900 rounded-2xl rounded-bl-md px-4 py-3'
+                }`}>
+                  {msg.isLoading ? (
+                    <div className="flex items-center gap-2 py-1">
+                      <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                      <span className="text-slate-500 text-sm">Analyzing...</span>
+                    </div>
+                  ) : msg.role === 'assistant' && !msg.typingComplete ? (
+                    <TypewriterMarkdown
+                      text={msg.content}
+                      speed={15}
+                      onComplete={() => markTypingComplete(msg.id)}
+                    />
+                  ) : (
+                    <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                      {msg.content}
+                    </div>
+                  )}
 
-              <button
-                onClick={() => {
-                  setActiveAction('add_context')
-                  setInput('')
-                  setTimeout(() => inputRef.current?.focus(), 100)
-                }}
-                className="flex flex-col items-center gap-2 p-4 bg-green-50 hover:bg-green-100 border border-green-200 rounded-xl transition-colors"
-              >
-                <Plus className="w-5 h-5 text-green-600" />
-                <span className="text-xs font-medium text-green-800">Add Context</span>
-              </button>
+                  {/* Mode badge for assistant */}
+                  {msg.role === 'assistant' && msg.mode && msg.typingComplete && (
+                    <div className={`mt-2 pt-2 border-t ${
+                      msg.mode === 'revise' ? 'border-amber-200' : 'border-slate-200'
+                    }`}>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${
+                        msg.mode === 'revise'
+                          ? 'bg-amber-100 text-amber-700'
+                          : 'bg-blue-100 text-blue-700'
+                      }`}>
+                        {msg.mode === 'revise' ? 'Analysis updated' : 'Explanation'}
+                      </span>
+                    </div>
+                  )}
 
-              <button
-                onClick={() => {
-                  setActiveAction('explain')
-                  setInput('')
-                  setTimeout(() => inputRef.current?.focus(), 100)
-                }}
-                className="flex flex-col items-center gap-2 p-4 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-colors"
-              >
-                <HelpCircle className="w-5 h-5 text-blue-600" />
-                <span className="text-xs font-medium text-blue-800">Explain This</span>
-              </button>
-            </div>
+                  {/* Follow-up suggestions */}
+                  {msg.role === 'assistant' && msg.followUpQuestions && msg.typingComplete && (
+                    <div className="mt-3 pt-2 border-t border-slate-200 space-y-1.5">
+                      {msg.followUpQuestions.map((q, i) => (
+                        <button
+                          key={i}
+                          onClick={() => handleSuggestedQuestion(q)}
+                          className="block text-xs text-slate-500 hover:text-slate-700 hover:underline text-left"
+                        >
+                          → {q}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
           </div>
         )}
 
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
-            <div className={`max-w-[85%] ${
-              msg.role === 'user'
-                ? 'bg-slate-900 text-white rounded-2xl rounded-br-md px-4 py-3'
-                : 'bg-slate-50 text-slate-900 rounded-2xl rounded-bl-md px-4 py-3'
-            }`}>
-              {msg.isLoading ? (
-                <div className="flex items-center gap-2 py-1">
-                  <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
-                  <span className="text-slate-500 text-sm">Analyzing...</span>
-                </div>
-              ) : msg.role === 'assistant' && !msg.typingComplete ? (
-                <TypewriterMarkdown
-                  text={msg.content}
-                  speed={15}
-                  onComplete={() => markTypingComplete(msg.id)}
-                />
-              ) : (
-                <div className="text-sm leading-relaxed whitespace-pre-wrap">
-                  {msg.content}
-                </div>
-              )}
-
-              {/* Mode badge for assistant */}
-              {msg.role === 'assistant' && msg.mode && msg.typingComplete && (
-                <div className={`mt-2 pt-2 border-t ${
-                  msg.mode === 'revise' ? 'border-amber-200' : 'border-slate-200'
-                }`}>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    msg.mode === 'revise'
-                      ? 'bg-amber-100 text-amber-700'
-                      : 'bg-blue-100 text-blue-700'
-                  }`}>
-                    {msg.mode === 'revise' ? 'Analysis updated' : 'Explanation'}
-                  </span>
-                </div>
-              )}
-
-              {/* Follow-up suggestions */}
-              {msg.role === 'assistant' && msg.followUpQuestions && msg.typingComplete && (
-                <div className="mt-3 pt-2 border-t border-slate-200 space-y-1.5">
-                  {msg.followUpQuestions.map((q, i) => (
-                    <button
-                      key={i}
-                      onClick={() => handleSuggestedQuestion(q)}
-                      className="block text-xs text-slate-500 hover:text-slate-700 hover:underline text-left"
-                    >
-                      → {q}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Input - Only show when action is selected or has messages */}
-      {(activeAction || messages.length > 0) && (
-        <form onSubmit={handleSubmit} className="border-t border-slate-100 p-4">
-          {/* Action context header */}
-          {activeAction && messages.length === 0 && (
-            <div className="flex items-center justify-between mb-3">
-              <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                activeAction === 'correct' ? 'bg-amber-100 text-amber-700' :
-                activeAction === 'add_context' ? 'bg-green-100 text-green-700' :
-                'bg-blue-100 text-blue-700'
-              }`}>
-                {activeAction === 'correct' ? 'Correction Mode' :
-                 activeAction === 'add_context' ? 'Adding Context' :
-                 'Question Mode'}
-              </span>
-              <button
-                type="button"
-                onClick={() => { setActiveAction(null); setInput('') }}
-                className="text-xs text-slate-400 hover:text-slate-600"
-              >
-                Cancel
-              </button>
-            </div>
-          )}
-
+        {/* Input - Always visible */}
+        <form onSubmit={handleSubmit} className="p-4">
           <div className="flex items-center gap-3">
-            <input
-              ref={inputRef}
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={
-                activeAction === 'correct' ? "e.g., 'My HRR mutations are SNPs, not pathogenic'" :
-                activeAction === 'add_context' ? "e.g., 'I also have a BRCA2 mutation'" :
-                activeAction === 'explain' ? "e.g., 'Why does Watch & Wait disagree?'" :
-                "Type your question or correction..."
-              }
-              className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent"
-              disabled={isLoading}
-            />
+            <div className="relative flex-1">
+              <MessageCircle className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                ref={inputRef}
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask a question or correct something..."
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                disabled={isLoading}
+              />
+            </div>
             <button
               type="submit"
               disabled={!input.trim() || isLoading}
@@ -360,51 +283,40 @@ export function CombatFollowUpChat({
               <Send className="w-5 h-5 text-white" />
             </button>
           </div>
-
-          <p className="text-xs text-slate-400 mt-2 text-center">
-            {activeAction === 'correct' ? "This will update affected perspectives" :
-             activeAction === 'add_context' ? "This may refine the recommendations" :
-             "I'll explain without changing the analysis"}
-          </p>
+          {/* Mode indicator when typing */}
+          {input.length > 5 && (
+            <div className="flex items-center justify-center mt-2">
+              <span className={`text-xs px-2 py-0.5 rounded-full flex items-center gap-1 ${
+                detectedMode === 'revise' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+              }`}>
+                <Edit3 className="w-3 h-3" />
+                {detectedMode === 'revise' ? 'Will update analysis' : 'Question mode'}
+              </span>
+            </div>
+          )}
         </form>
+      </div>
+
+      {/* Expert Upsell CTA */}
+      {onExpertClick && (
+        <button
+          onClick={onExpertClick}
+          className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white rounded-xl transition-all shadow-lg hover:shadow-xl group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
+              <Star className="w-5 h-5 text-amber-400" />
+            </div>
+            <div className="text-left">
+              <p className="font-semibold">Get Expert Review</p>
+              <p className="text-xs text-slate-300">Tony Magliocco or Emma Shtivelman</p>
+            </div>
+          </div>
+          <span className="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">
+            From Free →
+          </span>
+        </button>
       )}
     </div>
-  )
-}
-
-// Mode indicator component
-function ModeIndicator({ mode, isTyping }: { mode: 'ask' | 'revise', isTyping: boolean }) {
-  if (!isTyping) return null
-
-  return (
-    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
-      mode === 'ask'
-        ? 'bg-blue-100 text-blue-700'
-        : 'bg-amber-100 text-amber-700'
-    }`}>
-      {mode === 'ask' ? (
-        <>
-          <HelpCircle className="w-3.5 h-3.5" />
-          <span>Ask mode</span>
-        </>
-      ) : (
-        <>
-          <Edit3 className="w-3.5 h-3.5" />
-          <span>Revise mode</span>
-        </>
-      )}
-    </div>
-  )
-}
-
-// Suggested question chip
-function SuggestedChip({ text, onClick }: { text: string, onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className="px-3 py-1.5 text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors"
-    >
-      {text}
-    </button>
   )
 }

@@ -610,37 +610,30 @@ ${ragContext}
 
       {/* Hero - Simplified */}
       <section className="px-4 pt-4 pb-4 text-center">
-        <h1 className="text-3xl font-bold mb-2">
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-600 to-blue-600">
-            Cancer Checklist
-          </span>
+        <h1 className="text-3xl font-bold mb-2 text-slate-900">
+          Cancer Checklist
         </h1>
         <p className="text-slate-600 mb-3">
           Test recommendations + questions for your oncologist
         </p>
-        <div className="flex items-center justify-center gap-3 text-xs text-slate-500">
-          <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-            NCCN Guidelines
-          </span>
-          <span className="text-slate-300">|</span>
-          <span className="text-amber-600">⚠️ Being audited. Verify with your oncologist.</span>
-        </div>
+        <p className="text-xs text-slate-500">
+          Based on NCCN Guidelines · Always verify with your oncologist
+        </p>
       </section>
 
-      {/* Progress Steps - Bold & Clear */}
+      {/* Progress Steps - Clean monochromatic */}
       <div className="max-w-2xl mx-auto px-4 py-4">
         <div className="flex items-center justify-center gap-4">
           {/* Step 1 */}
           <div className="flex items-center gap-2">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold ${
               step === 'type'
-                ? 'bg-orange-600 text-white shadow-lg shadow-slate-200'
+                ? 'bg-[#C66B4A] text-white shadow-lg shadow-slate-200'
                 : 'bg-slate-100 text-slate-600'
             }`}>
               1
             </div>
-            <span className={`font-medium ${step === 'type' ? 'text-slate-600' : 'text-slate-500'}`}>
+            <span className={`font-medium ${step === 'type' ? 'text-slate-700' : 'text-slate-500'}`}>
               Cancer Type
             </span>
           </div>
@@ -651,14 +644,14 @@ ${ragContext}
           <div className="flex items-center gap-2">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold ${
               step === 'subtype'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
+                ? 'bg-[#C66B4A] text-white shadow-lg shadow-slate-200'
                 : step === 'results'
-                ? 'bg-blue-100 text-blue-600'
+                ? 'bg-slate-200 text-slate-600'
                 : 'bg-slate-100 text-slate-400'
             }`}>
               2
             </div>
-            <span className={`font-medium ${step === 'subtype' ? 'text-blue-600' : step === 'results' ? 'text-slate-500' : 'text-slate-400'}`}>
+            <span className={`font-medium ${step === 'subtype' ? 'text-slate-700' : step === 'results' ? 'text-slate-500' : 'text-slate-400'}`}>
               Details
             </span>
           </div>
@@ -669,12 +662,12 @@ ${ragContext}
           <div className="flex items-center gap-2">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold ${
               step === 'results'
-                ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-200'
+                ? 'bg-[#C66B4A] text-white shadow-lg shadow-slate-200'
                 : 'bg-slate-100 text-slate-400'
             }`}>
               3
             </div>
-            <span className={`font-medium ${step === 'results' ? 'text-cyan-600' : 'text-slate-400'}`}>
+            <span className={`font-medium ${step === 'results' ? 'text-slate-700' : 'text-slate-400'}`}>
               Results
             </span>
           </div>
@@ -838,7 +831,7 @@ ${ragContext}
             <div className="text-center">
               <button
                 onClick={handleSubtypeComplete}
-                className="bg-gradient-to-r from-slate-600 to-blue-600 hover:from-slate-500 hover:to-blue-500 text-white font-semibold px-8 py-3 rounded-xl transition-all hover:scale-105"
+                className="bg-[#C66B4A] hover:bg-[#B35E40] text-white font-semibold px-8 py-3 rounded-xl transition-colors"
               >
                 Get My Checklist →
               </button>
@@ -859,7 +852,7 @@ ${ragContext}
             </button>
 
             {/* Summary Header */}
-            <div className="bg-gradient-to-r from-slate-50 to-blue-50 border border-slate-200 rounded-xl p-6 mb-8">
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 mb-8">
               <div className="flex items-start justify-between">
                 <div>
                   <h2 className="text-xl font-bold text-slate-900 mb-2">
@@ -889,7 +882,7 @@ ${ragContext}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                       emailSent
                         ? 'bg-green-100 text-green-700'
-                        : 'bg-blue-100 hover:bg-blue-200 text-blue-700'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                     }`}
                   >
                     <Mail className="w-4 h-4" />
@@ -897,7 +890,7 @@ ${ragContext}
                   </button>
                   <button
                     onClick={exportPDF}
-                    className="flex items-center gap-2 px-4 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg text-sm font-medium transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition-colors"
                   >
                     <Download className="w-4 h-4" />
                     PDF
@@ -925,21 +918,21 @@ ${ragContext}
             </div>
 
             {/* Appointment Prep Section - HERO FEATURE */}
-            <div className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-6 shadow-sm">
+            <div className="mb-8 bg-stone-50 border border-stone-200 rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                   <span className="text-2xl">🗣️</span>
                   Prepare for Your Appointment
                 </h3>
-                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-full font-medium">
                   Most Used
                 </span>
               </div>
 
               {/* Email to self - Prominent CTA */}
-              <div className="mb-6 p-4 bg-white border-2 border-blue-200 rounded-xl">
+              <div className="mb-6 p-4 bg-white border border-slate-200 rounded-xl">
                 <div className="flex items-center gap-2 mb-3">
-                  <Mail className="w-5 h-5 text-blue-600" />
+                  <Mail className="w-5 h-5 text-slate-600" />
                   <p className="text-sm font-semibold text-slate-900">Email this checklist to yourself</p>
                 </div>
                 {user ? (
@@ -953,7 +946,7 @@ ${ragContext}
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                         emailSent
                           ? 'bg-green-100 text-green-700'
-                          : 'bg-blue-600 hover:bg-blue-700 text-white'
+                          : 'bg-[#C66B4A] hover:bg-[#B35E40] text-white'
                       }`}
                     >
                       {sendingEmail ? 'Sending...' : emailSent ? '✓ Sent!' : 'Send Now'}
@@ -973,7 +966,7 @@ ${ragContext}
                           if (e.key === 'Enter') emailToSelf()
                         }}
                         placeholder="Enter your email..."
-                        className="flex-1 px-4 py-2 bg-white border border-blue-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="flex-1 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-slate-400 focus:border-transparent"
                       />
                       <button
                         onClick={() => emailToSelf()}
@@ -981,7 +974,7 @@ ${ragContext}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
                           emailSent
                             ? 'bg-green-100 text-green-700'
-                            : 'bg-blue-600 hover:bg-blue-700 text-white'
+                            : 'bg-[#C66B4A] hover:bg-[#B35E40] text-white'
                         }`}
                       >
                         <Mail className="w-4 h-4" />
@@ -1003,8 +996,8 @@ ${ragContext}
                 <p className="text-sm font-medium text-slate-700 mb-3">Your questions for the doctor:</p>
                 <div className="space-y-2 mb-3">
                   {customQuestions.map((q, i) => (
-                    <div key={i} className="flex items-center gap-2 bg-white border border-blue-200 rounded-lg p-3">
-                      <span className="text-blue-500">?</span>
+                    <div key={i} className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg p-3">
+                      <span className="text-slate-500">?</span>
                       <span className="flex-1 text-sm text-slate-700">{q}</span>
                       <button
                         onClick={() => setCustomQuestions(prev => prev.filter((_, idx) => idx !== i))}
@@ -1027,7 +1020,7 @@ ${ragContext}
                       }
                     }}
                     placeholder="Add a question you want to ask..."
-                    className="flex-1 px-4 py-2 bg-white border border-blue-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="flex-1 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-slate-400 focus:border-transparent"
                   />
                   <button
                     onClick={() => {
@@ -1036,7 +1029,7 @@ ${ragContext}
                         setNewQuestion('')
                       }
                     }}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-1"
+                    className="px-4 py-2 bg-[#C66B4A] hover:bg-[#B35E40] text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-1"
                   >
                     <Plus className="w-4 h-4" />
                     Add
@@ -1058,13 +1051,13 @@ Example:
 - Side effects I've been experiencing
 - Questions about timeline
 - Clinical trial interest"
-                  className="w-full h-24 px-4 py-3 bg-white border border-blue-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  className="w-full h-24 px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-slate-400 focus:border-transparent resize-none"
                 />
               </div>
 
               {/* Script Templates - Collapsible */}
               <details className="mb-4">
-                <summary className="text-sm font-medium text-slate-700 cursor-pointer hover:text-blue-600">
+                <summary className="text-sm font-medium text-slate-700 cursor-pointer hover:text-slate-900">
                   💬 Helpful phrases to start the conversation
                 </summary>
                 <div className="mt-3 grid gap-2">
@@ -1072,11 +1065,11 @@ Example:
                     <button
                       key={i}
                       onClick={() => navigator.clipboard.writeText(phrase)}
-                      className="text-left bg-white border border-blue-200 rounded-lg p-3 text-sm text-slate-700 hover:bg-blue-100 hover:border-blue-300 transition-colors group"
+                      className="text-left bg-white border border-slate-200 rounded-lg p-3 text-sm text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors group"
                     >
-                      <span className="text-blue-500 mr-2">→</span>
+                      <span className="text-slate-500 mr-2">→</span>
                       "{phrase}"
-                      <span className="text-xs text-blue-400 ml-2 opacity-0 group-hover:opacity-100">Click to copy</span>
+                      <span className="text-xs text-slate-400 ml-2 opacity-0 group-hover:opacity-100">Click to copy</span>
                     </button>
                   ))}
                 </div>
@@ -1084,7 +1077,7 @@ Example:
 
               {/* Pushback phrases */}
               <details>
-                <summary className="text-sm font-medium text-slate-700 cursor-pointer hover:text-blue-600">
+                <summary className="text-sm font-medium text-slate-700 cursor-pointer hover:text-slate-900">
                   🛡️ If your doctor says no...
                 </summary>
                 <div className="mt-3 grid gap-2">
@@ -1092,11 +1085,11 @@ Example:
                     <button
                       key={i}
                       onClick={() => navigator.clipboard.writeText(phrase)}
-                      className="text-left bg-white border border-amber-200 rounded-lg p-3 text-sm text-slate-700 hover:bg-amber-50 hover:border-amber-300 transition-colors group"
+                      className="text-left bg-white border border-slate-200 rounded-lg p-3 text-sm text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors group"
                     >
-                      <span className="text-amber-500 mr-2">→</span>
+                      <span className="text-slate-500 mr-2">→</span>
                       "{phrase}"
-                      <span className="text-xs text-amber-400 ml-2 opacity-0 group-hover:opacity-100">Click to copy</span>
+                      <span className="text-xs text-slate-400 ml-2 opacity-0 group-hover:opacity-100">Click to copy</span>
                     </button>
                   ))}
                 </div>
@@ -1207,20 +1200,20 @@ Example:
                               e.stopPropagation()
                               setShowHowToAsk(showHowToAsk === test.name ? null : test.name)
                             }}
-                            className="mt-2 text-xs text-blue-500 hover:text-blue-700 flex items-center gap-1"
+                            className="mt-2 text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1"
                           >
                             💬 {showHowToAsk === test.name ? 'Hide' : 'How to ask your doctor'}
                           </button>
                           {showHowToAsk === test.name && (
-                            <div className="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                              <p className="text-sm text-blue-800 italic">
+                            <div className="mt-2 bg-slate-50 border border-slate-200 rounded-lg p-3">
+                              <p className="text-sm text-slate-700 italic">
                                 {getHowToAsk(test.name, false)}
                               </p>
                               <button
                                 onClick={() => {
                                   navigator.clipboard.writeText(getHowToAsk(test.name, false))
                                 }}
-                                className="mt-2 text-xs text-blue-600 hover:text-blue-800"
+                                className="mt-2 text-xs text-slate-600 hover:text-slate-800"
                               >
                                 📋 Copy to clipboard
                               </button>
@@ -1367,7 +1360,7 @@ Example:
             {/* Questions for Oncologist */}
             <div className="mb-8">
               <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <span className="text-blue-500">?</span>
+                <span className="text-slate-500">?</span>
                 Questions for Your Oncologist
               </h3>
               <p className="text-xs text-slate-500 mb-3">Tap any question to get AI guidance</p>
@@ -1376,12 +1369,12 @@ Example:
                   <button
                     key={i}
                     onClick={() => askAbout(q, 'Help me understand this question and what answers to look for.')}
-                    className="w-full text-left bg-blue-50 border border-blue-200 rounded-xl p-4 hover:border-blue-400 hover:bg-blue-100 transition-all group"
+                    className="w-full text-left bg-slate-50 border border-slate-200 rounded-xl p-4 hover:border-slate-300 hover:bg-slate-100 transition-all group"
                   >
                     <div className="flex items-start gap-3">
-                      <span className="text-blue-500 mt-0.5 group-hover:text-blue-600">?</span>
-                      <span className="text-slate-700 flex-1 group-hover:text-blue-800">{q}</span>
-                      <span className="text-blue-400 group-hover:text-blue-600 flex-shrink-0">→</span>
+                      <span className="text-slate-500 mt-0.5 group-hover:text-slate-600">?</span>
+                      <span className="text-slate-700 flex-1 group-hover:text-slate-800">{q}</span>
+                      <span className="text-slate-400 group-hover:text-slate-600 flex-shrink-0">→</span>
                     </div>
                   </button>
                 ))}
@@ -1418,7 +1411,7 @@ Example:
             )}
 
             {/* Cross-link to Community */}
-            <div className="bg-gradient-to-r from-slate-50 to-slate-50 border border-slate-200 rounded-xl p-6 text-center mt-6">
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 text-center mt-6">
               <div className="text-3xl mb-2">👥</div>
               <p className="text-slate-700 mb-4">
                 Connect with others on the same journey
@@ -1427,7 +1420,7 @@ Example:
                 href="https://community.cancerpatientlab.org"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block bg-gradient-to-r from-slate-500 to-slate-500 hover:from-slate-400 hover:to-slate-400 text-white font-semibold px-6 py-3 rounded-xl transition-all hover:scale-105"
+                className="inline-block bg-slate-900 hover:bg-slate-800 text-white font-semibold px-6 py-3 rounded-xl transition-colors"
               >
                 Join CancerPatient Lab
               </a>

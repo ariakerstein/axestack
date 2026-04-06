@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Users, Shield, CheckCircle, Clock, FileText, AlertTriangle, ChevronDown, ChevronUp, Send, ExternalLink } from 'lucide-react'
+import { ArrowLeft, Users, Shield, CheckCircle, Clock, FileText, AlertTriangle, ChevronDown, ChevronUp, Send, ExternalLink, Swords, Zap, Star } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
 import { Navbar } from '@/components/Navbar'
@@ -24,12 +25,26 @@ interface Expert {
 
 const experts: Expert[] = [
   {
+    id: 'async-expert',
+    name: 'Oncology Expert Panel',
+    title: 'Board-Certified Oncologists',
+    organization: 'opencancer.ai',
+    organizationUrl: 'https://opencancer.ai',
+    image: '/experts/panel.jpg',
+    expertise: 'Combat Review',
+    bio: 'Get written expert feedback on your Combat analysis within 48 hours. Our oncologists review the AI findings, validate recommendations, and highlight what to discuss with your care team.',
+    price: '$199',
+    isFree: false,
+    responseTime: '48 hours',
+    specialties: ['Combat analysis review', 'Treatment validation', 'Priority questions', 'Care team discussion points']
+  },
+  {
     id: 'cancer-commons',
     name: 'Dr. Emma Shtivelman',
     title: 'Chief Scientific Officer',
     organization: 'Cancer Commons',
     organizationUrl: 'https://cancercommons.org',
-    image: '/experts/emma-shtivelman.jpg',
+    image: 'https://cdn.prod.website-files.com/68e0582d152c96961cd60580/6911c701f74c0c25d0ff3bc0_Emma-photo-cropped-600x600.jpeg',
     expertise: 'Treatment Decisions',
     bio: 'Leading expert in precision medicine and cancer treatment strategies. Dr. Shtivelman helps patients understand their options and navigate complex treatment decisions.',
     price: 'Free',
@@ -57,7 +72,7 @@ const experts: Expert[] = [
     title: 'Chief Medical Officer',
     organization: 'Protean Biodiagnostics',
     organizationUrl: 'https://www.proteanbiodx.com',
-    image: '/experts/tony-magliocco.jpg',
+    image: 'https://images.squarespace-cdn.com/content/v1/5a4c3e3ebff200d1651f0273/1634675812299-RI7TI4MCKGMOUFE167LX/IMG_1551.jpg',
     expertise: 'Pathology Review',
     bio: 'Board-certified pathologist with 25+ years of experience in cancer diagnostics and molecular pathology. Reviews pathology slides and reports for accuracy and additional insights.',
     price: '$650',
@@ -67,13 +82,18 @@ const experts: Expert[] = [
   }
 ]
 
-export default function ExpertReviewPage() {
+function ExpertReviewContent() {
   const { user } = useAuth()
+  const searchParams = useSearchParams()
+  const combatResultId = searchParams.get('combat')
+  const fromCombat = !!combatResultId
+
   const [step, setStep] = useState<'intro' | 'select' | 'consent' | 'submit'>('intro')
   const [selectedExpert, setSelectedExpert] = useState<Expert | null>(null)
   const [expandedExpert, setExpandedExpert] = useState<string | null>(null)
   const [userRecords, setUserRecords] = useState<any[]>([])
   const [selectedRecords, setSelectedRecords] = useState<string[]>([])
+  const [combatResult, setCombatResult] = useState<any>(null)
 
   // Consent form state
   const [signature, setSignature] = useState('')
@@ -87,6 +107,29 @@ export default function ExpertReviewPage() {
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+
+  // Load Combat result if coming from Combat page
+  useEffect(() => {
+    if (combatResultId) {
+      const loadCombatResult = async () => {
+        const { data } = await supabase
+          .from('combat_results')
+          .select('*')
+          .eq('id', combatResultId)
+          .single()
+        if (data) {
+          setCombatResult(data)
+          // Auto-select the async expert for Combat reviews
+          const asyncExpert = experts.find(e => e.id === 'async-expert')
+          if (asyncExpert) {
+            setSelectedExpert(asyncExpert)
+            setStep('consent')
+          }
+        }
+      }
+      loadCombatResult()
+    }
+  }, [combatResultId])
 
   useEffect(() => {
     if (user) {
@@ -130,9 +173,39 @@ export default function ExpertReviewPage() {
   const handleSubmit = async () => {
     if (!selectedExpert || !question.trim() || !email.trim()) return
 
+    // For async-expert, we need Combat results OR records
+    const isCombatReview = selectedExpert.id === 'async-expert' && combatResult
+    if (!isCombatReview && selectedRecords.length === 0) return
+
     setIsSubmitting(true)
     try {
-      // Save consultation request
+      // For paid async-expert, redirect to Stripe checkout
+      if (selectedExpert.id === 'async-expert') {
+        const response = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            productId: 'expert-review',
+            userId: user?.id || null,
+            email: email,
+            combatResultId: combatResult?.id || null,
+            metadata: {
+              question: question.trim(),
+              selectedRecords: selectedRecords.join(','),
+              consentSignature: signature,
+            },
+          }),
+        })
+        const data = await response.json()
+        if (data.url) {
+          window.location.href = data.url
+          return
+        } else {
+          throw new Error(data.error || 'Failed to create checkout session')
+        }
+      }
+
+      // For free/other experts, save consultation request directly
       const { error } = await supabase
         .from('expert_consultations')
         .insert({
@@ -143,10 +216,16 @@ export default function ExpertReviewPage() {
           organization: selectedExpert.organization,
           question: question.trim(),
           selected_records: selectedRecords.length > 0 ? selectedRecords : null,
+          combat_result_id: combatResult?.id || null,
+          combat_summary: combatResult ? JSON.stringify({
+            divergence: combatResult.divergence,
+            consensus: combatResult.consensus,
+            cancer_type: combatResult.cancer_type,
+          }) : null,
           consent_signature: signature,
           consent_timestamp: new Date().toISOString(),
           status: 'pending',
-          is_free: selectedExpert.isFree
+          is_free: selectedExpert.isFree,
         })
 
       if (error) throw error
@@ -200,12 +279,18 @@ export default function ExpertReviewPage() {
               <p className="text-slate-600 mb-4">
                 Get a second opinion from leading oncology specialists
               </p>
-              <div className="flex items-center justify-center gap-4 text-sm text-slate-500">
-                <span className="flex items-center gap-1">
-                  <a href="https://cancercommons.org" target="_blank" rel="noopener noreferrer" className="text-slate-700 font-semibold hover:text-slate-600 flex items-center gap-1">
-                    Partnered with Cancer Commons <ExternalLink className="w-3 h-3" />
-                  </a>
-                </span>
+              <div className="flex items-center justify-center gap-3 mt-3">
+                <span className="text-xs text-slate-400">Partnered with</span>
+                <a
+                  href="https://cancercommons.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors"
+                >
+                  <img src="/cancer-commons-logo.png" alt="Cancer Commons" className="h-5 w-auto" />
+                  <span className="text-xs font-semibold text-slate-700">Cancer Commons</span>
+                  <ExternalLink className="w-3 h-3 text-slate-400" />
+                </a>
               </div>
             </div>
 
@@ -287,24 +372,46 @@ export default function ExpertReviewPage() {
             <h2 className="text-2xl font-bold text-slate-900 mb-6">Select an Expert</h2>
 
             <div className="space-y-4">
-              {experts.map((expert) => (
+              {experts.map((expert) => {
+                const isAsyncExpert = expert.id === 'async-expert'
+                return (
                 <div
                   key={expert.id}
                   className="bg-white border border-slate-200 rounded-xl p-6 hover:border-slate-400 hover:shadow-md transition-all cursor-pointer"
                   onClick={() => handleSelectExpert(expert)}
                 >
                   <div className="flex items-start gap-4">
-                    <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center text-2xl">
-                      {expert.id === 'cancer-commons' ? '🔬' : '🔬'}
+                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-2xl overflow-hidden">
+                      {isAsyncExpert ? (
+                        <Swords className="w-8 h-8 text-slate-600" />
+                      ) : expert.image ? (
+                        <img
+                          src={expert.image}
+                          alt={expert.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            // Fallback to initials on image load error
+                            const target = e.target as HTMLImageElement
+                            target.style.display = 'none'
+                            target.parentElement!.innerHTML = `<span class="text-xl font-semibold text-slate-600">${expert.name.split(' ').map(n => n[0]).join('')}</span>`
+                          }}
+                        />
+                      ) : (
+                        <span className="text-xl font-semibold text-slate-600">
+                          {expert.name.split(' ').map(n => n[0]).join('')}
+                        </span>
+                      )}
                     </div>
                     <div className="flex-1">
                       <div className="flex items-start justify-between">
                         <div>
                           <h3 className="font-semibold text-slate-900">{expert.name}</h3>
                           <p className="text-sm text-slate-500">{expert.title}</p>
-                          <a href={expert.organizationUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-slate-600 hover:underline" onClick={(e) => e.stopPropagation()}>
-                            {expert.organization} →
-                          </a>
+                          {!isAsyncExpert && (
+                            <a href={expert.organizationUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-slate-600 hover:underline" onClick={(e) => e.stopPropagation()}>
+                              {expert.organization} →
+                            </a>
+                          )}
                         </div>
                         <div className="text-right">
                           {expert.isFree ? (
@@ -319,7 +426,7 @@ export default function ExpertReviewPage() {
                         <span className="flex items-center gap-1">
                           <Clock className="w-4 h-4" /> {expert.responseTime}
                         </span>
-                        <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">{expert.expertise}</span>
+                        <span className="px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600">{expert.expertise}</span>
                       </div>
 
                       <p className="text-slate-600 text-sm mt-3">{expert.bio}</p>
@@ -351,7 +458,7 @@ export default function ExpertReviewPage() {
                     </div>
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
           </>
         )}
@@ -555,5 +662,17 @@ export default function ExpertReviewPage() {
         )}
       </div>
     </main>
+  )
+}
+
+export default function ExpertReviewPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-pulse text-slate-400">Loading...</div>
+      </main>
+    }>
+      <ExpertReviewContent />
+    </Suspense>
   )
 }

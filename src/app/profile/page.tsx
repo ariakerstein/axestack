@@ -9,8 +9,10 @@ import { saveProfile } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth'
 import { AuthModal } from '@/components/AuthModal'
 import { Navbar } from '@/components/Navbar'
-import { User, Heart, Ribbon, ArrowRight, Check, Mail } from 'lucide-react'
+import { User, Heart, Ribbon, ArrowRight, Check, Mail, Waves, Scale, FlaskConical } from 'lucide-react'
 import { ThinkingIndicator } from '@/components/ThinkingIndicator'
+
+type CommunicationStyle = 'gentle' | 'balanced' | 'research'
 
 interface PatientProfile {
   role: 'patient' | 'caregiver'
@@ -20,7 +22,29 @@ interface PatientProfile {
   stage?: string
   location?: string
   createdAt?: string
+  communicationStyle?: CommunicationStyle
 }
+
+const COMMUNICATION_STYLES = [
+  {
+    id: 'gentle' as CommunicationStyle,
+    icon: Waves,
+    label: 'Gentle',
+    description: 'Simple, supportive language. Focus on what matters most.',
+  },
+  {
+    id: 'balanced' as CommunicationStyle,
+    icon: Scale,
+    label: 'Balanced',
+    description: 'Clear explanations with medical terms defined.',
+  },
+  {
+    id: 'research' as CommunicationStyle,
+    icon: FlaskConical,
+    label: 'Research',
+    description: 'Full details, citations, and clinical specifics.',
+  },
+]
 
 // Lego Technique stats - two facts, let user connect
 const STATS = {
@@ -43,6 +67,7 @@ export default function ProfilePage() {
   const [cancerSearch, setCancerSearch] = useState('')
   const [stage, setStage] = useState('')
   const [location, setLocation] = useState('')
+  const [communicationStyle, setCommunicationStyle] = useState<CommunicationStyle>('balanced')
   const [saved, setSaved] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
 
@@ -79,6 +104,14 @@ export default function ProfilePage() {
       setLocation(authProfile.location || '')
       // Skip intro if already has profile
       if (authProfile.cancer_type) setStep(4)
+      // Load communication style from localStorage (not in Supabase schema yet)
+      const savedLocal = localStorage.getItem('patient-profile')
+      if (savedLocal) {
+        try {
+          const p = JSON.parse(savedLocal)
+          setCommunicationStyle(p.communicationStyle || 'balanced')
+        } catch { /* ignore */ }
+      }
     } else {
       // Fall back to localStorage for anonymous users
       const saved = localStorage.getItem('patient-profile')
@@ -87,6 +120,7 @@ export default function ProfilePage() {
         setProfile(p)
         setRole(p.role || 'patient')
         setName(p.name || '')
+        setCommunicationStyle(p.communicationStyle || 'balanced')
         setEmail(p.email || (user?.email || ''))
         setCancerType(p.cancerType || '')
         setStage(p.stage || '')
@@ -107,6 +141,7 @@ export default function ProfilePage() {
       cancerType,
       stage: stage || undefined,
       location: location || undefined,
+      communicationStyle,
       createdAt: profile?.createdAt || new Date().toISOString(),
     }
 
@@ -617,6 +652,42 @@ export default function ProfilePage() {
                     placeholder="City, State"
                     className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm"
                   />
+                </div>
+              </div>
+
+              {/* Communication Style */}
+              <div className="pt-4 border-t border-slate-200">
+                <label className="block text-sm font-medium text-slate-700 mb-3">
+                  Communication Style
+                </label>
+                <div className="grid grid-cols-3 gap-3">
+                  {COMMUNICATION_STYLES.map((style) => {
+                    const Icon = style.icon
+                    const isSelected = communicationStyle === style.id
+                    return (
+                      <button
+                        key={style.id}
+                        onClick={() => setCommunicationStyle(style.id)}
+                        className={`p-3 rounded-xl border-2 text-center transition-all ${
+                          isSelected
+                            ? 'border-[#C66B4A] bg-orange-50'
+                            : 'border-slate-200 bg-white hover:border-slate-300'
+                        }`}
+                      >
+                        <Icon className={`w-6 h-6 mx-auto mb-2 ${
+                          isSelected ? 'text-[#C66B4A]' : 'text-slate-400'
+                        }`} />
+                        <p className={`text-sm font-medium ${
+                          isSelected ? 'text-[#C66B4A]' : 'text-slate-700'
+                        }`}>
+                          {style.label}
+                        </p>
+                        <p className="text-xs text-slate-500 mt-1 leading-tight">
+                          {style.description}
+                        </p>
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
 

@@ -69,8 +69,8 @@ export default function HubPage() {
       <section className="relative flex flex-col items-center justify-center px-8 pt-16 pb-16 overflow-hidden">
         {/* Background */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-rose-400/20 rounded-full blur-3xl" />
-        <div className="absolute top-20 right-1/4 w-80 h-80 bg-pink-400/15 rounded-full blur-3xl" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#C66B4A]/20 rounded-full blur-3xl" />
+        <div className="absolute top-20 right-1/4 w-80 h-80 bg-[#D4836A]/15 rounded-full blur-3xl" />
 
         <div className="relative text-center max-w-2xl">
           <div className="flex items-center justify-center gap-2 mb-6">
@@ -81,7 +81,7 @@ export default function HubPage() {
           <div className="text-5xl mb-6">💝</div>
 
           <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 via-pink-500 to-fuchsia-500">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#C66B4A] via-[#D4836A] to-[#C66B4A]">
               CareCircle
             </span>
           </h1>
@@ -102,13 +102,13 @@ export default function HubPage() {
           {step === 'intro' && (
             <div className="space-y-8">
               {/* How it works */}
-              <div className="bg-gradient-to-br from-rose-50 to-white border border-rose-200 rounded-2xl p-8">
+              <div className="bg-gradient-to-br from-orange-50 to-white border border-[#C66B4A]/30 rounded-2xl p-8">
                 <h2 className="text-xl font-bold text-slate-900 mb-6 text-center">How It Works</h2>
 
                 <div className="space-y-6">
                   <div className="flex gap-4">
-                    <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0">
-                      <span className="text-rose-600 font-bold">1</span>
+                    <div className="w-10 h-10 rounded-full bg-[#C66B4A]/10 flex items-center justify-center flex-shrink-0">
+                      <span className="text-[#C66B4A] font-bold">1</span>
                     </div>
                     <div>
                       <h3 className="font-semibold text-slate-900">Create your CareCircle</h3>
@@ -117,8 +117,8 @@ export default function HubPage() {
                   </div>
 
                   <div className="flex gap-4">
-                    <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0">
-                      <span className="text-rose-600 font-bold">2</span>
+                    <div className="w-10 h-10 rounded-full bg-[#C66B4A]/10 flex items-center justify-center flex-shrink-0">
+                      <span className="text-[#C66B4A] font-bold">2</span>
                     </div>
                     <div>
                       <h3 className="font-semibold text-slate-900">Share with family & friends</h3>
@@ -127,8 +127,8 @@ export default function HubPage() {
                   </div>
 
                   <div className="flex gap-4">
-                    <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0">
-                      <span className="text-rose-600 font-bold">3</span>
+                    <div className="w-10 h-10 rounded-full bg-[#C66B4A]/10 flex items-center justify-center flex-shrink-0">
+                      <span className="text-[#C66B4A] font-bold">3</span>
                     </div>
                     <div>
                       <h3 className="font-semibold text-slate-900">Post updates when ready</h3>
@@ -150,7 +150,7 @@ export default function HubPage() {
               {/* CTA */}
               <button
                 onClick={() => setStep('create')}
-                className="w-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 text-white text-lg font-semibold py-4 rounded-xl transition-all hover:scale-[1.02]"
+                className="w-full bg-[#C66B4A] hover:bg-[#B35E40] text-white text-lg font-semibold py-4 rounded-xl transition-all hover:scale-[1.02]"
               >
                 Create Your CareCircle
               </button>
@@ -180,7 +180,7 @@ export default function HubPage() {
                     value={patientName}
                     onChange={(e) => setPatientName(e.target.value)}
                     placeholder="e.g., John's Journey"
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent text-lg"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C66B4A] focus:border-transparent text-lg"
                     autoFocus
                   />
                   <p className="text-slate-500 text-sm mt-2">
@@ -191,7 +191,7 @@ export default function HubPage() {
                 <button
                   onClick={handleCreate}
                   disabled={!patientName.trim() || creating}
-                  className="w-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 disabled:from-slate-300 disabled:to-slate-300 text-white text-lg font-semibold py-4 rounded-xl transition-all hover:scale-[1.02] disabled:hover:scale-100"
+                  className="w-full bg-[#C66B4A] hover:bg-[#B35E40] disabled:bg-slate-300 text-white text-lg font-semibold py-4 rounded-xl transition-all hover:scale-[1.02] disabled:hover:scale-100"
                 >
                   {creating ? 'Creating...' : 'Create CareCircle'}
                 </button>

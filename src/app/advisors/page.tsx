@@ -9,12 +9,18 @@ interface Advisor {
   image: string
 }
 
-// Full list matching CHL accelerator page - same order
+// Helper to generate avatar URL
+function getAvatarUrl(name: string): string {
+  const encoded = encodeURIComponent(name.split(',')[0].trim())
+  return `https://ui-avatars.com/api/?name=${encoded}&background=64748b&color=fff&size=200&font-size=0.4`
+}
+
+// Full list matching CHL accelerator page - same order with working image URLs
 const ADVISORS: Advisor[] = [
   {
     name: 'Ari Akerstein, MS',
     role: 'Co-Founder/CEO @CHL | Product Leader | Ex-Meta',
-    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/1b0c4b7c-4a7e-4f8c-8c1c-6f8c0e5a5b5e/ari.jpg',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/64694c7d-e3e3-414f-af72-288d201bb060/Screenshot+2024-10-02+at+10.59.02%E2%80%AFAM.jpg',
   },
   {
     name: 'Richard Anders, JD',
@@ -54,7 +60,7 @@ const ADVISORS: Advisor[] = [
   {
     name: 'Eric Grossberg',
     role: 'Co-Founder/Executive Chairman | Brilliant Earth',
-    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/eric-grossberg.jpg',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/12bb19aa-c454-4a7a-84cb-81b56bce00ad/1638331200353-2.jpg',
   },
   {
     name: 'Magnus Hillestadt',
@@ -79,17 +85,17 @@ const ADVISORS: Advisor[] = [
   {
     name: 'Brian Morton',
     role: 'Managing Partner @Morbak Consulting | Revenue Cycle | Clinical Ops | EMR',
-    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/brian-morton.jpg',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/fc6254c9-83c7-46e0-a961-88255f825423/Screenshot+2024-09-30+at+3.41.45%E2%80%AFPM.png',
   },
   {
     name: 'Noah Nasser',
     role: 'Chief Executive Officer at dātma',
-    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/noah-nasser.jpg',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/e4cf88d2-e441-4741-a594-c0be954f1e9d/1646150805014.jpg',
   },
   {
     name: 'Laurel Nelson',
     role: 'Founder and CEO @ InnovexDx',
-    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/laurel-nelson.jpg',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/ce580f78-0717-46ff-aa03-c8c9f44a8110/laurel.jpg',
   },
   {
     name: 'Freddy Nguyen, MD, PhD',
@@ -99,12 +105,12 @@ const ADVISORS: Advisor[] = [
   {
     name: 'Frank Austin Nothaft, PhD',
     role: 'Founder/CEO @Translating Science PBC',
-    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/frank-nothaft.jpg',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/3a8ab3f3-c0d6-4201-87b9-38b251534f44/1552363010923.jpg',
   },
   {
     name: 'Scott Petinga',
     role: 'Fortune 500 Brand Marketer | Healthcare Founder & Advocate',
-    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/scott-petinga.jpg',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/74b6256b-b027-44fa-8ab8-8b2a4e2a2e91/Screen+Shot+2020-10-24+at+1.57.51+PM.png',
   },
   {
     name: 'Brad Power',
@@ -119,22 +125,22 @@ const ADVISORS: Advisor[] = [
   {
     name: 'Roger Royse',
     role: 'Corporate and Tax Partner at Haynes and Boone, LLP',
-    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/roger-royse.jpg',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/37e483f4-a5b9-407d-9aab-d16a8a6e6e0c/Screenshot+2024-09-11+at+7.39.34%E2%80%AFPM.png',
   },
   {
     name: 'Chris Schuler',
     role: 'VP Venture Partnerships, Varia Ventures | Patient Advocate',
-    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/chris-schuler.jpg',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/f4291153-a32f-43ae-ab82-fccf87f210f8/210428_Chris_Schuler_007.jpg',
   },
   {
     name: 'Gareth Sessel, MD, MS',
     role: 'Chief Growth and Product Officer | Physician-Engineer and AI specialist',
-    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/gareth-sessel.jpg',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/3a1f5c91-316b-4771-b899-89ebd7818b6e/0-2.jpg',
   },
   {
     name: 'Elijah Shirman, PhD',
     role: 'Scientist, Entrepreneur | Wyss Institute @ Harvard, Tufts Biomedical Eng',
-    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/elijah-shirman.jpg',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/fa921995-66ac-4e4c-99be-2e88fbf1ce1c/IMG_1581.jpg',
   },
   {
     name: 'Marty Tenenbaum, PhD',
@@ -144,22 +150,22 @@ const ADVISORS: Advisor[] = [
   {
     name: 'David Thompson',
     role: 'Legal executive | Headway, ex-Included Health',
-    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/david-thompson.jpg',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/48145bbe-56c9-4964-a84e-a4836c2b1d6c/dt-headshot.jpg',
   },
   {
     name: 'Elizabeth A. Varga, MS, CGC',
     role: 'Director of Clinical Genomics R&D, Nationwide Children\'s Hospital',
-    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/elizabeth-varga.jpg',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/8ab6aaba-8603-487e-9b02-d49d096271f4/Liz.jpeg',
   },
   {
     name: 'Vidya Venkatesh',
     role: 'Product, Commercial Strategy in Oncology Dx | ex-GRAIL, Exact Sciences',
-    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/vidya-venkatesh.jpg',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/24d921eb-8d4e-45fe-84f2-c98ae1f381bf/Vidya_Venkatesh.jpg',
   },
   {
     name: 'Jane Wilkinson, PhD',
     role: 'Co-Founder & President CANCollaborate | (Fmr) Exec Dir @MIT Koch Institute',
-    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/jane-wilkinson.jpg',
+    image: 'https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/e075f295-a096-4801-bc95-9e2e9f9b2930/Screenshot+2024-09-25+at+1.03.10%E2%80%AFPM.jpg',
   },
 ]
 
@@ -192,16 +198,14 @@ export default function AdvisorsPage() {
                   {/* Photo */}
                   <div className="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden bg-slate-100 ring-2 ring-slate-200">
                     <img
-                      src={advisor.image}
+                      src={advisor.image || getAvatarUrl(advisor.name)}
                       alt={advisor.name}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        // Fallback to initials if image fails
+                        // Fallback to ui-avatars if image fails
                         const target = e.target as HTMLImageElement
-                        target.style.display = 'none'
-                        const parent = target.parentElement
-                        if (parent) {
-                          parent.innerHTML = `<div class="w-full h-full flex items-center justify-center text-2xl font-bold text-slate-400">${advisor.name.split(' ').map(n => n[0]).join('').slice(0, 2)}</div>`
+                        if (!target.src.includes('ui-avatars.com')) {
+                          target.src = getAvatarUrl(advisor.name)
                         }
                       }}
                     />

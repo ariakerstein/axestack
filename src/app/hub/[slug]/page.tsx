@@ -231,7 +231,7 @@ export default function HubViewPage() {
           <p className="text-slate-600 mb-8">This hub doesn't exist or the link may be incorrect.</p>
           <Link
             href="/hub"
-            className="inline-block bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold px-6 py-3 rounded-xl"
+            className="inline-block bg-[#C66B4A] hover:bg-[#B35E40] text-white font-semibold px-6 py-3 rounded-xl"
           >
             Create Your Own CareCircle
           </Link>
@@ -258,7 +258,7 @@ export default function HubViewPage() {
               {!showSubscribe ? (
                 <button
                   onClick={() => setShowSubscribe(true)}
-                  className="text-rose-600 hover:text-rose-700 text-sm font-medium"
+                  className="text-[#C66B4A] hover:text-[#B35E40] text-sm font-medium"
                 >
                   Get notified of new updates →
                 </button>
@@ -269,11 +269,11 @@ export default function HubViewPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Your email"
-                    className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                    className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#C66B4A]"
                   />
                   <button
                     onClick={handleSubscribe}
-                    className="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                    className="bg-[#C66B4A] hover:bg-[#B35E40] text-white px-4 py-2 rounded-lg text-sm font-medium"
                   >
                     Subscribe
                   </button>
@@ -297,7 +297,7 @@ export default function HubViewPage() {
               value={newUpdate}
               onChange={(e) => setNewUpdate(e.target.value)}
               placeholder="How are you feeling? Any news to share?"
-              className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none"
+              className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C66B4A] focus:border-transparent resize-none"
               rows={4}
             />
             <div className="flex justify-between items-center mt-4">
@@ -307,7 +307,7 @@ export default function HubViewPage() {
               <button
                 onClick={handlePostUpdate}
                 disabled={!newUpdate.trim()}
-                className="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 disabled:from-slate-300 disabled:to-slate-300 text-white font-semibold px-6 py-2 rounded-xl transition-all"
+                className="bg-[#C66B4A] hover:bg-[#B35E40] disabled:bg-slate-300 text-white font-semibold px-6 py-2 rounded-xl transition-all"
               >
                 Post Update
               </button>
@@ -323,7 +323,7 @@ export default function HubViewPage() {
               {!showInvite && (
                 <button
                   onClick={() => setShowInvite(true)}
-                  className="text-rose-600 hover:text-rose-700 text-sm font-medium"
+                  className="text-[#C66B4A] hover:text-[#B35E40] text-sm font-medium"
                 >
                   + Invite People
                 </button>
@@ -340,7 +340,7 @@ export default function HubViewPage() {
                     value={inviteEmails}
                     onChange={(e) => setInviteEmails(e.target.value)}
                     placeholder="mom@example.com&#10;sister@example.com&#10;friend@example.com"
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none text-sm"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C66B4A] focus:border-transparent resize-none text-sm"
                     rows={3}
                   />
                 </div>
@@ -352,7 +352,7 @@ export default function HubViewPage() {
                     value={inviteMessage}
                     onChange={(e) => setInviteMessage(e.target.value)}
                     placeholder="I'd love for you to follow my journey here..."
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none text-sm"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C66B4A] focus:border-transparent resize-none text-sm"
                     rows={2}
                   />
                 </div>
@@ -380,7 +380,7 @@ export default function HubViewPage() {
                   <button
                     onClick={handleSendInvites}
                     disabled={!inviteEmails.trim() || inviteSending}
-                    className="flex-1 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-400 hover:to-pink-400 disabled:from-slate-300 disabled:to-slate-300 text-white font-semibold px-4 py-3 rounded-xl transition-all"
+                    className="flex-1 bg-[#C66B4A] hover:bg-[#B35E40] disabled:bg-slate-300 text-white font-semibold px-4 py-3 rounded-xl transition-all"
                   >
                     {inviteSending ? 'Sending...' : 'Send Invites'}
                   </button>
@@ -421,11 +421,11 @@ export default function HubViewPage() {
         </div>
 
         {/* Share CTA */}
-        <div className="mt-8 bg-gradient-to-br from-rose-50 to-pink-50 rounded-2xl border border-rose-200 p-6 text-center">
+        <div className="mt-8 bg-gradient-to-br from-orange-50 to-orange-50/50 rounded-2xl border border-[#C66B4A]/30 p-6 text-center">
           <p className="text-slate-600 mb-3">Know someone who could use this?</p>
           <Link
             href="/hub"
-            className="inline-block bg-white border border-rose-300 hover:border-rose-400 text-rose-600 font-semibold px-6 py-2 rounded-xl transition-all"
+            className="inline-block bg-white border border-[#C66B4A]/50 hover:border-[#C66B4A] text-[#C66B4A] font-semibold px-6 py-2 rounded-xl transition-all"
           >
             Create a CareCircle
           </Link>

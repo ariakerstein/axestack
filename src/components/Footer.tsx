@@ -67,23 +67,23 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Open Source */}
+          {/* Resources */}
           <div>
-            <h3 className="font-semibold text-slate-900 text-sm mb-2">Open Source</h3>
+            <h3 className="font-semibold text-slate-900 text-sm mb-2">Resources</h3>
             <ul className="space-y-0 text-sm">
-              <li>
-                <a href="https://github.com/ariakerstein/opencancer-skills" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:text-slate-600 transition-colors py-2 min-h-[44px] flex items-center gap-1">
-                  GitHub <ExternalLink className="w-3 h-3" />
-                </a>
-              </li>
               <li>
                 <a href="https://axestack-app.vercel.app/founders" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:text-slate-600 transition-colors py-2 min-h-[44px] flex items-center gap-1">
                   Axestack <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
+              <li>
+                <a href="mailto:ari@opencancer.ai" className="text-slate-600 hover:text-slate-600 transition-colors py-2 min-h-[44px] flex items-center">
+                  Contact Us
+                </a>
+              </li>
             </ul>
             <p className="text-xs text-slate-500 mt-2">
-              Contribute code, suggest features, or fork it for your own community. PRs welcome.
+              Questions or partnership inquiries? We'd love to hear from you.
             </p>
           </div>
         </div>

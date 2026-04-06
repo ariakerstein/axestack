@@ -2085,7 +2085,7 @@ export default function CombatPage() {
                   <p className="text-sm text-slate-700">{currentResult.question}</p>
                 </div>
 
-                {/* Follow-up Chat - Ask questions about the analysis */}
+                {/* Follow-up Chat + Expert Upsell - Simplified 2 actions */}
                 <CombatFollowUpChat
                   combatResult={currentResult}
                   combatAnalysisId={lastCombatId || undefined}
@@ -2098,6 +2098,7 @@ export default function CombatPage() {
                       localStorage.setItem('combat-treatment-result', JSON.stringify(updatedResult))
                     }
                   }}
+                  onExpertClick={() => setShowExpertModal(true)}
                 />
 
                 {/* Perspectives - Collapsed by default with confidence bars */}
@@ -2121,11 +2122,11 @@ export default function CombatPage() {
                   </div>
                 </details>
 
-                {/* Simple Actions */}
-                <div className="flex gap-3">
+                {/* Secondary Actions - minimal */}
+                <div className="flex gap-2">
                   <button
                     onClick={() => handleShareClick('oncologist')}
-                    className="flex-1 py-3 px-4 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
+                    className="flex-1 py-2.5 px-4 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
                   >
                     <FileText className="w-4 h-4" />
                     Share with Doctor
@@ -2141,15 +2142,9 @@ export default function CombatPage() {
                       a.click()
                       URL.revokeObjectURL(url)
                     }}
-                    className="py-3 px-4 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
+                    className="py-2.5 px-3 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
                   >
                     <Download className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setShowExpertModal(true)}
-                    className="py-3 px-4 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Star className="w-4 h-4" />
                   </button>
                 </div>
 
