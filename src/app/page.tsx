@@ -756,28 +756,37 @@ function HomeContent() {
                           new Promise((_, reject) => setTimeout(() => reject(new Error('Profile save timeout')), 5000))
                         ]).catch(err => console.warn('Profile sync failed:', err))
 
-                        // Send magic link with timeout
-                        try {
-                          const authPromise = Promise.race([
-                            supabase.auth.signInWithOtp({
-                              email: wizardEmail.trim(),
-                              options: {
-                                emailRedirectTo: `${window.location.origin}/records`,
-                              },
-                            }),
-                            new Promise<{ error: Error }>((_, reject) =>
-                              setTimeout(() => reject({ error: new Error('Auth timeout') }), 10000)
-                            )
-                          ])
+                        // Send magic link - only for valid-looking emails to reduce bounces
+                        const emailLooksValid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(wizardEmail.trim())
+                        const blockedDomains = ['test.com', 'example.com', 'fake.com', 'asdf.com', 'abc.com', 'xyz.com']
+                        const domain = wizardEmail.trim().split('@')[1]?.toLowerCase()
+                        const isDomainBlocked = blockedDomains.includes(domain)
 
-                          const result = await authPromise
-                          const authError = 'error' in result ? result.error : null
+                        if (emailLooksValid && !isDomainBlocked) {
+                          try {
+                            const authPromise = Promise.race([
+                              supabase.auth.signInWithOtp({
+                                email: wizardEmail.trim(),
+                                options: {
+                                  emailRedirectTo: `${window.location.origin}/records`,
+                                },
+                              }),
+                              new Promise<{ error: Error }>((_, reject) =>
+                                setTimeout(() => reject({ error: new Error('Auth timeout') }), 10000)
+                              )
+                            ])
 
-                          if (authError) {
-                            console.error('Auth error:', authError)
+                            const result = await authPromise
+                            const authError = 'error' in result ? result.error : null
+
+                            if (authError) {
+                              console.error('Auth error:', authError)
+                            }
+                          } catch (err) {
+                            console.error('Auth failed:', err)
                           }
-                        } catch (err) {
-                          console.error('Auth failed:', err)
+                        } else {
+                          console.log('Skipping magic link for invalid/test email:', wizardEmail.trim())
                         }
 
                         setWizardSaving(false)
@@ -788,17 +797,19 @@ function HomeContent() {
                           localStorage.setItem('opencancer-onboarding-dismissed', 'true')
                         }
 
-                        // Send welcome email (non-blocking)
-                        fetch('/api/email/welcome', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            email: wizardEmail.trim(),
-                            name: wizardName.trim(),
-                            cancerType: wizardCancerType,
-                            role: wizardRole,
-                          }),
-                        }).catch(err => console.warn('Welcome email failed:', err))
+                        // Send welcome email (only for valid emails)
+                        if (emailLooksValid && !isDomainBlocked) {
+                          fetch('/api/email/welcome', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              email: wizardEmail.trim(),
+                              name: wizardName.trim(),
+                              cancerType: wizardCancerType,
+                              role: wizardRole,
+                            }),
+                          }).catch(err => console.warn('Welcome email failed:', err))
+                        }
 
                         // Close modal and redirect to records (to upload)
                         setShowWizardModal(false)
