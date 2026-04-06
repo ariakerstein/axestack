@@ -268,7 +268,7 @@ Consultation ID: ${consultation?.id || 'pending'}
     // Send email via Resend (resend was already validated at start of function)
     try {
       const emailResult = await resend.emails.send({
-        from: 'opencancer.ai <hello@opencancer.ai>',
+        from: 'OpenCancer Expert Consult <onboarding@resend.dev>',
         to: [EXPERT_EMAIL],
         replyTo: userEmail,
         subject: subject,
