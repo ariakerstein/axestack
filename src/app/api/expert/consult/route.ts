@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { Resend } from 'resend'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://felofmlhqwcdpiyjgstx.supabase.co"
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlbG9mbWxocXdjZHBpeWpnc3R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA2NzQzODAsImV4cCI6MjA1NjI1MDM4MH0._kYA-prwPgxQWoKzWPzJDy2Bf95WgTF5_KnAPN2cGnQ"
@@ -7,6 +8,14 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_A
 
 // For now, send all consultations to this email for testing
 const EXPERT_EMAIL = 'ariakerstein@gmail.com'
+
+// Initialize Resend
+function getResend() {
+  if (!process.env.RESEND_API_KEY) {
+    return null
+  }
+  return new Resend(process.env.RESEND_API_KEY)
+}
 
 interface ConsultationRequest {
   userId: string
@@ -246,34 +255,34 @@ Submitted via opencancer.ai
 Consultation ID: ${consultation?.id || 'pending'}
 `
 
-    // Send email via Supabase edge function
-    const emailResponse = await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-        'apikey': SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify({
-        to: EXPERT_EMAIL,
-        subject: subject,
-        html: html,
-        text: text,
-        replyTo: userEmail,
-      }),
-    })
-
-    const emailResult = await emailResponse.json()
-
-    if (!emailResponse.ok) {
-      console.error('Email send failed:', emailResult)
+    // Send email via Resend
+    const resend = getResend()
+    if (!resend) {
+      console.error('RESEND_API_KEY not configured')
       return NextResponse.json(
-        { error: emailResult.error || 'Failed to send consultation email' },
+        { error: 'Email service not configured' },
         { status: 500 }
       )
     }
 
-    console.log('Consultation email sent:', emailResult)
+    const emailResult = await resend.emails.send({
+      from: 'opencancer.ai <hello@opencancer.ai>',
+      to: [EXPERT_EMAIL],
+      replyTo: userEmail,
+      subject: subject,
+      html: html,
+      text: text,
+    })
+
+    if (emailResult.error) {
+      console.error('Email send failed:', emailResult.error)
+      return NextResponse.json(
+        { error: emailResult.error.message || 'Failed to send consultation email' },
+        { status: 500 }
+      )
+    }
+
+    console.log('Consultation email sent:', emailResult.data?.id)
 
     // Update consultation status
     if (consultation?.id) {
