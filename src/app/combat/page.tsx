@@ -1247,35 +1247,35 @@ function ExpertModal({
                   value={signature}
                   onChange={(e) => setSignature(e.target.value)}
                   placeholder="Your full name"
-                  className="w-full p-3 border rounded-lg text-sm"
+                  className="w-full p-3 border border-slate-300 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#C66B4A] focus:border-transparent"
                 />
               </div>
 
               {/* Summary */}
-              <div className="bg-slate-50 rounded-lg p-4">
+              <div className="bg-white border border-slate-200 rounded-lg p-4">
                 <h4 className="font-semibold text-slate-900 mb-3">Summary</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Expert:</span>
-                    <span className="font-medium">{selectedExpert.name}</span>
+                    <span className="text-slate-500">Expert:</span>
+                    <span className="font-medium text-slate-900">{selectedExpert.name}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Records:</span>
-                    <span className="font-medium">
+                    <span className="text-slate-500">Records:</span>
+                    <span className="font-medium text-slate-900">
                       {recordSelection === 'all' ? `All (${records.length})` : `${selectedRecordIds.size} selected`}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Patient Brief:</span>
-                    <span className="font-medium">{includePatientBrief ? 'Yes' : 'No'}</span>
+                    <span className="text-slate-500">Patient Brief:</span>
+                    <span className="font-medium text-slate-900">{includePatientBrief ? 'Yes' : 'No'}</span>
                   </div>
                   {combatResult && (
                     <div className="flex justify-between">
-                      <span className="text-slate-600">Combat Analysis:</span>
-                      <span className="font-medium">{includeCombatAnalysis ? 'Yes' : 'No'}</span>
+                      <span className="text-slate-500">Combat Analysis:</span>
+                      <span className="font-medium text-slate-900">{includeCombatAnalysis ? 'Yes' : 'No'}</span>
                     </div>
                   )}
-                  <div className="flex justify-between border-t pt-2 mt-2">
+                  <div className="flex justify-between border-t border-slate-200 pt-2 mt-2">
                     <span className="text-slate-900 font-semibold">Total:</span>
                     <span className={`font-bold ${selectedExpert.isFree ? 'text-green-600' : 'text-slate-900'}`}>
                       {selectedExpert.isFree ? 'Free' : selectedExpert.price}
