@@ -67,33 +67,52 @@ function EvidenceStrengthMeter({ strength, missingData }: { strength: number, mi
   const level = getLevel()
 
   return (
-    <div className="bg-white border border-stone-200 rounded-xl p-4">
+    <div className="bg-gradient-to-r from-slate-900 to-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg">
+      {/* Header with animated swords */}
       <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-medium text-slate-700">Case Evidence</span>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Swords className="w-5 h-5 text-[#C66B4A] animate-pulse" />
+            <div className="absolute inset-0 animate-ping opacity-30">
+              <Swords className="w-5 h-5 text-[#C66B4A]" />
+            </div>
+          </div>
+          <span className="text-sm font-semibold text-white">Perspectives Engaging</span>
+        </div>
         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-          level.color === 'terracotta' ? 'bg-[#C66B4A]/10 text-[#C66B4A]' : 'bg-slate-100 text-slate-600'
+          level.color === 'terracotta' ? 'bg-[#C66B4A]/20 text-[#C66B4A]' : 'bg-slate-600 text-slate-300'
         }`}>
-          {level.label}
+          {level.label} Evidence
         </span>
       </div>
 
-      {/* Elegant progress bar */}
-      <div className="relative h-1.5 bg-slate-100 rounded-full overflow-hidden">
+      {/* Animated progress bar with glow */}
+      <div className="relative h-2 bg-slate-700 rounded-full overflow-hidden">
         <div
-          className="h-full bg-slate-900 rounded-full transition-all duration-1000 ease-out"
+          className="h-full bg-gradient-to-r from-[#C66B4A] to-[#E88B6A] rounded-full transition-all duration-1000 ease-out"
+          style={{ width: `${strength}%` }}
+        />
+        <div
+          className="absolute top-0 h-full bg-white/20 rounded-full animate-pulse"
           style={{ width: `${strength}%` }}
         />
       </div>
 
-      {/* Missing data suggestions - sophisticated styling */}
-      {missingData.length > 0 && strength < 80 && (
-        <div className="mt-4 pt-3 border-t border-slate-100">
-          <p className="text-xs text-slate-500 mb-2">
-            Additional data that could inform the analysis:
+      {/* Status text */}
+      <div className="mt-2 flex items-center gap-2">
+        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+        <span className="text-xs text-slate-400">5 AI perspectives analyzing your case...</span>
+      </div>
+
+      {/* Missing data suggestions - only show if significant gaps */}
+      {missingData.length > 0 && strength < 60 && (
+        <div className="mt-3 pt-3 border-t border-slate-700">
+          <p className="text-xs text-slate-400 mb-2">
+            Could strengthen analysis:
           </p>
           <div className="flex flex-wrap gap-1.5">
             {missingData.slice(0, 3).map((item, i) => (
-              <span key={i} className="text-xs px-2.5 py-1 bg-slate-50 text-slate-600 rounded-md border border-slate-200">
+              <span key={i} className="text-xs px-2.5 py-1 bg-slate-700 text-slate-300 rounded-md border border-slate-600">
                 {item}
               </span>
             ))}
@@ -2008,14 +2027,15 @@ export default function CombatPage() {
             {/* Generating State */}
             {generating && (
               <div className="space-y-4">
+                {/* Case Evidence at TOP - status indicator while processing */}
+                <EvidenceStrengthMeter
+                  strength={calculateEvidenceStrength()}
+                  missingData={getMissingData()}
+                />
                 <DeliberationTheater
                   activePerspective={activePerspective}
                   deliberationLog={deliberationLog}
                   records={records.map(r => ({ fileName: r.fileName, documentType: r.documentType }))}
-                />
-                <EvidenceStrengthMeter
-                  strength={calculateEvidenceStrength()}
-                  missingData={getMissingData()}
                 />
               </div>
             )}
@@ -2184,7 +2204,7 @@ export default function CombatPage() {
                       </div>
                       <div>
                         <p className="font-semibold text-green-900">Analysis Complete</p>
-                        <p className="text-sm text-green-700">10 perspectives reviewed across diagnosis & treatment</p>
+                        <p className="text-sm text-green-700">5 perspectives reviewed across diagnosis & treatment</p>
                       </div>
                     </div>
                     <button

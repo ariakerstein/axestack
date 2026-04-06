@@ -221,8 +221,8 @@ export default function RecordsVaultPage() {
   const [showEmailModal, setShowEmailModal] = useState(false)
   const [claimedEmail, setClaimedEmail] = useState<string | null>(null)
 
-  // Stats for social proof
-  const [totalTranslations, setTotalTranslations] = useState(12847)
+  // Stats for social proof - start with real-ish number, fetch actual from API
+  const [totalTranslations, setTotalTranslations] = useState(547)
 
   // Inbox state
   const [receivedEmails, setReceivedEmails] = useState<ReceivedEmail[]>([])

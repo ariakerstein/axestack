@@ -5,8 +5,8 @@ const SUPABASE_URL = "https://felofmlhqwcdpiyjgstx.supabase.co"
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlbG9mbWxocXdjZHBpeWpnc3R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA2NzQzODAsImV4cCI6MjA1NjI1MDM4MH0._kYA-prwPgxQWoKzWPzJDy2Bf95WgTF5_KnAPN2cGnQ"
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY
 
-// Base number to start from (historical estimates before tracking)
-const BASE_TRANSLATIONS = 12800
+// Base number to start from (conservative real estimate)
+const BASE_TRANSLATIONS = 500
 
 // Round down to nearest increment for display (100, 500, 1000)
 function roundForDisplay(n: number): number {
