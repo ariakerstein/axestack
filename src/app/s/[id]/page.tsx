@@ -80,6 +80,8 @@ export default function SharedRecordPage() {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['summary', 'questions', 'answer']))
   const [copied, setCopied] = useState(false)
   const [followUpQuestion, setFollowUpQuestion] = useState('')
+  const [followUpAnswer, setFollowUpAnswer] = useState<string | null>(null)
+  const [isAskingFollowUp, setIsAskingFollowUp] = useState(false)
 
   useEffect(() => {
     const fetchRecord = async () => {
@@ -231,14 +233,37 @@ export default function SharedRecordPage() {
               </div>
             )}
 
-            {/* Continue asking - inline input */}
+            {/* Continue asking - inline input with context preservation */}
             <div className="px-6 pb-6 border-t border-slate-100 pt-4">
               <p className="text-sm text-slate-500 mb-3">Have a follow-up question?</p>
               <form
-                onSubmit={(e) => {
+                onSubmit={async (e) => {
                   e.preventDefault()
-                  if (followUpQuestion.trim()) {
-                    window.location.href = `/ask?q=${encodeURIComponent(followUpQuestion)}&ref=share_${shareId}`
+                  if (!followUpQuestion.trim() || isAskingFollowUp) return
+
+                  setIsAskingFollowUp(true)
+                  setFollowUpAnswer(null)
+
+                  try {
+                    const response = await fetch('/api/ask', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        message: followUpQuestion,
+                        cancerType: result.cancerType || '',
+                        history: [
+                          { role: 'user', content: result.question || '' },
+                          { role: 'assistant', content: result.answer || '' },
+                        ],
+                      }),
+                    })
+
+                    const data = await response.json()
+                    setFollowUpAnswer(data.answer || data.response || 'Sorry, I could not process that.')
+                  } catch (err) {
+                    setFollowUpAnswer('Sorry, something went wrong. Please try again.')
+                  } finally {
+                    setIsAskingFollowUp(false)
                   }
                 }}
                 className="flex gap-2"
@@ -247,18 +272,38 @@ export default function SharedRecordPage() {
                   type="text"
                   value={followUpQuestion}
                   onChange={(e) => setFollowUpQuestion(e.target.value)}
-                  placeholder="Ask your own question..."
+                  placeholder="Ask a follow-up question..."
                   className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                  disabled={isAskingFollowUp}
                 />
                 <button
                   type="submit"
-                  disabled={!followUpQuestion.trim()}
+                  disabled={!followUpQuestion.trim() || isAskingFollowUp}
                   className="px-4 py-3 bg-slate-900 text-white rounded-xl font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
                 >
-                  <Send className="w-4 h-4" />
+                  {isAskingFollowUp ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
                   Ask
                 </button>
               </form>
+
+              {/* Follow-up answer */}
+              {followUpAnswer && (
+                <div className="mt-4 p-4 bg-slate-50 rounded-xl">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">N</span>
+                    </div>
+                    <span className="font-medium text-slate-900 text-sm">Navis</span>
+                  </div>
+                  <div className="prose prose-slate prose-sm max-w-none">
+                    <TypewriterMarkdown text={followUpAnswer} speed={15} />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
