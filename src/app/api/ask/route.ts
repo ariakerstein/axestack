@@ -227,6 +227,9 @@ interface EvalMetricsParams {
   model?: string
   inputTokens?: number
   outputTokens?: number
+  // Specialist care flagging for expert review
+  involvesSpecialistCare?: boolean
+  specialistType?: string
 }
 
 // Log eval metrics for quality analysis (async, non-blocking)
