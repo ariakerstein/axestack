@@ -2,7 +2,7 @@
 
 import { useEffect, useCallback, useRef } from 'react'
 import { usePathname } from 'next/navigation'
-import { supabase, getSessionId } from '@/lib/supabase'
+import { getSessionId } from '@/lib/supabase'
 
 // Track page views and custom events to Supabase analytics_events table
 // Viewable in /admin dashboard
@@ -61,27 +61,27 @@ export function useAnalytics() {
       const deviceType = getDeviceType()
       const trafficSource = getTrafficSource(referrer, utmParams.utm_source)
 
-      await supabase.from('analytics_events').insert({
-        user_id: null, // Anonymous for now
-        event_type: eventType,
-        page_path: pathname,
-        referrer,
-        user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
-        session_id: sessionId,
-        metadata: {
-          ...metadata,
-          app: 'opencancer',
-          timestamp: new Date().toISOString(),
-          url: typeof window !== 'undefined' ? window.location.href : null,
-          // Traffic source & device tracking
-          device_type: deviceType,
-          traffic_source: trafficSource,
-          ...utmParams,
-        },
-        event_timestamp: new Date().toISOString(),
+      // Use API route which has service key (bypasses RLS)
+      await fetch('/api/analytics/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventType,
+          pagePath: pathname,
+          sessionId,
+          referrer,
+          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+          metadata: {
+            ...metadata,
+            url: typeof window !== 'undefined' ? window.location.href : null,
+            device_type: deviceType,
+            traffic_source: trafficSource,
+            ...utmParams,
+          },
+        }),
       })
     } catch (error) {
-      console.error('Analytics tracking error:', error)
+      // Silent fail - don't log analytics errors to avoid console spam
     }
   }, [pathname])
 
