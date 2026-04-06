@@ -362,27 +362,28 @@ export default function RecordsVaultPage() {
     // For authenticated users: DON'T load localStorage records
     // They will be loaded from Supabase in the next useEffect
     // This prevents User A's cached data from showing when User B logs in
+    // ALWAYS load from localStorage first (fast, instant display)
+    const saved = localStorage.getItem('axestack-translations')
+    if (saved) {
+      try {
+        setSavedTranslations(JSON.parse(saved))
+        console.log('[Records] Loaded from localStorage:', JSON.parse(saved).length, 'records')
+      } catch (e) {
+        console.error('Failed to load saved translations')
+      }
+    }
+
+    // For authenticated users, check if different user (and clear if so)
     if (user) {
-      // User is authenticated - clear any stale localStorage and wait for Supabase
-      // Check if localStorage belongs to a different user
       const lastUserId = localStorage.getItem('opencancer_last_user_id')
       if (lastUserId && lastUserId !== user.id) {
         // Different user! Clear records localStorage
         console.log('[Records] Different user detected, clearing localStorage')
         localStorage.removeItem('axestack-translations')
         localStorage.removeItem('axestack-translations-data')
+        setSavedTranslations([])
       }
-      // Records will load from Supabase in the next useEffect
-    } else {
-      // Guest user - load from localStorage (no cross-user issue for guests)
-      const saved = localStorage.getItem('axestack-translations')
-      if (saved) {
-        try {
-          setSavedTranslations(JSON.parse(saved))
-        } catch (e) {
-          console.error('Failed to load saved translations')
-        }
-      }
+      // Cloud records will merge in the next useEffect
     }
 
     // Portals and privacy acknowledgement are safe to load for all users

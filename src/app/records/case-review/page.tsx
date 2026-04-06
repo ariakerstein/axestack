@@ -1189,17 +1189,17 @@ Provide a helpful, educational response. Reference specific records when relevan
                 {/* CancerCombat CTA */}
                 <Link
                   href="/combat"
-                  className="block bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 rounded-2xl p-5 text-white shadow-lg shadow-orange-500/20 transition-all hover:shadow-xl group"
+                  className="block bg-slate-900 hover:bg-slate-800 rounded-2xl p-5 text-white shadow-lg shadow-slate-900/20 transition-all hover:shadow-xl group"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                      <span className="text-2xl">&#9876;</span>
+                    <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <span className="text-2xl">⚔️</span>
                     </div>
                     <div className="flex-1">
-                      <p className="font-bold text-lg">CancerCombat</p>
-                      <p className="text-orange-100 text-sm">3 AI perspectives debate your diagnosis & treatment options</p>
+                      <p className="font-bold text-lg">Cancer Combat</p>
+                      <p className="text-slate-300 text-sm">3 AI perspectives review your diagnosis & treatment options</p>
                     </div>
-                    <ArrowLeft className="w-5 h-5 text-orange-200 rotate-180 group-hover:translate-x-1 transition-transform" />
+                    <ArrowLeft className="w-5 h-5 text-slate-400 rotate-180 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </Link>
 
