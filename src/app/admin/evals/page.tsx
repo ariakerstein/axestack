@@ -50,6 +50,11 @@ interface EvalLog {
 
   // Composite
   quality_score: number | null
+
+  // Source tracking
+  source?: 'eval_log' | 'activity' | 'entity' | 'patient_q' | 'combat'
+  session_id?: string
+  user_id?: string
 }
 
 interface DimensionStats {
@@ -62,6 +67,14 @@ interface Stats {
   avgTreatmentOptions: number
   falseDichotomyRate: number
   avgUncertaintyRatio: number
+
+  // Source breakdown
+  bySource?: {
+    eval_log: number
+    activity: number
+    patient_q: number
+    combat: number
+  }
 
   llm: {
     avgLatencyMs: number
@@ -111,7 +124,7 @@ export default function AdminEvalsPage() {
   const [logs, setLogs] = useState<EvalLog[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<'all' | 'needs_review' | 'dichotomy' | 'negative' | 'personalized' | 'high_quality' | 'low_quality'>('all')
+  const [filter, setFilter] = useState<'all' | 'needs_review' | 'dichotomy' | 'negative' | 'personalized' | 'high_quality' | 'low_quality' | 'eval_log' | 'activity' | 'patient_q' | 'combat'>('all')
   const [selectedLog, setSelectedLog] = useState<EvalLog | null>(null)
   const [viewMode, setViewMode] = useState<'list' | 'rollup'>('list')
   const [rollupBy, setRollupBy] = useState<'cancer_type' | 'question_type' | 'has_context'>('cancer_type')
@@ -165,14 +178,18 @@ export default function AdminEvalsPage() {
     try {
       const params = new URLSearchParams()
       if (filter === 'needs_review') params.set('needsReview', 'true')
-      params.set('limit', '1000') // Get all data
+      // Pass source filter to API for efficiency
+      if (filter === 'eval_log' || filter === 'activity' || filter === 'patient_q' || filter === 'combat') {
+        params.set('source', filter)
+      }
+      params.set('limit', '2000') // Get all data
 
       const response = await fetch(`/api/eval/log?${params}`)
       const data = await response.json()
 
       let filteredLogs = data.logs || []
 
-      // Apply client-side filters
+      // Apply client-side filters for non-source filters
       if (filter === 'dichotomy') {
         filteredLogs = filteredLogs.filter((l: EvalLog) => l.has_false_dichotomy)
       } else if (filter === 'negative') {
@@ -248,8 +265,13 @@ export default function AdminEvalsPage() {
               <div className="bg-white rounded-xl p-4 border border-slate-200">
                 <p className="text-sm text-slate-500">Total Queries</p>
                 <p className="text-2xl font-bold text-slate-900">{totalInDatabase}</p>
-                {stats.total < totalInDatabase && (
-                  <p className="text-xs text-slate-400">Showing {stats.total}</p>
+                {stats.bySource && (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    <span className="text-xs px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded">{stats.bySource.eval_log} eval</span>
+                    <span className="text-xs px-1.5 py-0.5 bg-green-100 text-green-700 rounded">{stats.bySource.activity} act</span>
+                    <span className="text-xs px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded">{stats.bySource.patient_q} circle</span>
+                    <span className="text-xs px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded">{stats.bySource.combat} combat</span>
+                  </div>
                 )}
               </div>
               <div className="bg-white rounded-xl p-4 border border-slate-200">
@@ -553,6 +575,39 @@ export default function AdminEvalsPage() {
           >
             Low Quality
           </button>
+          <span className="text-slate-300 mx-1">|</span>
+          <button
+            onClick={() => setFilter('eval_log')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              filter === 'eval_log' ? 'bg-blue-500 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+            }`}
+          >
+            Eval Logs
+          </button>
+          <button
+            onClick={() => setFilter('activity')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              filter === 'activity' ? 'bg-green-500 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+            }`}
+          >
+            Activity
+          </button>
+          <button
+            onClick={() => setFilter('patient_q')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              filter === 'patient_q' ? 'bg-amber-500 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+            }`}
+          >
+            Circle App
+          </button>
+          <button
+            onClick={() => setFilter('combat')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              filter === 'combat' ? 'bg-purple-500 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+            }`}
+          >
+            Combat
+          </button>
         </div>
         )}
 
@@ -564,6 +619,7 @@ export default function AdminEvalsPage() {
               <thead className="bg-slate-50 sticky top-0">
                 <tr>
                   <th className="text-left px-4 py-3 font-medium text-slate-600">Question</th>
+                  <th className="text-center px-4 py-3 font-medium text-slate-600">Source</th>
                   <th className="text-center px-4 py-3 font-medium text-slate-600">Score</th>
                   <th className="text-center px-4 py-3 font-medium text-slate-600">LLM</th>
                   <th className="text-center px-4 py-3 font-medium text-slate-600">RAG</th>
@@ -590,6 +646,21 @@ export default function AdminEvalsPage() {
                           {log.question_type}
                         </span>
                       </div>
+                    </td>
+                    {/* Source */}
+                    <td className="px-4 py-3 text-center">
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        log.source === 'eval_log' ? 'bg-blue-100 text-blue-700' :
+                        log.source === 'activity' ? 'bg-green-100 text-green-700' :
+                        log.source === 'patient_q' ? 'bg-amber-100 text-amber-700' :
+                        log.source === 'combat' ? 'bg-purple-100 text-purple-700' :
+                        'bg-slate-100 text-slate-500'
+                      }`}>
+                        {log.source === 'eval_log' ? 'Eval' :
+                         log.source === 'activity' ? 'Activity' :
+                         log.source === 'patient_q' ? 'Circle' :
+                         log.source === 'combat' ? 'Combat' : '-'}
+                      </span>
                     </td>
                     {/* Quality Score */}
                     <td className="px-4 py-3 text-center">

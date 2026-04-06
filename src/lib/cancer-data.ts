@@ -103,6 +103,66 @@ export const PRIMARY_CATEGORIES = [
 // Blood cancer subtypes (shown when "Blood & Lymphatic" selected)
 export const BLOOD_CANCERS = ['leukemia', 'lymphoma', 'myeloma', 'cll', 'mpn', 'mds']
 
+// Organized cancer categories for comprehensive selector
+export const CANCER_CATEGORIES = {
+  common: {
+    label: 'Common Solid Tumors',
+    types: ['breast', 'lung', 'prostate', 'colorectal', 'pancreatic', 'melanoma', 'ovarian', 'bladder', 'kidney', 'thyroid']
+  },
+  gi: {
+    label: 'GI & Digestive',
+    types: ['colon', 'rectal', 'stomach', 'gastric', 'esophageal', 'liver', 'hepatocellular', 'bile_duct', 'gallbladder', 'small_intestine', 'appendiceal', 'gist', 'neuroendocrine', 'carcinoid', 'anal_squamous']
+  },
+  gynecologic: {
+    label: 'Gynecologic',
+    types: ['cervical', 'uterine', 'endometrial', 'vulvar', 'vaginal']
+  },
+  urologic: {
+    label: 'Urologic',
+    types: ['renal_cell', 'testicular', 'penile']
+  },
+  head_neck: {
+    label: 'Head & Neck',
+    types: ['head_neck', 'oral', 'throat']
+  },
+  brain: {
+    label: 'Brain & CNS',
+    types: ['brain', 'glioblastoma']
+  },
+  thoracic: {
+    label: 'Thoracic',
+    types: ['mesothelioma', 'thymoma']
+  },
+  skin: {
+    label: 'Skin',
+    types: ['basal_cell', 'squamous_cell_skin', 'merkel_cell']
+  },
+  sarcoma: {
+    label: 'Sarcoma',
+    types: ['sarcoma', 'soft_tissue_sarcoma', 'osteosarcoma']
+  },
+  lymphoma: {
+    label: 'Lymphoma',
+    types: ['lymphoma', 'follicular_lymphoma', 'dlbcl', 'hodgkin', 'non_hodgkin', 'mantle_cell', 'marginal_zone', 't_cell_lymphoma', 'burkitt', 'waldenstrom']
+  },
+  leukemia: {
+    label: 'Leukemia',
+    types: ['leukemia', 'aml', 'all', 'cml', 'cll', 'hairy_cell']
+  },
+  blood_other: {
+    label: 'Other Blood Disorders',
+    types: ['myeloma', 'mpn', 'mds', 'aplastic_anemia']
+  },
+  pediatric: {
+    label: 'Pediatric',
+    types: ['neuroblastoma', 'wilms', 'retinoblastoma', 'ewing_sarcoma', 'rhabdomyosarcoma']
+  },
+  rare: {
+    label: 'Rare & Other',
+    types: ['adrenal', 'eye', 'unknown_primary', 'other']
+  }
+}
+
 // Cancer subtypes for more specific recommendations
 export const CANCER_SUBTYPES: Record<string, { code: string; label: string }[]> = {
   breast: [

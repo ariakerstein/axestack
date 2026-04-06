@@ -2188,12 +2188,44 @@ export default function CombatPage() {
                       </div>
                     </div>
                     <button
-                      onClick={() => {
-                        const shareText = `I just completed CancerCombat on opencancer.ai - 10 AI perspectives reviewed my cancer case.`
-                        if (navigator.share) {
-                          navigator.share({ title: 'CancerCombat', text: shareText, url: 'https://opencancer.ai/combat' })
-                        } else {
-                          navigator.clipboard.writeText(shareText + ' https://opencancer.ai/combat')
+                      onClick={async () => {
+                        // Create shareable link for this specific analysis
+                        const result = treatmentResult || diagnosisResult
+                        if (!result) {
+                          alert('No analysis to share')
+                          return
+                        }
+
+                        try {
+                          const response = await fetch('/api/share', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              type: 'combat',
+                              question: result.question,
+                              perspectives: result.perspectives,
+                              synthesis: result.synthesis,
+                              consensus: result.consensus,
+                              divergence: result.divergence,
+                              phase: result.phase,
+                              cancerType: records[0]?.result?.cancer_specific?.cancer_type || null
+                            })
+                          })
+
+                          const data = await response.json()
+                          if (data.success && data.shareUrl) {
+                            const shareText = `I ran CancerCombat on opencancer.ai - ${result.perspectives?.length || 10} AI perspectives analyzed my case:`
+                            if (navigator.share) {
+                              navigator.share({ title: 'My CancerCombat Analysis', text: shareText, url: data.shareUrl })
+                            } else {
+                              await navigator.clipboard.writeText(data.shareUrl)
+                              alert('Share link copied to clipboard!')
+                            }
+                          }
+                        } catch (error) {
+                          console.error('Failed to create share link:', error)
+                          // Fallback to generic share
+                          navigator.clipboard.writeText('Check out CancerCombat: https://opencancer.ai/combat')
                           alert('Link copied!')
                         }
                       }}

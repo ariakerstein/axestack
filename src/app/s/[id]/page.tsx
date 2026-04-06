@@ -3,31 +3,61 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { FileText, ChevronDown, ChevronUp, AlertCircle, Clock, Eye } from 'lucide-react'
+import { FileText, ChevronDown, ChevronUp, AlertCircle, Clock, Eye, MessageCircle, Swords, Shield, FlaskConical, Target, Leaf, ArrowRight, Share2, Copy, Check } from 'lucide-react'
 import { Navbar } from '@/components/Navbar'
 
+// Icon mapping for Combat perspectives
+const PERSPECTIVE_ICONS: Record<string, React.ReactNode> = {
+  shield: <Shield className="w-5 h-5" />,
+  flask: <FlaskConical className="w-5 h-5" />,
+  target: <Target className="w-5 h-5" />,
+  clock: <Clock className="w-5 h-5" />,
+  leaf: <Leaf className="w-5 h-5" />,
+  swords: <Swords className="w-5 h-5" />,
+}
+
 interface TranslationResult {
-  document_type: string
-  patient_name: string
-  date_of_service: string
-  provider_name: string
-  institution: string
-  diagnosis: string[]
-  test_summary: string
-  questions_to_ask_doctor: string
-  recommended_next_steps: string[]
-  cancer_specific: {
+  type?: 'record' | 'qa' | 'combat'
+  document_type?: string
+  patient_name?: string
+  date_of_service?: string
+  provider_name?: string
+  institution?: string
+  diagnosis?: string[]
+  test_summary?: string
+  questions_to_ask_doctor?: string
+  recommended_next_steps?: string[]
+  cancer_specific?: {
     cancer_type: string
     stage: string
     grade: string
     biomarkers: string[]
     treatment_timeline: string
   }
-  lab_values: {
+  lab_values?: {
     key_results: { test: string; value: string; reference_range: string; status: string }[]
   }
-  technical_terms_explained: { term: string; definition: string }[]
-  processing_metadata: { confidence_level: string; completeness: string }
+  technical_terms_explained?: { term: string; definition: string }[]
+  processing_metadata?: { confidence_level: string; completeness: string }
+  // Q&A specific
+  question?: string
+  answer?: string
+  cancerType?: string
+  followUpQuestions?: string[]
+  // Combat specific
+  perspectives?: {
+    name: string
+    icon: string
+    color: string
+    argument: string
+    evidence: string[]
+    confidence: number
+    recommendation: string
+  }[]
+  synthesis?: string
+  consensus?: string[]
+  divergence?: string[]
+  phase?: string
 }
 
 interface SharedRecord {
@@ -46,7 +76,8 @@ export default function SharedRecordPage() {
   const [record, setRecord] = useState<SharedRecord | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['summary', 'questions']))
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['summary', 'questions', 'answer']))
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     const fetchRecord = async () => {
@@ -54,13 +85,13 @@ export default function SharedRecordPage() {
         const response = await fetch(`/api/share?id=${shareId}`)
         if (!response.ok) {
           const data = await response.json()
-          setError(data.error || 'Failed to load shared record')
+          setError(data.error || 'Failed to load shared content')
           return
         }
         const data = await response.json()
         setRecord(data)
       } catch (err) {
-        setError('Failed to load shared record')
+        setError('Failed to load shared content')
       } finally {
         setLoading(false)
       }
@@ -80,10 +111,16 @@ export default function SharedRecordPage() {
     })
   }
 
+  const handleCopyLink = async () => {
+    await navigator.clipboard.writeText(window.location.href)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex items-center justify-center">
-        <div className="animate-pulse text-slate-400">Loading shared record...</div>
+        <div className="animate-pulse text-slate-400">Loading shared content...</div>
       </div>
     )
   }
@@ -98,10 +135,10 @@ export default function SharedRecordPage() {
           <h1 className="text-2xl font-bold text-slate-900 mb-3">{error}</h1>
           <p className="text-slate-600 mb-6">This link may have expired or been removed.</p>
           <Link
-            href="/records"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-xl font-semibold hover:bg-orange-700 transition-colors"
+            href="/ask"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 transition-colors"
           >
-            Upload Your Own Records
+            Ask Your Own Question
           </Link>
         </div>
       </div>
@@ -111,7 +148,300 @@ export default function SharedRecordPage() {
   if (!record) return null
 
   const result = record.result
+  const contentType = result.type || (record.documentType === 'qa' ? 'qa' : record.documentType === 'combat' ? 'combat' : 'record')
 
+  // Q&A Content View
+  if (contentType === 'qa') {
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+        <Navbar />
+
+        <div className="max-w-3xl mx-auto px-4 py-6">
+          {/* Shared indicator */}
+          <div className="mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-4 text-sm text-slate-500">
+              <div className="flex items-center gap-1.5">
+                <Clock className="w-4 h-4" />
+                <span>Shared {new Date(record.createdAt).toLocaleDateString()}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Eye className="w-4 h-4" />
+                <span>{record.viewCount} views</span>
+              </div>
+            </div>
+            <button
+              onClick={handleCopyLink}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+            >
+              {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+              {copied ? 'Copied!' : 'Copy link'}
+            </button>
+          </div>
+
+          {/* Q&A Card */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            {/* Header */}
+            <div className="p-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center flex-shrink-0">
+                  <MessageCircle className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Question asked on Ask Navis</p>
+                  <h1 className="text-lg font-semibold text-slate-900">{result.question}</h1>
+                  {result.cancerType && (
+                    <span className="inline-block mt-2 px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs">
+                      {result.cancerType}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Answer */}
+            <div className="p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">N</span>
+                </div>
+                <span className="font-medium text-slate-900">Navis</span>
+              </div>
+              <div className="prose prose-slate prose-sm max-w-none">
+                <p className="text-slate-700 leading-relaxed whitespace-pre-wrap">{result.answer}</p>
+              </div>
+            </div>
+
+            {/* Follow-up questions if any */}
+            {result.followUpQuestions && result.followUpQuestions.length > 0 && (
+              <div className="px-6 pb-6">
+                <p className="text-sm text-slate-500 mb-2">Related questions:</p>
+                <div className="space-y-2">
+                  {result.followUpQuestions.slice(0, 3).map((q, i) => (
+                    <Link
+                      key={i}
+                      href={`/ask?q=${encodeURIComponent(q)}`}
+                      className="block text-sm text-slate-600 hover:text-slate-900 hover:underline"
+                    >
+                      → {q}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Disclaimer */}
+          <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4">
+            <p className="text-sm text-amber-800">
+              <strong>Disclaimer:</strong> This information is for educational purposes only. Always consult your healthcare team for personalized medical advice.
+            </p>
+          </div>
+
+          {/* Viral CTA */}
+          <div className="mt-8 bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-white/10 rounded-2xl flex items-center justify-center">
+              <MessageCircle className="w-8 h-8 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">Have your own cancer questions?</h2>
+            <p className="text-slate-300 mb-6 max-w-md mx-auto">
+              Ask Navis - our AI assistant trained on NCCN guidelines - any question about your cancer journey.
+            </p>
+            <Link
+              href="/ask"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-white text-slate-900 rounded-xl font-semibold hover:bg-slate-100 transition-all shadow-lg"
+            >
+              Ask Navis
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+            <p className="text-slate-400 text-sm mt-4">Free to use - no signup required</p>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <footer className="border-t border-slate-200 mt-12 py-6">
+          <div className="max-w-3xl mx-auto px-4 text-center text-sm text-slate-500">
+            <p>Powered by <Link href="/" className="text-slate-900 hover:underline">opencancer.ai</Link></p>
+          </div>
+        </footer>
+      </main>
+    )
+  }
+
+  // Combat Content View
+  if (contentType === 'combat') {
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+        <Navbar />
+
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          {/* Shared indicator */}
+          <div className="mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-4 text-sm text-slate-500">
+              <div className="flex items-center gap-1.5">
+                <Clock className="w-4 h-4" />
+                <span>Shared {new Date(record.createdAt).toLocaleDateString()}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Eye className="w-4 h-4" />
+                <span>{record.viewCount} views</span>
+              </div>
+            </div>
+            <button
+              onClick={handleCopyLink}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+            >
+              {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+              {copied ? 'Copied!' : 'Copy link'}
+            </button>
+          </div>
+
+          {/* Combat Card */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            {/* Header */}
+            <div className="p-6 border-b border-slate-100 bg-gradient-to-r from-purple-50 to-white">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center flex-shrink-0">
+                  <Swords className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-purple-600 uppercase tracking-wide mb-1 font-medium">CancerCombat Analysis</p>
+                  <h1 className="text-lg font-semibold text-slate-900">{result.question}</h1>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs capitalize">
+                      {result.phase || 'diagnosis'} phase
+                    </span>
+                    {result.cancerType && (
+                      <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs">
+                        {result.cancerType}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Perspectives Grid */}
+            {result.perspectives && result.perspectives.length > 0 && (
+              <div className="p-6 border-b border-slate-100">
+                <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-sm">
+                    {result.perspectives.length}
+                  </span>
+                  AI Perspectives
+                </h3>
+                <div className="grid gap-4 md:grid-cols-2">
+                  {result.perspectives.map((p, i) => (
+                    <div
+                      key={i}
+                      className="p-4 rounded-xl border border-slate-200 hover:border-slate-300 transition-colors"
+                      style={{ borderLeftColor: p.color, borderLeftWidth: 4 }}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${p.color}20`, color: p.color }}>
+                          {PERSPECTIVE_ICONS[p.icon] || <Shield className="w-4 h-4" />}
+                        </div>
+                        <span className="font-medium text-slate-900">{p.name}</span>
+                        <span className="ml-auto text-xs text-slate-400">{p.confidence}% confident</span>
+                      </div>
+                      <p className="text-sm text-slate-600 line-clamp-3">{p.argument}</p>
+                      {p.recommendation && (
+                        <p className="text-xs text-slate-500 mt-2 pt-2 border-t border-slate-100">
+                          <strong>Recommends:</strong> {p.recommendation}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Synthesis */}
+            {result.synthesis && (
+              <div className="p-6 border-b border-slate-100">
+                <h3 className="font-semibold text-slate-900 mb-3">Synthesis</h3>
+                <p className="text-slate-700 leading-relaxed">{result.synthesis}</p>
+              </div>
+            )}
+
+            {/* Consensus & Divergence */}
+            <div className="p-6 grid md:grid-cols-2 gap-6">
+              {result.consensus && result.consensus.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold text-green-700 mb-2 flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
+                      <Check className="w-3 h-3 text-green-600" />
+                    </div>
+                    Points of Agreement
+                  </h4>
+                  <ul className="space-y-1">
+                    {result.consensus.map((c, i) => (
+                      <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                        <span className="text-green-500 mt-1">•</span>
+                        {c}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {result.divergence && result.divergence.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold text-amber-700 mb-2 flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center">
+                      <AlertCircle className="w-3 h-3 text-amber-600" />
+                    </div>
+                    Points to Discuss
+                  </h4>
+                  <ul className="space-y-1">
+                    {result.divergence.map((d, i) => (
+                      <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                        <span className="text-amber-500 mt-1">•</span>
+                        {d}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Disclaimer */}
+          <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4">
+            <p className="text-sm text-amber-800">
+              <strong>Disclaimer:</strong> This AI analysis is for educational purposes only and does not constitute medical advice. Always discuss treatment decisions with your healthcare team.
+            </p>
+          </div>
+
+          {/* Viral CTA */}
+          <div className="mt-8 bg-gradient-to-br from-purple-900 to-indigo-900 rounded-2xl p-8 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-white/10 rounded-2xl flex items-center justify-center">
+              <Swords className="w-8 h-8 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">Get multiple AI perspectives on your case</h2>
+            <p className="text-purple-200 mb-6 max-w-md mx-auto">
+              CancerCombat analyzes your diagnosis from 10 different expert perspectives to help you understand all your options.
+            </p>
+            <Link
+              href="/combat"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-white text-purple-900 rounded-xl font-semibold hover:bg-purple-50 transition-all shadow-lg"
+            >
+              Run CancerCombat
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+            <p className="text-purple-300 text-sm mt-4">Free analysis - bring your own records</p>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <footer className="border-t border-slate-200 mt-12 py-6">
+          <div className="max-w-4xl mx-auto px-4 text-center text-sm text-slate-500">
+            <p>Powered by <Link href="/" className="text-slate-900 hover:underline">opencancer.ai</Link></p>
+          </div>
+        </footer>
+      </main>
+    )
+  }
+
+  // Original Record View (default)
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <Navbar />
@@ -238,54 +568,6 @@ export default function SharedRecordPage() {
               </div>
             )}
 
-            {/* Lab Results */}
-            {result.lab_values?.key_results && result.lab_values.key_results.length > 0 && (
-              <div>
-                <button
-                  onClick={() => toggleSection('labs')}
-                  className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg">🧪</span>
-                    <span className="font-semibold text-slate-900">Lab Results</span>
-                  </div>
-                  {expandedSections.has('labs') ? (
-                    <ChevronUp className="w-5 h-5 text-slate-400" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5 text-slate-400" />
-                  )}
-                </button>
-                {expandedSections.has('labs') && (
-                  <div className="px-4 pb-4 overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-slate-200">
-                          <th className="text-left py-2 font-semibold text-slate-600">Test</th>
-                          <th className="text-left py-2 font-semibold text-slate-600">Value</th>
-                          <th className="text-left py-2 font-semibold text-slate-600">Reference</th>
-                          <th className="text-left py-2 font-semibold text-slate-600">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {result.lab_values.key_results.map((lab, i) => (
-                          <tr key={i} className="border-b border-slate-100">
-                            <td className="py-2 text-slate-700">{lab.test}</td>
-                            <td className="py-2 font-medium text-slate-900">{lab.value}</td>
-                            <td className="py-2 text-slate-500">{lab.reference_range || 'N/A'}</td>
-                            <td className={`py-2 font-medium ${
-                              lab.status === 'Normal' ? 'text-green-600' :
-                              lab.status === 'Critical' ? 'text-red-600' :
-                              'text-amber-600'
-                            }`}>{lab.status}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            )}
-
             {/* Questions */}
             {result.questions_to_ask_doctor && (
               <div>
@@ -308,36 +590,6 @@ export default function SharedRecordPage() {
                     <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
                       <p className="text-slate-700 whitespace-pre-wrap">{result.questions_to_ask_doctor}</p>
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Medical Terms */}
-            {result.technical_terms_explained && result.technical_terms_explained.length > 0 && (
-              <div>
-                <button
-                  onClick={() => toggleSection('terms')}
-                  className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg">📖</span>
-                    <span className="font-semibold text-slate-900">Medical Terms Explained</span>
-                  </div>
-                  {expandedSections.has('terms') ? (
-                    <ChevronUp className="w-5 h-5 text-slate-400" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5 text-slate-400" />
-                  )}
-                </button>
-                {expandedSections.has('terms') && (
-                  <div className="px-4 pb-4 pl-12 space-y-3">
-                    {result.technical_terms_explained.map((term, i) => (
-                      <div key={i}>
-                        <p className="font-semibold text-slate-900">{term.term}</p>
-                        <p className="text-slate-600 text-sm">{term.definition}</p>
-                      </div>
-                    ))}
                   </div>
                 )}
               </div>

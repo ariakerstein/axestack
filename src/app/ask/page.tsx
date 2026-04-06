@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { CANCER_TYPES, PRIMARY_CATEGORIES, BLOOD_CANCERS } from '@/lib/cancer-data'
+import { CANCER_TYPES, PRIMARY_CATEGORIES, BLOOD_CANCERS, CANCER_CATEGORIES } from '@/lib/cancer-data'
 import { useAuth } from '@/lib/auth'
 import { AuthModal } from '@/components/AuthModal'
 import { TypewriterMarkdown } from '@/components/TypewriterMarkdown'
@@ -65,6 +65,8 @@ export default function AskPage() {
   const [feedbackMessageId, setFeedbackMessageId] = useState<string | null>(null)
   const [feedbackComment, setFeedbackComment] = useState('')
   const [conciseMode, setConciseMode] = useState(false)
+  const [sharingMessageId, setSharingMessageId] = useState<string | null>(null)
+  const [shareUrl, setShareUrl] = useState<string | null>(null)
   const [sessionId, setSessionId] = useState<string>('')
   const [hasPatientContext, setHasPatientContext] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -332,6 +334,50 @@ I can help you with:
     setFeedbackComment('')
   }
 
+  // Handle sharing a Q&A
+  const handleShare = async (messageId: string) => {
+    setSharingMessageId(messageId)
+    setShareUrl(null)
+
+    // Find this message and the previous user message
+    const messageIndex = messages.findIndex(m => m.id === messageId)
+    const assistantMessage = messages[messageIndex]
+    const userMessage = messages.slice(0, messageIndex).reverse().find(m => m.role === 'user')
+
+    if (!assistantMessage || !userMessage) {
+      setSharingMessageId(null)
+      return
+    }
+
+    try {
+      const response = await fetch('/api/share', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'qa',
+          question: userMessage.content,
+          answer: assistantMessage.content,
+          cancerType: cancerType || null,
+          followUpQuestions: assistantMessage.followUpQuestions?.map(f => f.question) || []
+        })
+      })
+
+      const data = await response.json()
+      if (data.success && data.shareUrl) {
+        setShareUrl(data.shareUrl)
+        await navigator.clipboard.writeText(data.shareUrl)
+        trackEvent('share_qa', { messageId, shareUrl: data.shareUrl })
+      }
+    } catch (error) {
+      console.error('Failed to create share link:', error)
+    }
+  }
+
+  const closeShareModal = () => {
+    setSharingMessageId(null)
+    setShareUrl(null)
+  }
+
   // Only show suggested questions after welcome message, before user asks anything
   const showSuggestions = messages.length === 1 && messages[0]?.role === 'assistant'
 
@@ -414,7 +460,39 @@ I can help you with:
                               </span>
                             )}
                           </div>
+                          {/* Share button */}
+                          <button
+                            onClick={() => handleShare(message.id)}
+                            disabled={sharingMessageId === message.id}
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                            </svg>
+                            {sharingMessageId === message.id ? 'Creating link...' : 'Share'}
+                          </button>
                         </div>
+
+                        {/* Share success message */}
+                        {sharingMessageId === message.id && shareUrl && (
+                          <div className="mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span className="text-sm text-green-700 font-medium">Link copied!</span>
+                              </div>
+                              <button onClick={closeShareModal} className="text-green-600 hover:text-green-800">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                            </div>
+                            <p className="text-xs text-green-600 mt-1 break-all">{shareUrl}</p>
+                            <p className="text-xs text-green-600 mt-2">Share this with others who might find it helpful!</p>
+                          </div>
+                        )}
 
                         {/* Feedback comment input for negative feedback */}
                         {feedbackMessageId === message.id && (
@@ -660,46 +738,363 @@ I can help you with:
               </button>
             </div>
 
-            <div className="p-6">
+            <div className="p-6 max-h-[70vh] overflow-y-auto">
               <h3 className="text-sm font-medium text-gray-900 mb-3">Select your cancer type for personalized guidance:</h3>
 
-              <div className="space-y-4">
-                {/* Primary Categories */}
-                <div>
-                  <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">Common Types</p>
+              {/* Search filter */}
+              <div className="mb-4">
+                <input
+                  type="text"
+                  placeholder="Search cancer types..."
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  onChange={(e) => {
+                    const searchEl = e.target.closest('.p-6')?.querySelector('[data-cancer-grid]')
+                    if (searchEl) {
+                      const buttons = searchEl.querySelectorAll('[data-cancer-type]')
+                      const searchTerm = e.target.value.toLowerCase()
+                      buttons.forEach((btn: Element) => {
+                        const type = btn.getAttribute('data-cancer-type') || ''
+                        const label = CANCER_TYPES[type]?.toLowerCase() || ''
+                        const matches = label.includes(searchTerm) || type.includes(searchTerm)
+                        ;(btn as HTMLElement).style.display = matches ? '' : 'none'
+                      })
+                      // Hide empty categories
+                      const categories = searchEl.querySelectorAll('[data-category]')
+                      categories.forEach((cat: Element) => {
+                        const visibleButtons = cat.querySelectorAll('[data-cancer-type]:not([style*="display: none"])')
+                        ;(cat as HTMLElement).style.display = visibleButtons.length > 0 ? '' : 'none'
+                      })
+                    }
+                  }}
+                />
+              </div>
+
+              <div className="space-y-4" data-cancer-grid>
+                {/* Common Types - Featured */}
+                <div data-category="common">
+                  <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide font-semibold">Common Types</p>
                   <div className="grid grid-cols-2 gap-2">
-                    {PRIMARY_CATEGORIES.map((cat) => (
+                    {CANCER_CATEGORIES.common.types.map((code) => (
                       <button
-                        key={cat.code}
+                        key={code}
+                        data-cancer-type={code}
                         onClick={() => {
-                          setCancerType(cat.code)
+                          setCancerType(code)
                           setShowSettingsModal(false)
                         }}
-                        className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                          cancerType === cat.code
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all text-left ${
+                          cancerType === code
                             ? 'bg-slate-900 text-white shadow-md'
                             : 'bg-gray-50 border border-gray-200 text-gray-700 hover:border-slate-400 hover:bg-stone-50'
                         }`}
                       >
-                        <span>{cat.icon}</span>
-                        <span>{cat.label}</span>
+                        {CANCER_TYPES[code]}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Blood Cancers */}
-                <div>
-                  <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">Blood Cancers</p>
+                {/* Lymphoma - Expanded */}
+                <div data-category="lymphoma">
+                  <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">Lymphoma</p>
                   <div className="grid grid-cols-2 gap-2">
-                    {BLOOD_CANCERS.slice(0, 6).map((code) => (
+                    {CANCER_CATEGORIES.lymphoma.types.map((code) => (
                       <button
                         key={code}
+                        data-cancer-type={code}
                         onClick={() => {
                           setCancerType(code)
                           setShowSettingsModal(false)
                         }}
-                        className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all text-left ${
+                          cancerType === code
+                            ? 'bg-slate-900 text-white shadow-md'
+                            : 'bg-gray-50 border border-gray-200 text-gray-700 hover:border-slate-400 hover:bg-stone-50'
+                        }`}
+                      >
+                        {CANCER_TYPES[code]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Leukemia */}
+                <div data-category="leukemia">
+                  <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">Leukemia</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {CANCER_CATEGORIES.leukemia.types.map((code) => (
+                      <button
+                        key={code}
+                        data-cancer-type={code}
+                        onClick={() => {
+                          setCancerType(code)
+                          setShowSettingsModal(false)
+                        }}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all text-left ${
+                          cancerType === code
+                            ? 'bg-slate-900 text-white shadow-md'
+                            : 'bg-gray-50 border border-gray-200 text-gray-700 hover:border-slate-400 hover:bg-stone-50'
+                        }`}
+                      >
+                        {CANCER_TYPES[code]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Other Blood Disorders */}
+                <div data-category="blood_other">
+                  <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">Other Blood Disorders</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {CANCER_CATEGORIES.blood_other.types.map((code) => (
+                      <button
+                        key={code}
+                        data-cancer-type={code}
+                        onClick={() => {
+                          setCancerType(code)
+                          setShowSettingsModal(false)
+                        }}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all text-left ${
+                          cancerType === code
+                            ? 'bg-slate-900 text-white shadow-md'
+                            : 'bg-gray-50 border border-gray-200 text-gray-700 hover:border-slate-400 hover:bg-stone-50'
+                        }`}
+                      >
+                        {CANCER_TYPES[code]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* GI Cancers */}
+                <div data-category="gi">
+                  <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">GI & Digestive</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {CANCER_CATEGORIES.gi.types.map((code) => (
+                      <button
+                        key={code}
+                        data-cancer-type={code}
+                        onClick={() => {
+                          setCancerType(code)
+                          setShowSettingsModal(false)
+                        }}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all text-left ${
+                          cancerType === code
+                            ? 'bg-slate-900 text-white shadow-md'
+                            : 'bg-gray-50 border border-gray-200 text-gray-700 hover:border-slate-400 hover:bg-stone-50'
+                        }`}
+                      >
+                        {CANCER_TYPES[code]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Gynecologic */}
+                <div data-category="gynecologic">
+                  <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">Gynecologic</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {CANCER_CATEGORIES.gynecologic.types.map((code) => (
+                      <button
+                        key={code}
+                        data-cancer-type={code}
+                        onClick={() => {
+                          setCancerType(code)
+                          setShowSettingsModal(false)
+                        }}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all text-left ${
+                          cancerType === code
+                            ? 'bg-slate-900 text-white shadow-md'
+                            : 'bg-gray-50 border border-gray-200 text-gray-700 hover:border-slate-400 hover:bg-stone-50'
+                        }`}
+                      >
+                        {CANCER_TYPES[code]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Urologic */}
+                <div data-category="urologic">
+                  <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">Urologic</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {CANCER_CATEGORIES.urologic.types.map((code) => (
+                      <button
+                        key={code}
+                        data-cancer-type={code}
+                        onClick={() => {
+                          setCancerType(code)
+                          setShowSettingsModal(false)
+                        }}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all text-left ${
+                          cancerType === code
+                            ? 'bg-slate-900 text-white shadow-md'
+                            : 'bg-gray-50 border border-gray-200 text-gray-700 hover:border-slate-400 hover:bg-stone-50'
+                        }`}
+                      >
+                        {CANCER_TYPES[code]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Head & Neck */}
+                <div data-category="head_neck">
+                  <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">Head & Neck</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {CANCER_CATEGORIES.head_neck.types.map((code) => (
+                      <button
+                        key={code}
+                        data-cancer-type={code}
+                        onClick={() => {
+                          setCancerType(code)
+                          setShowSettingsModal(false)
+                        }}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all text-left ${
+                          cancerType === code
+                            ? 'bg-slate-900 text-white shadow-md'
+                            : 'bg-gray-50 border border-gray-200 text-gray-700 hover:border-slate-400 hover:bg-stone-50'
+                        }`}
+                      >
+                        {CANCER_TYPES[code]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Brain & CNS */}
+                <div data-category="brain">
+                  <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">Brain & CNS</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {CANCER_CATEGORIES.brain.types.map((code) => (
+                      <button
+                        key={code}
+                        data-cancer-type={code}
+                        onClick={() => {
+                          setCancerType(code)
+                          setShowSettingsModal(false)
+                        }}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all text-left ${
+                          cancerType === code
+                            ? 'bg-slate-900 text-white shadow-md'
+                            : 'bg-gray-50 border border-gray-200 text-gray-700 hover:border-slate-400 hover:bg-stone-50'
+                        }`}
+                      >
+                        {CANCER_TYPES[code]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Thoracic */}
+                <div data-category="thoracic">
+                  <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">Thoracic</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {CANCER_CATEGORIES.thoracic.types.map((code) => (
+                      <button
+                        key={code}
+                        data-cancer-type={code}
+                        onClick={() => {
+                          setCancerType(code)
+                          setShowSettingsModal(false)
+                        }}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all text-left ${
+                          cancerType === code
+                            ? 'bg-slate-900 text-white shadow-md'
+                            : 'bg-gray-50 border border-gray-200 text-gray-700 hover:border-slate-400 hover:bg-stone-50'
+                        }`}
+                      >
+                        {CANCER_TYPES[code]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Skin */}
+                <div data-category="skin">
+                  <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">Skin</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {CANCER_CATEGORIES.skin.types.map((code) => (
+                      <button
+                        key={code}
+                        data-cancer-type={code}
+                        onClick={() => {
+                          setCancerType(code)
+                          setShowSettingsModal(false)
+                        }}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all text-left ${
+                          cancerType === code
+                            ? 'bg-slate-900 text-white shadow-md'
+                            : 'bg-gray-50 border border-gray-200 text-gray-700 hover:border-slate-400 hover:bg-stone-50'
+                        }`}
+                      >
+                        {CANCER_TYPES[code]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Sarcoma */}
+                <div data-category="sarcoma">
+                  <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">Sarcoma</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {CANCER_CATEGORIES.sarcoma.types.map((code) => (
+                      <button
+                        key={code}
+                        data-cancer-type={code}
+                        onClick={() => {
+                          setCancerType(code)
+                          setShowSettingsModal(false)
+                        }}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all text-left ${
+                          cancerType === code
+                            ? 'bg-slate-900 text-white shadow-md'
+                            : 'bg-gray-50 border border-gray-200 text-gray-700 hover:border-slate-400 hover:bg-stone-50'
+                        }`}
+                      >
+                        {CANCER_TYPES[code]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Pediatric */}
+                <div data-category="pediatric">
+                  <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">Pediatric</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {CANCER_CATEGORIES.pediatric.types.map((code) => (
+                      <button
+                        key={code}
+                        data-cancer-type={code}
+                        onClick={() => {
+                          setCancerType(code)
+                          setShowSettingsModal(false)
+                        }}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all text-left ${
+                          cancerType === code
+                            ? 'bg-slate-900 text-white shadow-md'
+                            : 'bg-gray-50 border border-gray-200 text-gray-700 hover:border-slate-400 hover:bg-stone-50'
+                        }`}
+                      >
+                        {CANCER_TYPES[code]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Rare & Other */}
+                <div data-category="rare">
+                  <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">Rare & Other</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {CANCER_CATEGORIES.rare.types.map((code) => (
+                      <button
+                        key={code}
+                        data-cancer-type={code}
+                        onClick={() => {
+                          setCancerType(code)
+                          setShowSettingsModal(false)
+                        }}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all text-left ${
                           cancerType === code
                             ? 'bg-slate-900 text-white shadow-md'
                             : 'bg-gray-50 border border-gray-200 text-gray-700 hover:border-slate-400 hover:bg-stone-50'

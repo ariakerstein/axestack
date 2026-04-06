@@ -332,93 +332,360 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET - Retrieve eval logs for analysis
+// GET - Retrieve eval logs for analysis (now pulls from ALL question sources)
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const needsReview = searchParams.get('needsReview') === 'true'
   const limitParam = searchParams.get('limit')
-  // Default to 1000 to get all data, use 0 for truly unlimited
-  const limit = limitParam ? parseInt(limitParam) : 1000
+  const sourceFilter = searchParams.get('source') // 'eval_log', 'activity', 'entity', or null for all
+  // Default to 2000 to get all data
+  const limit = limitParam ? parseInt(limitParam) : 2000
 
   const supabase = getSupabase()
 
-  // First get total count
-  const { count: totalCount } = await supabase
-    .from('navis_eval_logs')
-    .select('*', { count: 'exact', head: true })
-
-  let query = supabase
-    .from('navis_eval_logs')
-    .select('*')
-    .order('created_at', { ascending: false })
-
-  // Only apply limit if > 0
-  if (limit > 0) {
-    query = query.limit(limit)
+  interface EvalLogRecord {
+    id: string
+    question: string
+    question_type: string | null
+    cancer_type: string | null
+    created_at: string
+    needs_expert_review: boolean
+    feedback_type: string | null
+    feedback_comment: string | null
+    latency_ms: number | null
+    model: string | null
+    input_tokens: number | null
+    output_tokens: number | null
+    total_tokens: number | null
+    cost_usd: number | null
+    response_length: number
+    hedging_phrase_count: number
+    certainty_phrase_count: number
+    uncertainty_ratio: number
+    has_false_dichotomy: boolean
+    dichotomy_signals: string[]
+    treatment_options_count: number
+    treatment_options_mentioned: string[]
+    llm_score: number | null
+    confidence_score: number | null
+    citation_count: number | null
+    source_types: string[] | null
+    used_fallback: boolean
+    disease_states_detected: string[]
+    disease_state_count: number
+    evidence_tiers_cited: string[]
+    highest_evidence_tier: string | null
+    rag_score: number | null
+    has_patient_context: boolean
+    patient_context_length: number
+    personalization_score: number
+    personalization_signals: string[]
+    graph_score: number | null
+    quality_score: number | null
+    source?: 'eval_log' | 'activity' | 'entity' | 'patient_q' | 'combat'
+    session_id?: string
+    user_id?: string
   }
 
-  if (needsReview) {
-    query = query.eq('needs_expert_review', true)
+  const allLogs: EvalLogRecord[] = []
+
+  // 1. Fetch from navis_eval_logs (rich eval data)
+  if (!sourceFilter || sourceFilter === 'eval_log') {
+    let evalQuery = supabase
+      .from('navis_eval_logs')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (needsReview) {
+      evalQuery = evalQuery.eq('needs_expert_review', true)
+    }
+
+    const { data: evalData, error: evalError } = await evalQuery
+    if (!evalError && evalData) {
+      evalData.forEach((row: EvalLogRecord) => {
+        allLogs.push({
+          ...row,
+          source: 'eval_log',
+        })
+      })
+    }
   }
 
-  const { data, error } = await query
+  // 2. Fetch from analytics_events (ask_question events)
+  if (!sourceFilter || sourceFilter === 'activity') {
+    const { data: analyticsData, error: analyticsError } = await supabase
+      .from('analytics_events')
+      .select('id, event_timestamp, metadata, session_id, user_id')
+      .eq('event_type', 'ask_question')
+      .order('event_timestamp', { ascending: false })
+      .limit(limit)
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    if (!analyticsError && analyticsData) {
+      analyticsData.forEach((row: { id: string; event_timestamp: string; metadata: Record<string, unknown>; session_id: string; user_id: string }) => {
+        const metadata = row.metadata || {}
+        const questionText = (metadata.question as string) || (metadata.query as string) || ''
+
+        // Only add if not already in eval logs
+        const alreadyExists = allLogs.some(log =>
+          log.question?.toLowerCase() === questionText.toLowerCase() &&
+          log.session_id === row.session_id
+        )
+
+        if (!alreadyExists && questionText) {
+          allLogs.push({
+            id: row.id,
+            question: questionText,
+            question_type: null,
+            cancer_type: (metadata.cancer_type as string) || null,
+            created_at: row.event_timestamp,
+            needs_expert_review: false,
+            feedback_type: null,
+            feedback_comment: null,
+            latency_ms: null,
+            model: null,
+            input_tokens: null,
+            output_tokens: null,
+            total_tokens: null,
+            cost_usd: null,
+            response_length: 0,
+            hedging_phrase_count: 0,
+            certainty_phrase_count: 0,
+            uncertainty_ratio: 0,
+            has_false_dichotomy: false,
+            dichotomy_signals: [],
+            treatment_options_count: 0,
+            treatment_options_mentioned: [],
+            llm_score: null,
+            confidence_score: null,
+            citation_count: null,
+            source_types: null,
+            used_fallback: false,
+            disease_states_detected: [],
+            disease_state_count: 0,
+            evidence_tiers_cited: [],
+            highest_evidence_tier: null,
+            rag_score: null,
+            has_patient_context: false,
+            patient_context_length: 0,
+            personalization_score: 0,
+            personalization_signals: [],
+            graph_score: null,
+            quality_score: null,
+            source: 'activity',
+            session_id: row.session_id,
+            user_id: row.user_id,
+          })
+        }
+      })
+    }
   }
+
+  // 3. Fetch from patient_questions (circle-app questions)
+  if (!sourceFilter || sourceFilter === 'patient_q') {
+    const { data: patientQData, error: patientQError } = await supabase
+      .from('patient_questions')
+      .select('id, created_at, title, description, cancer_type, question_category, user_id, eval_score')
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (!patientQError && patientQData) {
+      patientQData.forEach((row: { id: string; created_at: string; title: string; description: string; cancer_type: string; question_category: string; user_id: string; eval_score: number | null }) => {
+        // Combine title and description for the question text
+        const questionText = row.title || row.description || ''
+
+        // Only add if not already found
+        const alreadyExists = allLogs.some(log =>
+          log.question?.toLowerCase() === questionText.toLowerCase()
+        )
+
+        if (!alreadyExists && questionText) {
+          allLogs.push({
+            id: row.id,
+            question: questionText,
+            question_type: row.question_category || null,
+            cancer_type: row.cancer_type || null,
+            created_at: row.created_at,
+            needs_expert_review: false,
+            feedback_type: null,
+            feedback_comment: null,
+            latency_ms: null,
+            model: null,
+            input_tokens: null,
+            output_tokens: null,
+            total_tokens: null,
+            cost_usd: null,
+            response_length: 0,
+            hedging_phrase_count: 0,
+            certainty_phrase_count: 0,
+            uncertainty_ratio: 0,
+            has_false_dichotomy: false,
+            dichotomy_signals: [],
+            treatment_options_count: 0,
+            treatment_options_mentioned: [],
+            llm_score: null,
+            confidence_score: null,
+            citation_count: null,
+            source_types: null,
+            used_fallback: false,
+            disease_states_detected: [],
+            disease_state_count: 0,
+            evidence_tiers_cited: [],
+            highest_evidence_tier: null,
+            rag_score: null,
+            has_patient_context: false,
+            patient_context_length: 0,
+            personalization_score: 0,
+            personalization_signals: [],
+            graph_score: row.eval_score || null,
+            quality_score: row.eval_score ? row.eval_score / 100 : null,
+            source: 'patient_q',
+            session_id: undefined,
+            user_id: row.user_id,
+          })
+        }
+      })
+    }
+  }
+
+  // 4. Fetch from combat_analyses (Combat questions)
+  if (!sourceFilter || sourceFilter === 'combat') {
+    const { data: combatData, error: combatError } = await supabase
+      .from('combat_analyses')
+      .select('id, created_at, question, phase, user_id, session_id')
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (!combatError && combatData) {
+      combatData.forEach((row: { id: string; created_at: string; question: string; phase: string; user_id: string; session_id: string }) => {
+        const questionText = row.question || ''
+
+        // Only add if not already found
+        const alreadyExists = allLogs.some(log =>
+          log.question?.toLowerCase() === questionText.toLowerCase()
+        )
+
+        if (!alreadyExists && questionText) {
+          allLogs.push({
+            id: row.id,
+            question: questionText,
+            question_type: row.phase || 'combat',
+            cancer_type: null,
+            created_at: row.created_at,
+            needs_expert_review: false,
+            feedback_type: null,
+            feedback_comment: null,
+            latency_ms: null,
+            model: null,
+            input_tokens: null,
+            output_tokens: null,
+            total_tokens: null,
+            cost_usd: null,
+            response_length: 0,
+            hedging_phrase_count: 0,
+            certainty_phrase_count: 0,
+            uncertainty_ratio: 0,
+            has_false_dichotomy: false,
+            dichotomy_signals: [],
+            treatment_options_count: 0,
+            treatment_options_mentioned: [],
+            llm_score: null,
+            confidence_score: null,
+            citation_count: null,
+            source_types: null,
+            used_fallback: false,
+            disease_states_detected: [],
+            disease_state_count: 0,
+            evidence_tiers_cited: [],
+            highest_evidence_tier: null,
+            rag_score: null,
+            has_patient_context: false,
+            patient_context_length: 0,
+            personalization_score: 0,
+            personalization_signals: [],
+            graph_score: null,
+            quality_score: null,
+            source: 'combat',
+            session_id: row.session_id,
+            user_id: row.user_id,
+          })
+        }
+      })
+    }
+  }
+
+  // Sort all by created_at descending
+  allLogs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+
+  // Apply limit
+  const limitedLogs = allLogs.slice(0, limit)
+
+  // Get counts by source
+  const evalLogCount = allLogs.filter(l => l.source === 'eval_log').length
+  const activityCount = allLogs.filter(l => l.source === 'activity').length
+  const patientQCount = allLogs.filter(l => l.source === 'patient_q').length
+  const combatCount = allLogs.filter(l => l.source === 'combat').length
 
   // Compute aggregate stats across all three dimensions
-  const total = data?.length || 0
+  const total = limitedLogs.length
   const safeAvg = (arr: number[]) => arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0
 
   const stats = {
     total,
-    needsReview: data?.filter(d => d.needs_expert_review).length || 0,
+    needsReview: limitedLogs.filter(d => d.needs_expert_review).length,
+
+    // Source breakdown
+    bySource: {
+      eval_log: evalLogCount,
+      activity: activityCount,
+      patient_q: patientQCount,
+      combat: combatCount,
+    },
 
     // Legacy stats (for backwards compat)
-    avgTreatmentOptions: safeAvg(data?.map(d => d.treatment_options_count || 0) || []),
-    falseDichotomyRate: total > 0 ? (data?.filter(d => d.has_false_dichotomy).length || 0) / total : 0,
-    avgUncertaintyRatio: safeAvg(data?.map(d => d.uncertainty_ratio || 0) || []),
+    avgTreatmentOptions: safeAvg(limitedLogs.map(d => d.treatment_options_count || 0)),
+    falseDichotomyRate: total > 0 ? limitedLogs.filter(d => d.has_false_dichotomy).length / total : 0,
+    avgUncertaintyRatio: safeAvg(limitedLogs.map(d => d.uncertainty_ratio || 0)),
 
     // === LLM DIMENSION STATS ===
     llm: {
-      avgLatencyMs: safeAvg(data?.map(d => d.latency_ms || 0).filter(v => v > 0) || []),
-      avgTokens: safeAvg(data?.map(d => d.total_tokens || 0).filter(v => v > 0) || []),
-      totalCostUsd: data?.reduce((sum, d) => sum + (d.cost_usd || 0), 0) || 0,
-      avgScore: safeAvg(data?.map(d => d.llm_score || 0).filter(v => v > 0) || []),
-      falseDichotomyCount: data?.filter(d => d.has_false_dichotomy).length || 0,
+      avgLatencyMs: safeAvg(limitedLogs.map(d => d.latency_ms || 0).filter(v => v > 0)),
+      avgTokens: safeAvg(limitedLogs.map(d => d.total_tokens || 0).filter(v => v > 0)),
+      totalCostUsd: limitedLogs.reduce((sum, d) => sum + (d.cost_usd || 0), 0),
+      avgScore: safeAvg(limitedLogs.map(d => d.llm_score || 0).filter(v => v > 0)),
+      falseDichotomyCount: limitedLogs.filter(d => d.has_false_dichotomy).length,
     },
 
     // === RAG DIMENSION STATS ===
     rag: {
-      avgConfidence: safeAvg(data?.map(d => d.confidence_score || 0).filter(v => v > 0) || []),
-      avgCitations: safeAvg(data?.map(d => d.citation_count || 0) || []),
-      fallbackRate: total > 0 ? (data?.filter(d => d.used_fallback).length || 0) / total : 0,
-      avgScore: safeAvg(data?.map(d => d.rag_score || 0).filter(v => v > 0) || []),
-      withGuidelinesCount: data?.filter(d => d.evidence_tiers_cited?.includes('guideline')).length || 0,
+      avgConfidence: safeAvg(limitedLogs.map(d => d.confidence_score || 0).filter(v => v > 0)),
+      avgCitations: safeAvg(limitedLogs.map(d => d.citation_count || 0)),
+      fallbackRate: total > 0 ? limitedLogs.filter(d => d.used_fallback).length / total : 0,
+      avgScore: safeAvg(limitedLogs.map(d => d.rag_score || 0).filter(v => v > 0)),
+      withGuidelinesCount: limitedLogs.filter(d => d.evidence_tiers_cited?.includes('guideline')).length,
     },
 
     // === GRAPH DIMENSION STATS ===
     graph: {
-      withContextCount: data?.filter(d => d.has_patient_context).length || 0,
-      avgPersonalization: safeAvg(data?.map(d => d.personalization_score || 0) || []),
-      highPersonalizationCount: data?.filter(d => (d.personalization_score || 0) >= 2).length || 0,
-      avgScore: safeAvg(data?.map(d => d.graph_score || 0).filter(v => v > 0) || []),
-      avgContextLength: safeAvg(data?.map(d => d.patient_context_length || 0).filter(v => v > 0) || []),
+      withContextCount: limitedLogs.filter(d => d.has_patient_context).length,
+      avgPersonalization: safeAvg(limitedLogs.map(d => d.personalization_score || 0)),
+      highPersonalizationCount: limitedLogs.filter(d => (d.personalization_score || 0) >= 2).length,
+      avgScore: safeAvg(limitedLogs.map(d => d.graph_score || 0).filter(v => v > 0)),
+      avgContextLength: safeAvg(limitedLogs.map(d => d.patient_context_length || 0).filter(v => v > 0)),
     },
 
     // === COMPOSITE STATS ===
     quality: {
-      avgScore: safeAvg(data?.map(d => d.quality_score || 0).filter(v => v > 0) || []),
-      highQualityCount: data?.filter(d => (d.quality_score || 0) >= 0.7).length || 0,
-      lowQualityCount: data?.filter(d => (d.quality_score || 0) < 0.4 && (d.quality_score || 0) > 0).length || 0,
+      avgScore: safeAvg(limitedLogs.map(d => d.quality_score || 0).filter(v => v > 0)),
+      highQualityCount: limitedLogs.filter(d => (d.quality_score || 0) >= 0.7).length,
+      lowQualityCount: limitedLogs.filter(d => (d.quality_score || 0) < 0.4 && (d.quality_score || 0) > 0).length,
     },
   }
 
   return NextResponse.json({
-    logs: data,
+    logs: limitedLogs,
     stats,
-    totalInDatabase: totalCount || 0,
-    returnedCount: data?.length || 0,
+    totalInDatabase: allLogs.length,
+    returnedCount: limitedLogs.length,
   })
 }
