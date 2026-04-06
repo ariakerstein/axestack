@@ -194,9 +194,23 @@ function HomeContent() {
   const [wizardCancerType, setWizardCancerType] = useState('')
   const [wizardSaving, setWizardSaving] = useState(false)
   const [wizardEmailSent, setWizardEmailSent] = useState(false)
+  const [wizardRedirectTo, setWizardRedirectTo] = useState<string | null>(null) // Where to go after wizard
 
   // Dynamic social proof count (null = hide, number = show)
   const [socialProofCount, setSocialProofCount] = useState<number | null>(null)
+
+  // Handler for tool clicks - gates through wizard for guests
+  const handleToolClick = (e: React.MouseEvent, destination: string) => {
+    // If user has profile, allow normal navigation
+    if (profile || user) return
+
+    // Gate guest users through wizard first
+    e.preventDefault()
+    setWizardRedirectTo(destination)
+    setShowWizardModal(true)
+    setWizardStep(1)
+    setWizardRole(null)
+  }
 
   // Fetch social proof count
   useEffect(() => {
@@ -409,22 +423,24 @@ function HomeContent() {
                 </div>
               </div>
               {/* CTA + Social proof */}
-              <div className="border-t border-slate-200 p-4 bg-slate-50">
-                <div className="flex items-center justify-between gap-3">
-                  <Link href="/about" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity py-2 -my-1 min-w-0">
-                    <img src="/ari.png" alt="Ari" className="w-10 h-10 rounded-full object-cover flex-shrink-0 ring-2 ring-slate-200" />
-                    <p className="text-sm text-slate-500 truncate"><span className="font-medium text-slate-700">Built by a survivor</span></p>
-                  </Link>
+              <div className="border-t border-slate-200 p-5 bg-gradient-to-r from-slate-50 to-orange-50/30">
+                <div className="text-center">
                   <button
-                    onClick={() => { setShowWizardModal(true); setWizardStep(1); setWizardRole(null); }}
-                    className="bg-[#C66B4A] hover:bg-[#B35E40] text-white font-semibold px-4 sm:px-8 py-3 rounded-xl transition-all shadow-lg shadow-[#C66B4A]/25 hover:shadow-xl min-h-[44px] whitespace-nowrap flex-shrink-0"
+                    onClick={() => { setShowWizardModal(true); setWizardStep(1); setWizardRole(null); setWizardRedirectTo(null); }}
+                    className="bg-[#C66B4A] hover:bg-[#B35E40] text-white font-bold px-10 py-4 rounded-xl transition-all shadow-lg shadow-[#C66B4A]/30 hover:shadow-xl hover:scale-[1.02] min-h-[52px] text-lg"
                   >
-                    Start Here →
+                    Start Your Cancer Journey →
                   </button>
+                  <p className="text-xs text-slate-500 mt-3">
+                    60 seconds • Personalized guidance • 200+ cancer types
+                  </p>
                 </div>
-                <p className="text-xs text-slate-500 mt-2 text-center">
-                  60 seconds • We'll guide you • 200+ cancer types
-                </p>
+                <div className="flex items-center justify-center gap-3 mt-4 pt-4 border-t border-slate-200/50">
+                  <Link href="/about" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                    <img src="/ari.png" alt="Ari" className="w-8 h-8 rounded-full object-cover ring-2 ring-slate-200" />
+                    <p className="text-xs text-slate-500"><span className="font-medium text-slate-700">Built by a survivor</span></p>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
@@ -463,7 +479,7 @@ function HomeContent() {
               {/* Progress indicator */}
               <div className="flex justify-center mb-6">
                 <StepIndicator
-                  steps={['Role', 'Details', 'Cancer Type']}
+                  steps={['Role', 'Details', 'Cancer', 'Records']}
                   currentStep={wizardStep - 1}
                 />
               </div>
@@ -613,7 +629,7 @@ function HomeContent() {
                 </div>
               )}
 
-              {/* Step 3: Cancer Type & Save */}
+              {/* Step 3: Cancer Type */}
               {wizardStep === 3 && !wizardEmailSent && (
                 <div>
                   <button onClick={() => setWizardStep(2)} className="text-slate-400 hover:text-slate-600 text-sm mb-4 flex items-center gap-1">
@@ -622,8 +638,7 @@ function HomeContent() {
 
                   {/* Step label with color */}
                   <div className="flex items-center justify-center gap-2 mb-4">
-                    <span className="text-xs font-medium text-[#C66B4A]">Step 3 of 3</span>
-                    <span className="text-xs text-slate-400">— Almost there!</span>
+                    <span className="text-xs font-medium text-[#C66B4A]">Step 3 of 4</span>
                   </div>
 
                   <h3 className="text-xl font-bold text-slate-900 mb-2">What type of cancer?</h3>
@@ -657,8 +672,55 @@ function HomeContent() {
                     )}
 
                     <button
+                      onClick={() => wizardCancerType && setWizardStep(4)}
+                      disabled={!wizardCancerType}
+                      className="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl transition-all shadow-lg shadow-slate-900/25 flex items-center justify-center gap-2"
+                    >
+                      Continue →
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 4: Upload First Record & Complete */}
+              {wizardStep === 4 && !wizardEmailSent && (
+                <div>
+                  <button onClick={() => setWizardStep(3)} className="text-slate-400 hover:text-slate-600 text-sm mb-4 flex items-center gap-1">
+                    ← Back
+                  </button>
+
+                  {/* Step label */}
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    <span className="text-xs font-medium text-[#C66B4A]">Step 4 of 4</span>
+                    <span className="text-xs text-slate-400">— Final step!</span>
+                  </div>
+
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">Upload your first record</h3>
+                  <p className="text-slate-500 text-sm mb-6">This is where the magic happens. We'll translate it to plain English.</p>
+
+                  {/* Value prop for uploading */}
+                  <div className="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-200">
+                    <p className="text-sm font-semibold text-slate-900 mb-3">What you'll get:</p>
+                    <ul className="space-y-2">
+                      <li className="flex items-center gap-2 text-sm text-slate-600">
+                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        Plain English summary of your diagnosis
+                      </li>
+                      <li className="flex items-center gap-2 text-sm text-slate-600">
+                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        Key biomarkers & what they mean
+                      </li>
+                      <li className="flex items-center gap-2 text-sm text-slate-600">
+                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        Questions to ask your oncologist
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="space-y-3">
+                    <button
                       onClick={async () => {
-                        if (!wizardCancerType || !wizardEmail.trim()) return
+                        if (!wizardEmail.trim()) return
                         setWizardSaving(true)
 
                         const newProfile: PatientProfile = {
@@ -702,22 +764,15 @@ function HomeContent() {
 
                           if (authError) {
                             console.error('Auth error:', authError)
-                            // Still continue - they can sign in later
                           }
                         } catch (err) {
                           console.error('Auth failed:', err)
-                          // Continue anyway - profile is saved locally
                         }
 
-                        // Show email sent confirmation (or at least move forward)
                         setWizardSaving(false)
-                        setWizardEmailSent(true)
 
-                        // Wait for profile save to complete
+                        // Wait for profile save
                         const savedProfile = await profilePromise
-
-                        // Only mark as dismissed if profile was successfully saved
-                        // This ensures wizard shows again if save failed
                         if (savedProfile) {
                           localStorage.setItem('opencancer-onboarding-dismissed', 'true')
                         }
@@ -733,27 +788,74 @@ function HomeContent() {
                             role: wizardRole,
                           }),
                         }).catch(err => console.warn('Welcome email failed:', err))
+
+                        // Close modal and redirect to records (to upload)
+                        setShowWizardModal(false)
+                        router.push('/records')
                       }}
-                      disabled={!wizardCancerType || !wizardEmail.trim() || wizardSaving}
-                      className="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl transition-all shadow-lg shadow-slate-900/25 flex items-center justify-center gap-2"
+                      disabled={wizardSaving}
+                      className="w-full bg-[#C66B4A] hover:bg-[#B35E40] disabled:bg-slate-300 text-white font-semibold py-4 rounded-xl transition-all shadow-lg shadow-[#C66B4A]/25 flex items-center justify-center gap-2"
                     >
                       {wizardSaving ? (
                         <>
                           <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          Creating your account...
+                          Setting up...
                         </>
                       ) : (
                         <>
-                          🚀 Launch My Toolkit
+                          <FolderClosed className="w-5 h-5" />
+                          Upload My First Record
                         </>
                       )}
                     </button>
 
-                    {/* What happens next */}
-                    <div className="text-center text-xs text-slate-400">
-                      We'll email you a sign-in link to secure your account
-                    </div>
+                    <button
+                      onClick={async () => {
+                        if (!wizardEmail.trim()) return
+                        setWizardSaving(true)
+
+                        const newProfile: PatientProfile = {
+                          role: wizardRole!,
+                          name: wizardName.trim(),
+                          email: wizardEmail.trim(),
+                          cancerType: wizardCancerType,
+                        }
+
+                        // Save profile
+                        localStorage.setItem('patient-profile', JSON.stringify(newProfile))
+                        setProfile(newProfile)
+
+                        await Promise.race([
+                          saveProfile({
+                            email: wizardEmail.trim(),
+                            name: wizardName.trim(),
+                            role: wizardRole!,
+                            cancerType: wizardCancerType,
+                          }),
+                          new Promise((_, reject) => setTimeout(() => reject(new Error('Profile save timeout')), 5000))
+                        ]).catch(err => console.warn('Profile sync failed:', err))
+
+                        localStorage.setItem('opencancer-onboarding-dismissed', 'true')
+                        setWizardSaving(false)
+                        setShowWizardModal(false)
+
+                        // Redirect to intended destination or stay on homepage
+                        if (wizardRedirectTo) {
+                          router.push(wizardRedirectTo)
+                          setWizardRedirectTo(null)
+                        }
+                      }}
+                      disabled={wizardSaving}
+                      className="w-full text-slate-500 hover:text-slate-700 text-sm font-medium py-2"
+                    >
+                      Skip for now — explore tools first
+                    </button>
                   </div>
+
+                  {/* Privacy note */}
+                  <p className="text-xs text-slate-400 text-center mt-4">
+                    🔒 Your records are encrypted and never shared
+                  </p>
                 </div>
               )}
             </div>
@@ -798,9 +900,13 @@ function HomeContent() {
           <p className="text-xs font-medium tracking-widest text-slate-400 mb-3">{profile ? 'YOUR TOOLS' : 'START HERE'}</p>
           <div className="grid md:grid-cols-3 gap-4 mb-8">
             {/* Upload Records */}
-            <Link href="/records" className="group bg-white border-2 border-slate-900 rounded-xl p-5 hover:shadow-lg transition-all relative">
+            <Link
+              href="/records"
+              onClick={(e) => handleToolClick(e, '/records')}
+              className="group bg-white border-2 border-slate-900 rounded-xl p-5 hover:shadow-lg transition-all relative"
+            >
               <span className="absolute -top-2.5 left-4 bg-slate-900 text-white text-[10px] font-medium px-2.5 py-1 rounded">
-                Start here
+                {profile ? 'Your vault' : 'Start here'}
               </span>
               <div className="mb-3 mt-1">
                 <FolderClosed className="w-6 h-6 text-blue-500" />
@@ -811,7 +917,11 @@ function HomeContent() {
             </Link>
 
             {/* Cancer Combat */}
-            <Link href="/combat" className="group bg-white border-2 border-slate-900 rounded-xl p-5 hover:shadow-lg transition-all relative">
+            <Link
+              href="/combat"
+              onClick={(e) => handleToolClick(e, '/combat')}
+              className="group bg-white border-2 border-slate-900 rounded-xl p-5 hover:shadow-lg transition-all relative"
+            >
               <span className="absolute -top-2.5 left-4 bg-slate-900 text-white text-[10px] font-medium px-2.5 py-1 rounded">
                 AI second opinion
               </span>
@@ -824,7 +934,11 @@ function HomeContent() {
             </Link>
 
             {/* Expert Pathology Review */}
-            <Link href="/combat?expert=pathology" className="group bg-gradient-to-r from-white to-emerald-50/50 border-2 border-emerald-200 hover:border-emerald-400 rounded-xl p-5 hover:shadow-lg transition-all relative">
+            <Link
+              href="/combat?expert=pathology"
+              onClick={(e) => handleToolClick(e, '/combat?expert=pathology')}
+              className="group bg-gradient-to-r from-white to-emerald-50/50 border-2 border-emerald-200 hover:border-emerald-400 rounded-xl p-5 hover:shadow-lg transition-all relative"
+            >
               <span className="absolute -top-2.5 left-4 bg-emerald-600 text-white text-[10px] font-medium px-2.5 py-1 rounded">
                 Expert review
               </span>
