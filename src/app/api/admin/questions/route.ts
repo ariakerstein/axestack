@@ -96,8 +96,47 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // 2. Fetch from analytics_events (ask_question events) - this is where trackEvent logs go
+  // 2. Fetch from patient_activity (ask_question) - main source of questions
   if (!source || source === 'activity') {
+    const { data: patientActivityData, error: paError } = await supabase
+      .from('patient_activity')
+      .select('id, created_at, metadata, session_id, user_id, cancer_type')
+      .eq('activity_type', 'ask_question')
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (!paError && patientActivityData) {
+      patientActivityData.forEach(row => {
+        const metadata = row.metadata || {}
+        // Question text is in metadata.title for patient_activity
+        const questionText = metadata.title || metadata.question || ''
+        const alreadyExists = allQuestions.some(q =>
+          q.question?.toLowerCase() === questionText.toLowerCase()
+        )
+        if (!alreadyExists && questionText) {
+          allQuestions.push({
+            id: row.id,
+            created_at: row.created_at,
+            question: questionText,
+            question_type: metadata.category || null,
+            cancer_type: row.cancer_type || null,
+            confidence_score: null,
+            feedback_type: null,
+            feedback_comment: null,
+            has_patient_context: false,
+            used_fallback: null,
+            treatment_options_count: null,
+            has_false_dichotomy: null,
+            needs_expert_review: null,
+            session_id: row.session_id,
+            user_id: row.user_id,
+            source: 'activity',
+          })
+        }
+      })
+    }
+
+    // Also check analytics_events for any additional questions
     const { data: analyticsData, error: analyticsError } = await supabase
       .from('analytics_events')
       .select('id, event_timestamp, metadata, session_id, user_id')
@@ -108,11 +147,9 @@ export async function GET(request: NextRequest) {
     if (!analyticsError && analyticsData) {
       analyticsData.forEach(row => {
         const metadata = row.metadata || {}
-        // Only add if not already in eval logs (by question text match)
         const questionText = metadata.question || metadata.query || ''
         const alreadyExists = allQuestions.some(q =>
-          q.question?.toLowerCase() === questionText.toLowerCase() &&
-          q.session_id === row.session_id
+          q.question?.toLowerCase() === questionText.toLowerCase()
         )
         if (!alreadyExists && questionText) {
           allQuestions.push({
