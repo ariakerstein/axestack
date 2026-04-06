@@ -435,21 +435,23 @@ function HomeContent() {
               </div>
               {/* CTA + Social proof */}
               <div className="border-t border-slate-200 p-5 bg-gradient-to-r from-slate-50 to-orange-50/30">
-                <div className="flex items-center justify-between gap-4">
-                  {/* Built by a survivor - left side */}
-                  <Link href="/about" className="flex items-center gap-3 hover:opacity-80 transition-opacity flex-shrink-0 group">
-                    <img src="/ari.png" alt="Ari" className="w-12 h-12 rounded-full object-cover ring-2 ring-slate-300 group-hover:ring-[#C66B4A] transition-all" />
+                {/* Mobile: Stack vertically, CTA first. Desktop: Side by side */}
+                <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-4">
+                  {/* Built by a survivor */}
+                  <Link href="/about" className="flex items-center gap-3 hover:opacity-80 transition-opacity group">
+                    <img src="/ari.png" alt="Ari" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover ring-2 ring-slate-300 group-hover:ring-[#C66B4A] transition-all" />
                     <div>
                       <p className="text-sm font-medium text-slate-700">Built by a survivor</p>
                       <p className="text-xs text-slate-400">Read my story →</p>
                     </div>
                   </Link>
-                  {/* CTA - right side */}
+                  {/* CTA */}
                   <button
                     onClick={() => { setShowWizardModal(true); setWizardStep(1); setWizardRole(null); setWizardRedirectTo(null); }}
-                    className="bg-[#C66B4A] hover:bg-[#B35E40] text-white font-bold px-8 py-3 rounded-xl transition-all shadow-lg shadow-[#C66B4A]/30 hover:shadow-xl hover:scale-[1.02]"
+                    className="w-full sm:w-auto bg-[#C66B4A] hover:bg-[#B35E40] text-white font-bold px-6 sm:px-8 py-3 rounded-xl transition-all shadow-lg shadow-[#C66B4A]/30 hover:shadow-xl hover:scale-[1.02]"
                   >
-                    Start Your Cancer Journey →
+                    <span className="sm:hidden">Start Here →</span>
+                    <span className="hidden sm:inline">Start Your Cancer Journey →</span>
                   </button>
                 </div>
                 <p className="text-xs text-slate-500 mt-3 text-center">
@@ -504,26 +506,30 @@ function HomeContent() {
                   <h3 className="text-xl font-bold text-slate-900 mb-2 text-center">Who are you?</h3>
                   <p className="text-slate-500 text-sm text-center mb-6">We'll personalize your experience</p>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
                       onClick={() => { setWizardRole('patient'); setWizardStep(2); }}
-                      className="group bg-white border-2 border-slate-200 rounded-2xl p-6 hover:border-slate-900 hover:shadow-xl hover:scale-[1.02] transition-all text-center"
+                      className="group bg-white border-2 border-slate-200 rounded-xl p-4 sm:p-6 hover:border-slate-900 hover:shadow-xl hover:scale-[1.02] transition-all flex sm:flex-col items-center sm:text-center gap-4 sm:gap-0"
                     >
-                      <div className="w-16 h-16 bg-slate-100 group-hover:bg-slate-200 rounded-2xl flex items-center justify-center mx-auto mb-3 transition-colors">
-                        <Ribbon className="w-9 h-9 text-slate-700" />
+                      <div className="w-12 h-12 sm:w-16 sm:h-16 bg-slate-100 group-hover:bg-slate-200 rounded-xl sm:rounded-2xl flex items-center justify-center sm:mx-auto sm:mb-3 transition-colors flex-shrink-0">
+                        <Ribbon className="w-6 h-6 sm:w-9 sm:h-9 text-slate-700" />
                       </div>
-                      <span className="font-bold text-slate-900 text-lg block">I'm a Patient</span>
-                      <span className="text-sm text-slate-500 mt-1 block">Navigating my own diagnosis</span>
+                      <div className="text-left sm:text-center">
+                        <span className="font-bold text-slate-900 text-base sm:text-lg block">I'm a Patient</span>
+                        <span className="text-sm text-slate-500 block">Navigating my own diagnosis</span>
+                      </div>
                     </button>
                     <button
                       onClick={() => { setWizardRole('caregiver'); setWizardStep(2); }}
-                      className="group bg-white border-2 border-slate-200 rounded-2xl p-6 hover:border-slate-900 hover:shadow-xl hover:scale-[1.02] transition-all text-center"
+                      className="group bg-white border-2 border-slate-200 rounded-xl p-4 sm:p-6 hover:border-slate-900 hover:shadow-xl hover:scale-[1.02] transition-all flex sm:flex-col items-center sm:text-center gap-4 sm:gap-0"
                     >
-                      <div className="w-16 h-16 bg-slate-100 group-hover:bg-slate-200 rounded-2xl flex items-center justify-center mx-auto mb-3 transition-colors">
-                        <Heart className="w-9 h-9 text-slate-700" />
+                      <div className="w-12 h-12 sm:w-16 sm:h-16 bg-slate-100 group-hover:bg-slate-200 rounded-xl sm:rounded-2xl flex items-center justify-center sm:mx-auto sm:mb-3 transition-colors flex-shrink-0">
+                        <Heart className="w-6 h-6 sm:w-9 sm:h-9 text-slate-700" />
                       </div>
-                      <span className="font-bold text-slate-900 text-lg block">I'm a Caregiver</span>
-                      <span className="text-sm text-slate-500 mt-1 block">Supporting someone with cancer</span>
+                      <div className="text-left sm:text-center">
+                        <span className="font-bold text-slate-900 text-base sm:text-lg block">I'm a Caregiver</span>
+                        <span className="text-sm text-slate-500 block">Supporting someone with cancer</span>
+                      </div>
                     </button>
                   </div>
 
