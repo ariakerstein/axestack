@@ -794,54 +794,6 @@ function HomeContent() {
             </>
           )}
 
-          {/* RECOMMENDED FOR YOU - Only show when profile exists */}
-          {profile && (
-            <>
-              <p className="text-xs font-medium tracking-widest text-[#C66B4A] mb-3">RECOMMENDED FOR YOU</p>
-              <div className="grid md:grid-cols-2 gap-4 mb-8">
-                {/* Primary recommendation based on role */}
-                {profile.role === 'caregiver' ? (
-                  <Link href="/hub" className="group bg-white border-2 border-[#C66B4A] rounded-xl p-5 hover:shadow-lg transition-all relative">
-                    <span className="absolute -top-2.5 left-4 bg-[#C66B4A] text-white text-[10px] font-medium px-2.5 py-1 rounded">
-                      For caregivers
-                    </span>
-                    <div className="mb-3 mt-1">
-                      <Heart className="w-6 h-6 text-rose-500" />
-                    </div>
-                    <h3 className="font-bold text-slate-900 mb-1">CareCircle</h3>
-                    <p className="text-slate-600 text-sm mb-2">Keep family updated without repeating yourself.</p>
-                    <p className="text-xs text-slate-500 italic">Because you shouldn&apos;t have to send the same update 10 times.</p>
-                  </Link>
-                ) : (
-                  <Link href="/records" className="group bg-white border-2 border-[#C66B4A] rounded-xl p-5 hover:shadow-lg transition-all relative">
-                    <span className="absolute -top-2.5 left-4 bg-[#C66B4A] text-white text-[10px] font-medium px-2.5 py-1 rounded">
-                      Start here
-                    </span>
-                    <div className="mb-3 mt-1">
-                      <FolderClosed className="w-6 h-6 text-blue-500" />
-                    </div>
-                    <h3 className="font-bold text-slate-900 mb-1">Upload Your Records</h3>
-                    <p className="text-slate-600 text-sm mb-2">Translate your {CANCER_TYPES[profile.cancerType] || 'cancer'} reports to plain English.</p>
-                    <p className="text-xs text-slate-500 italic">The foundation for everything else.</p>
-                  </Link>
-                )}
-
-                {/* Secondary recommendation - Combat for everyone */}
-                <Link href="/combat" className="group bg-white border-2 border-slate-200 hover:border-[#C66B4A] rounded-xl p-5 hover:shadow-lg transition-all relative">
-                  <span className="absolute -top-2.5 left-4 bg-slate-900 text-white text-[10px] font-medium px-2.5 py-1 rounded">
-                    Get a second opinion
-                  </span>
-                  <div className="mb-3 mt-1">
-                    <span className="text-2xl">⚔️</span>
-                  </div>
-                  <h3 className="font-bold text-slate-900 mb-1">Cancer Combat</h3>
-                  <p className="text-slate-600 text-sm mb-2">5 AI experts debate your {CANCER_TYPES[profile.cancerType] || 'cancer'} case.</p>
-                  <p className="text-xs text-slate-500 italic">Find gaps in your treatment plan.</p>
-                </Link>
-              </div>
-            </>
-          )}
-
           {/* PRIMARY TOOLS - 3 cards: Upload, Combat, Expert Review */}
           <p className="text-xs font-medium tracking-widest text-slate-400 mb-3">{profile ? 'YOUR TOOLS' : 'START HERE'}</p>
           <div className="grid md:grid-cols-3 gap-4 mb-8">
@@ -879,14 +831,17 @@ function HomeContent() {
               <div className="mb-3 mt-1">
                 <img
                   src="https://images.squarespace-cdn.com/content/v1/5a4c3e3ebff200d1651f0273/1612204851498-UYVYCYQRCXVHMA08T0TS/protean_logo.png"
-                  alt="Protean"
+                  alt="Protean BioDiagnostics"
                   className="h-6 w-auto"
                   onError={(e) => { e.currentTarget.style.display = 'none' }}
                 />
               </div>
-              <h3 className="font-bold text-slate-900 mb-1">Pathology Review</h3>
+              <h3 className="font-bold text-slate-900 mb-1">Expert Pathology Review</h3>
               <p className="text-slate-600 text-sm mb-2">Board-certified pathologists verify diagnosis.</p>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">$650</span>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">$650</span>
+                <span className="text-[10px] text-slate-400">Powered by Protean</span>
+              </div>
             </Link>
           </div>
 
