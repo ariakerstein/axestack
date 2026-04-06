@@ -619,13 +619,20 @@ function HomeContent() {
                   <button onClick={() => setWizardStep(2)} className="text-slate-400 hover:text-slate-600 text-sm mb-4 flex items-center gap-1">
                     ← Back
                   </button>
+
+                  {/* Step label with color */}
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    <span className="text-xs font-medium text-[#C66B4A]">Step 3 of 3</span>
+                    <span className="text-xs text-slate-400">— Almost there!</span>
+                  </div>
+
                   <h3 className="text-xl font-bold text-slate-900 mb-2">What type of cancer?</h3>
                   <p className="text-slate-500 text-sm mb-6">We'll customize your NCCN guidelines & resources</p>
                   <div className="space-y-4">
                     <select
                       value={wizardCancerType}
                       onChange={(e) => setWizardCancerType(e.target.value)}
-                      className="w-full px-4 py-3.5 bg-slate-50 text-slate-900 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent focus:bg-white transition-colors"
+                      className="w-full px-4 py-3.5 bg-slate-50 text-slate-900 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C66B4A] focus:border-transparent focus:bg-white transition-colors"
                     >
                       <option value="">Select cancer type...</option>
                       {Object.entries(CANCER_TYPES).map(([key, label]) => (
@@ -633,17 +640,17 @@ function HomeContent() {
                       ))}
                     </select>
 
-                    {/* Summary */}
+                    {/* Summary - with gradient accent */}
                     {wizardCancerType && (
-                      <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2">Your Profile</p>
+                      <div className="bg-gradient-to-r from-[#C66B4A]/5 to-emerald-500/5 rounded-xl p-4 border border-[#C66B4A]/20">
+                        <p className="text-xs font-semibold text-[#C66B4A] uppercase tracking-wide mb-2">Your Profile</p>
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-200">
-                            {wizardRole === 'caregiver' ? <Heart className="w-6 h-6 text-slate-700" /> : <Ribbon className="w-6 h-6 text-slate-700" />}
+                          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm border border-[#C66B4A]/20">
+                            {wizardRole === 'caregiver' ? <Heart className="w-6 h-6 text-[#C66B4A]" /> : <Ribbon className="w-6 h-6 text-[#C66B4A]" />}
                           </div>
                           <div>
                             <p className="font-semibold text-slate-900">{wizardName}</p>
-                            <p className="text-slate-600 text-sm">{CANCER_TYPES[wizardCancerType]}</p>
+                            <p className="text-[#C66B4A] text-sm font-medium">{CANCER_TYPES[wizardCancerType]}</p>
                           </div>
                         </div>
                       </div>
