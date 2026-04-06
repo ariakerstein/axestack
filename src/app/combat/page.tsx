@@ -1723,74 +1723,14 @@ export default function CombatPage() {
                   </div>
                 </div>
 
-                {/* Upgrade Prompt - Show for non-premium users */}
-                {!isPremiumUser && (
-                  <div className="bg-[#fdf5f2] border border-stone-200 rounded-2xl p-6">
-                    <h3 className="text-lg font-semibold text-slate-900 text-center mb-2">
-                      You&apos;ve found something important
-                    </h3>
-                    <p className="text-slate-600 text-center mb-5">
-                      {currentResult.divergence.length} findings worth discussing with your oncologist. Get the full report — formatted for your appointment.
-                    </p>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <button
-                        onClick={() => setShowUpgradePrompt(false)}
-                        className="p-4 bg-white border border-slate-200 rounded-xl text-center hover:bg-slate-50 transition-colors"
-                      >
-                        <p className="font-semibold text-slate-900">Free</p>
-                        <p className="text-sm text-slate-500">View on screen only</p>
-                      </button>
-                      <button
-                        disabled={checkoutLoading}
-                        onClick={async () => {
-                          setCheckoutLoading(true)
-                          try {
-                            const response = await fetch('/api/checkout', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                productId: 'combat-pdf',
-                                userId: user?.id || null,
-                                email: user?.email || null,
-                                combatResultId: lastCombatId || null,
-                              }),
-                            })
-                            const data = await response.json()
-                            if (data.url) {
-                              window.location.href = data.url
-                            } else {
-                              console.error('No checkout URL returned:', data)
-                              setCheckoutLoading(false)
-                            }
-                          } catch (err) {
-                            console.error('Checkout error:', err)
-                            setCheckoutLoading(false)
-                          }
-                        }}
-                        className="p-4 bg-[#C66B4A] rounded-xl text-center text-white hover:bg-[#B35E40] transition-colors disabled:opacity-50 disabled:cursor-wait cursor-pointer touch-manipulation"
-                      >
-                        <p className="font-semibold">{checkoutLoading ? 'Processing...' : '$29 — PDF Report'}</p>
-                        <p className="text-sm text-white/80">Formatted for your oncologist</p>
-                      </button>
-                    </div>
-
-                    <p className="text-xs text-slate-500 text-center mt-4">
-                      Or <button onClick={() => setShowUpgradeModal(true)} className="underline hover:text-slate-700">upgrade to Pro</button> for unlimited reports →
-                    </p>
+                {/* Full synthesis - available to all users */}
+                <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-6 shadow-lg">
+                  <div className="flex items-center gap-2 mb-3">
+                    <CheckCircle2 className="w-5 h-5 text-green-400" />
+                    <span className="text-sm font-medium text-slate-300 uppercase tracking-wide">Full Analysis</span>
                   </div>
-                )}
-
-                {/* Full synthesis for premium users */}
-                {isPremiumUser && (
-                  <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-6 shadow-lg">
-                    <div className="flex items-center gap-2 mb-3">
-                      <CheckCircle2 className="w-5 h-5 text-green-400" />
-                      <span className="text-sm font-medium text-slate-300 uppercase tracking-wide">Full Analysis</span>
-                    </div>
-                    <p className="text-lg leading-relaxed">{currentResult.synthesis}</p>
-                  </div>
-                )}
+                  <p className="text-lg leading-relaxed">{currentResult.synthesis}</p>
+                </div>
 
                 {/* Expert Review CTA */}
                 <button
