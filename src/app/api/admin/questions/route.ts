@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 
 const SUPABASE_URL = "https://felofmlhqwcdpiyjgstx.supabase.co"
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-const ADMIN_KEY = process.env.ADMIN_KEY || 'opencancer-admin-2024'
+const ADMIN_KEY = process.env.ADMIN_KEY || ''
 
 interface QuestionRecord {
   id: string

@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react'
 import Link from 'next/link'
+import DOMPurify from 'dompurify'
 import { TypewriterMarkdown } from '@/components/TypewriterMarkdown'
 import { FileText, Search, FlaskConical, Ribbon, MessageCircle, BookOpen, ArrowRight, Upload, Link2, Building2, Shield, ShieldCheck, CheckCircle2, Share2, Download, Cloud, User, Mail, Sparkles, Trash2, Eye, Inbox, Paperclip, RefreshCw, Pencil, Check, X } from 'lucide-react'
 import { useAnalytics } from '@/hooks/useAnalytics'
@@ -2780,7 +2781,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                   {/* Email Body */}
                   <div className="prose prose-sm max-w-none">
                     {selectedEmail.body_html ? (
-                      <div dangerouslySetInnerHTML={{ __html: selectedEmail.body_html }} />
+                      <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedEmail.body_html) }} />
                     ) : selectedEmail.body_text ? (
                       <pre className="whitespace-pre-wrap text-sm text-slate-700 font-sans">
                         {selectedEmail.body_text}

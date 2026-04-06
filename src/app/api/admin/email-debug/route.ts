@@ -5,7 +5,7 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://felofmlhqw
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ""
 
 // Simple admin secret - should be set in env
-const ADMIN_SECRET = process.env.ADMIN_SECRET || 'opencancer-admin-2024'
+const ADMIN_SECRET = process.env.ADMIN_SECRET || ''
 
 function getSupabase() {
   return createClient(SUPABASE_URL, SUPABASE_KEY)

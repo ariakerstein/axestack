@@ -16,7 +16,7 @@ export async function GET(request: Request) {
 
   // Simple auth check - require admin password in header
   const authHeader = request.headers.get('x-admin-key')
-  const adminKey = process.env.ADMIN_KEY || 'opencancer-admin-2024'
+  const adminKey = process.env.ADMIN_KEY || ''
 
   if (authHeader !== adminKey) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
