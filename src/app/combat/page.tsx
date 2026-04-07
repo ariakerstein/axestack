@@ -786,7 +786,7 @@ function ExpertModal({
       organization: 'Protean BioDiagnostics',
       specialty: 'Precision oncology, molecular diagnostics, biomarker-driven therapy',
       image: '/team/tony-magliocco.png',
-      bio: '25+ years in pathology and molecular diagnostics. 200+ peer-reviewed publications. Expert in precision medicine and cancer diagnostics.',
+      bio: 'Board-certified pathologist with 25+ years in pathology and molecular diagnostics. Formerly at Moffitt Cancer Center. 200+ peer-reviewed publications. Expert in precision medicine, cancer diagnostics, and biomarker-driven therapy.',
       availability: '2-3 business days',
       price: '$650',
       priceAmount: 650,
@@ -1081,13 +1081,18 @@ function ExpertModal({
           {/* Step 2: Record Selection */}
           {step === 2 && selectedExpert && (
             <div className="space-y-6">
-              {/* Selected expert summary */}
-              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                <img src={selectedExpert.image} alt="" className="w-10 h-10 rounded-lg object-cover" />
-                <div>
-                  <p className="font-semibold text-slate-900 text-sm">{selectedExpert.name}</p>
-                  <p className="text-xs text-slate-500">{selectedExpert.organization}</p>
+              {/* Selected expert summary with bio */}
+              <div className="p-4 bg-slate-50 rounded-xl">
+                <div className="flex items-center gap-3 mb-3">
+                  <img src={selectedExpert.image} alt="" className="w-12 h-12 rounded-full object-cover border-2 border-slate-200" />
+                  <div>
+                    <p className="font-semibold text-slate-900">{selectedExpert.name}</p>
+                    <p className="text-sm text-slate-500">{selectedExpert.organization}</p>
+                  </div>
                 </div>
+                {selectedExpert.bio && (
+                  <p className="text-sm text-slate-600 leading-relaxed">{selectedExpert.bio}</p>
+                )}
               </div>
 
               <div>
