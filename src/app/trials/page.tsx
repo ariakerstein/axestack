@@ -2,12 +2,12 @@
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
-import { CANCER_TYPES } from '@/lib/cancer-data'
+import { CANCER_TYPES, BIOMARKERS, getBiomarkersForCancer } from '@/lib/cancer-data'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { useActivityLog } from '@/hooks/useActivityLog'
 import { ShareButton } from '@/components/ShareButton'
 import { useAuth } from '@/lib/auth'
-import { X, ExternalLink, MapPin, Building2, FlaskConical, CheckCircle2 } from 'lucide-react'
+import { X, ExternalLink, MapPin, Building2, FlaskConical, CheckCircle2, Filter, ChevronDown } from 'lucide-react'
 import { Navbar } from '@/components/Navbar'
 
 interface PatientProfile {
@@ -15,6 +15,30 @@ interface PatientProfile {
   stage?: string
   location?: string
 }
+
+// Filter options
+const DISTANCE_OPTIONS = [
+  { value: '', label: 'Any distance' },
+  { value: '25', label: 'Within 25 miles' },
+  { value: '50', label: 'Within 50 miles' },
+  { value: '100', label: 'Within 100 miles' },
+  { value: '250', label: 'Within 250 miles' },
+]
+
+const PHASE_OPTIONS = [
+  { value: '', label: 'All phases' },
+  { value: 'Phase 1', label: 'Phase 1' },
+  { value: 'Phase 2', label: 'Phase 2' },
+  { value: 'Phase 3', label: 'Phase 3' },
+  { value: 'Phase 4', label: 'Phase 4' },
+]
+
+const STATUS_OPTIONS = [
+  { value: 'recruiting', label: 'Recruiting' },
+  { value: 'not_yet_recruiting', label: 'Not yet recruiting' },
+  { value: 'active', label: 'Active, not recruiting' },
+  { value: '', label: 'All statuses' },
+]
 
 interface Trial {
   id: string
@@ -39,9 +63,21 @@ export default function TrialsPage() {
   const [searched, setSearched] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedTrial, setSelectedTrial] = useState<Trial | null>(null)
+  const [showFilters, setShowFilters] = useState(false)
+
+  // Filter state
+  const [filters, setFilters] = useState({
+    biomarker: '',
+    distance: '',
+    phase: '',
+    status: 'recruiting',
+  })
 
   const { trackEvent } = useAnalytics()
   const { logTrialSearch, logTrialView } = useActivityLog()
+
+  // Get biomarkers for current cancer type
+  const availableBiomarkers = profile ? getBiomarkersForCancer(profile.cancerType) : []
 
   useEffect(() => {
     if (authLoading) return
@@ -77,7 +113,10 @@ export default function TrialsPage() {
           cancerType: CANCER_TYPES[profile.cancerType] || profile.cancerType,
           stage: profile.stage,
           location: profile.location,
-          status: 'recruiting',
+          status: filters.status || undefined,
+          biomarker: filters.biomarker || undefined,
+          distance: filters.distance || undefined,
+          phase: filters.phase || undefined,
         }),
       })
 
@@ -86,7 +125,16 @@ export default function TrialsPage() {
       }
 
       const data = await response.json()
-      setTrials(data.trials || [])
+      let filteredTrials = data.trials || []
+
+      // Client-side filtering for phase (in case API doesn't support it)
+      if (filters.phase && filteredTrials.length > 0) {
+        filteredTrials = filteredTrials.filter((t: Trial) =>
+          t.phase?.toLowerCase().includes(filters.phase.toLowerCase())
+        )
+      }
+
+      setTrials(filteredTrials)
       setSearched(true)
 
       // Track trial search
@@ -94,14 +142,23 @@ export default function TrialsPage() {
         cancer_type: profile.cancerType,
         stage: profile.stage || null,
         location: profile.location || null,
-        results_count: data.trials?.length || 0,
+        biomarker: filters.biomarker || null,
+        phase: filters.phase || null,
+        distance: filters.distance || null,
+        results_count: filteredTrials.length,
       })
 
       // Log to patient graph
       logTrialSearch({
         query: profile.cancerType,
-        filters: { stage: profile.stage, location: profile.location },
-        resultsCount: data.trials?.length || 0,
+        filters: {
+          stage: profile.stage,
+          location: profile.location,
+          biomarker: filters.biomarker,
+          phase: filters.phase,
+          distance: filters.distance,
+        },
+        resultsCount: filteredTrials.length,
       })
     } catch (err) {
       console.error('Trial search error:', err)
@@ -148,7 +205,7 @@ export default function TrialsPage() {
         ) : (
           /* Has profile - show trial search */
           <div>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-blue-800">
@@ -159,6 +216,104 @@ export default function TrialsPage() {
                 </div>
                 <Link href="/profile" className="text-xs text-blue-600 hover:text-blue-800">Edit</Link>
               </div>
+            </div>
+
+            {/* Filters */}
+            <div className="mb-6">
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 mb-3"
+              >
+                <Filter className="w-4 h-4" />
+                <span>Filters</span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+                {(filters.biomarker || filters.phase || filters.distance || filters.status !== 'recruiting') && (
+                  <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">
+                    {[filters.biomarker, filters.phase, filters.distance, filters.status !== 'recruiting' ? filters.status : ''].filter(Boolean).length} active
+                  </span>
+                )}
+              </button>
+
+              {showFilters && (
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {/* Biomarker Filter */}
+                    {availableBiomarkers.length > 0 && (
+                      <div>
+                        <label className="block text-xs font-medium text-slate-700 mb-1">Biomarker</label>
+                        <select
+                          value={filters.biomarker}
+                          onChange={(e) => setFilters({ ...filters, biomarker: e.target.value })}
+                          className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="">Any biomarker</option>
+                          {availableBiomarkers.map((b) => (
+                            <option key={b.marker} value={b.marker}>{b.marker}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Distance Filter */}
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1">Distance</label>
+                      <select
+                        value={filters.distance}
+                        onChange={(e) => setFilters({ ...filters, distance: e.target.value })}
+                        className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        {DISTANCE_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Phase Filter */}
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1">Phase</label>
+                      <select
+                        value={filters.phase}
+                        onChange={(e) => setFilters({ ...filters, phase: e.target.value })}
+                        className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        {PHASE_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Status Filter */}
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1">Status</label>
+                      <select
+                        value={filters.status}
+                        onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                        className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        {STATUS_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-200">
+                    <button
+                      onClick={() => setFilters({ biomarker: '', distance: '', phase: '', status: 'recruiting' })}
+                      className="text-xs text-slate-500 hover:text-slate-700"
+                    >
+                      Reset filters
+                    </button>
+                    <button
+                      onClick={searchTrials}
+                      disabled={searching}
+                      className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                    >
+                      {searching ? 'Searching...' : 'Apply Filters'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {searching && (

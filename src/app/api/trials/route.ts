@@ -9,6 +9,9 @@ interface TrialSearchParams {
   stage?: string
   location?: string
   status?: string
+  biomarker?: string
+  distance?: string
+  phase?: string
 }
 
 export async function POST(request: NextRequest) {
@@ -29,6 +32,9 @@ export async function POST(request: NextRequest) {
           stage: searchParams.stage,
           location: searchParams.location,
           status: searchParams.status || 'recruiting',
+          biomarker: searchParams.biomarker,
+          distance: searchParams.distance,
+          phase: searchParams.phase,
         },
       }),
     })
