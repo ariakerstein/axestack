@@ -390,19 +390,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     try {
-      // Clear state first
-      setUser(null)
-      setSession(null)
-      setProfile(null)
+      // IMPORTANT: Clear localStorage BEFORE setting state to null
+      // This prevents race condition where Navbar re-renders and reads stale localStorage
+      clearUserLocalStorage({ includeAuthToken: true })
 
-      // Sign out from Supabase FIRST (clears auth tokens from cookies/storage)
+      // Sign out from Supabase (clears auth tokens from cookies/storage)
       const { error } = await supabase.auth.signOut({ scope: 'local' })
       if (error) {
         console.error('Supabase signOut error:', error)
       }
 
-      // Clear ALL localStorage to prevent data leakage between users
-      clearUserLocalStorage({ includeAuthToken: true })
+      // Clear state last (this triggers re-renders, but localStorage is already clean)
+      setUser(null)
+      setSession(null)
+      setProfile(null)
 
       // Force page reload to clear any cached state
       if (typeof window !== 'undefined') {

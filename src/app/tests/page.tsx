@@ -162,10 +162,10 @@ export default function TestsPage() {
         // Small delay to let auth settle and avoid lock conflicts
         await new Promise(resolve => setTimeout(resolve, 100))
 
-        // Fetch tests from both tables and combine
+        // Fetch tests from both tables and combine (increased limits to get all tests)
         const [dxResult, openoncoResult] = await Promise.allSettled([
-          supabase.from('dx_test_master').select('*').order('test_name').limit(200),
-          supabase.from('openonco_tests').select('*').order('test_name').limit(200)
+          supabase.from('dx_test_master').select('*').order('test_name').limit(500),
+          supabase.from('openonco_tests').select('*').order('test_name').limit(500)
         ])
 
         const dxTests = dxResult.status === 'fulfilled' && !dxResult.value.error ? dxResult.value.data || [] : []

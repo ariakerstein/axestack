@@ -249,20 +249,21 @@ export default function TrialsPage() {
               </button>
 
               {showFilters && (
-                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-4">
+                <div className="bg-white border border-slate-300 rounded-lg p-4 space-y-4 shadow-sm">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {/* Biomarker Filter */}
                     {availableBiomarkers.length > 0 && (
                       <div>
-                        <label className="block text-xs font-semibold text-slate-900 mb-1.5">Biomarker</label>
+                        <label className="block text-sm font-medium text-gray-900 mb-2">Biomarker</label>
                         <select
                           value={filters.biomarker}
                           onChange={(e) => setFilters({ ...filters, biomarker: e.target.value })}
-                          className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          style={{ color: '#111827', backgroundColor: '#f9fafb' }}
+                          className="w-full text-sm border-2 border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         >
-                          <option value="">Any Biomarker</option>
+                          <option value="" style={{ color: '#111827' }}>Any Biomarker</option>
                           {availableBiomarkers.map((b) => (
-                            <option key={b.marker} value={b.marker}>{b.marker}</option>
+                            <option key={b.marker} value={b.marker} style={{ color: '#111827' }}>{b.marker}</option>
                           ))}
                         </select>
                       </div>
@@ -270,51 +271,54 @@ export default function TrialsPage() {
 
                     {/* Location (State) Filter */}
                     <div>
-                      <label className="block text-xs font-semibold text-slate-900 mb-1.5">State</label>
+                      <label className="block text-sm font-medium text-gray-900 mb-2">State</label>
                       <select
                         value={filters.locationState}
                         onChange={(e) => setFilters({ ...filters, locationState: e.target.value })}
-                        className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        style={{ color: '#111827', backgroundColor: '#f9fafb' }}
+                        className="w-full text-sm border-2 border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
                         {US_STATES.map((opt) => (
-                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                          <option key={opt.value} value={opt.value} style={{ color: '#111827' }}>{opt.label}</option>
                         ))}
                       </select>
                     </div>
 
                     {/* Phase Filter */}
                     <div>
-                      <label className="block text-xs font-semibold text-slate-900 mb-1.5">Trial Phase</label>
+                      <label className="block text-sm font-medium text-gray-900 mb-2">Phase</label>
                       <select
                         value={filters.phase}
                         onChange={(e) => setFilters({ ...filters, phase: e.target.value })}
-                        className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        style={{ color: '#111827', backgroundColor: '#f9fafb' }}
+                        className="w-full text-sm border-2 border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
                         {PHASE_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                          <option key={opt.value} value={opt.value} style={{ color: '#111827' }}>{opt.label}</option>
                         ))}
                       </select>
                     </div>
 
                     {/* Status Filter */}
                     <div>
-                      <label className="block text-xs font-semibold text-slate-900 mb-1.5">Enrollment</label>
+                      <label className="block text-sm font-medium text-gray-900 mb-2">Status</label>
                       <select
                         value={filters.status}
                         onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                        className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        style={{ color: '#111827', backgroundColor: '#f9fafb' }}
+                        className="w-full text-sm border-2 border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
                         {STATUS_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                          <option key={opt.value} value={opt.value} style={{ color: '#111827' }}>{opt.label}</option>
                         ))}
                       </select>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-3 border-t border-slate-200">
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-200">
                     <button
                       onClick={() => setFilters({ biomarker: '', locationState: '', phase: '', status: 'recruiting' })}
-                      className="text-sm text-slate-600 hover:text-slate-900 font-medium"
+                      className="text-sm text-gray-700 hover:text-gray-900 font-medium"
                     >
                       Reset filters
                     </button>

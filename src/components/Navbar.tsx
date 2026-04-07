@@ -19,18 +19,32 @@ export function Navbar({ showBack = false, backHref = '/', backLabel = 'Home' }:
   const [localProfile, setLocalProfile] = useState<{ name: string; email: string } | null>(null)
 
   // Check localStorage for wizard-created profile (for guests who completed onboarding)
+  // Also clear localProfile when user signs out (user goes from truthy to null)
   useEffect(() => {
     if (typeof window === 'undefined') return
-    if (user) return // Don't need localStorage if user is authenticated
 
+    // If user is authenticated, clear any stale localStorage profile state
+    if (user) {
+      setLocalProfile(null)
+      return
+    }
+
+    // Check localStorage for guest profile
     const saved = localStorage.getItem('patient-profile')
     if (saved) {
       try {
         const parsed = JSON.parse(saved)
         if (parsed.name) {
           setLocalProfile({ name: parsed.name, email: parsed.email || '' })
+        } else {
+          setLocalProfile(null)
         }
-      } catch { /* ignore */ }
+      } catch {
+        setLocalProfile(null)
+      }
+    } else {
+      // No profile in localStorage - clear state
+      setLocalProfile(null)
     }
   }, [user])
 
