@@ -450,8 +450,7 @@ function HomeContent() {
                     onClick={() => { setShowWizardModal(true); setWizardStep(1); setWizardRole(null); setWizardRedirectTo(null); }}
                     className="w-full sm:w-auto bg-[#C66B4A] hover:bg-[#B35E40] text-white font-bold px-6 sm:px-8 py-3 rounded-xl transition-all shadow-lg shadow-[#C66B4A]/30 hover:shadow-xl hover:scale-[1.02]"
                   >
-                    <span className="sm:hidden">Start Here →</span>
-                    <span className="hidden sm:inline">Start Your Cancer Journey →</span>
+                    Review My Case →
                   </button>
                 </div>
                 <p className="text-xs text-slate-500 mt-3 text-center">

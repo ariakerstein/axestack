@@ -13,6 +13,16 @@ import { ShareButton } from '@/components/ShareButton'
 import { Navbar } from '@/components/Navbar'
 import { ThinkingIndicator } from '@/components/ThinkingIndicator'
 
+// Types for file attachments
+interface AttachedFile {
+  file: File
+  preview?: string
+  extractedText?: string
+  extractedEntities?: Array<{ type: string; value: string }>
+  status: 'pending' | 'processing' | 'ready' | 'error'
+  error?: string
+}
+
 // Get or create a session ID for anonymous users
 function getSessionId(): string {
   if (typeof window === 'undefined') return ''
@@ -72,13 +82,72 @@ function AskPageContent() {
   const [shareUrl, setShareUrl] = useState<string | null>(null)
   const [sessionId, setSessionId] = useState<string>('')
   const [hasPatientContext, setHasPatientContext] = useState(false)
+  const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([])
+  const [isProcessingFile, setIsProcessingFile] = useState(false)
+  // Selective friction state
+  const [showProfilePrompt, setShowProfilePrompt] = useState(false)
+  const [showWikiPrompt, setShowWikiPrompt] = useState(false)
+  const [showCareCirclePrompt, setShowCareCirclePrompt] = useState(false)
+  const [promptsDismissed, setPromptsDismissed] = useState<Set<string>>(new Set())
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Initialize session ID for anonymous users
   useEffect(() => {
     setSessionId(getSessionId())
   }, [])
+
+  // Load dismissed prompts from localStorage
+  useEffect(() => {
+    const dismissed = localStorage.getItem('ask-prompts-dismissed')
+    if (dismissed) {
+      try {
+        setPromptsDismissed(new Set(JSON.parse(dismissed)))
+      } catch (e) {
+        // Ignore
+      }
+    }
+  }, [])
+
+  // Selective friction: Show prompts based on engagement
+  useEffect(() => {
+    // Don't show prompts if user is authenticated and has profile
+    if (user && authProfile?.cancer_type && authProfile.cancer_type !== 'other') {
+      return
+    }
+
+    // After first question - prompt for cancer type if not set
+    if (questionCount === 1 && !cancerType && !promptsDismissed.has('profile')) {
+      // Delay slightly so response comes first
+      const timer = setTimeout(() => setShowProfilePrompt(true), 2000)
+      return () => clearTimeout(timer)
+    }
+
+    // After 3 questions - prompt for profile to save their "wiki"
+    if (questionCount === 3 && !user && !promptsDismissed.has('wiki')) {
+      const timer = setTimeout(() => setShowWikiPrompt(true), 2000)
+      return () => clearTimeout(timer)
+    }
+
+    // After 5 questions - prompt for CareCircle
+    if (questionCount === 5 && !promptsDismissed.has('carecircle')) {
+      const timer = setTimeout(() => setShowCareCirclePrompt(true), 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [questionCount, cancerType, user, authProfile, promptsDismissed])
+
+  // Dismiss a prompt and remember it
+  const dismissPrompt = (promptType: string) => {
+    const newDismissed = new Set(promptsDismissed)
+    newDismissed.add(promptType)
+    setPromptsDismissed(newDismissed)
+    localStorage.setItem('ask-prompts-dismissed', JSON.stringify([...newDismissed]))
+
+    if (promptType === 'profile') setShowProfilePrompt(false)
+    if (promptType === 'wiki') setShowWikiPrompt(false)
+    if (promptType === 'carecircle') setShowCareCirclePrompt(false)
+  }
 
   // Load concise mode preference
   useEffect(() => {
@@ -166,14 +235,14 @@ function AskPageContent() {
         role: 'assistant',
         content: `Hi, I'm your **opencancer.ai assistant**. I can help you find information about cancer treatments, clinical trials, and caregiver strategies, grounded in NCCN guidelines and expert-led resources.
 
-**Get personalized guidance:** Click the settings icon to select your cancer type for tailored information.
+📎 **NEW: Drop your medical records right here!** Click the paperclip to attach a pathology report, lab result, or scan — I'll read it and answer questions about YOUR specific case.
 
 I can help you with:
+- **Analyzing your records** — attach any PDF or image and ask "what does this mean?"
 - Understanding NCCN guidelines for your specific situation
 - Exploring treatment options and clinical trials
-- Preparing questions for your oncologist
 - Interpreting test results and biomarkers
-- Understanding side effects and what to expect
+- Preparing questions for your oncologist
 
 **Please remember:** This is educational information only, not medical advice. Always consult your doctor about your specific situation.
 
@@ -202,9 +271,101 @@ I can help you with:
     }
   }, [input])
 
+  // Handle file attachment
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    const file = files[0]
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/heic']
+
+    if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|jpg|jpeg|png|webp|heic)$/i)) {
+      alert('Please upload a PDF or image file (JPG, PNG, WebP, HEIC)')
+      return
+    }
+
+    // Add file to attachments with pending status
+    const newFile: AttachedFile = {
+      file,
+      status: 'pending',
+      preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
+    }
+    setAttachedFiles([newFile]) // Replace any existing attachment
+    setIsProcessingFile(true)
+
+    // Process the file via translate API
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/translate', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to process file')
+      }
+
+      const data = await response.json()
+
+      // Extract entities from the translation
+      const entities: Array<{ type: string; value: string }> = []
+      if (data.cancerType) entities.push({ type: 'Cancer Type', value: data.cancerType })
+      if (data.stage) entities.push({ type: 'Stage', value: data.stage })
+      if (data.biomarkers && data.biomarkers.length > 0) {
+        data.biomarkers.forEach((b: string) => entities.push({ type: 'Biomarker', value: b }))
+      }
+
+      setAttachedFiles([{
+        ...newFile,
+        status: 'ready',
+        extractedText: data.summary || data.translation || 'Document processed',
+        extractedEntities: entities,
+      }])
+
+      // Track the attachment
+      trackEvent('chat_file_attached', {
+        file_type: file.type,
+        file_size: file.size,
+        entities_found: entities.length,
+      })
+    } catch (err) {
+      console.error('File processing error:', err)
+      setAttachedFiles([{
+        ...newFile,
+        status: 'error',
+        error: 'Could not process file. Try uploading to Records instead.',
+      }])
+    } finally {
+      setIsProcessingFile(false)
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
+  // Remove attached file
+  const removeAttachment = () => {
+    setAttachedFiles([])
+  }
+
   const handleSubmit = async (messageText?: string) => {
     const text = messageText || input
     if (!text.trim() || isLoading) return
+
+    // Build context from attached files
+    const readyAttachment = attachedFiles.find(f => f.status === 'ready')
+    let fileContext = ''
+    if (readyAttachment?.extractedText) {
+      fileContext = `\n\n[ATTACHED DOCUMENT CONTEXT]\n${readyAttachment.extractedText}`
+      if (readyAttachment.extractedEntities && readyAttachment.extractedEntities.length > 0) {
+        fileContext += '\n\nExtracted findings:\n' +
+          readyAttachment.extractedEntities.map(e => `- ${e.type}: ${e.value}`).join('\n')
+      }
+      fileContext += '\n[END DOCUMENT CONTEXT]'
+    }
 
     // Track the question being asked (include full question text for admin insights)
     trackEvent('ask_question', {
@@ -212,6 +373,7 @@ I can help you with:
       question_length: text.trim().length,
       cancer_type: cancerType || null,
       is_suggested_question: !!messageText,
+      has_file_attachment: !!readyAttachment,
     })
 
     // Soft auth gate
@@ -240,18 +402,24 @@ I can help you with:
     setInput('')
     setIsLoading(true)
 
+    // Clear attachments after sending (they're now in context)
+    if (readyAttachment) {
+      setAttachedFiles([])
+    }
+
     try {
       const response = await fetch('/api/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: text.trim(),
+          message: text.trim() + fileContext, // Include file context in the message
           cancerType: cancerType || undefined,
           history: messages.filter(m => !m.isLoading).slice(-6),
           conciseMode,
           // Pass user/session context for personalized answers from knowledge graph
           userId: user?.id,
           sessionId: sessionId,
+          hasFileAttachment: !!readyAttachment,
         })
       })
 
@@ -668,16 +836,235 @@ I can help you with:
         </div>
       </div>
 
+      {/* Selective Friction Prompts */}
+      {/* Profile Prompt - after first question if no cancer type */}
+      {showProfilePrompt && (
+        <div className="fixed bottom-24 left-0 right-0 z-40 px-4">
+          <div className="max-w-lg mx-auto bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl p-4 shadow-2xl animate-in slide-in-from-bottom">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="font-medium mb-1">Get more personalized answers</p>
+                <p className="text-sm text-slate-300 mb-3">Tell me your cancer type and I can tailor my guidance to your specific situation.</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setShowSettingsModal(true)
+                      dismissPrompt('profile')
+                      trackEvent('friction_prompt_accepted', { type: 'profile', question_count: questionCount })
+                    }}
+                    className="px-4 py-2 bg-white text-slate-900 font-medium rounded-lg hover:bg-slate-100 transition-colors text-sm"
+                  >
+                    Select Cancer Type
+                  </button>
+                  <button
+                    onClick={() => {
+                      dismissPrompt('profile')
+                      trackEvent('friction_prompt_dismissed', { type: 'profile', question_count: questionCount })
+                    }}
+                    className="px-3 py-2 text-slate-400 hover:text-white transition-colors text-sm"
+                  >
+                    Maybe later
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Wiki Prompt - after 3 questions */}
+      {showWikiPrompt && (
+        <div className="fixed bottom-24 left-0 right-0 z-40 px-4">
+          <div className="max-w-lg mx-auto bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl p-4 shadow-2xl animate-in slide-in-from-bottom">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="font-medium mb-1">Your questions are building your cancer wiki</p>
+                <p className="text-sm text-emerald-100 mb-3">You've asked {questionCount} questions. Create a free profile to save them and get personalized answers based on your full history.</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setShowAuthModal(true)
+                      dismissPrompt('wiki')
+                      trackEvent('friction_prompt_accepted', { type: 'wiki', question_count: questionCount })
+                    }}
+                    className="px-4 py-2 bg-white text-emerald-700 font-medium rounded-lg hover:bg-emerald-50 transition-colors text-sm"
+                  >
+                    Save My Questions
+                  </button>
+                  <button
+                    onClick={() => {
+                      dismissPrompt('wiki')
+                      trackEvent('friction_prompt_dismissed', { type: 'wiki', question_count: questionCount })
+                    }}
+                    className="px-3 py-2 text-emerald-200 hover:text-white transition-colors text-sm"
+                  >
+                    Continue as guest
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CareCircle Prompt - after 5 questions */}
+      {showCareCirclePrompt && (
+        <div className="fixed bottom-24 left-0 right-0 z-40 px-4">
+          <div className="max-w-lg mx-auto bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-2xl p-4 shadow-2xl animate-in slide-in-from-bottom">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="font-medium mb-1">Caregivers have the same questions</p>
+                <p className="text-sm text-rose-100 mb-3">Share your insights with family and friends who are supporting you. Create a CareCircle to keep everyone informed.</p>
+                <div className="flex gap-2">
+                  <a
+                    href="/hub"
+                    onClick={() => {
+                      dismissPrompt('carecircle')
+                      trackEvent('friction_prompt_accepted', { type: 'carecircle', question_count: questionCount })
+                    }}
+                    className="px-4 py-2 bg-white text-rose-600 font-medium rounded-lg hover:bg-rose-50 transition-colors text-sm"
+                  >
+                    Create CareCircle
+                  </a>
+                  <button
+                    onClick={() => {
+                      dismissPrompt('carecircle')
+                      trackEvent('friction_prompt_dismissed', { type: 'carecircle', question_count: questionCount })
+                    }}
+                    className="px-3 py-2 text-rose-200 hover:text-white transition-colors text-sm"
+                  >
+                    Not now
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Floating Input Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe">
         <div className="max-w-4xl mx-auto px-4 py-4">
+          {/* File Attachment Preview */}
+          {attachedFiles.length > 0 && (
+            <div className="mb-2">
+              {attachedFiles.map((attachment, idx) => (
+                <div
+                  key={idx}
+                  className={`flex items-start gap-3 p-3 rounded-xl border ${
+                    attachment.status === 'error'
+                      ? 'bg-red-50 border-red-200'
+                      : attachment.status === 'ready'
+                        ? 'bg-green-50 border-green-200'
+                        : 'bg-slate-50 border-slate-200'
+                  }`}
+                >
+                  {/* Preview thumbnail */}
+                  {attachment.preview ? (
+                    <img
+                      src={attachment.preview}
+                      alt="Preview"
+                      className="w-12 h-12 object-cover rounded-lg flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 bg-slate-200 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <svg className="w-6 h-6 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                  )}
+
+                  {/* File info */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-900 truncate">{attachment.file.name}</p>
+                    {attachment.status === 'pending' || attachment.status === 'processing' ? (
+                      <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
+                        <div className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+                        Analyzing document...
+                      </div>
+                    ) : attachment.status === 'error' ? (
+                      <p className="text-xs text-red-600 mt-1">{attachment.error}</p>
+                    ) : attachment.extractedEntities && attachment.extractedEntities.length > 0 ? (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {attachment.extractedEntities.slice(0, 4).map((entity, i) => (
+                          <span key={i} className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded">
+                            {entity.type}: {entity.value}
+                          </span>
+                        ))}
+                        {attachment.extractedEntities.length > 4 && (
+                          <span className="text-[10px] text-slate-500">+{attachment.extractedEntities.length - 4} more</span>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-green-600 mt-1">Ready to include in question</p>
+                    )}
+                  </div>
+
+                  {/* Remove button */}
+                  <button
+                    onClick={removeAttachment}
+                    className="flex-shrink-0 p-1 text-slate-400 hover:text-slate-600 rounded"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="flex items-end gap-2 bg-gray-50 border border-gray-300 rounded-2xl p-2 focus-within:border-slate-400 focus-within:ring-2 focus-within:ring-slate-100">
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,application/pdf,image/*"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+
+            {/* Attachment Button - with pulse for new users */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isProcessingFile || isLoading}
+              className={`flex-shrink-0 p-2 rounded-xl transition-colors disabled:opacity-50 relative ${
+                !hasPatientContext && messages.length <= 2 && !attachedFiles.length
+                  ? 'text-amber-600 hover:text-amber-700 hover:bg-amber-50 ring-2 ring-amber-200 ring-offset-1'
+                  : 'text-gray-400 hover:text-slate-600 hover:bg-stone-100'
+              }`}
+              title="Attach a medical record (PDF, image)"
+            >
+              {/* Pulse animation for new users */}
+              {!hasPatientContext && messages.length <= 2 && !attachedFiles.length && (
+                <span className="absolute inset-0 rounded-xl bg-amber-400 animate-ping opacity-20" />
+              )}
+              <svg className="w-5 h-5 relative" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+              </svg>
+            </button>
+
             <textarea
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask me anything about your cancer journey..."
+              placeholder={attachedFiles.length > 0 ? "Ask about this document..." : "Ask anything, or 📎 attach your records..."}
               className="flex-1 bg-transparent border-none resize-none focus:outline-none focus:ring-0 min-h-[40px] max-h-[120px] py-2 text-gray-900 placeholder-gray-400"
               rows={1}
             />
@@ -740,6 +1127,17 @@ I can help you with:
                 </svg>
                 Personalized
               </span>
+            )}
+            {/* Prominent attachment tip for new users */}
+            {!attachedFiles.length && !hasPatientContext && messages.length <= 2 && (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-full text-xs text-amber-800 hover:border-amber-300 hover:shadow-sm transition-all group"
+              >
+                <span className="text-base">📎</span>
+                <span className="font-medium">Drop your medical records here for personalized answers</span>
+                <span className="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+              </button>
             )}
           </div>
 

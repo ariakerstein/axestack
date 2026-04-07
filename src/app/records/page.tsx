@@ -197,6 +197,10 @@ export default function RecordsVaultPage() {
   const [showAddRecordView, setShowAddRecordView] = useState(false)
   const [bulkEmailCapture, setBulkEmailCapture] = useState('')
   const [bulkEmailSubmitted, setBulkEmailSubmitted] = useState(false)
+  // First record upload email capture (selective friction)
+  const [showFirstUploadPrompt, setShowFirstUploadPrompt] = useState(false)
+  const [firstUploadEmail, setFirstUploadEmail] = useState('')
+  const [firstUploadSubmitted, setFirstUploadSubmitted] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
@@ -687,6 +691,18 @@ export default function RecordsVaultPage() {
         cancer_type: data.analysis?.cancer_specific?.cancer_type || null,
         user_id: user?.id || null,
       })
+
+      // Show first upload prompt if:
+      // 1. This is a first upload (no saved translations yet)
+      // 2. Biomarkers were found
+      // 3. User is not logged in and hasn't dismissed the prompt
+      const hasBiomarkers = data.analysis?.cancer_specific?.biomarkers?.length > 0
+      const isFirstUpload = savedTranslations.length === 0
+      const notDismissed = !localStorage.getItem('first-upload-prompt-dismissed')
+      if (hasBiomarkers && isFirstUpload && !user && notDismissed) {
+        // Delay slightly so user sees the result first
+        setTimeout(() => setShowFirstUploadPrompt(true), 3000)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
@@ -3142,6 +3158,91 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
             )}
 
             {/* Share CTA */}
+            {/* First Upload Email Capture - Selective Friction */}
+            {showFirstUploadPrompt && !firstUploadSubmitted && result?.cancer_specific?.biomarkers && result.cancer_specific.biomarkers.length > 0 && (
+              <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-200 rounded-2xl p-5 relative">
+                <button
+                  onClick={() => {
+                    setShowFirstUploadPrompt(false)
+                    localStorage.setItem('first-upload-prompt-dismissed', 'true')
+                    trackEvent('friction_prompt_dismissed', { type: 'first_upload_email' })
+                  }}
+                  className="absolute top-3 right-3 p-1 text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Sparkles className="w-6 h-6 text-emerald-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-slate-900 mb-1">We found important biomarkers</p>
+                    <p className="text-sm text-slate-600 mb-3">
+                      Your records show {result.cancer_specific.biomarkers.slice(0, 2).join(', ')}
+                      {result.cancer_specific.biomarkers.length > 2 ? ` and ${result.cancer_specific.biomarkers.length - 2} more` : ''}.
+                      Get notified when new research matches your profile.
+                    </p>
+                    <form
+                      onSubmit={async (e) => {
+                        e.preventDefault()
+                        if (firstUploadEmail && firstUploadEmail.includes('@')) {
+                          // Save to profile
+                          localStorage.setItem('patient-email', firstUploadEmail)
+                          setFirstUploadSubmitted(true)
+                          setShowFirstUploadPrompt(false)
+                          localStorage.setItem('first-upload-prompt-dismissed', 'true')
+
+                          trackEvent('friction_prompt_accepted', {
+                            type: 'first_upload_email',
+                            email: firstUploadEmail,
+                            biomarkers_found: result?.cancer_specific?.biomarkers?.length || 0,
+                          })
+
+                          // Also save to Supabase profile
+                          fetch('/api/profile', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              email: firstUploadEmail,
+                              cancerType: result?.cancer_specific?.cancer_type || 'other',
+                              sessionId: getSessionId(),
+                            }),
+                          }).catch(() => {})
+                        }
+                      }}
+                      className="flex gap-2"
+                    >
+                      <input
+                        type="email"
+                        value={firstUploadEmail}
+                        onChange={(e) => setFirstUploadEmail(e.target.value)}
+                        placeholder="your@email.com"
+                        className="flex-1 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                      />
+                      <button
+                        type="submit"
+                        disabled={!firstUploadEmail.includes('@')}
+                        className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white font-medium rounded-xl transition-colors text-sm"
+                      >
+                        Notify Me
+                      </button>
+                    </form>
+                    <p className="text-xs text-slate-500 mt-2">Free research alerts. Unsubscribe anytime.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Success message after email capture */}
+            {firstUploadSubmitted && (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-center">
+                <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
+                <p className="font-medium text-slate-900">You're all set!</p>
+                <p className="text-sm text-slate-600">We'll notify you when research matching your biomarkers is published.</p>
+              </div>
+            )}
+
             <div className="bg-stone-100 border border-stone-200 rounded-2xl p-5 text-center">
               <p className="text-slate-800 font-medium mb-2">Did this help you understand your results?</p>
               <p className="text-slate-600 text-sm mb-4">Share with someone else who might benefit</p>
