@@ -507,21 +507,16 @@ export default function TrialsPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
-                <button
-                  onClick={() => setFilters({ biomarker: '', location: '', phase: '', status: 'recruiting' })}
-                  className="text-sm text-gray-500 hover:text-gray-700"
-                >
-                  Reset
-                </button>
-                <button
-                  onClick={searchTrials}
-                  disabled={searching}
-                  className="bg-blue-600 text-white text-sm font-medium px-5 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                >
-                  {searching ? 'Searching...' : 'Search'}
-                </button>
-              </div>
+              {(filters.biomarker || filters.location || filters.phase || filters.status !== 'recruiting') && (
+                <div className="mt-4 pt-3 border-t border-gray-100">
+                  <button
+                    onClick={() => setFilters({ biomarker: '', location: '', phase: '', status: 'recruiting' })}
+                    className="text-sm text-gray-500 hover:text-gray-700"
+                  >
+                    Reset filters
+                  </button>
+                </div>
+              )}
             </div>
 
             {searching && (
