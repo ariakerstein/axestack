@@ -755,9 +755,25 @@ function RecordsVaultPageContent() {
     setBulkComplete(false)
     setBulkProgress({ current: 0, total: uploadedFiles.length })
 
+    // Store processing state in localStorage so other pages can see it
+    localStorage.setItem('opencancer-records-processing', JSON.stringify({
+      inProgress: true,
+      total: uploadedFiles.length,
+      current: 0,
+      startedAt: Date.now()
+    }))
+
     for (let i = 0; i < uploadedFiles.length; i++) {
       const uploadedFile = uploadedFiles[i]
       setBulkProgress({ current: i + 1, total: uploadedFiles.length })
+
+      // Update processing state in localStorage so other pages can see progress
+      localStorage.setItem('opencancer-records-processing', JSON.stringify({
+        inProgress: true,
+        total: uploadedFiles.length,
+        current: i + 1,
+        startedAt: processingStartTime || Date.now()
+      }))
 
       // Update status to processing
       setUploadedFiles(prev => prev.map(f =>
@@ -948,6 +964,9 @@ function RecordsVaultPageContent() {
 
     setIsProcessing(false)
     setBulkComplete(true)
+
+    // Clear processing state from localStorage
+    localStorage.removeItem('opencancer-records-processing')
   }
 
   // View a specific file's result from bulk upload

@@ -14,6 +14,7 @@ import { ShareModal } from '@/components/ShareModal'
 import { PerspectiveTuner, PerspectiveWeights } from '@/components/PerspectiveTuner'
 import { UpgradeModal } from '@/components/UpgradeModal'
 import { Navbar } from '@/components/Navbar'
+import { RecordsProcessingBanner } from '@/components/RecordsProcessingBanner'
 import { CombatFollowUpChat } from '@/components/CombatFollowUpChat'
 import { ThinkingIndicator } from '@/components/ThinkingIndicator'
 // Verification disabled - was causing page load issues
@@ -1982,6 +1983,7 @@ function CombatPageContent() {
       )}
 
       <Navbar />
+      <RecordsProcessingBanner />
 
       <div className="max-w-3xl mx-auto px-4 py-6">
         {records.length === 0 ? (

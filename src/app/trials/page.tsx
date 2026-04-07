@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { CANCER_TYPES, BIOMARKERS, getBiomarkersForCancer } from '@/lib/cancer-data'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { useActivityLog } from '@/hooks/useActivityLog'
@@ -9,6 +9,7 @@ import { ShareButton } from '@/components/ShareButton'
 import { useAuth } from '@/lib/auth'
 import { X, ExternalLink, MapPin, Building2, FlaskConical, CheckCircle2, Filter, FileText, Send, Shield } from 'lucide-react'
 import { Navbar } from '@/components/Navbar'
+import { RecordsProcessingBanner } from '@/components/RecordsProcessingBanner'
 import { supabase } from '@/lib/supabase'
 
 interface PatientProfile {
@@ -52,7 +53,7 @@ export default function TrialsPage() {
   const { user, profile: authProfile, loading: authLoading } = useAuth()
   const [profile, setProfile] = useState<PatientProfile | null>(null)
   const [loading, setLoading] = useState(true)
-  const [trials, setTrials] = useState<Trial[]>([])
+  const [rawTrials, setRawTrials] = useState<Trial[]>([])  // Unfiltered API results
   const [searching, setSearching] = useState(false)
   const [searched, setSearched] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -65,6 +66,53 @@ export default function TrialsPage() {
     phase: '',
     status: 'recruiting',
   })
+
+  // LIVE FILTERING - filters trials instantly when filters change
+  const trials = useMemo(() => {
+    let filtered = [...rawTrials]
+
+    // Filter by location (city, state, country, zip)
+    if (filters.location) {
+      const loc = filters.location.toLowerCase()
+      filtered = filtered.filter((t) =>
+        t.location?.toLowerCase().includes(loc)
+      )
+    }
+
+    // Filter by phase
+    if (filters.phase) {
+      filtered = filtered.filter((t) =>
+        t.phase?.toLowerCase().includes(filters.phase.toLowerCase())
+      )
+    }
+
+    // Filter by status
+    if (filters.status) {
+      const statusMap: Record<string, string[]> = {
+        'recruiting': ['recruiting'],
+        'not_yet_recruiting': ['not yet recruiting', 'not_yet_recruiting'],
+        'active': ['active', 'enrolling by invitation'],
+      }
+      const validStatuses = statusMap[filters.status] || []
+      if (validStatuses.length > 0) {
+        filtered = filtered.filter((t) =>
+          validStatuses.some(s => t.status?.toLowerCase().includes(s))
+        )
+      }
+    }
+
+    // Filter by biomarker (search in title, description, eligibility)
+    if (filters.biomarker) {
+      const marker = filters.biomarker.toLowerCase()
+      filtered = filtered.filter((t) =>
+        t.title?.toLowerCase().includes(marker) ||
+        t.description?.toLowerCase().includes(marker) ||
+        t.eligibility?.some(e => e.toLowerCase().includes(marker))
+      )
+    }
+
+    return filtered
+  }, [rawTrials, filters])
 
   // Eligibility profile from records
   const [eligibilityProfile, setEligibilityProfile] = useState<{
@@ -233,17 +281,13 @@ export default function TrialsPage() {
     setError(null)
 
     try {
-      // Use filter location if set, otherwise fall back to profile location
-      const searchLocation = filters.location || profile.location
-
       const response = await fetch('/api/trials', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           cancerType: CANCER_TYPES[profile.cancerType] || profile.cancerType,
           stage: profile.stage,
-          location: searchLocation,
-          status: filters.status || undefined,
+          location: profile.location,
         }),
       })
 
@@ -252,61 +296,18 @@ export default function TrialsPage() {
       }
 
       const data = await response.json()
-      let filteredTrials = data.trials || []
+      const apiTrials = data.trials || []
 
-      // CLIENT-SIDE FILTERING (API may not support all filters)
-
-      // Filter by location (city, state, country, zip)
-      if (filters.location && filteredTrials.length > 0) {
-        const loc = filters.location.toLowerCase()
-        filteredTrials = filteredTrials.filter((t: Trial) =>
-          t.location?.toLowerCase().includes(loc)
-        )
-      }
-
-      // Filter by phase
-      if (filters.phase && filteredTrials.length > 0) {
-        filteredTrials = filteredTrials.filter((t: Trial) =>
-          t.phase?.toLowerCase().includes(filters.phase.toLowerCase())
-        )
-      }
-
-      // Filter by status
-      if (filters.status && filteredTrials.length > 0) {
-        const statusMap: Record<string, string[]> = {
-          'recruiting': ['recruiting'],
-          'not_yet_recruiting': ['not yet recruiting', 'not_yet_recruiting'],
-          'active': ['active', 'enrolling by invitation'],
-        }
-        const validStatuses = statusMap[filters.status] || []
-        if (validStatuses.length > 0) {
-          filteredTrials = filteredTrials.filter((t: Trial) =>
-            validStatuses.some(s => t.status?.toLowerCase().includes(s))
-          )
-        }
-      }
-
-      // Filter by biomarker (search in title, description, eligibility)
-      if (filters.biomarker && filteredTrials.length > 0) {
-        const marker = filters.biomarker.toLowerCase()
-        filteredTrials = filteredTrials.filter((t: Trial) =>
-          t.title?.toLowerCase().includes(marker) ||
-          t.description?.toLowerCase().includes(marker) ||
-          t.eligibility?.some(e => e.toLowerCase().includes(marker))
-        )
-      }
-
-      setTrials(filteredTrials)
+      // Store raw results - filtering happens in useMemo
+      setRawTrials(apiTrials)
       setSearched(true)
 
       // Track trial search
       trackEvent('trial_search', {
         cancer_type: profile.cancerType,
         stage: profile.stage || null,
-        location: searchLocation || null,
-        biomarker: filters.biomarker || null,
-        phase: filters.phase || null,
-        results_count: filteredTrials.length,
+        location: profile.location || null,
+        results_count: apiTrials.length,
       })
 
       // Log to patient graph
@@ -314,11 +315,9 @@ export default function TrialsPage() {
         query: profile.cancerType,
         filters: {
           stage: profile.stage,
-          location: searchLocation,
-          biomarker: filters.biomarker,
-          phase: filters.phase,
+          location: profile.location,
         },
-        resultsCount: filteredTrials.length,
+        resultsCount: apiTrials.length,
       })
     } catch (err) {
       console.error('Trial search error:', err)
@@ -344,6 +343,7 @@ export default function TrialsPage() {
   return (
     <main className="min-h-screen bg-white">
       <Navbar />
+      <RecordsProcessingBanner />
 
       <div className="max-w-3xl mx-auto px-4 py-8">
         {!profile ? (
@@ -561,15 +561,15 @@ export default function TrialsPage() {
               </div>
             )}
 
-            {searched && !searching && trials.length > 0 && (
+            {searched && !searching && rawTrials.length > 0 && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <p className="text-sm text-slate-700">
-                      {eligibilityProfile?.hasRecords ? (
-                        <><strong>{trials.length}</strong> trials match your profile</>
+                      {trials.length === rawTrials.length ? (
+                        <>Found <strong>{trials.length}</strong> trials</>
                       ) : (
-                        <>Found <strong>{trials.length}</strong> recruiting trials</>
+                        <>Showing <strong>{trials.length}</strong> of {rawTrials.length} trials</>
                       )}
                     </p>
                     <span className="text-slate-300">•</span>
@@ -586,7 +586,22 @@ export default function TrialsPage() {
                   </button>
                 </div>
 
-                {trials.slice(0, 10).map((trial) => (
+                {/* No matches after filtering */}
+                {trials.length === 0 && (
+                  <div className="text-center py-8 bg-slate-50 rounded-xl">
+                    <div className="text-3xl mb-3">🔍</div>
+                    <h3 className="font-semibold text-slate-700 mb-2">No trials match your filters</h3>
+                    <p className="text-sm text-slate-500 mb-4">Try adjusting your filter criteria</p>
+                    <button
+                      onClick={() => setFilters({ biomarker: '', location: '', phase: '', status: 'recruiting' })}
+                      className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                      Reset Filters
+                    </button>
+                  </div>
+                )}
+
+                {trials.length > 0 && trials.slice(0, 10).map((trial) => (
                   <div
                     key={trial.id}
                     className="border border-slate-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
