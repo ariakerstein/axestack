@@ -379,13 +379,13 @@ export default function TestsPage() {
               <div>
                 <h3 className="font-semibold text-slate-900 mb-1">We've got your back</h3>
                 <p className="text-sm text-slate-600 mb-3">
-                  Add your diagnosis to see personalized test recommendations based on NCCN guidelines—the same guidelines your oncologist uses.
+                  Tell us about your cancer to see which tests are most relevant for you—based on the same NCCN guidelines your oncologist uses.
                 </p>
                 <Link
                   href="/profile"
                   className="inline-flex items-center gap-1 text-sm text-orange-600 hover:text-orange-700 font-medium"
                 >
-                  Add my diagnosis for personalized results →
+                  Personalize my results →
                 </Link>
               </div>
             </div>
