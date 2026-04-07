@@ -74,8 +74,8 @@ function AdminGraphContent() {
       setPatientEmail(entitiesData.patientEmail || null)
       setRelationships(relsData.relationships || [])
       setStats({
-        totalEntities: entitiesData.entities?.length || 0,
-        totalRelationships: relsData.relationships?.length || 0,
+        totalEntities: entitiesData.totalCount || entitiesData.entities?.length || 0,
+        totalRelationships: relsData.totalCount || relsData.relationships?.length || 0,
         uniquePatients: patientId ? 1 : new Set([
           ...(entitiesData.entities || []).map((e: Entity) => e.user_id || e.session_id)
         ]).size

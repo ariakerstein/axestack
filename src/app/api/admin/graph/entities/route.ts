@@ -30,6 +30,17 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  // Get the real count (not limited to 1000)
+  let countQuery = supabase
+    .from('patient_entities')
+    .select('*', { count: 'exact', head: true })
+
+  if (patientId) {
+    countQuery = countQuery.eq('user_id', patientId)
+  }
+
+  const { count: totalCount } = await countQuery
+
   // Get patient email if filtering by patient
   let patientEmail: string | null = null
   if (patientId) {
@@ -44,6 +55,7 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     entities: data,
+    totalCount: totalCount || data?.length || 0,
     patientId,
     patientEmail
   })

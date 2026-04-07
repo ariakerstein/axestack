@@ -709,11 +709,21 @@ export default function AdminEvalsPage() {
                     }`}
                   >
                     <td className="px-4 py-3 max-w-[350px]">
-                      <p className="truncate text-slate-900">{log.question}</p>
+                      <p className="truncate text-slate-900">
+                        {log.question?.includes('[ATTACHED DOCUMENT') && (
+                          <span title="Has attachment" className="inline-flex mr-1.5 text-amber-500">📎</span>
+                        )}
+                        {log.question?.replace(/\s*\[ATTACHED DOCUMENT[\s\S]*$/, '')}
+                      </p>
                       <div className="flex items-center gap-2 mt-0.5">
                         <span className="text-xs text-slate-400">
                           {new Date(log.created_at).toLocaleString()}
                         </span>
+                        {log.question?.includes('[ATTACHED DOCUMENT') && (
+                          <span className="px-1.5 py-0.5 bg-amber-50 border border-amber-200 rounded text-xs text-amber-600">
+                            Attachment
+                          </span>
+                        )}
                         <span className="px-1.5 py-0.5 bg-slate-100 rounded text-xs capitalize text-slate-500">
                           {log.question_type}
                         </span>
@@ -854,8 +864,19 @@ export default function AdminEvalsPage() {
 
             {/* Question */}
             <div className="mb-6">
-              <p className="text-slate-900 bg-slate-50 p-3 rounded-lg">{selectedLog.question}</p>
+              {selectedLog.question?.includes('[ATTACHED DOCUMENT') && (
+                <div className="mb-2 flex items-center gap-2 text-sm text-amber-600 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg">
+                  <span className="text-lg">📎</span>
+                  <span>This query includes an attached document</span>
+                </div>
+              )}
+              <p className="text-slate-900 bg-slate-50 p-3 rounded-lg">
+                {selectedLog.question?.replace(/\s*\[ATTACHED DOCUMENT[\s\S]*$/, '') || selectedLog.question}
+              </p>
               <div className="flex gap-2 mt-2">
+                {selectedLog.question?.includes('[ATTACHED DOCUMENT') && (
+                  <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs">Attachment</span>
+                )}
                 <span className="px-2 py-1 bg-slate-100 rounded text-xs capitalize">{selectedLog.question_type}</span>
                 {selectedLog.cancer_type && (
                   <span className="px-2 py-1 bg-slate-100 rounded text-xs">{selectedLog.cancer_type}</span>

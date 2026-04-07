@@ -22,5 +22,10 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ relationships: data })
+  // Get real count
+  const { count: totalCount } = await supabase
+    .from('entity_relationships')
+    .select('*', { count: 'exact', head: true })
+
+  return NextResponse.json({ relationships: data, totalCount: totalCount || data?.length || 0 })
 }
