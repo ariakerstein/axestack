@@ -65,11 +65,90 @@ export default function TrialsPage() {
     status: 'recruiting',
   })
 
+  // Eligibility profile from records
+  const [eligibilityProfile, setEligibilityProfile] = useState<{
+    hasRecords: boolean
+    biomarkers: string[]
+    priorTreatments: string[]
+  } | null>(null)
+
   const { trackEvent } = useAnalytics()
   const { logTrialSearch, logTrialView } = useActivityLog()
 
   // Get biomarkers for current cancer type
   const availableBiomarkers = profile ? getBiomarkersForCancer(profile.cancerType) : []
+
+  // Check for records and extract eligibility profile
+  useEffect(() => {
+    const checkRecords = async () => {
+      // Check localStorage first
+      const localRecords = localStorage.getItem('axestack-translations-data')
+      if (localRecords) {
+        try {
+          const records = JSON.parse(localRecords)
+          const recordValues = Object.values(records) as Array<{ result?: { cancer_specific?: { biomarkers?: string[] }, treatments_mentioned?: string[] } }>
+
+          if (recordValues.length > 0) {
+            // Extract biomarkers and treatments from all records
+            const allBiomarkers: string[] = []
+            const allTreatments: string[] = []
+
+            recordValues.forEach(r => {
+              if (r.result?.cancer_specific?.biomarkers) {
+                allBiomarkers.push(...r.result.cancer_specific.biomarkers)
+              }
+              if (r.result?.treatments_mentioned) {
+                allTreatments.push(...r.result.treatments_mentioned)
+              }
+            })
+
+            setEligibilityProfile({
+              hasRecords: true,
+              biomarkers: [...new Set(allBiomarkers)],
+              priorTreatments: [...new Set(allTreatments)],
+            })
+            return
+          }
+        } catch {
+          // Ignore parse errors
+        }
+      }
+
+      // Check cloud records for authenticated users
+      if (user) {
+        try {
+          const res = await fetch('/api/records/view')
+          const data = await res.json()
+          if (data.records && data.records.length > 0) {
+            const allBiomarkers: string[] = []
+            const allTreatments: string[] = []
+
+            data.records.forEach((r: { result?: { cancer_specific?: { biomarkers?: string[] }, treatments_mentioned?: string[] } }) => {
+              if (r.result?.cancer_specific?.biomarkers) {
+                allBiomarkers.push(...r.result.cancer_specific.biomarkers)
+              }
+              if (r.result?.treatments_mentioned) {
+                allTreatments.push(...r.result.treatments_mentioned)
+              }
+            })
+
+            setEligibilityProfile({
+              hasRecords: true,
+              biomarkers: [...new Set(allBiomarkers)],
+              priorTreatments: [...new Set(allTreatments)],
+            })
+            return
+          }
+        } catch {
+          // Ignore errors
+        }
+      }
+
+      setEligibilityProfile({ hasRecords: false, biomarkers: [], priorTreatments: [] })
+    }
+
+    checkRecords()
+  }, [user])
 
   useEffect(() => {
     if (authLoading) return
@@ -230,6 +309,52 @@ export default function TrialsPage() {
         ) : (
           /* Has profile - show trial search */
           <div>
+            {/* Your Eligibility Profile */}
+            {eligibilityProfile && (
+              <div className={`rounded-xl p-4 mb-4 ${eligibilityProfile.hasRecords ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'}`}>
+                {eligibilityProfile.hasRecords ? (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle2 className="w-5 h-5 text-green-600" />
+                      <span className="font-semibold text-green-800">Your Eligibility Profile</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-green-700 font-medium">Cancer:</span>{' '}
+                        <span className="text-green-900">{CANCER_TYPES[profile.cancerType] || profile.cancerType}</span>
+                        {profile.stage && <span className="text-green-900"> (Stage {profile.stage})</span>}
+                      </div>
+                      {eligibilityProfile.biomarkers.length > 0 && (
+                        <div>
+                          <span className="text-green-700 font-medium">Biomarkers:</span>{' '}
+                          <span className="text-green-900">{eligibilityProfile.biomarkers.slice(0, 3).join(', ')}</span>
+                          {eligibilityProfile.biomarkers.length > 3 && <span className="text-green-600"> +{eligibilityProfile.biomarkers.length - 3} more</span>}
+                        </div>
+                      )}
+                    </div>
+                    {eligibilityProfile.priorTreatments.length > 0 && (
+                      <div className="text-sm mt-2">
+                        <span className="text-green-700 font-medium">Prior treatments:</span>{' '}
+                        <span className="text-green-900">{eligibilityProfile.priorTreatments.slice(0, 3).join(', ')}</span>
+                        {eligibilityProfile.priorTreatments.length > 3 && <span className="text-green-600"> +{eligibilityProfile.priorTreatments.length - 3} more</span>}
+                      </div>
+                    )}
+                    <p className="text-xs text-green-600 mt-2">Extracted from your uploaded records • Used to match eligibility criteria</p>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-semibold text-amber-800">Upload records to check eligibility</span>
+                      <p className="text-sm text-amber-700 mt-1">We'll extract biomarkers & treatments to match you with trials</p>
+                    </div>
+                    <Link href="/records" className="bg-amber-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-amber-700 transition-colors">
+                      Upload Records
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -477,6 +602,46 @@ export default function TrialsPage() {
                     </a>
                   </div>
                 )}
+
+                {/* Expert Help CTA */}
+                <div className="mt-8 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-6">
+                  <h3 className="font-bold text-indigo-900 mb-2">Need help finding the right trial?</h3>
+                  <p className="text-sm text-indigo-700 mb-4">
+                    Trial matching specialists can review your records and find trials you may qualify for.
+                  </p>
+                  <div className="flex flex-wrap gap-3">
+                    <a
+                      href="https://www.massivebio.com/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 bg-white border border-indigo-300 text-indigo-700 text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-50 transition-colors"
+                    >
+                      Massive Bio
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                    <a
+                      href="https://www.cancercommons.org/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 bg-white border border-indigo-300 text-indigo-700 text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-50 transition-colors"
+                    >
+                      Cancer Commons
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                    <a
+                      href="https://www.tricanhealth.com/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 bg-white border border-indigo-300 text-indigo-700 text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-50 transition-colors"
+                    >
+                      Trican Health
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                  <p className="text-xs text-indigo-500 mt-3">
+                    These services can help match your specific case to clinical trials
+                  </p>
+                </div>
               </div>
             )}
           </div>
