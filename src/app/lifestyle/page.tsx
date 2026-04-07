@@ -114,7 +114,7 @@ export default function LifestylePage() {
 
               <div className="flex items-center gap-4 mb-6">
                 <img
-                  src="/team/cindy-ness.jpg"
+                  src="/team/cindy-ness.avif"
                   alt="Dr. Cindy Ness"
                   className="w-14 h-14 rounded-full object-cover ring-2 ring-rose-200"
                 />
@@ -146,7 +146,7 @@ export default function LifestylePage() {
             <div className="relative">
               <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
                 <img
-                  src="/team/cindy-ness.jpg"
+                  src="/team/cindy-ness.avif"
                   alt="Dr. Cindy Ness"
                   className="w-full h-64 object-cover rounded-xl mb-4"
                 />
@@ -286,7 +286,7 @@ export default function LifestylePage() {
           <div className="grid md:grid-cols-3 gap-8 items-start">
             <div className="md:col-span-1">
               <img
-                src="/team/cindy-ness.jpg"
+                src="/team/cindy-ness.avif"
                 alt="Dr. Cindy Ness"
                 className="w-full rounded-xl shadow-lg"
               />
