@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { CANCER_TYPES } from '@/lib/cancer-data'
 import { useAuth } from '@/lib/auth'
-import { Shield, Heart, CheckCircle, ExternalLink, Building2 } from 'lucide-react'
+import { Shield, Heart, CheckCircle, ExternalLink, Building2, X, Clock, DollarSign, MessageCircle, ChevronRight } from 'lucide-react'
 
 interface DiagnosticTest {
   id: number
@@ -117,6 +117,7 @@ export default function TestsPage() {
   const [selectedStatus, setSelectedStatus] = useState<string>('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [showAllProviders, setShowAllProviders] = useState(false)
+  const [selectedTest, setSelectedTest] = useState<DiagnosticTest | null>(null)
 
   // Load profile - prefer Supabase for authenticated users
   useEffect(() => {
@@ -253,6 +254,15 @@ export default function TestsPage() {
         {status}
       </span>
     )
+  }
+
+  // Generate "how to ask your doctor" text
+  const getHowToAsk = (test: DiagnosticTest) => {
+    const isRecommended = test.test_status?.toLowerCase() === 'recommended'
+    if (isRecommended) {
+      return `"I've read that ${test.test_name} is recommended by NCCN guidelines for my cancer type. Can we discuss whether this test would be helpful for my treatment planning?"`
+    }
+    return `"I've been researching ${test.test_name} and understand it may provide useful information. Even if it's not standard for my situation, could we discuss whether it might help guide my treatment decisions?"`
   }
 
   if (loading) {
@@ -461,14 +471,15 @@ export default function TestsPage() {
         ) : (
           <div className="space-y-4">
             {filteredTests.slice(0, 30).map((test) => (
-              <div
+              <button
                 key={test.id}
-                className="border border-slate-200 rounded-lg p-4 hover:border-orange-300 hover:shadow-sm transition-all"
+                onClick={() => setSelectedTest(test)}
+                className="w-full text-left border border-slate-200 rounded-lg p-4 hover:border-orange-300 hover:shadow-sm transition-all cursor-pointer group"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-slate-900">{test.test_name}</h3>
+                      <h3 className="font-semibold text-slate-900 group-hover:text-orange-600 transition-colors">{test.test_name}</h3>
                       {getStatusBadge(test.test_status)}
                     </div>
                     {test.reason && (
@@ -492,11 +503,12 @@ export default function TestsPage() {
                       )}
                     </div>
                   </div>
+                  <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-orange-400 flex-shrink-0 transition-colors" />
                 </div>
                 {test.guideline_source && (
                   <p className="text-xs text-slate-400 mt-2">Source: {test.guideline_source}</p>
                 )}
-              </div>
+              </button>
             ))}
             {filteredTests.length > 30 && (
               <p className="text-center text-sm text-slate-500 py-4">
@@ -625,6 +637,150 @@ export default function TestsPage() {
           </div>
         </div>
       </div>
+
+      {/* Test Detail Modal */}
+      {selectedTest && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={() => setSelectedTest(null)}
+          />
+
+          {/* Modal */}
+          <div className="fixed inset-x-4 top-[10%] bottom-[10%] md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-lg bg-white rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-slate-200 flex items-start justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <h2 className="text-xl font-bold text-slate-900">{selectedTest.test_name}</h2>
+                  {getStatusBadge(selectedTest.test_status)}
+                </div>
+                {selectedTest.modality && (
+                  <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded">{selectedTest.modality}</span>
+                )}
+              </div>
+              <button
+                onClick={() => setSelectedTest(null)}
+                className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {/* Description */}
+              {selectedTest.reason && (
+                <div>
+                  <h3 className="text-sm font-medium text-slate-700 mb-2">What this test does</h3>
+                  <p className="text-slate-600">{selectedTest.reason}</p>
+                </div>
+              )}
+
+              {/* Key Details */}
+              <div className="grid grid-cols-2 gap-4">
+                {selectedTest.turnaround_time && (
+                  <div className="bg-slate-50 rounded-lg p-3">
+                    <div className="flex items-center gap-2 text-slate-500 mb-1">
+                      <Clock className="w-4 h-4" />
+                      <span className="text-xs font-medium">Turnaround</span>
+                    </div>
+                    <p className="text-slate-900 font-medium">{selectedTest.turnaround_time}</p>
+                  </div>
+                )}
+                {selectedTest.price && (
+                  <div className="bg-slate-50 rounded-lg p-3">
+                    <div className="flex items-center gap-2 text-slate-500 mb-1">
+                      <DollarSign className="w-4 h-4" />
+                      <span className="text-xs font-medium">Estimated Cost</span>
+                    </div>
+                    <p className="text-slate-900 font-medium">{selectedTest.price}</p>
+                  </div>
+                )}
+                {selectedTest.insurance_coverage && (
+                  <div className="bg-emerald-50 rounded-lg p-3 col-span-2">
+                    <div className="flex items-center gap-2 text-emerald-600 mb-1">
+                      <Shield className="w-4 h-4" />
+                      <span className="text-xs font-medium">Insurance</span>
+                    </div>
+                    <p className="text-emerald-800 font-medium">{selectedTest.insurance_coverage}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Cancer Type & Stage */}
+              {(selectedTest.cancer_type || selectedTest.stage || selectedTest.care_phase) && (
+                <div>
+                  <h3 className="text-sm font-medium text-slate-700 mb-2">Relevant for</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedTest.cancer_type && (
+                      <span className="bg-orange-50 text-orange-700 px-3 py-1 rounded-full text-sm">
+                        {selectedTest.cancer_type}
+                      </span>
+                    )}
+                    {selectedTest.stage && (
+                      <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm">
+                        Stage: {selectedTest.stage}
+                      </span>
+                    )}
+                    {selectedTest.care_phase && (
+                      <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm">
+                        {selectedTest.care_phase}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* How to Ask Your Doctor */}
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <MessageCircle className="w-5 h-5 text-amber-600" />
+                  <h3 className="font-medium text-amber-900">How to ask your doctor</h3>
+                </div>
+                <p className="text-sm text-amber-800 italic mb-3">
+                  {getHowToAsk(selectedTest)}
+                </p>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(getHowToAsk(selectedTest))
+                  }}
+                  className="text-xs text-amber-700 hover:text-amber-900 font-medium"
+                >
+                  📋 Copy to clipboard
+                </button>
+              </div>
+
+              {/* Source */}
+              {selectedTest.guideline_source && (
+                <div className="text-sm text-slate-500">
+                  <span className="font-medium">Source:</span> {selectedTest.guideline_source}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-slate-200 bg-slate-50">
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/cancer-checklist"
+                  onClick={() => setSelectedTest(null)}
+                  className="flex-1 text-center bg-orange-500 hover:bg-orange-600 text-white font-medium px-4 py-2.5 rounded-lg transition-colors text-sm"
+                >
+                  Add to my checklist
+                </Link>
+                <button
+                  onClick={() => setSelectedTest(null)}
+                  className="px-4 py-2.5 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-100 transition-colors text-sm"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </main>
   )
 }
