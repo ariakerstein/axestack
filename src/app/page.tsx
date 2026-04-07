@@ -442,7 +442,7 @@ function HomeContent() {
                     <img src="/ari.png" alt="Ari" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover ring-2 ring-slate-300 group-hover:ring-[#C66B4A] transition-all" />
                     <div>
                       <p className="text-sm font-medium text-slate-700">Built by survivors</p>
-                      <p className="text-xs text-slate-400">Read my story →</p>
+                      <p className="text-xs text-slate-400">About →</p>
                     </div>
                   </Link>
                   {/* CTA */}
