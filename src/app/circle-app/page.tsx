@@ -636,30 +636,34 @@ export default function CircleAppPage() {
 
   return (
     <div className="h-screen flex flex-col bg-white relative">
-      {/* Tab bar */}
-      <div className="bg-white border-b flex items-center flex-shrink-0">
-        <TabButton
-          active={activeTab === 'ask'}
-          onClick={() => setActiveTab('ask')}
-          icon={MessageCircle}
-          label="Ask"
-        />
-        <TabButton
-          active={activeTab === 'records'}
-          onClick={() => setActiveTab('records')}
-          icon={Upload}
-          label="Records"
-          badge={completedRecordsCount}
-        />
-        <div className="flex-1" />
+      {/* Header with logo */}
+      <div className="bg-white border-b flex items-center px-3 py-2 flex-shrink-0">
+        <a href="https://community.cancerpatientlab.org" target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+          <img src="/cpl-logo.avif" alt="Cancer Patient Lab" className="h-8 w-auto" />
+        </a>
+        <div className="flex-1 flex items-center justify-center gap-1">
+          <TabButton
+            active={activeTab === 'ask'}
+            onClick={() => setActiveTab('ask')}
+            icon={MessageCircle}
+            label="Ask"
+          />
+          <TabButton
+            active={activeTab === 'records'}
+            onClick={() => setActiveTab('records')}
+            icon={Upload}
+            label="Records"
+            badge={completedRecordsCount}
+          />
+        </div>
         <a
           href="https://opencancer.ai/ask?login=1"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 px-4 py-3 text-gray-500 hover:text-[#C66B4A] text-sm font-medium transition-colors"
+          className="flex items-center gap-1.5 px-3 py-2 text-gray-500 hover:text-[#C66B4A] text-sm font-medium transition-colors flex-shrink-0"
         >
           <User className="w-4 h-4" />
-          <span>Sign In</span>
+          <span className="hidden sm:inline">Sign In</span>
         </a>
       </div>
 
@@ -679,26 +683,21 @@ export default function CircleAppPage() {
         )}
       </div>
 
-      {/* Footer */}
-      <div className="border-t bg-gray-50 px-4 py-2 flex items-center justify-between flex-shrink-0">
-        <a
-          href="https://opencancer.ai"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-[#C66B4A] transition-colors"
-        >
-          <span>Powered by</span>
-          <span className="font-semibold">OpenCancer.ai</span>
-          <ExternalLink className="w-3 h-3" />
-        </a>
-        <a
-          href="https://opencancer.ai/ask"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
-        >
-          Full experience →
-        </a>
+      {/* Minimal Footer */}
+      <div className="border-t bg-gray-50 px-4 py-2 flex-shrink-0">
+        <div className="flex items-center justify-between text-xs text-gray-500">
+          <a href="https://opencancer.ai" target="_blank" rel="noopener noreferrer" className="hover:text-[#C66B4A] font-medium">
+            Powered by OpenCancer.ai
+          </a>
+          <div className="flex items-center gap-3">
+            <a href="https://opencancer.ai/records" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700">Records</a>
+            <a href="https://opencancer.ai/ask" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700">Ask Navis</a>
+            <a href="https://opencancer.ai/cancer-checklist" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700">Checklist</a>
+            <span className="text-gray-300">|</span>
+            <a href="https://opencancer.ai/about" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700">About</a>
+            <a href="https://opencancer.ai/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700">Privacy</a>
+          </div>
+        </div>
       </div>
     </div>
   )
