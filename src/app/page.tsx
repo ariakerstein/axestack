@@ -922,9 +922,9 @@ function HomeContent() {
             </>
           )}
 
-          {/* PRIMARY TOOLS - 3 cards: Upload, Combat, Expert Review */}
+          {/* PRIMARY TOOLS - 4 cards: Upload, Combat, Expert Review, Lifestyle */}
           {profile && <p className="text-xs font-medium tracking-widest text-slate-400 mb-3">YOUR TOOLS</p>}
-          <div className="grid md:grid-cols-3 gap-4 mb-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {/* Upload Records */}
             <Link
               href="/records"
@@ -988,14 +988,44 @@ function HomeContent() {
                 <span className="text-[10px] text-slate-400">2-3 business days</span>
               </div>
             </Link>
+
+            {/* Cancer Lifestyle Management */}
+            <Link
+              href="/lifestyle"
+              onClick={(e) => handleToolClick(e, '/lifestyle')}
+              className="group bg-gradient-to-r from-white to-rose-50/50 border-2 border-rose-200 hover:border-rose-400 rounded-xl p-5 hover:shadow-lg transition-all relative"
+            >
+              <span className="absolute -top-2.5 left-4 bg-rose-600 text-white text-[10px] font-medium px-2.5 py-1 rounded">
+                Lifestyle program
+              </span>
+              <div className="mb-3 mt-1 flex items-center gap-2">
+                <img
+                  src="/team/cindy-ness.jpg"
+                  alt="Dr. Cindy Ness"
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+                <img
+                  src="/logos/cclm-logo.png"
+                  alt="CCLM"
+                  className="h-5 w-auto"
+                  onError={(e) => { e.currentTarget.style.display = 'none' }}
+                />
+              </div>
+              <h3 className="font-bold text-slate-900 mb-1">Lifestyle Management</h3>
+              <p className="text-slate-600 text-sm mb-2">Dr. Cindy Ness · Harvard/Penn · 8-week program</p>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] px-2 py-0.5 rounded bg-rose-100 text-rose-700 font-medium">$8,000</span>
+                <span className="text-[10px] text-slate-400">8 weeks · 75+ sessions</span>
+              </div>
+            </Link>
           </div>
 
-          {/* MORE TOOLS - De-emphasized */}
+          {/* MORE TOOLS */}
           <details className="group">
-            <summary className="flex items-center justify-between cursor-pointer mb-4">
-              <p className="text-xs font-medium tracking-widest text-slate-400">MORE TOOLS</p>
-              <span className="text-xs text-slate-400 group-open:hidden">Show all →</span>
-              <span className="text-xs text-slate-400 hidden group-open:inline">Hide</span>
+            <summary className="flex items-center justify-between cursor-pointer mb-4 py-2 px-3 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">
+              <p className="text-sm font-semibold tracking-wide text-slate-600">MORE TOOLS</p>
+              <span className="text-sm font-medium text-[#C66B4A] group-open:hidden">Show all tools →</span>
+              <span className="text-sm font-medium text-slate-500 hidden group-open:inline">Hide tools</span>
             </summary>
             <div className="grid md:grid-cols-4 gap-3">
               <Link href="/trials" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">

@@ -1088,7 +1088,7 @@ I can help you with:
                               className="flex items-center gap-2 text-xs bg-white px-3 py-2 rounded-lg border border-gray-200 text-gray-700 hover:border-slate-400 hover:bg-stone-50 transition-colors group"
                             >
                               <span className="text-slate-500 font-medium">[{i + 1}]</span>
-                              <span className="truncate flex-1">{citation.title}</span>
+                              <span className="truncate flex-1">{citation.title || citation.url || 'Source'}</span>
                               <svg className="w-3 h-3 text-gray-400 group-hover:text-slate-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                               </svg>
