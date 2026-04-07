@@ -1,240 +1,174 @@
 # Changelog
 
-## April 6, 2026 (Today)
+## Week of April 6, 2026
 
 ### Onboarding & Selective Friction
-- Add selective friction onboarding — wizard gates tool access
-- Add CareCircle prompt after first record upload
-- Fix duplicate email prompts for wizard-completed users ("You're almost there!")
+- Selective friction onboarding — wizard gates tool access
+- CareCircle prompt after first record upload
+- Fix duplicate email prompts for wizard-completed users
 - Caregiver fast-path — skip role selection step
-- Fix wizard flow — persist profile for guests, show name in navbar
-- Soften wizard copy: "Tell us about you" vs "Who are you?"
+- Persist profile for guests, show name in navbar
+- Soften wizard copy: "Tell us about you"
 - Add color and clarity to onboarding wizard
 
 ### Chat & Records
-- Add inline file attachments to chat + selective friction prompts
-- Improve chat file attachments — drag-drop, better UX, full doc context
+- Inline file attachments to chat + selective friction prompts
+- Drag-drop file attachments with better UX
 - Smart Profile Sync — auto-detect cancer type from records
-- Improve bulk upload UX for heavy files
-- Fix records persistence + tone down CancerCombat button
-- Add social proof to records upload area
+- Bulk upload UX for heavy files
+- Social proof in records upload area
 
 ### Combat (AI Tumor Board)
-- Add multi-step expert consultation flow with Cancer Commons
-- Add verification loop before analysis
-- Add expert consultation email API
-- Add Tony and Emma expert images
-- Improve Combat UX — structured synthesis, email capture, style-aware output
-- Make evidence meter messaging more illustrative
-- Remove $29 PDF paywall — full analysis now free
-- Fix Combat page handles any expert ID in URL params
-- Fix combat UI consistency and engaging case evidence indicator
-- Reorganize Combat action buttons for better flow
-- Simplify bottom CTAs to 2 actions
-- Wire expert review CTA to modal
-- Wrap Combat page in Suspense for useSearchParams
+- Multi-step expert consultation flow with Cancer Commons
+- Verification loop before analysis
+- Expert consultation email API
+- Tony and Emma expert images
+- Structured synthesis, email capture, style-aware output
+- Evidence meter messaging improvements
+- Remove $29 PDF paywall — full analysis free
+- Reorganize action buttons, simplify CTAs
 - Fix API 500 errors
 
 ### Admin Dashboard
-- Add RAG content admin at `/admin/rag`
-- Fix 1000 entity limit — add attachment indicator to evals
-- Include patient_activity questions in admin dashboard
+- RAG content admin at `/admin/rag`
+- Fix 1000 entity limit, add attachment indicator
+- Include patient_activity questions
 
 ### Ask Navis
-- Add specialist care awareness and chained follow-ups
-- Fix follow-up questions on shared Ask Navis links
-- Add specialist care fields to EvalMetricsParams interface
+- Specialist care awareness and chained follow-ups
+- Fix follow-up questions on shared links
 
 ### Email & Sharing
-- Add viral sharing + comprehensive cancer selector
+- Viral sharing + comprehensive cancer selector
 - Markdown rendering + continue asking + referral tracking
 
 ### Homepage
-- Streamline homepage tools to 3 primary cards (Option B)
-- Add Tony Magliocco bio and photo for trust building
-- Update team images and homepage UX improvements
-- Add Protean pathology review, fix favicons, update metadata
-- Remove duplicate tools sections, add Protean branding
-- Clean up homepage layout
-- Restore 'Built by a survivor' + zero records prompt
-- Use local team images instead of external URLs
+- Streamline to 3 primary tool cards
+- Tony Magliocco bio and photo
+- Protean pathology review, favicons, metadata
+- Team images updates
 
 ### Auth & Security
-- Make password primary auth method, magic link secondary
-- Add email validation to reduce Supabase bounce rate
-- Add rate limiting and webhook signature verification
-- Fix critical vulnerabilities
-- Fix vite vulnerability (npm audit)
-
-### API & Infrastructure
-- Fix profile saves using API route + track email captures
-- Fix profile saving — use API route with service key
-- Fix analytics tracking — use API route with service key
-- Use Resend directly for expert consultation emails
-- Add better error handling for expert consultation API
+- Password as primary auth method
+- Email validation to reduce bounce rate
+- Rate limiting and webhook verification
+- Security vulnerability fixes
 
 ### Copy
-- Update copy: "Built by survivors" (plural)
-- Simplify link text: "About →"
-
-### Mobile
-- Fix mobile layout for homepage CTA and wizard cards
+- "Built by survivors" (plural)
+- "About →" simplified
 
 ---
 
-## April 5, 2026
+## Week of March 30, 2026
 
-### Design System
-- Import Navis design system from insight-guide-query
-- Optimistic foundation — violet/teal ambient warmth
-- Homepage audit — CTA discipline, forbidden language, canonical components
-- Sync all preview pages with markdown docs
-- Sync VoiceTone.tsx preview + strengthen sync rule
-- Nuance "loved one" rule — context-dependent, not blanket ban
-- Add missing utils.ts for design-system build
+### OpenCancer.ai Launch (March 29)
+- Initialize patientstack — AI patient navigation system
+- Financial coverage, trust signals, patient tools suite
+- Animated atom as dot on 'i' in logo
+- Reduce homepage density, add coverage search
 
-### Onboarding
-- Dynamic social proof from real session data
-- UX improvements across wizard, combat, and records
-
-### Homepage
-- Personalized tool recommendations with hybrid layout
-- Update tagline and restore partnership badges
-- Dynamic social proof and privacy claim
-- Clean up footer links and add advisors page
-- Update advisors page with real photos
-
-### Records
-- Add notes field to record annotations
-- Ensure records persist even when cloud save fails
-- Delete from Supabase when clearing records
-- Increase timeouts and validation for large files
-
-### Auth & Security
-- Prevent cross-user records data leakage + add record annotation
-- Prevent records data leakage between users
-- Don't block login on record migration
-
-### Fixes
-- Auth issues, design consistency, and advisors list
-
----
-
-## April 4, 2026
-
-### Design System
-- Unified B&W + orange/green color system
-- Module accent colors + copy updates
-- Subtle accent colors on homepage cards + pages
-- FINDING-001: Add H1 heading to profile page
-- FINDING-004: Fix Save button to terracotta
-- FINDING-005: Remove pink gradient, use terracotta
-- FINDING-006: Fix touch targets and page background
-- Fix AuthModal CTA colors to terracotta
-- Fix Wizard CTA and badge colors per design system
-- Improve profile CTA text and toggle accessibility
-
-### Combat
-- Expand to 5-voice AI tumor board model
-- Add follow-up chat for clarifications and revisions
-- Rename perspectives for clarity (UI, tuner, docs)
-
----
-
-## April 3, 2026
-
-### Admin Dashboard
-- Patient Knowledge Graph with bidirectional Navis integration
-- Add Palantir-style Entity Graph to admin dashboard
-- Enhanced Entity Graph with interactive cross-tab
-- Add Clinical Intelligence Cross-Tab to Entity Graph
-- Clinical intelligence — centers, trials, confidence
-- Clinical intelligence enhancements
-- Entity relationships, SOC classification, batch extraction
-- Add pharma insight bar to Entity Graph
-- Add patient activity graph to admin dashboard
-- Add Conversion Funnel view to Activity Graph
-- Add Winback List to admin Activity Graph
-- Patient drill-down + timeout fix
-- Add Navis eval logging and expert review dashboard
-- Link Knowledge Graph and Evals to admin tabs
-- Click uploader stat to see emails
-- Light theme for cross-tab, add uploader emails drilldown
-- Show usersWithRecords instead of sessionsWithRecords
-
-### Analytics Fixes
-- Use recordUploaders for usersWithRecords
-- Use patient_activity for authoritative action counts
-- Save full question text in analytics for admin visibility
-- Correct column names for patient_graph_connections view
-- Handle undefined values in activity graph behavioral patterns
-- Null check in activity graph API
-- Remove 30-day filter from activity graph — show all time data
-
-### Auth & Records
-- Password login, localStorage migration, and upload progress fix
-- CareCircle invites, knowledge graph updates, and reliability fixes
-- Add API usage tracking, email system, and records sync improvements
-- Show all user records regardless of source (navis + opencancer)
-- Remove 50 record limit — patients can upload unlimited
-- Pass userId to persona and synthesis functions
-- Fast-path for guest users
-- Accept svix-signature header for Resend webhooks
-
-### Mobile
-- Increase touch targets to 44px minimum
-- FINDING-001-004: Fix mobile touch targets
-
-### Testing
-- Add Vitest test suite for auth and records
-
-### Copy
-- "Start Here" guidance for overwhelmed users
-- Update hero to emphasize confusion/overwhelm
-- Simplify CTA to "Start Here"
-
----
-
-## April 2, 2026
-
-- Add direct email sending for reports via Resend
-- UX improvements — nav, padding, email sharing, homepage tools
-
----
-
-## April 1, 2026
-
-### Auth
+### Combat & Auth (April 1)
+- Premium tiers, combat persistence, smart symptom fallback
+- Combat page design refresh — match brand palette
 - Unify wizard + auth — create account on signup
 - Clean auth model — sign out clears everything
-
-### Combat
-- Design refresh — Combat page + text updates
-- Match brand design palette
-
-### Records
 - Word doc + text file support for record uploads
-- Add error handling for profile count query
 
-### Features
-- Premium tiers, combat persistence, smart symptom fallback
+### Email & UX (April 2)
+- Direct email sending for reports via Resend
+- Nav, padding, email sharing improvements
+
+### Admin Dashboard (April 3)
+- Patient Knowledge Graph with bidirectional Navis integration
+- Palantir-style Entity Graph with interactive cross-tab
+- Clinical Intelligence — centers, trials, confidence, SOC classification
+- Patient Activity Graph with Conversion Funnel
+- Winback List for re-engagement
+- Pharma Insight Bar
+- Navis eval logging and expert review dashboard
+- Patient drill-down with timeout fix
+- CareCircle invites, knowledge graph updates
+- API usage tracking, email system, records sync
+
+### Analytics & Metrics (April 3)
+- Use recordUploaders for accurate user counts
+- Save full question text in analytics
+- Remove 30-day filter — show all time data
+- Remove 50 record limit — unlimited uploads
+- Vitest test suite for auth and records
+
+### Mobile & Copy (April 3)
+- Touch targets to 44px minimum
+- "Start Here" guidance for overwhelmed users
+- Hero emphasizes confusion/overwhelm
+
+### Design System (April 4)
+- Unified B&W + orange/green color system
+- Module accent colors + copy updates
+- Design audit fixes (H1, Save button, gradients, touch targets)
+- AuthModal and Wizard CTA colors to terracotta
+
+### Combat Expansion (April 4)
+- 5-voice AI tumor board model
+- Follow-up chat for clarifications
+- Rename perspectives for clarity
+
+### Design & Security (April 5)
+- Import Navis design system
+- Optimistic foundation — violet/teal ambient warmth
+- Homepage audit — CTA discipline, forbidden language
+- Personalized tool recommendations
+- Dynamic social proof from real session data
+- Notes field for record annotations
+- Prevent cross-user records data leakage
+- Advisors page with real photos
 
 ---
 
-## March 30, 2026
+## Week of March 23, 2026
 
-- Add financial coverage, trust signals, and patient tools suite
-- Add animated atom as dot on 'i' in logo
-- Reduce homepage density, add coverage search
-- Sharpen tool copy based on feedback
+### Prompt Deck Launch (March 25-27)
+- Pitch deck generator skill
+- Next.js web frontend for deck generator
+- Split-view editor with AI chat
+- Deck audit page with scoring framework
+- Per-slide scoring with color-coded indicators (R/Y/G)
+- AI Assist panel + deck type/stage selector
+- Visual design system with color schemes
+- Pitch/Figma-style visual layout picker
+- PDF upload with 20MB support via Vercel Blob
+- Gamified scoring with history and celebrations
+- Version control with investor feedback
+- Confetti and motivation messages
+- Light/dark theme toggle + ADA compliance
+- Supabase persistence for decks and feedback
+- Supabase Auth (email)
+- Vibrant gradient theme
+- About page with personal bio and beliefs
+
+### Fundraise Skill (March 25)
+- Pitch deck review skill
+- Investor feedback tracking
+- Supported formats: PDF, HTML, URL, images
+
+### LinkedIn Prep (March 24)
+- LinkedIn-prep skill for warm intros
+- Browser-based LinkedIn export flow
+
+### Interview Prep (March 23)
+- Auto-interview skill for interview simulation
+- Voice mode for auto-interview
+- Claude support for scoring (with GPT-4 fallback)
 
 ---
 
-## March 29, 2026
+## Summary
 
-- Initialize patientstack — AI patient navigation system
-- Update tagline
+| Week | Focus | Commits |
+|------|-------|---------|
+| Apr 6 | Selective friction, Combat expert flow, Admin RAG | ~65 |
+| Mar 30 - Apr 5 | OpenCancer launch, Admin dashboard, Design system | ~95 |
+| Mar 23-28 | Prompt Deck, Fundraise, LinkedIn, Interview skills | ~90 |
 
----
-
-**Total: ~160 commits over 9 days**
+**Total: ~250 commits in 2 weeks**
