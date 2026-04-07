@@ -502,8 +502,8 @@ function HomeContent() {
               {/* Step 1: Role */}
               {wizardStep === 1 && (
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-2 text-center">Who are you?</h3>
-                  <p className="text-slate-500 text-sm text-center mb-6">We'll personalize your experience</p>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2 text-center">Tell us about you</h3>
+                  <p className="text-slate-500 text-sm text-center mb-6">So we can personalize your guidance</p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
