@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { MessageCircle, Upload } from 'lucide-react'
+import { MessageCircle, Upload, User } from 'lucide-react'
 
 type TabType = 'ask' | 'records'
 
@@ -34,6 +34,11 @@ export default function CircleAppPage() {
     records: '/records?embed=1',
   }
 
+  const handleSignIn = () => {
+    // Open sign in in new tab (can't do auth in iframe easily)
+    window.open('https://opencancer.ai/ask?login=1', '_blank')
+  }
+
   return (
     <div className="h-screen flex flex-col bg-white">
       {/* Tabs */}
@@ -50,6 +55,14 @@ export default function CircleAppPage() {
           icon={Upload}
           label="Records"
         />
+        <div className="flex-1" />
+        <button
+          onClick={handleSignIn}
+          className="flex items-center gap-2 px-4 py-3 text-gray-500 hover:text-gray-700 hover:bg-gray-50 font-medium transition-all"
+        >
+          <User className="w-5 h-5" />
+          <span>Sign In</span>
+        </button>
       </div>
 
       {/* Iframe - loads actual pages */}
