@@ -194,28 +194,41 @@ export default function TrialsPage() {
   // Check for records and extract eligibility profile, then auto-populate filters
   useEffect(() => {
     const checkRecords = async () => {
-      // Check localStorage first
-      const localRecords = localStorage.getItem('axestack-translations-data')
-      if (localRecords) {
+      // Check localStorage first - also check the index to know record count
+      const localRecordsData = localStorage.getItem('axestack-translations-data')
+      const localRecordsIndex = localStorage.getItem('axestack-translations')
+
+      // Get record count from index (more reliable)
+      let localRecordCount = 0
+      try {
+        const index = JSON.parse(localRecordsIndex || '[]')
+        localRecordCount = index.length
+      } catch {
+        // Ignore
+      }
+
+      if (localRecordsData) {
         try {
-          const records = JSON.parse(localRecords)
+          const records = JSON.parse(localRecordsData)
           // Data structure: { [id]: { cancer_specific: { biomarkers: [] }, treatments_mentioned: [] } }
           const recordValues = Object.values(records) as Array<{
             cancer_specific?: { biomarkers?: string[], cancer_type?: string, stage?: string }
             treatments_mentioned?: string[]
           }>
 
-          if (recordValues.length > 0) {
+          const recordCount = Math.max(recordValues.length, localRecordCount)
+
+          if (recordCount > 0) {
             // Extract biomarkers and treatments from all records
             const allBiomarkers: string[] = []
             const allTreatments: string[] = []
 
             recordValues.forEach(r => {
               // Biomarkers are directly on cancer_specific, not nested under result
-              if (r.cancer_specific?.biomarkers) {
+              if (r.cancer_specific?.biomarkers && Array.isArray(r.cancer_specific.biomarkers)) {
                 allBiomarkers.push(...r.cancer_specific.biomarkers)
               }
-              if (r.treatments_mentioned) {
+              if (r.treatments_mentioned && Array.isArray(r.treatments_mentioned)) {
                 allTreatments.push(...r.treatments_mentioned)
               }
             })
@@ -225,7 +238,7 @@ export default function TrialsPage() {
 
             setEligibilityProfile({
               hasRecords: true,
-              recordCount: recordValues.length,
+              recordCount,
               biomarkers: uniqueBiomarkers,
               priorTreatments: [...new Set(allTreatments)],
               autoFilterApplied: willAutoFilter,
@@ -237,9 +250,30 @@ export default function TrialsPage() {
             }
             return
           }
-        } catch {
-          // Ignore parse errors
+        } catch (err) {
+          console.error('Failed to parse local records:', err)
+          // Fallback: we know records exist but couldn't parse biomarkers
+          if (localRecordCount > 0) {
+            setEligibilityProfile({
+              hasRecords: true,
+              recordCount: localRecordCount,
+              biomarkers: [],
+              priorTreatments: [],
+              autoFilterApplied: false,
+            })
+            return
+          }
         }
+      } else if (localRecordCount > 0) {
+        // Index exists but data doesn't - records exist but no structured data
+        setEligibilityProfile({
+          hasRecords: true,
+          recordCount: localRecordCount,
+          biomarkers: [],
+          priorTreatments: [],
+          autoFilterApplied: false,
+        })
+        return
       }
 
       // Check cloud records for authenticated users
@@ -471,14 +505,31 @@ export default function TrialsPage() {
               </div>
             )}
 
-            {/* Records but no biomarkers extracted */}
+            {/* Records but no biomarkers extracted - graceful fallback */}
             {eligibilityProfile?.hasRecords && !eligibilityProfile.autoFilterApplied && (
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
-                <div className="flex items-center gap-3">
-                  <FileText className="w-5 h-5 text-blue-600" />
-                  <div>
-                    <span className="font-semibold text-blue-800">{eligibilityProfile.recordCount} record{eligibilityProfile.recordCount !== 1 ? 's' : ''} uploaded</span>
-                    <p className="text-sm text-blue-700">No biomarkers extracted yet. Use filters below to narrow results.</p>
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4">
+                <div className="flex items-start gap-3">
+                  <FileText className="w-5 h-5 text-slate-500 mt-0.5" />
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-slate-800">
+                        {eligibilityProfile.recordCount} record{eligibilityProfile.recordCount !== 1 ? 's' : ''} uploaded
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-600 mt-1">
+                      No biomarkers auto-extracted from your records. Use the filters below to find trials matching your specific markers (e.g., PSA, PSMA, Gleason score).
+                    </p>
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {availableBiomarkers.slice(0, 4).map((b, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setFilters(prev => ({ ...prev, biomarker: b.marker }))}
+                          className="text-xs bg-white border border-slate-300 text-slate-700 px-2.5 py-1 rounded-lg hover:border-blue-400 hover:text-blue-700 transition-colors"
+                        >
+                          + {b.marker}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>

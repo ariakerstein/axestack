@@ -24,6 +24,10 @@ interface AuthContextType {
   signOut: () => Promise<void>
   isAnonymous: boolean
   refreshProfile: () => Promise<void>
+  // Password recovery
+  isRecoveryMode: boolean
+  updatePassword: (newPassword: string) => Promise<{ error: string | null }>
+  clearRecoveryMode: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -64,6 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<OpenCancerProfile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false)
 
   // Load profile from Supabase for authenticated user
   const loadProfile = async (email: string) => {
@@ -253,11 +258,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setProfile(null)
           clearUserLocalStorage()
         }
+
+        // Password recovery - user clicked reset link in email
+        if (event === 'PASSWORD_RECOVERY') {
+          console.log('[Auth] Password recovery mode activated')
+          setIsRecoveryMode(true)
+        }
       }
     )
 
     return () => subscription.unsubscribe()
   }, [])
+
+  // Update password (for recovery flow)
+  const updatePassword = async (newPassword: string) => {
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword })
+      if (error) {
+        console.error('Password update error:', error)
+        return { error: error.message }
+      }
+      setIsRecoveryMode(false)
+      return { error: null }
+    } catch (e) {
+      console.error('Password update exception:', e)
+      return { error: 'Failed to update password' }
+    }
+  }
+
+  const clearRecoveryMode = () => {
+    setIsRecoveryMode(false)
+  }
 
   // Migrate localStorage records to cloud on sign-in
   // This ensures records uploaded anonymously are saved to the user's account
