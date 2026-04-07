@@ -1000,7 +1000,7 @@ function HomeContent() {
               </span>
               <div className="mb-3 mt-1 flex items-center gap-2">
                 <img
-                  src="/team/cindy-ness.avif"
+                  src="/team/cindy-ness.jpg"
                   alt="Dr. Cindy Ness"
                   className="w-8 h-8 rounded-full object-cover"
                 />
