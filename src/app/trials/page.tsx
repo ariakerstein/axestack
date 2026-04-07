@@ -104,13 +104,17 @@ export default function TrialsPage() {
     }
 
     // Filter by biomarker (search in title, description, eligibility)
+    // Handle compound terms like "MSI-H/dMMR" by splitting and matching any part
     if (filters.biomarker) {
-      const marker = filters.biomarker.toLowerCase()
-      filtered = filtered.filter((t) =>
-        t.title?.toLowerCase().includes(marker) ||
-        t.description?.toLowerCase().includes(marker) ||
-        t.eligibility?.some(e => e.toLowerCase().includes(marker))
-      )
+      const markerParts = filters.biomarker.toLowerCase().split(/[\/\-]/).map(p => p.trim()).filter(p => p.length > 1)
+      filtered = filtered.filter((t) => {
+        const searchText = [
+          t.title?.toLowerCase() || '',
+          t.description?.toLowerCase() || '',
+          ...(t.eligibility?.map(e => e.toLowerCase()) || [])
+        ].join(' ')
+        return markerParts.some(part => searchText.includes(part))
+      })
     }
 
     return filtered
