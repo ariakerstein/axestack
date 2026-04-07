@@ -148,28 +148,64 @@ export default function TestsPage() {
   // Fetch tests and providers from Supabase
   useEffect(() => {
     let timeoutId: NodeJS.Timeout
+    let retryCount = 0
+    const maxRetries = 2
 
     async function fetchData() {
       // Set a timeout to prevent infinite loading
       timeoutId = setTimeout(() => {
         console.error('Data fetch timed out')
         setLoading(false)
-      }, 10000)
+      }, 15000)
 
       try {
-        // Fetch tests
-        const { data: testsData, error: testsError } = await supabase
-          .from('dx_test_master')
-          .select('*')
-          .order('test_name')
-          .limit(100)
+        // Small delay to let auth settle and avoid lock conflicts
+        await new Promise(resolve => setTimeout(resolve, 100))
 
-        if (testsError) {
-          console.error('Tests error:', testsError)
-          setError(`Database error: ${testsError.message}`)
-        } else {
-          setTests(testsData || [])
+        // Fetch tests from both tables and combine
+        const [dxResult, openoncoResult] = await Promise.allSettled([
+          supabase.from('dx_test_master').select('*').order('test_name').limit(200),
+          supabase.from('openonco_tests').select('*').order('test_name').limit(200)
+        ])
+
+        const dxTests = dxResult.status === 'fulfilled' && !dxResult.value.error ? dxResult.value.data || [] : []
+        const openoncoTests = openoncoResult.status === 'fulfilled' && !openoncoResult.value.error ? openoncoResult.value.data || [] : []
+
+        // Log what we got
+        console.log(`Loaded ${dxTests.length} dx_test_master tests, ${openoncoTests.length} openonco_tests`)
+
+        // Combine tests (prefer dx_test_master format, add openonco if different)
+        const allTests = [...dxTests]
+        const existingNames = new Set(dxTests.map((t: DiagnosticTest) => t.test_name?.toLowerCase()))
+
+        // Add OpenOnco tests that aren't duplicates
+        for (const test of openoncoTests) {
+          if (!existingNames.has(test.test_name?.toLowerCase())) {
+            allTests.push({
+              id: test.id,
+              test_name: test.test_name,
+              cancer_type: test.cancer_type,
+              modality: test.category || test.modality,
+              stage: test.stage,
+              care_phase: test.care_phase,
+              reason: test.description || test.reason,
+              insurance_coverage: test.insurance_coverage,
+              price: test.price,
+              turnaround_time: test.turnaround_time,
+              test_status: test.status || 'active',
+              guideline_source: test.source || test.guideline_source
+            })
+          }
         }
+
+        if (allTests.length === 0 && retryCount < maxRetries) {
+          retryCount++
+          console.log(`No tests loaded, retrying (${retryCount}/${maxRetries})...`)
+          await new Promise(resolve => setTimeout(resolve, 500))
+          return fetchData()
+        }
+
+        setTests(allTests)
 
         // Fetch diagnostic providers
         const { data: providersData, error: providersError } = await supabase
@@ -189,6 +225,15 @@ export default function TestsPage() {
       } catch (err) {
         console.error('Error fetching data:', err)
         clearTimeout(timeoutId)
+
+        // Retry on auth lock errors
+        if (err instanceof Error && err.message.includes('Lock') && retryCount < maxRetries) {
+          retryCount++
+          console.log(`Auth lock error, retrying (${retryCount}/${maxRetries})...`)
+          await new Promise(resolve => setTimeout(resolve, 500))
+          return fetchData()
+        }
+
         setError(err instanceof Error ? err.message : 'Failed to load data')
       } finally {
         setLoading(false)
