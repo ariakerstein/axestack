@@ -785,34 +785,27 @@ I can help you with:
     setFeedbackComment('')
     setPendingFeedbackType(null)
 
-    // Get the message content for context
-    const message = messages.find(m => m.id === messageId)
+    // Get the message and find the corresponding user question
+    const messageIndex = messages.findIndex(m => m.id === messageId)
+    const message = messages[messageIndex]
+    const userQuestion = messages.slice(0, messageIndex).reverse().find(m => m.role === 'user')
 
-    // Log to console and localStorage
-    const feedbackData = {
-      messageId,
-      type,
-      comment: comment || null,
-      messageContent: message?.content?.substring(0, 200) || null,
-      timestamp: new Date().toISOString(),
-      cancerType: cancerType || null
-    }
-    console.log('[Ask Navis] Feedback:', feedbackData)
+    console.log('[Ask Navis] Feedback:', { messageId, type, comment, question: userQuestion?.content?.slice(0, 50) })
 
+    // Save to Supabase via feedback API (links to eval log)
     try {
-      const storedFeedback = JSON.parse(localStorage.getItem('ask-feedback') || '[]')
-      storedFeedback.push(feedbackData)
-      localStorage.setItem('ask-feedback', JSON.stringify(storedFeedback.slice(-50)))
-
-      // Send to Supabase (non-blocking)
-      fetch('https://felofmlhqwcdpiyjgstx.supabase.co/functions/v1/track-event', {
+      await fetch('/api/ask/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          event: 'ask_feedback',
-          properties: feedbackData
+          sessionId,
+          question: userQuestion?.content || '',
+          feedbackType: type,
+          feedbackComment: comment || null,
+          source: 'ask',
+          messageContent: message?.content?.substring(0, 500) || null,
         })
-      }).catch(() => {})
+      })
     } catch (e) {
       console.error('Failed to save feedback:', e)
     }

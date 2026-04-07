@@ -217,7 +217,7 @@ function AskTab({ messages, setMessages, isLoading, setIsLoading, onRecordUpload
     }
   }
 
-  const handleFeedback = (messageId: string, type: 'positive' | 'negative', comment?: string) => {
+  const handleFeedback = async (messageId: string, type: 'positive' | 'negative', comment?: string) => {
     if (!comment && feedbackMessageId !== messageId) {
       setFeedbackMessageId(messageId)
       setPendingFeedbackType(type)
@@ -232,30 +232,30 @@ function AskTab({ messages, setMessages, isLoading, setIsLoading, onRecordUpload
     setFeedbackComment('')
     setPendingFeedbackType(null)
 
-    // Log feedback
-    const message = messages.find(m => m.id === messageId)
-    const feedbackData = {
-      messageId,
-      type,
-      comment: comment || null,
-      messageContent: message?.content?.substring(0, 200) || null,
-      timestamp: new Date().toISOString(),
-      source: 'circle-app'
-    }
-    console.log('[Circle App] Feedback:', feedbackData)
+    // Get the message and find the corresponding user question
+    const messageIndex = messages.findIndex(m => m.id === messageId)
+    const message = messages[messageIndex]
+    const userQuestion = messages.slice(0, messageIndex).reverse().find(m => m.role === 'user')
 
-    // Store locally and send to tracking
+    console.log('[Circle App] Feedback:', { messageId, type, comment, question: userQuestion?.content?.slice(0, 50) })
+
+    // Save to Supabase via feedback API (links to eval log)
     try {
-      const stored = JSON.parse(localStorage.getItem('circle-feedback') || '[]')
-      stored.push(feedbackData)
-      localStorage.setItem('circle-feedback', JSON.stringify(stored.slice(-50)))
-
-      fetch('https://felofmlhqwcdpiyjgstx.supabase.co/functions/v1/track-event', {
+      await fetch('/api/ask/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ event: 'circle_feedback', properties: feedbackData })
-      }).catch(() => {})
-    } catch (e) { console.error(e) }
+        body: JSON.stringify({
+          sessionId: getSessionId(),
+          question: userQuestion?.content || '',
+          feedbackType: type,
+          feedbackComment: comment || null,
+          source: 'circle-app',
+          messageContent: message?.content?.substring(0, 500) || null,
+        })
+      })
+    } catch (e) {
+      console.error('Failed to save feedback:', e)
+    }
   }
 
   const submitFeedback = (messageId: string) => {
