@@ -120,6 +120,9 @@ function AskTab({ messages, setMessages, isLoading, setIsLoading, onRecordUpload
   const [feedbackMessageId, setFeedbackMessageId] = useState<string | null>(null)
   const [feedbackComment, setFeedbackComment] = useState('')
   const [pendingFeedbackType, setPendingFeedbackType] = useState<'positive' | 'negative' | null>(null)
+  const [hasUploadedRecord, setHasUploadedRecord] = useState(false)
+  const [showSavePrompt, setShowSavePrompt] = useState(false)
+  const [promptDismissed, setPromptDismissed] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -143,6 +146,18 @@ function AskTab({ messages, setMessages, isLoading, setIsLoading, onRecordUpload
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     }
   }, [messages])
+
+  // Show save records prompt after upload + getting a response
+  useEffect(() => {
+    // Count user messages (excluding welcome)
+    const userMessageCount = messages.filter(m => m.role === 'user').length
+    const hasResponse = messages.some(m => m.role === 'assistant' && m.id !== 'welcome' && m.typingComplete)
+
+    if (hasUploadedRecord && userMessageCount >= 1 && hasResponse && !promptDismissed) {
+      const timer = setTimeout(() => setShowSavePrompt(true), 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [messages, hasUploadedRecord, promptDismissed])
 
   const handleSubmit = async (question: string) => {
     if (!question.trim() || isLoading) return
@@ -178,8 +193,9 @@ function AskTab({ messages, setMessages, isLoading, setIsLoading, onRecordUpload
         if (translateData.result) {
           requestBody.patientContext = JSON.stringify(translateData.result)
         }
-        // Also notify Records tab
+        // Also notify Records tab and track for save prompt
         onRecordUploaded?.(attachedFile)
+        setHasUploadedRecord(true)
       } catch (e) {
         console.error('Failed to process attachment:', e)
       }
@@ -508,6 +524,46 @@ function AskTab({ messages, setMessages, isLoading, setIsLoading, onRecordUpload
           AI-generated educational information only. Not medical advice. In emergencies, call 911.
         </p>
       </div>
+
+      {/* Save Records Prompt - after upload + response */}
+      {showSavePrompt && (
+        <div className="absolute bottom-20 left-4 right-4 z-50">
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl p-4 shadow-xl">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
+                <FileText className="w-4 h-4" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-sm mb-1">Your records are ready!</p>
+                <p className="text-xs text-blue-100 mb-3">Create a free account to save your records, get personalized answers anytime, and build your cancer knowledge base.</p>
+                <div className="flex gap-2">
+                  <a
+                    href="https://opencancer.ai/ask?login=1"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => {
+                      setShowSavePrompt(false)
+                      setPromptDismissed(true)
+                    }}
+                    className="px-3 py-1.5 bg-white text-blue-700 font-medium rounded-lg hover:bg-blue-50 transition-colors text-xs"
+                  >
+                    Create Free Account
+                  </a>
+                  <button
+                    onClick={() => {
+                      setShowSavePrompt(false)
+                      setPromptDismissed(true)
+                    }}
+                    className="px-3 py-1.5 text-blue-200 hover:text-white transition-colors text-xs"
+                  >
+                    Continue as guest
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
