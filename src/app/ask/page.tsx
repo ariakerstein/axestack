@@ -764,10 +764,13 @@ I can help you with:
     ))
   }
 
+  const [pendingFeedbackType, setPendingFeedbackType] = useState<'positive' | 'negative' | null>(null)
+
   const handleFeedback = async (messageId: string, type: 'positive' | 'negative', comment?: string) => {
-    // For negative feedback, show comment input first (unless comment is provided)
-    if (type === 'negative' && !comment && feedbackMessageId !== messageId) {
+    // Show comment input first (unless comment is provided or skipped)
+    if (!comment && feedbackMessageId !== messageId) {
       setFeedbackMessageId(messageId)
+      setPendingFeedbackType(type)
       setFeedbackComment('')
       return
     }
@@ -780,6 +783,7 @@ I can help you with:
     // Close comment input
     setFeedbackMessageId(null)
     setFeedbackComment('')
+    setPendingFeedbackType(null)
 
     // Get the message content for context
     const message = messages.find(m => m.id === messageId)
@@ -814,13 +818,24 @@ I can help you with:
     }
   }
 
-  const submitNegativeFeedback = (messageId: string) => {
-    handleFeedback(messageId, 'negative', feedbackComment.trim() || undefined)
+  const submitFeedbackWithComment = (messageId: string) => {
+    if (pendingFeedbackType) {
+      handleFeedback(messageId, pendingFeedbackType, feedbackComment.trim() || undefined)
+    }
+  }
+
+  const skipFeedbackComment = (messageId: string) => {
+    if (pendingFeedbackType) {
+      handleFeedback(messageId, pendingFeedbackType, '')
+      setFeedbackMessageId(null)
+      setPendingFeedbackType(null)
+    }
   }
 
   const cancelFeedback = () => {
     setFeedbackMessageId(null)
     setFeedbackComment('')
+    setPendingFeedbackType(null)
   }
 
   // Handle sharing a Q&A
@@ -992,14 +1007,24 @@ I can help you with:
                           </div>
                         )}
 
-                        {/* Feedback comment input for negative feedback */}
+                        {/* Feedback comment input for both positive and negative feedback */}
                         {feedbackMessageId === message.id && (
-                          <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                            <p className="text-xs text-gray-600 mb-2">What could be improved? (optional)</p>
+                          <div className={`mt-3 p-3 rounded-lg border ${
+                            pendingFeedbackType === 'positive'
+                              ? 'bg-green-50 border-green-200'
+                              : 'bg-gray-50 border-gray-200'
+                          }`}>
+                            <p className="text-xs text-gray-600 mb-2">
+                              {pendingFeedbackType === 'positive'
+                                ? 'What was most helpful? (optional)'
+                                : 'What could be improved? (optional)'}
+                            </p>
                             <textarea
                               value={feedbackComment}
                               onChange={(e) => setFeedbackComment(e.target.value)}
-                              placeholder="e.g., The answer was too technical, missing information about..."
+                              placeholder={pendingFeedbackType === 'positive'
+                                ? "e.g., Clear explanation, good examples, helped me understand..."
+                                : "e.g., The answer was too technical, missing information about..."}
                               className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent resize-none"
                               rows={2}
                               maxLength={500}
@@ -1014,10 +1039,20 @@ I can help you with:
                                   Cancel
                                 </button>
                                 <button
-                                  onClick={() => submitNegativeFeedback(message.id)}
-                                  className="px-3 py-1.5 text-xs bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-medium"
+                                  onClick={() => skipFeedbackComment(message.id)}
+                                  className="px-3 py-1.5 text-xs text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg"
                                 >
-                                  Submit Feedback
+                                  Skip
+                                </button>
+                                <button
+                                  onClick={() => submitFeedbackWithComment(message.id)}
+                                  className={`px-3 py-1.5 text-xs text-white rounded-lg font-medium ${
+                                    pendingFeedbackType === 'positive'
+                                      ? 'bg-green-600 hover:bg-green-500'
+                                      : 'bg-slate-900 hover:bg-slate-800'
+                                  }`}
+                                >
+                                  Submit
                                 </button>
                               </div>
                             </div>

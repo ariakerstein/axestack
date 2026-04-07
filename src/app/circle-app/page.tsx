@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { MessageCircle, Upload, User, Send, FileText, Loader2, X, CheckCircle2, AlertCircle, Sparkles, ExternalLink } from 'lucide-react'
+import { MessageCircle, Upload, User, Send, FileText, Loader2, X, CheckCircle2, AlertCircle, Sparkles, ExternalLink, Paperclip, ThumbsUp, ThumbsDown, ArrowRight } from 'lucide-react'
 import { TypewriterMarkdown } from '@/components/TypewriterMarkdown'
 import { ThinkingIndicator } from '@/components/ThinkingIndicator'
 
@@ -13,6 +13,9 @@ interface ChatMessage {
   timestamp: Date
   isLoading?: boolean
   typingComplete?: boolean
+  feedback?: 'positive' | 'negative' | null
+  feedbackComment?: string
+  attachedFile?: { name: string; type: string }
 }
 
 interface UploadedRecord {
@@ -73,16 +76,66 @@ function TabButton({ active, onClick, icon: Icon, label, badge }: {
   )
 }
 
-// Ask Tab
-function AskTab({ messages, setMessages, isLoading, setIsLoading }: {
+// Suggested question with category
+interface SuggestedQuestion {
+  question: string
+  category: string
+  categoryColor: string
+}
+
+const SUGGESTED_QUESTIONS: SuggestedQuestion[] = [
+  { question: "What are the standard treatment options for my cancer type and stage?", category: "Treatment", categoryColor: "bg-blue-100 text-blue-700" },
+  { question: "What side effects should I expect from treatment?", category: "Side Effects", categoryColor: "bg-amber-100 text-amber-700" },
+  { question: "What questions should I ask my oncologist at my next appointment?", category: "Care Planning", categoryColor: "bg-green-100 text-green-700" },
+  { question: "Are there any clinical trials I might be eligible for?", category: "Clinical Trials", categoryColor: "bg-purple-100 text-purple-700" },
+]
+
+// Welcome message content
+const WELCOME_MESSAGE = `Hi, I'm **Navis**, your OpenCancer AI assistant. I can help you find information about cancer treatments, clinical trials, and caregiver strategies, grounded in NCCN guidelines and expert-led resources.
+
+📎 **Drop your medical records right here!** Click the paperclip or drag & drop a pathology report, lab result, or scan — I'll read it and answer questions about YOUR specific case.
+
+I can help you with:
+- **Analyzing your records** — attach any PDF or image and ask "what does this mean?"
+- Understanding NCCN guidelines for your specific situation
+- Exploring treatment options and clinical trials
+- Interpreting test results and biomarkers
+- Preparing questions for your oncologist
+
+**Please remember:** This is educational information only, not medical advice. Always consult your doctor about your specific situation.
+
+**How can I help you today?**`
+
+// Ask Tab - Enhanced version
+function AskTab({ messages, setMessages, isLoading, setIsLoading, onRecordUploaded }: {
   messages: ChatMessage[]
   setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>
   isLoading: boolean
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>
+  onRecordUploaded?: (file: File) => void
 }) {
   const [input, setInput] = useState('')
+  const [attachedFile, setAttachedFile] = useState<File | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [feedbackMessageId, setFeedbackMessageId] = useState<string | null>(null)
+  const [feedbackComment, setFeedbackComment] = useState('')
+  const [pendingFeedbackType, setPendingFeedbackType] = useState<'positive' | 'negative' | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Show welcome message on first load
+  useEffect(() => {
+    if (messages.length === 0) {
+      setMessages([{
+        id: 'welcome',
+        role: 'assistant',
+        content: WELCOME_MESSAGE,
+        timestamp: new Date(),
+        typingComplete: true,
+      }])
+    }
+  }, [])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -96,11 +149,39 @@ function AskTab({ messages, setMessages, isLoading, setIsLoading }: {
       role: 'user',
       content: question.trim(),
       timestamp: new Date(),
+      attachedFile: attachedFile ? { name: attachedFile.name, type: attachedFile.type } : undefined,
     }
 
     setMessages(prev => [...prev, userMessage])
     setInput('')
     setIsLoading(true)
+
+    // Build request body
+    const requestBody: Record<string, unknown> = {
+      message: question.trim(),
+      sessionId: getSessionId(),
+      source: 'circle-app',
+    }
+
+    // If file attached, process it first
+    if (attachedFile) {
+      try {
+        const formData = new FormData()
+        formData.append('file', attachedFile)
+        formData.append('sessionId', getSessionId())
+
+        const translateRes = await fetch('/api/translate', { method: 'POST', body: formData })
+        const translateData = await translateRes.json()
+        if (translateData.result) {
+          requestBody.patientContext = JSON.stringify(translateData.result)
+        }
+        // Also notify Records tab
+        onRecordUploaded?.(attachedFile)
+      } catch (e) {
+        console.error('Failed to process attachment:', e)
+      }
+      setAttachedFile(null)
+    }
 
     const loadingMessage: ChatMessage = {
       id: crypto.randomUUID(),
@@ -115,11 +196,7 @@ function AskTab({ messages, setMessages, isLoading, setIsLoading }: {
       const response = await fetch('/api/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: question.trim(),
-          sessionId: getSessionId(),
-          source: 'circle-app',
-        }),
+        body: JSON.stringify(requestBody),
       })
 
       const data = await response.json()
@@ -140,81 +217,267 @@ function AskTab({ messages, setMessages, isLoading, setIsLoading }: {
     }
   }
 
-  const suggestedQuestions = [
-    "What questions should I ask my oncologist?",
-    "How do I interpret my pathology report?",
-    "What are the latest treatment options?",
-    "How can I find relevant clinical trials?",
-  ]
+  const handleFeedback = (messageId: string, type: 'positive' | 'negative', comment?: string) => {
+    if (!comment && feedbackMessageId !== messageId) {
+      setFeedbackMessageId(messageId)
+      setPendingFeedbackType(type)
+      setFeedbackComment('')
+      return
+    }
+
+    setMessages(prev => prev.map(m =>
+      m.id === messageId ? { ...m, feedback: type, feedbackComment: comment } : m
+    ))
+    setFeedbackMessageId(null)
+    setFeedbackComment('')
+    setPendingFeedbackType(null)
+
+    // Log feedback
+    const message = messages.find(m => m.id === messageId)
+    const feedbackData = {
+      messageId,
+      type,
+      comment: comment || null,
+      messageContent: message?.content?.substring(0, 200) || null,
+      timestamp: new Date().toISOString(),
+      source: 'circle-app'
+    }
+    console.log('[Circle App] Feedback:', feedbackData)
+
+    // Store locally and send to tracking
+    try {
+      const stored = JSON.parse(localStorage.getItem('circle-feedback') || '[]')
+      stored.push(feedbackData)
+      localStorage.setItem('circle-feedback', JSON.stringify(stored.slice(-50)))
+
+      fetch('https://felofmlhqwcdpiyjgstx.supabase.co/functions/v1/track-event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event: 'circle_feedback', properties: feedbackData })
+      }).catch(() => {})
+    } catch (e) { console.error(e) }
+  }
+
+  const submitFeedback = (messageId: string) => {
+    if (pendingFeedbackType) {
+      handleFeedback(messageId, pendingFeedbackType, feedbackComment.trim() || undefined)
+    }
+  }
+
+  const skipFeedback = (messageId: string) => {
+    if (pendingFeedbackType) {
+      handleFeedback(messageId, pendingFeedbackType, '')
+    }
+  }
+
+  const cancelFeedback = () => {
+    setFeedbackMessageId(null)
+    setFeedbackComment('')
+    setPendingFeedbackType(null)
+  }
+
+  const handleFileDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    const file = e.dataTransfer.files[0]
+    if (file) setAttachedFile(file)
+  }, [])
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) setAttachedFile(file)
+  }
+
+  // Only show suggestions on initial welcome
+  const showSuggestions = messages.length === 1 && messages[0]?.id === 'welcome'
 
   return (
-    <div className="flex flex-col h-full">
+    <div
+      className="flex flex-col h-full"
+      onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
+      onDragLeave={() => setIsDragging(false)}
+      onDrop={handleFileDrop}
+    >
+      {/* Drag overlay */}
+      {isDragging && (
+        <div className="absolute inset-0 bg-[#C66B4A]/10 border-2 border-dashed border-[#C66B4A] z-50 flex items-center justify-center">
+          <div className="text-center">
+            <Paperclip className="w-12 h-12 text-[#C66B4A] mx-auto mb-2" />
+            <p className="text-[#C66B4A] font-medium">Drop your medical record here</p>
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.length === 0 ? (
-          <div className="text-center py-8">
-            <Sparkles className="w-12 h-12 mx-auto text-[#C66B4A] mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Ask Navis</h3>
-            <p className="text-gray-600 mb-6 max-w-md mx-auto text-sm">
-              Get personalized answers to your cancer-related questions from our AI research assistant.
-            </p>
-            <div className="grid grid-cols-1 gap-2 max-w-md mx-auto">
-              {suggestedQuestions.map((q, i) => (
+        {messages.map((msg) => (
+          <div key={msg.id}>
+            {msg.role === 'assistant' && (
+              <div className="flex items-center gap-2 mb-2">
+                <ThinkingIndicator size={18} variant="light" />
+                <span className="text-sm font-medium text-gray-700">
+                  {msg.isLoading ? 'Navis is thinking...' : 'Navis'}
+                </span>
+              </div>
+            )}
+            <div className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[85%] rounded-2xl px-4 py-3 ${
+                msg.role === 'user'
+                  ? 'bg-slate-900 text-white'
+                  : 'bg-gray-50 border border-gray-200 text-gray-900'
+              }`}>
+                {msg.attachedFile && (
+                  <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-200/50">
+                    <FileText className="w-4 h-4 text-gray-400" />
+                    <span className="text-xs text-gray-400">{msg.attachedFile.name}</span>
+                  </div>
+                )}
+                {msg.isLoading ? (
+                  <div className="flex gap-1 py-1">
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                ) : msg.role === 'user' ? (
+                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                ) : (
+                  <TypewriterMarkdown
+                    text={msg.content}
+                    instantRender={msg.typingComplete}
+                    onComplete={() => {
+                      setMessages(prev => prev.map(m =>
+                        m.id === msg.id ? { ...m, typingComplete: true } : m
+                      ))
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* Feedback for assistant messages */}
+            {msg.role === 'assistant' && msg.typingComplete && !msg.isLoading && msg.id !== 'welcome' && (
+              <div className="mt-2 ml-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400">Was this helpful?</span>
+                  <button
+                    onClick={() => handleFeedback(msg.id, 'positive')}
+                    disabled={msg.feedback !== undefined && msg.feedback !== null}
+                    className={`p-1.5 rounded transition-colors ${
+                      msg.feedback === 'positive' ? 'bg-green-100 text-green-600' :
+                      msg.feedback === 'negative' ? 'text-gray-300 cursor-not-allowed' :
+                      'text-gray-400 hover:text-green-600 hover:bg-green-50'
+                    }`}
+                  >
+                    <ThumbsUp className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => handleFeedback(msg.id, 'negative')}
+                    disabled={msg.feedback !== undefined && msg.feedback !== null}
+                    className={`p-1.5 rounded transition-colors ${
+                      msg.feedback === 'negative' ? 'bg-red-100 text-red-600' :
+                      msg.feedback === 'positive' ? 'text-gray-300 cursor-not-allowed' :
+                      'text-gray-400 hover:text-red-600 hover:bg-red-50'
+                    }`}
+                  >
+                    <ThumbsDown className="w-3.5 h-3.5" />
+                  </button>
+                  {msg.feedback && (
+                    <span className="text-xs text-gray-400 ml-1">
+                      Thanks!{msg.feedbackComment && ' (with comment)'}
+                    </span>
+                  )}
+                </div>
+
+                {/* Feedback comment input */}
+                {feedbackMessageId === msg.id && (
+                  <div className={`mt-2 p-3 rounded-lg border ${
+                    pendingFeedbackType === 'positive' ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
+                  }`}>
+                    <p className="text-xs text-gray-600 mb-2">
+                      {pendingFeedbackType === 'positive' ? 'What was most helpful? (optional)' : 'What could be improved? (optional)'}
+                    </p>
+                    <textarea
+                      value={feedbackComment}
+                      onChange={(e) => setFeedbackComment(e.target.value)}
+                      placeholder={pendingFeedbackType === 'positive' ? 'e.g., Clear explanation...' : 'e.g., Too technical...'}
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-400 resize-none"
+                      rows={2}
+                      maxLength={500}
+                    />
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-xs text-gray-400">{feedbackComment.length}/500</span>
+                      <div className="flex gap-2">
+                        <button onClick={cancelFeedback} className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700">Cancel</button>
+                        <button onClick={() => skipFeedback(msg.id)} className="px-3 py-1.5 text-xs text-gray-600 border border-gray-300 rounded-lg">Skip</button>
+                        <button onClick={() => submitFeedback(msg.id)} className={`px-3 py-1.5 text-xs text-white rounded-lg ${
+                          pendingFeedbackType === 'positive' ? 'bg-green-600 hover:bg-green-500' : 'bg-slate-900 hover:bg-slate-800'
+                        }`}>Submit</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+
+        {/* Suggested questions */}
+        {showSuggestions && (
+          <div className="pt-2">
+            <p className="text-xs text-gray-500 mb-2">Try asking:</p>
+            <div className="space-y-2">
+              {SUGGESTED_QUESTIONS.map((sq, i) => (
                 <button
                   key={i}
-                  onClick={() => handleSubmit(q)}
-                  className="text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm text-gray-700 transition-colors border border-gray-100"
+                  onClick={() => handleSubmit(sq.question)}
+                  className="w-full text-left p-3 bg-white hover:bg-gray-50 rounded-xl border border-gray-200 transition-colors group"
                 >
-                  {q}
+                  <div className="flex items-start gap-2">
+                    <ArrowRight className="w-4 h-4 text-[#C66B4A] mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-700 group-hover:text-gray-900">{sq.question}</p>
+                      <span className={`inline-block mt-1 px-2 py-0.5 text-xs rounded-full ${sq.categoryColor}`}>
+                        {sq.category}
+                      </span>
+                    </div>
+                  </div>
                 </button>
               ))}
             </div>
           </div>
-        ) : (
-          messages.map((msg) => (
-            <div key={msg.id}>
-              {msg.role === 'assistant' && (
-                <div className="flex items-center gap-2 mb-2">
-                  <ThinkingIndicator size={18} variant="light" />
-                  <span className="text-sm font-medium text-gray-700">
-                    {msg.isLoading ? 'Navis is thinking...' : 'Navis'}
-                  </span>
-                </div>
-              )}
-              <div className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[85%] rounded-2xl px-4 py-3 ${
-                  msg.role === 'user'
-                    ? 'bg-slate-900 text-white'
-                    : 'bg-gray-50 border border-gray-200 text-gray-900'
-                }`}>
-                  {msg.isLoading ? (
-                    <div className="flex gap-1 py-1">
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                    </div>
-                  ) : msg.role === 'user' ? (
-                    <p className="text-sm">{msg.content}</p>
-                  ) : (
-                    <TypewriterMarkdown
-                      text={msg.content}
-                      instantRender={msg.typingComplete}
-                      onComplete={() => {
-                        setMessages(prev => prev.map(m =>
-                          m.id === msg.id ? { ...m, typingComplete: true } : m
-                        ))
-                      }}
-                    />
-                  )}
-                </div>
-              </div>
-            </div>
-          ))
         )}
+
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Input area */}
       <div className="border-t bg-white p-3">
+        {/* Attached file preview */}
+        {attachedFile && (
+          <div className="flex items-center gap-2 mb-2 p-2 bg-gray-50 rounded-lg">
+            <FileText className="w-4 h-4 text-[#C66B4A]" />
+            <span className="text-sm text-gray-700 flex-1 truncate">{attachedFile.name}</span>
+            <button onClick={() => setAttachedFile(null)} className="p-1 hover:bg-gray-200 rounded">
+              <X className="w-3.5 h-3.5 text-gray-500" />
+            </button>
+          </div>
+        )}
+
         <form onSubmit={(e) => { e.preventDefault(); handleSubmit(input) }} className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="p-2.5 text-gray-400 hover:text-[#C66B4A] hover:bg-gray-50 rounded-xl transition-colors"
+            title="Attach medical record"
+          >
+            <Paperclip className="w-5 h-5" />
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
           <textarea
             ref={inputRef}
             value={input}
@@ -225,7 +488,7 @@ function AskTab({ messages, setMessages, isLoading, setIsLoading }: {
                 handleSubmit(input)
               }
             }}
-            placeholder="Ask a question about your cancer care..."
+            placeholder="Ask anything, or drag & drop your records..."
             className="flex-1 resize-none rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#C66B4A] focus:border-transparent"
             rows={1}
             disabled={isLoading}
@@ -238,6 +501,9 @@ function AskTab({ messages, setMessages, isLoading, setIsLoading }: {
             <Send className="w-4 h-4" />
           </button>
         </form>
+        <p className="text-[10px] text-gray-400 text-center mt-2">
+          AI-generated educational information only. Not medical advice. In emergencies, call 911.
+        </p>
       </div>
     </div>
   )
@@ -362,8 +628,14 @@ export default function CircleAppPage() {
 
   const completedRecordsCount = records.filter(r => r.status === 'completed').length
 
+  // Handler when a file is uploaded in Ask tab
+  const handleRecordFromAsk = (file: File) => {
+    const recordId = crypto.randomUUID()
+    setRecords(prev => [...prev, { id: recordId, file, status: 'completed' }])
+  }
+
   return (
-    <div className="h-screen flex flex-col bg-white">
+    <div className="h-screen flex flex-col bg-white relative">
       {/* Tab bar */}
       <div className="bg-white border-b flex items-center flex-shrink-0">
         <TabButton
@@ -394,7 +666,13 @@ export default function CircleAppPage() {
       {/* Content */}
       <div className="flex-1 overflow-hidden">
         {activeTab === 'ask' && (
-          <AskTab messages={messages} setMessages={setMessages} isLoading={isLoading} setIsLoading={setIsLoading} />
+          <AskTab
+            messages={messages}
+            setMessages={setMessages}
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
+            onRecordUploaded={handleRecordFromAsk}
+          />
         )}
         {activeTab === 'records' && (
           <RecordsTab records={records} setRecords={setRecords} />
