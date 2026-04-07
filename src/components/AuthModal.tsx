@@ -88,7 +88,10 @@ export function AuthModal({ isOpen, onClose, prefillEmail, wizardCompleted, redi
       if (error) {
         setLoading(false)
         if (error.message.includes('Invalid login credentials')) {
-          setError('No account found with this email/password. Create one or use magic link.')
+          // No account found - auto-switch to signup mode
+          setPassword('')
+          setMode('signup')
+          setError('No account found. Create one below.')
         } else {
           setError(error.message)
         }

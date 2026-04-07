@@ -71,6 +71,11 @@ export default function TrialsPage() {
   const trials = useMemo(() => {
     let filtered = [...rawTrials]
 
+    // Get cancer type for relevance scoring
+    const cancerTypeLower = profile?.cancerType ?
+      (CANCER_TYPES[profile.cancerType] || profile.cancerType).toLowerCase() : ''
+    const cancerKeywords = cancerTypeLower.split(/[\s\-\/]+/).filter(w => w.length > 2)
+
     // Filter by location (city, state, country, zip)
     if (filters.location) {
       const loc = filters.location.toLowerCase()
@@ -117,8 +122,23 @@ export default function TrialsPage() {
       })
     }
 
+    // Sort by relevance: trials mentioning the exact cancer type first
+    if (cancerKeywords.length > 0) {
+      filtered.sort((a, b) => {
+        const aText = [a.condition, a.title, a.description].join(' ').toLowerCase()
+        const bText = [b.condition, b.title, b.description].join(' ').toLowerCase()
+
+        // Count keyword matches
+        const aScore = cancerKeywords.filter(kw => aText.includes(kw)).length
+        const bScore = cancerKeywords.filter(kw => bText.includes(kw)).length
+
+        // Higher score = more relevant = sort first
+        return bScore - aScore
+      })
+    }
+
     return filtered
-  }, [rawTrials, filters])
+  }, [rawTrials, filters, profile])
 
   // Eligibility profile from records
   const [eligibilityProfile, setEligibilityProfile] = useState<{
@@ -604,7 +624,7 @@ export default function TrialsPage() {
                   <div className="flex items-center gap-3">
                     <p className="text-sm text-slate-700">
                       {trials.length === rawTrials.length ? (
-                        <>Found <strong>{trials.length}</strong> trials</>
+                        <>Found <strong>{trials.length}</strong> trials for {CANCER_TYPES[profile.cancerType] || profile.cancerType}</>
                       ) : (
                         <>Showing <strong>{trials.length}</strong> of {rawTrials.length} trials</>
                       )}
@@ -622,6 +642,13 @@ export default function TrialsPage() {
                     Refresh
                   </button>
                 </div>
+
+                {/* Sorted by relevance note */}
+                {profile && (
+                  <p className="text-xs text-slate-500 -mt-2 mb-2">
+                    Sorted by relevance to {CANCER_TYPES[profile.cancerType] || profile.cancerType}
+                  </p>
+                )}
 
                 {/* No matches after filtering */}
                 {trials.length === 0 && (
