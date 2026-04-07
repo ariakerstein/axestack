@@ -233,36 +233,40 @@ function HomeContent() {
 
   // Check if user has uploaded records
   useEffect(() => {
-    // Check localStorage for records
-    const localRecords = localStorage.getItem('axestack-translations')
-    if (localRecords) {
-      try {
-        const parsed = JSON.parse(localRecords)
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setHasRecords(true)
-          return
+    const checkRecords = async () => {
+      // Check localStorage for records
+      const localRecords = localStorage.getItem('axestack-translations')
+      if (localRecords) {
+        try {
+          const parsed = JSON.parse(localRecords)
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setHasRecords(true)
+            return
+          }
+        } catch {
+          // Invalid JSON, ignore
         }
-      } catch {
-        // Invalid JSON, ignore
+      }
+
+      // For authenticated users, check cloud records
+      if (user) {
+        try {
+          const { data } = await supabase
+            .from('medical_records')
+            .select('id')
+            .eq('user_id', user.id)
+            .limit(1)
+
+          if (data && data.length > 0) {
+            setHasRecords(true)
+          }
+        } catch {
+          // Ignore errors
+        }
       }
     }
 
-    // For authenticated users, check cloud records
-    if (user) {
-      fetch('/api/records/view', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.records && data.records.length > 0) {
-            setHasRecords(true)
-          }
-        })
-        .catch(() => {
-          // Ignore errors
-        })
-    }
+    checkRecords()
   }, [user])
 
   // Load profile - prefer Supabase for authenticated users

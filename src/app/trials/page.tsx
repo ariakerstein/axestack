@@ -79,11 +79,13 @@ export default function TrialsPage() {
       )
     }
 
-    // Filter by phase
+    // Filter by phase (normalize: "Phase 2" matches "PHASE2", "Phase2", "PHASE 2", etc.)
     if (filters.phase) {
-      filtered = filtered.filter((t) =>
-        t.phase?.toLowerCase().includes(filters.phase.toLowerCase())
-      )
+      const phaseNum = filters.phase.replace(/[^0-9]/g, '') // Extract just the number
+      filtered = filtered.filter((t) => {
+        const trialPhase = t.phase?.toLowerCase().replace(/\s/g, '') || ''
+        return trialPhase.includes(`phase${phaseNum}`)
+      })
     }
 
     // Filter by status
@@ -208,18 +210,32 @@ export default function TrialsPage() {
       // Check cloud records for authenticated users
       if (user) {
         try {
-          const res = await fetch('/api/records/view')
-          const data = await res.json()
-          if (data.records && data.records.length > 0) {
+          const { data: records } = await supabase
+            .from('medical_records')
+            .select('id, translated_text')
+            .eq('user_id', user.id)
+
+          if (records && records.length > 0) {
             const allBiomarkers: string[] = []
             const allTreatments: string[] = []
 
-            data.records.forEach((r: { result?: { cancer_specific?: { biomarkers?: string[] }, treatments_mentioned?: string[] } }) => {
-              if (r.result?.cancer_specific?.biomarkers) {
-                allBiomarkers.push(...r.result.cancer_specific.biomarkers)
-              }
-              if (r.result?.treatments_mentioned) {
-                allTreatments.push(...r.result.treatments_mentioned)
+            records.forEach((record) => {
+              // Parse the translated_text JSON to get the result
+              if (record.translated_text) {
+                try {
+                  const result = typeof record.translated_text === 'string'
+                    ? JSON.parse(record.translated_text)
+                    : record.translated_text
+
+                  if (result?.cancer_specific?.biomarkers) {
+                    allBiomarkers.push(...result.cancer_specific.biomarkers)
+                  }
+                  if (result?.treatments_mentioned) {
+                    allTreatments.push(...result.treatments_mentioned)
+                  }
+                } catch {
+                  // Ignore parse errors for individual records
+                }
               }
             })
 
