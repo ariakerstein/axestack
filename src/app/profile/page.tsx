@@ -597,7 +597,7 @@ export default function ProfilePage() {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm"
+                    className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900"
                   />
                 </div>
                 <div>
@@ -606,7 +606,7 @@ export default function ProfilePage() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm"
+                    className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900"
                   />
                 </div>
               </div>
@@ -617,7 +617,7 @@ export default function ProfilePage() {
                 <select
                   value={cancerType}
                   onChange={(e) => setCancerType(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm"
+                  className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900"
                 >
                   {Object.entries(CANCER_TYPES).map(([key, label]) => (
                     <option key={key} value={key}>{label}</option>
@@ -632,7 +632,7 @@ export default function ProfilePage() {
                   <select
                     value={stage}
                     onChange={(e) => setStage(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm"
+                    className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900"
                   >
                     <option value="">Not specified</option>
                     <option value="0">Stage 0</option>
@@ -650,7 +650,7 @@ export default function ProfilePage() {
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     placeholder="City, State"
-                    className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm"
+                    className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400"
                   />
                 </div>
               </div>

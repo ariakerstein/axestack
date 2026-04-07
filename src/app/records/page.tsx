@@ -601,11 +601,12 @@ function RecordsVaultPageContent() {
       setChatMessages([])
     }
 
-    // Show auth modal after files are stored (if not logged in)
-    if (!user) {
+    // Show auth modal after files are stored (if not logged in and auth is ready)
+    // Don't show during auth loading to avoid flashing the modal then closing it
+    if (!user && !authLoading) {
       setShowAuthModal(true)
     }
-  }, [user])
+  }, [user, authLoading])
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
@@ -635,11 +636,12 @@ function RecordsVaultPageContent() {
       setChatMessages([])
     }
 
-    // Show auth modal after files are stored (if not logged in)
-    if (!user) {
+    // Show auth modal after files are stored (if not logged in and auth is ready)
+    // Don't show during auth loading to avoid flashing the modal then closing it
+    if (!user && !authLoading) {
       setShowAuthModal(true)
     }
-  }, [user])
+  }, [user, authLoading])
 
   const handleTranslate = async () => {
     if (!file) return
@@ -1898,20 +1900,27 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
           <div className="space-y-4">
             {/* Header with record count */}
             <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-slate-900">My Records</h1>
-                {isProcessing ? (
-                  <p className="text-slate-600 text-sm font-medium flex items-center gap-2">
-                    <span className="w-3 h-3 border-2 border-slate-600 border-t-transparent rounded-full animate-spin" />
-                    Processing {bulkProgress.current} of {bulkProgress.total}...
-                  </p>
-                ) : bulkComplete && uploadedFiles.length > 0 ? (
-                  <p className="text-slate-700 text-sm font-medium flex items-center gap-1">
-                    ✓ Done! {savedTranslations.length} record{savedTranslations.length !== 1 ? 's' : ''} translated
-                  </p>
-                ) : (
-                  <p className="text-slate-500 text-sm">{savedTranslations.length} record{savedTranslations.length !== 1 ? 's' : ''} translated</p>
-                )}
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-[#C66B4A]/10 rounded-xl flex items-center justify-center">
+                  <Shield className="w-6 h-6 text-[#C66B4A]" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-slate-900">
+                    Records<span className="text-[#C66B4A]">Vault</span>
+                  </h1>
+                  {isProcessing ? (
+                    <p className="text-slate-600 text-sm font-medium flex items-center gap-2">
+                      <span className="w-3 h-3 border-2 border-slate-600 border-t-transparent rounded-full animate-spin" />
+                      Processing {bulkProgress.current} of {bulkProgress.total}...
+                    </p>
+                  ) : bulkComplete && uploadedFiles.length > 0 ? (
+                    <p className="text-slate-700 text-sm font-medium flex items-center gap-1">
+                      ✓ Done! {savedTranslations.length} record{savedTranslations.length !== 1 ? 's' : ''} translated
+                    </p>
+                  ) : (
+                    <p className="text-slate-500 text-sm">{savedTranslations.length} record{savedTranslations.length !== 1 ? 's' : ''} translated</p>
+                  )}
+                </div>
               </div>
               <button
                 onClick={() => setShowAddRecordView(true)}

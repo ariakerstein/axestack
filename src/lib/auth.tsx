@@ -199,13 +199,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // On sign in, check if different user and clear localStorage
         if (event === 'SIGNED_IN' && session?.user) {
+          // CRITICAL: Read wizard profile from localStorage BEFORE any clearing
+          // This ensures cancer type from wizard isn't lost
+          let wizardProfile: LocalProfile | null = null
+          if (typeof window !== 'undefined') {
+            const localData = localStorage.getItem('patient-profile')
+            if (localData) {
+              try {
+                wizardProfile = JSON.parse(localData)
+                console.log('[Auth] Found wizard profile:', wizardProfile)
+              } catch (e) {
+                console.error('[Auth] Failed to parse wizard profile:', e)
+              }
+            }
+          }
+
           // CRITICAL: Check if this is a different user than last signed in
           const lastUserId = typeof window !== 'undefined'
             ? localStorage.getItem('opencancer_last_user_id')
             : null
 
-          // FIRST: Migrate any localStorage records to cloud BEFORE clearing
-          // This ensures records uploaded anonymously aren't lost on sign-in
+          // Migrate any localStorage records to cloud BEFORE clearing
           if (typeof window !== 'undefined') {
             await migrateLocalRecordsToCloud(session.access_token)
           }
@@ -223,32 +237,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           await migrateSessionDecks(session.user.id)
 
-          // Sync localStorage profile to Supabase
+          // Sync profile to Supabase - use wizard profile if available
           const existingProfile = await loadProfile(session.user.email!)
           if (!existingProfile) {
-            const syncedProfile = await syncProfileToSupabase(session.user.email!)
-            if (!syncedProfile) {
-              // No localStorage profile - create a minimal default profile
-              const defaultProfile: OpenCancerProfile = {
-                id: session.user.id,
-                session_id: getSessionId(),
+            // Use wizard profile if we have it (captured before clearing)
+            if (wizardProfile && wizardProfile.cancerType) {
+              console.log('[Auth] Syncing wizard profile to Supabase:', wizardProfile.cancerType)
+              const savedProfile = await saveProfile({
                 email: session.user.email!,
-                name: session.user.email!.split('@')[0],
-                role: 'patient',
-                cancer_type: 'other',
-                stage: null,
-                location: null,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
+                name: wizardProfile.name || session.user.email!.split('@')[0],
+                role: wizardProfile.role || 'patient',
+                cancerType: wizardProfile.cancerType,
+                stage: wizardProfile.stage,
+                location: wizardProfile.location,
+              })
+              if (savedProfile) {
+                setProfile(savedProfile)
               }
-              setProfile(defaultProfile)
-              // Save to Supabase in background
-              saveProfile({
-                email: session.user.email!,
-                name: session.user.email!.split('@')[0],
-                role: 'patient',
-                cancerType: 'other',
-              }).catch(err => console.error('Failed to save default profile:', err))
+            } else {
+              // No wizard profile - try syncing from current localStorage (might still have data)
+              const syncedProfile = await syncProfileToSupabase(session.user.email!)
+              if (!syncedProfile) {
+                // No localStorage profile either - create a minimal default profile
+                const defaultProfile: OpenCancerProfile = {
+                  id: session.user.id,
+                  session_id: getSessionId(),
+                  email: session.user.email!,
+                  name: session.user.email!.split('@')[0],
+                  role: 'patient',
+                  cancer_type: 'other',
+                  stage: null,
+                  location: null,
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                }
+                setProfile(defaultProfile)
+                // Save to Supabase in background
+                saveProfile({
+                  email: session.user.email!,
+                  name: session.user.email!.split('@')[0],
+                  role: 'patient',
+                  cancerType: 'other',
+                }).catch(err => console.error('Failed to save default profile:', err))
+              }
             }
           }
         }
@@ -462,6 +493,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signOut,
         isAnonymous: !user,
         refreshProfile,
+        isRecoveryMode,
+        updatePassword,
+        clearRecoveryMode,
       }}
     >
       {children}

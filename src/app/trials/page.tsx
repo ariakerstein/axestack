@@ -7,10 +7,10 @@ import { useAnalytics } from '@/hooks/useAnalytics'
 import { useActivityLog } from '@/hooks/useActivityLog'
 import { ShareButton } from '@/components/ShareButton'
 import { useAuth } from '@/lib/auth'
-import { X, ExternalLink, MapPin, Building2, FlaskConical, CheckCircle2, Filter, FileText, Send, Shield } from 'lucide-react'
+import { X, ExternalLink, MapPin, Building2, FlaskConical, CheckCircle2, Filter, FileText, Send, Shield, Upload, Loader2, Plus, Radar } from 'lucide-react'
 import { Navbar } from '@/components/Navbar'
 import { RecordsProcessingBanner } from '@/components/RecordsProcessingBanner'
-import { supabase } from '@/lib/supabase'
+import { supabase, saveProfile } from '@/lib/supabase'
 
 interface PatientProfile {
   cancerType: string
@@ -50,7 +50,7 @@ interface Trial {
 }
 
 export default function TrialsPage() {
-  const { user, profile: authProfile, loading: authLoading } = useAuth()
+  const { user, profile: authProfile, loading: authLoading, refreshProfile } = useAuth()
   const [profile, setProfile] = useState<PatientProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [rawTrials, setRawTrials] = useState<Trial[]>([])  // Unfiltered API results
@@ -58,6 +58,11 @@ export default function TrialsPage() {
   const [searched, setSearched] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedTrial, setSelectedTrial] = useState<Trial | null>(null)
+
+  // Inline profile update state
+  const [showProfileUpdatePrompt, setShowProfileUpdatePrompt] = useState(false)
+  const [pendingCancerType, setPendingCancerType] = useState<string | null>(null)
+  const [updatingProfile, setUpdatingProfile] = useState(false)
 
   // Filter state - filters always visible
   const [filters, setFilters] = useState({
@@ -167,6 +172,13 @@ export default function TrialsPage() {
 
   const { trackEvent } = useAnalytics()
   const { logTrialSearch, logTrialView } = useActivityLog()
+
+  // Quick upload modal state
+  const [showUploadModal, setShowUploadModal] = useState(false)
+  const [uploadFile, setUploadFile] = useState<File | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [uploadSuccess, setUploadSuccess] = useState(false)
 
   // Load user records for sharing
   useEffect(() => {
@@ -423,6 +435,168 @@ export default function TrialsPage() {
     }
   }, [profile])
 
+  // Handle cancer type change - show prompt to update profile
+  const handleCancerTypeChange = (newCancerType: string) => {
+    if (newCancerType === profile?.cancerType) return
+
+    setPendingCancerType(newCancerType)
+    setShowProfileUpdatePrompt(true)
+  }
+
+  // Update profile and search with new cancer type
+  const confirmProfileUpdate = async () => {
+    if (!pendingCancerType) return
+
+    setUpdatingProfile(true)
+    try {
+      // Update profile state immediately for UI
+      setProfile(prev => prev ? { ...prev, cancerType: pendingCancerType } : null)
+
+      // Save to Supabase if authenticated
+      if (user && authProfile?.email) {
+        await saveProfile({
+          email: authProfile.email,
+          name: authProfile.name || user.email?.split('@')[0] || '',
+          role: authProfile.role || 'patient',
+          cancerType: pendingCancerType,
+          stage: authProfile.stage || undefined,
+          location: authProfile.location || undefined,
+        })
+        await refreshProfile()
+      }
+
+      // Save to localStorage
+      const localProfile = localStorage.getItem('patient-profile')
+      if (localProfile) {
+        const parsed = JSON.parse(localProfile)
+        parsed.cancerType = pendingCancerType
+        localStorage.setItem('patient-profile', JSON.stringify(parsed))
+      }
+
+      // Trigger new search
+      setSearched(false)
+    } catch (err) {
+      console.error('Failed to update profile:', err)
+    } finally {
+      setUpdatingProfile(false)
+      setShowProfileUpdatePrompt(false)
+      setPendingCancerType(null)
+    }
+  }
+
+  // Just search without updating profile
+  const searchWithoutProfileUpdate = () => {
+    if (!pendingCancerType) return
+
+    // Temporarily update profile for this search only
+    setProfile(prev => prev ? { ...prev, cancerType: pendingCancerType } : null)
+    setSearched(false)
+    setShowProfileUpdatePrompt(false)
+    setPendingCancerType(null)
+  }
+
+  // Quick upload handler for adding records without leaving trials page
+  const handleQuickUpload = async () => {
+    if (!uploadFile) return
+
+    setIsUploading(true)
+    setUploadError(null)
+
+    try {
+      const sessionId = localStorage.getItem('opencancer_session_id') || 'anonymous'
+      const formData = new FormData()
+      formData.append('file', uploadFile)
+      formData.append('sessionId', sessionId)
+      if (user?.id) formData.append('userId', user.id)
+
+      const response = await fetch('/api/translate', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to process record')
+      }
+
+      const data = await response.json()
+
+      // Save to localStorage (same format as records page)
+      // API returns data.analysis, not data.result
+      const id = `file_${Date.now()}_${Math.random().toString(36).slice(2)}`
+      const recordEntry = {
+        id,
+        fileName: uploadFile.name,
+        documentType: data.analysis?.document_type || 'Medical Record',
+        date: new Date().toISOString(),
+        result: data.analysis,
+        documentText: data.documentText || '',
+        chatMessages: [],
+      }
+
+      // Update localStorage index
+      const existingIndex = JSON.parse(localStorage.getItem('axestack-translations') || '[]')
+      existingIndex.unshift({ id, fileName: uploadFile.name, date: recordEntry.date, documentType: recordEntry.documentType })
+      localStorage.setItem('axestack-translations', JSON.stringify(existingIndex))
+
+      // Update localStorage data
+      const existingData = JSON.parse(localStorage.getItem('axestack-translations-data') || '{}')
+      existingData[id] = recordEntry
+      localStorage.setItem('axestack-translations-data', JSON.stringify(existingData))
+
+      // Update local userRecords list
+      setUserRecords(prev => [...prev, { id, fileName: uploadFile.name, documentType: recordEntry.documentType }])
+
+      // Extract biomarkers from the new record and update eligibility profile
+      const newBiomarkers: string[] = []
+      const newTreatments: string[] = []
+
+      if (data.analysis?.cancer_specific?.biomarkers) {
+        newBiomarkers.push(...data.analysis.cancer_specific.biomarkers)
+      }
+      if (data.analysis?.treatments_mentioned) {
+        newTreatments.push(...data.analysis.treatments_mentioned)
+      }
+
+      // Update eligibility profile with new data
+      setEligibilityProfile(prev => {
+        const currentBiomarkers = prev?.biomarkers || []
+        const currentTreatments = prev?.priorTreatments || []
+        const allBiomarkers = [...new Set([...currentBiomarkers, ...newBiomarkers])]
+        const allTreatments = [...new Set([...currentTreatments, ...newTreatments])]
+
+        return {
+          hasRecords: true,
+          recordCount: (prev?.recordCount || 0) + 1,
+          biomarkers: allBiomarkers,
+          priorTreatments: allTreatments,
+          autoFilterApplied: allBiomarkers.length > 0,
+        }
+      })
+
+      // Auto-apply first biomarker as filter if we found new ones
+      if (newBiomarkers.length > 0 && !filters.biomarker) {
+        setFilters(prev => ({ ...prev, biomarker: newBiomarkers[0] }))
+      }
+
+      setUploadSuccess(true)
+      trackEvent('quick_record_upload', { file_name: uploadFile.name })
+    } catch (err) {
+      console.error('Quick upload error:', err)
+      setUploadError('Failed to process record. Please try again.')
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  // Reset upload modal state
+  const resetUploadModal = () => {
+    setShowUploadModal(false)
+    setUploadFile(null)
+    setUploadError(null)
+    setUploadSuccess(false)
+  }
+
   if (loading) {
     return <div className="min-h-screen bg-white flex items-center justify-center">
       <div className="animate-pulse text-slate-400">Loading...</div>
@@ -435,17 +609,32 @@ export default function TrialsPage() {
       <RecordsProcessingBanner />
 
       <div className="max-w-3xl mx-auto px-4 py-8">
+        {/* Trial Radar Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 bg-[#C66B4A]/10 rounded-xl flex items-center justify-center">
+            <Radar className="w-6 h-6 text-[#C66B4A]" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-slate-900">
+              Trial<span className="text-[#C66B4A]">Radar</span>
+            </h1>
+            <p className="text-sm text-slate-500">Scanning clinical trials matched to you</p>
+          </div>
+        </div>
+
         {!profile ? (
           /* No profile - prompt to create */
           <div className="text-center py-12">
-            <div className="text-6xl mb-4">🔬</div>
-            <h2 className="text-2xl font-bold text-slate-900 mb-2">Find Clinical Trials</h2>
+            <div className="w-16 h-16 bg-[#C66B4A]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Radar className="w-8 h-8 text-[#C66B4A]" />
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">Scan for Matching Trials</h2>
             <p className="text-slate-600 mb-6 max-w-md mx-auto">
-              To find trials matched to your cancer, we need to know your diagnosis.
+              Trial Radar finds clinical trials matched to your specific cancer profile.
             </p>
             <Link
               href="/profile"
-              className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              className="inline-block bg-[#C66B4A] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#B35E40] transition-colors shadow-lg shadow-[#C66B4A]/25"
             >
               Create Your Profile
             </Link>
@@ -462,11 +651,20 @@ export default function TrialsPage() {
                     <CheckCircle2 className="w-5 h-5 text-green-600" />
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-bold text-green-900">Auto-filtered based on your records</span>
-                      <span className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full">
-                        {eligibilityProfile.recordCount} record{eligibilityProfile.recordCount !== 1 ? 's' : ''}
-                      </span>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-green-900">Auto-filtered based on your records</span>
+                        <span className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full">
+                          {eligibilityProfile.recordCount} record{eligibilityProfile.recordCount !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => setShowUploadModal(true)}
+                        className="flex items-center gap-1.5 text-xs bg-white border border-green-300 text-green-700 px-2.5 py-1 rounded-lg hover:border-green-400 hover:bg-green-50 transition-colors"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        Add Record
+                      </button>
                     </div>
                     <div className="flex flex-wrap gap-2 mt-2">
                       {eligibilityProfile.biomarkers.slice(0, 4).map((marker, i) => (
@@ -498,9 +696,13 @@ export default function TrialsPage() {
                     <span className="font-semibold text-amber-800">Upload records for personalized matching</span>
                     <p className="text-sm text-amber-700 mt-1">We'll extract biomarkers & auto-filter trials for you</p>
                   </div>
-                  <Link href="/records" className="bg-amber-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-amber-700 transition-colors">
-                    Upload Records
-                  </Link>
+                  <button
+                    onClick={() => setShowUploadModal(true)}
+                    className="bg-amber-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-amber-700 transition-colors flex items-center gap-2"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Upload Record
+                  </button>
                 </div>
               </div>
             )}
@@ -515,6 +717,13 @@ export default function TrialsPage() {
                       <span className="font-semibold text-slate-800">
                         {eligibilityProfile.recordCount} record{eligibilityProfile.recordCount !== 1 ? 's' : ''} uploaded
                       </span>
+                      <button
+                        onClick={() => setShowUploadModal(true)}
+                        className="flex items-center gap-1.5 text-xs bg-white border border-slate-300 text-slate-700 px-2.5 py-1 rounded-lg hover:border-slate-400 hover:bg-slate-100 transition-colors"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        Add Record
+                      </button>
                     </div>
                     <p className="text-sm text-slate-600 mt-1">
                       No biomarkers auto-extracted from your records. Use the filters below to find trials matching your specific markers (e.g., PSA, PSMA, Gleason score).
@@ -524,7 +733,7 @@ export default function TrialsPage() {
                         <button
                           key={i}
                           onClick={() => setFilters(prev => ({ ...prev, biomarker: b.marker }))}
-                          className="text-xs bg-white border border-slate-300 text-slate-700 px-2.5 py-1 rounded-lg hover:border-blue-400 hover:text-blue-700 transition-colors"
+                          className="text-xs bg-white border border-slate-300 text-slate-700 px-2.5 py-1 rounded-lg hover:border-[#C66B4A] hover:text-blue-700 transition-colors"
                         >
                           + {b.marker}
                         </button>
@@ -538,11 +747,19 @@ export default function TrialsPage() {
             {/* Cancer type header - only show if not auto-filtered */}
             {!eligibilityProfile?.autoFilterApplied && (
               <div className="flex items-center justify-between mb-4">
-                <p className="text-sm text-slate-600">
-                  Searching trials for <strong className="text-slate-900">{CANCER_TYPES[profile.cancerType] || profile.cancerType}</strong>
-                  {profile.stage && <span> (Stage {profile.stage})</span>}
-                </p>
-                <Link href="/profile" className="text-xs text-blue-600 hover:text-blue-800">Edit Profile</Link>
+                <div className="flex items-center gap-2 text-sm text-slate-600">
+                  <span>Searching trials for</span>
+                  <select
+                    value={profile.cancerType}
+                    onChange={(e) => handleCancerTypeChange(e.target.value)}
+                    className="font-semibold text-slate-900 bg-transparent border-b border-dashed border-slate-300 hover:border-[#C66B4A] focus:outline-none focus:border-blue-500 cursor-pointer px-1 py-0.5"
+                  >
+                    {Object.entries(CANCER_TYPES).map(([key, label]) => (
+                      <option key={key} value={key}>{label}</option>
+                    ))}
+                  </select>
+                  {profile.stage && <span>(Stage {profile.stage})</span>}
+                </div>
               </div>
             )}
 
@@ -550,9 +767,9 @@ export default function TrialsPage() {
             <div className="bg-white border border-gray-200 rounded-xl p-4 mb-6 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
                 <Filter className="w-4 h-4 text-gray-500" />
-                <span className="text-sm font-semibold text-gray-900">Filter Trials</span>
+                <span className="text-sm font-semibold text-gray-900">Radar Filters</span>
                 {(filters.biomarker || filters.phase || filters.location || filters.status !== 'recruiting') && (
-                  <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">
+                  <span className="bg-[#C66B4A]/10 text-[#C66B4A] text-xs px-2 py-0.5 rounded-full">
                     {[filters.biomarker, filters.phase, filters.location, filters.status !== 'recruiting' ? filters.status : ''].filter(Boolean).length} active
                   </span>
                 )}
@@ -567,7 +784,7 @@ export default function TrialsPage() {
                     value={filters.location}
                     onChange={(e) => setFilters({ ...filters, location: e.target.value })}
                     placeholder="City, state, or country"
-                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#C66B4A]/50 focus:border-[#C66B4A]"
                   />
                 </div>
 
@@ -578,7 +795,7 @@ export default function TrialsPage() {
                     <select
                       value={filters.biomarker}
                       onChange={(e) => setFilters({ ...filters, biomarker: e.target.value })}
-                      className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#C66B4A]/50 focus:border-[#C66B4A]"
                     >
                       <option value="">Any</option>
                       {availableBiomarkers.map((b) => (
@@ -591,7 +808,7 @@ export default function TrialsPage() {
                       value={filters.biomarker}
                       onChange={(e) => setFilters({ ...filters, biomarker: e.target.value })}
                       placeholder="e.g., EGFR, HER2"
-                      className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#C66B4A]/50 focus:border-[#C66B4A]"
                     />
                   )}
                 </div>
@@ -602,7 +819,7 @@ export default function TrialsPage() {
                   <select
                     value={filters.phase}
                     onChange={(e) => setFilters({ ...filters, phase: e.target.value })}
-                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#C66B4A]/50 focus:border-[#C66B4A]"
                   >
                     {PHASE_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -616,7 +833,7 @@ export default function TrialsPage() {
                   <select
                     value={filters.status}
                     onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#C66B4A]/50 focus:border-[#C66B4A]"
                   >
                     {STATUS_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -667,9 +884,10 @@ export default function TrialsPage() {
                   href={`https://clinicaltrials.gov/search?cond=${encodeURIComponent(CANCER_TYPES[profile.cancerType] || profile.cancerType)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                  className="inline-flex items-center gap-2 bg-[#C66B4A] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#B35E40] transition-colors shadow-lg shadow-[#C66B4A]/25"
                 >
-                  Search ClinicalTrials.gov →
+                  <Radar className="w-5 h-5" />
+                  Search ClinicalTrials.gov
                 </a>
               </div>
             )}
@@ -693,7 +911,7 @@ export default function TrialsPage() {
                   </div>
                   <button
                     onClick={searchTrials}
-                    className="text-sm text-blue-600 hover:text-blue-800"
+                    className="text-sm text-[#C66B4A] hover:text-[#B35E40]"
                   >
                     Refresh
                   </button>
@@ -714,7 +932,7 @@ export default function TrialsPage() {
                     <p className="text-sm text-slate-500 mb-4">Try adjusting your filter criteria</p>
                     <button
                       onClick={() => setFilters({ biomarker: '', location: '', phase: '', status: 'recruiting' })}
-                      className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                      className="text-sm text-[#C66B4A] hover:text-[#B35E40] font-medium"
                     >
                       Reset Filters
                     </button>
@@ -724,7 +942,7 @@ export default function TrialsPage() {
                 {trials.length > 0 && trials.slice(0, 10).map((trial) => (
                   <div
                     key={trial.id}
-                    className="border border-slate-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
+                    className="border border-slate-200 rounded-lg p-4 hover:border-[#C66B4A] transition-colors"
                   >
                     <div className="flex items-start justify-between gap-4 mb-2">
                       <div className="flex-1">
@@ -769,7 +987,7 @@ export default function TrialsPage() {
                             trialTitle: trial.title,
                           })
                         }}
-                        className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                        className="text-xs text-[#C66B4A] hover:text-[#B35E40] font-medium"
                       >
                         View Details →
                       </button>
@@ -795,7 +1013,7 @@ export default function TrialsPage() {
                       href={`https://clinicaltrials.gov/search?cond=${encodeURIComponent(CANCER_TYPES[profile.cancerType] || profile.cancerType)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-blue-600 hover:text-blue-800"
+                      className="text-sm text-[#C66B4A] hover:text-[#B35E40]"
                     >
                       View all {trials.length} trials on ClinicalTrials.gov →
                     </a>
@@ -846,6 +1064,65 @@ export default function TrialsPage() {
           </div>
         )}
       </div>
+
+      {/* Profile Update Prompt Modal */}
+      {showProfileUpdatePrompt && pendingCancerType && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => {
+            setShowProfileUpdatePrompt(false)
+            setPendingCancerType(null)
+          }}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-md w-full shadow-xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="p-6">
+              <div className="text-center mb-6">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Filter className="w-6 h-6 text-blue-600" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">
+                  Update your profile?
+                </h3>
+                <p className="text-sm text-slate-600">
+                  You selected <span className="font-semibold text-slate-900">{CANCER_TYPES[pendingCancerType] || pendingCancerType}</span>.
+                  Would you like to save this to your profile?
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  onClick={confirmProfileUpdate}
+                  disabled={updatingProfile}
+                  className="w-full px-4 py-3 bg-[#C66B4A] text-white font-medium rounded-lg hover:bg-[#B35E40] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                >
+                  {updatingProfile ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    'Yes, update my profile'
+                  )}
+                </button>
+                <button
+                  onClick={searchWithoutProfileUpdate}
+                  disabled={updatingProfile}
+                  className="w-full px-4 py-3 bg-slate-100 text-slate-700 font-medium rounded-lg hover:bg-slate-200 disabled:opacity-50 transition-colors"
+                >
+                  Just filter for now
+                </button>
+              </div>
+
+              <p className="text-xs text-slate-500 text-center mt-4">
+                Your profile helps personalize trial recommendations
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Trial Details Modal */}
       {selectedTrial && (
@@ -982,7 +1259,7 @@ export default function TrialsPage() {
                   href={`https://clinicaltrials.gov/study/${selectedTrial.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-[#C66B4A] text-white text-sm font-medium rounded-lg hover:bg-[#B35E40] transition-colors"
                 >
                   View Official Listing
                   <ExternalLink className="w-4 h-4" />
@@ -1247,6 +1524,123 @@ export default function TrialsPage() {
                       </>
                     )}
                   </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Quick Upload Modal */}
+      {showUploadModal && (
+        <div
+          className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4"
+          onClick={resetUploadModal}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-md w-full shadow-xl"
+            onClick={e => e.stopPropagation()}
+          >
+            {uploadSuccess ? (
+              <div className="p-8 text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle2 className="w-8 h-8 text-green-600" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">Record Added!</h3>
+                <p className="text-slate-600 mb-6">
+                  Your record has been processed. Trials are now filtered based on your data.
+                </p>
+                <button
+                  onClick={resetUploadModal}
+                  className="px-6 py-2 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors"
+                >
+                  Done
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-[#C66B4A]/10 rounded-full flex items-center justify-center">
+                      <Upload className="w-5 h-5 text-[#C66B4A]" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-900">Quick Upload</h3>
+                      <p className="text-xs text-slate-500">Add a medical record</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={resetUploadModal}
+                    className="text-slate-400 hover:text-slate-600 p-1"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="p-6">
+                  {!uploadFile ? (
+                    <label className="block cursor-pointer">
+                      <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-[#C66B4A] hover:bg-[#C66B4A]/5 transition-colors">
+                        <Upload className="w-10 h-10 text-slate-400 mx-auto mb-3" />
+                        <p className="font-medium text-slate-700 mb-1">Drop a file here or click to browse</p>
+                        <p className="text-sm text-slate-500">PDF, PNG, JPG up to 10MB</p>
+                      </div>
+                      <input
+                        type="file"
+                        accept=".pdf,.png,.jpg,.jpeg,.heic"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            setUploadFile(file)
+                            setUploadError(null)
+                          }
+                        }}
+                      />
+                    </label>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                        <FileText className="w-5 h-5 text-slate-500" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-slate-900 truncate">{uploadFile.name}</p>
+                          <p className="text-xs text-slate-500">{(uploadFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                        </div>
+                        <button
+                          onClick={() => setUploadFile(null)}
+                          className="text-slate-400 hover:text-slate-600"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {uploadError && (
+                        <p className="text-sm text-red-600 text-center">{uploadError}</p>
+                      )}
+
+                      <button
+                        onClick={handleQuickUpload}
+                        disabled={isUploading}
+                        className="w-full bg-[#C66B4A] text-white py-3 rounded-lg font-medium hover:bg-[#B35E40] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                      >
+                        {isUploading ? (
+                          <>
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-5 h-5" />
+                            Process Record
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
+
+                  <p className="text-xs text-slate-500 text-center mt-4">
+                    Your records are processed securely and never shared without your consent.
+                  </p>
                 </div>
               </>
             )}

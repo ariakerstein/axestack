@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
-import { User, LogOut, Menu, X } from 'lucide-react'
+import { User, LogOut, Menu, X, Radar, Swords, Shield } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { AuthModal } from '@/components/AuthModal'
 
@@ -75,17 +75,20 @@ export function Navbar({ showBack = false, backHref = '/', backLabel = 'Home' }:
           {/* Right side - Desktop */}
           <div className="hidden sm:flex items-center gap-4">
             <nav className="flex items-center gap-2 text-sm">
-              <Link href="/records" className="text-slate-600 hover:text-slate-900 transition-colors px-3 py-2 min-h-[44px] flex items-center">
-                Records
+              <Link href="/records" className="text-slate-600 hover:text-slate-900 transition-colors px-3 py-2 min-h-[44px] flex items-center gap-1.5">
+                <Shield className="w-4 h-4 text-[#C66B4A]" />
+                Records Vault
               </Link>
               <Link href="/ask" className="text-slate-600 hover:text-slate-900 transition-colors px-3 py-2 min-h-[44px] flex items-center">
                 Ask Navis
               </Link>
-              <Link href="/trials" className="text-slate-600 hover:text-slate-900 transition-colors px-3 py-2 min-h-[44px] flex items-center">
-                Trials
+              <Link href="/trials" className="text-slate-600 hover:text-slate-900 transition-colors px-3 py-2 min-h-[44px] flex items-center gap-1.5">
+                <Radar className="w-4 h-4 text-[#C66B4A]" />
+                Trial Radar
               </Link>
-              <Link href="/combat" className="text-slate-600 hover:text-slate-900 transition-colors px-3 py-2 min-h-[44px] flex items-center">
-                Combat
+              <Link href="/combat" className="text-slate-600 hover:text-slate-900 transition-colors px-3 py-2 min-h-[44px] flex items-center gap-1.5">
+                <Swords className="w-4 h-4 text-[#C66B4A]" />
+                Cancer Combat
               </Link>
             </nav>
 
@@ -147,9 +150,10 @@ export function Navbar({ showBack = false, backHref = '/', backLabel = 'Home' }:
               <Link
                 href="/records"
                 onClick={() => setMobileMenuOpen(false)}
-                className="py-3 min-h-[44px] flex items-center text-slate-700 hover:text-slate-900 transition-colors"
+                className="py-3 min-h-[44px] flex items-center gap-2 text-slate-700 hover:text-slate-900 transition-colors"
               >
-                Records
+                <Shield className="w-4 h-4 text-[#C66B4A]" />
+                Records Vault
               </Link>
               <Link
                 href="/ask"
@@ -161,16 +165,18 @@ export function Navbar({ showBack = false, backHref = '/', backLabel = 'Home' }:
               <Link
                 href="/trials"
                 onClick={() => setMobileMenuOpen(false)}
-                className="py-3 min-h-[44px] flex items-center text-slate-700 hover:text-slate-900 transition-colors"
+                className="py-3 min-h-[44px] flex items-center gap-2 text-slate-700 hover:text-slate-900 transition-colors"
               >
-                Trials
+                <Radar className="w-4 h-4 text-[#C66B4A]" />
+                Trial Radar
               </Link>
               <Link
                 href="/combat"
                 onClick={() => setMobileMenuOpen(false)}
-                className="py-3 min-h-[44px] flex items-center text-slate-700 hover:text-slate-900 transition-colors"
+                className="py-3 min-h-[44px] flex items-center gap-2 text-slate-700 hover:text-slate-900 transition-colors"
               >
-                Combat
+                <Swords className="w-4 h-4 text-[#C66B4A]" />
+                Cancer Combat
               </Link>
 
               <div className="border-t border-stone-200 pt-2 mt-2">
