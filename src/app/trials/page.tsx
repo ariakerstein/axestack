@@ -7,7 +7,7 @@ import { useAnalytics } from '@/hooks/useAnalytics'
 import { useActivityLog } from '@/hooks/useActivityLog'
 import { ShareButton } from '@/components/ShareButton'
 import { useAuth } from '@/lib/auth'
-import { X, ExternalLink, MapPin, Building2, FlaskConical, CheckCircle2, Filter, ChevronDown } from 'lucide-react'
+import { X, ExternalLink, MapPin, Building2, FlaskConical, CheckCircle2, Filter } from 'lucide-react'
 import { Navbar } from '@/components/Navbar'
 
 interface PatientProfile {
@@ -32,27 +32,6 @@ const STATUS_OPTIONS = [
   { value: '', label: 'Any Status' },
 ]
 
-// US States for location filter
-const US_STATES = [
-  { value: '', label: 'Any Location' },
-  { value: 'AL', label: 'Alabama' }, { value: 'AK', label: 'Alaska' }, { value: 'AZ', label: 'Arizona' },
-  { value: 'AR', label: 'Arkansas' }, { value: 'CA', label: 'California' }, { value: 'CO', label: 'Colorado' },
-  { value: 'CT', label: 'Connecticut' }, { value: 'DE', label: 'Delaware' }, { value: 'FL', label: 'Florida' },
-  { value: 'GA', label: 'Georgia' }, { value: 'HI', label: 'Hawaii' }, { value: 'ID', label: 'Idaho' },
-  { value: 'IL', label: 'Illinois' }, { value: 'IN', label: 'Indiana' }, { value: 'IA', label: 'Iowa' },
-  { value: 'KS', label: 'Kansas' }, { value: 'KY', label: 'Kentucky' }, { value: 'LA', label: 'Louisiana' },
-  { value: 'ME', label: 'Maine' }, { value: 'MD', label: 'Maryland' }, { value: 'MA', label: 'Massachusetts' },
-  { value: 'MI', label: 'Michigan' }, { value: 'MN', label: 'Minnesota' }, { value: 'MS', label: 'Mississippi' },
-  { value: 'MO', label: 'Missouri' }, { value: 'MT', label: 'Montana' }, { value: 'NE', label: 'Nebraska' },
-  { value: 'NV', label: 'Nevada' }, { value: 'NH', label: 'New Hampshire' }, { value: 'NJ', label: 'New Jersey' },
-  { value: 'NM', label: 'New Mexico' }, { value: 'NY', label: 'New York' }, { value: 'NC', label: 'North Carolina' },
-  { value: 'ND', label: 'North Dakota' }, { value: 'OH', label: 'Ohio' }, { value: 'OK', label: 'Oklahoma' },
-  { value: 'OR', label: 'Oregon' }, { value: 'PA', label: 'Pennsylvania' }, { value: 'RI', label: 'Rhode Island' },
-  { value: 'SC', label: 'South Carolina' }, { value: 'SD', label: 'South Dakota' }, { value: 'TN', label: 'Tennessee' },
-  { value: 'TX', label: 'Texas' }, { value: 'UT', label: 'Utah' }, { value: 'VT', label: 'Vermont' },
-  { value: 'VA', label: 'Virginia' }, { value: 'WA', label: 'Washington' }, { value: 'WV', label: 'West Virginia' },
-  { value: 'WI', label: 'Wisconsin' }, { value: 'WY', label: 'Wyoming' }, { value: 'DC', label: 'Washington DC' },
-]
 
 interface Trial {
   id: string
@@ -77,12 +56,11 @@ export default function TrialsPage() {
   const [searched, setSearched] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedTrial, setSelectedTrial] = useState<Trial | null>(null)
-  const [showFilters, setShowFilters] = useState(false)
 
-  // Filter state
+  // Filter state - filters always visible
   const [filters, setFilters] = useState({
     biomarker: '',
-    locationState: '',
+    location: '',  // Simple text input for city/state/zip
     phase: '',
     status: 'recruiting',
   })
@@ -121,7 +99,7 @@ export default function TrialsPage() {
 
     try {
       // Use filter location if set, otherwise fall back to profile location
-      const searchLocation = filters.locationState || profile.location
+      const searchLocation = filters.location || profile.location
 
       const response = await fetch('/api/trials', {
         method: 'POST',
@@ -131,8 +109,6 @@ export default function TrialsPage() {
           stage: profile.stage,
           location: searchLocation,
           status: filters.status || undefined,
-          biomarker: filters.biomarker || undefined,
-          phase: filters.phase || undefined,
         }),
       })
 
@@ -143,10 +119,45 @@ export default function TrialsPage() {
       const data = await response.json()
       let filteredTrials = data.trials || []
 
-      // Client-side filtering for phase (in case API doesn't support it)
+      // CLIENT-SIDE FILTERING (API may not support all filters)
+
+      // Filter by location (city, state, country, zip)
+      if (filters.location && filteredTrials.length > 0) {
+        const loc = filters.location.toLowerCase()
+        filteredTrials = filteredTrials.filter((t: Trial) =>
+          t.location?.toLowerCase().includes(loc)
+        )
+      }
+
+      // Filter by phase
       if (filters.phase && filteredTrials.length > 0) {
         filteredTrials = filteredTrials.filter((t: Trial) =>
           t.phase?.toLowerCase().includes(filters.phase.toLowerCase())
+        )
+      }
+
+      // Filter by status
+      if (filters.status && filteredTrials.length > 0) {
+        const statusMap: Record<string, string[]> = {
+          'recruiting': ['recruiting'],
+          'not_yet_recruiting': ['not yet recruiting', 'not_yet_recruiting'],
+          'active': ['active', 'enrolling by invitation'],
+        }
+        const validStatuses = statusMap[filters.status] || []
+        if (validStatuses.length > 0) {
+          filteredTrials = filteredTrials.filter((t: Trial) =>
+            validStatuses.some(s => t.status?.toLowerCase().includes(s))
+          )
+        }
+      }
+
+      // Filter by biomarker (search in title, description, eligibility)
+      if (filters.biomarker && filteredTrials.length > 0) {
+        const marker = filters.biomarker.toLowerCase()
+        filteredTrials = filteredTrials.filter((t: Trial) =>
+          t.title?.toLowerCase().includes(marker) ||
+          t.description?.toLowerCase().includes(marker) ||
+          t.eligibility?.some(e => e.toLowerCase().includes(marker))
         )
       }
 
@@ -232,106 +243,100 @@ export default function TrialsPage() {
               </div>
             </div>
 
-            {/* Filters */}
-            <div className="mb-6">
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 mb-3"
-              >
-                <Filter className="w-4 h-4" />
-                <span>Filters</span>
-                <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
-                {(filters.biomarker || filters.phase || filters.locationState || filters.status !== 'recruiting') && (
+            {/* Filters - Always visible */}
+            <div className="bg-white border border-gray-200 rounded-xl p-4 mb-6 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <Filter className="w-4 h-4 text-gray-500" />
+                <span className="text-sm font-semibold text-gray-900">Filter Trials</span>
+                {(filters.biomarker || filters.phase || filters.location || filters.status !== 'recruiting') && (
                   <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">
-                    {[filters.biomarker, filters.phase, filters.locationState, filters.status !== 'recruiting' ? filters.status : ''].filter(Boolean).length} active
+                    {[filters.biomarker, filters.phase, filters.location, filters.status !== 'recruiting' ? filters.status : ''].filter(Boolean).length} active
                   </span>
                 )}
-              </button>
+              </div>
 
-              {showFilters && (
-                <div className="bg-white border border-slate-300 rounded-lg p-4 space-y-4 shadow-sm">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {/* Biomarker Filter */}
-                    {availableBiomarkers.length > 0 && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-900 mb-2">Biomarker</label>
-                        <select
-                          value={filters.biomarker}
-                          onChange={(e) => setFilters({ ...filters, biomarker: e.target.value })}
-                          style={{ color: '#111827', backgroundColor: '#f9fafb' }}
-                          className="w-full text-sm border-2 border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          <option value="" style={{ color: '#111827' }}>Any Biomarker</option>
-                          {availableBiomarkers.map((b) => (
-                            <option key={b.marker} value={b.marker} style={{ color: '#111827' }}>{b.marker}</option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-
-                    {/* Location (State) Filter */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">State</label>
-                      <select
-                        value={filters.locationState}
-                        onChange={(e) => setFilters({ ...filters, locationState: e.target.value })}
-                        style={{ color: '#111827', backgroundColor: '#f9fafb' }}
-                        className="w-full text-sm border-2 border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        {US_STATES.map((opt) => (
-                          <option key={opt.value} value={opt.value} style={{ color: '#111827' }}>{opt.label}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Phase Filter */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">Phase</label>
-                      <select
-                        value={filters.phase}
-                        onChange={(e) => setFilters({ ...filters, phase: e.target.value })}
-                        style={{ color: '#111827', backgroundColor: '#f9fafb' }}
-                        className="w-full text-sm border-2 border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        {PHASE_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value} style={{ color: '#111827' }}>{opt.label}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Status Filter */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">Status</label>
-                      <select
-                        value={filters.status}
-                        onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                        style={{ color: '#111827', backgroundColor: '#f9fafb' }}
-                        className="w-full text-sm border-2 border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        {STATUS_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value} style={{ color: '#111827' }}>{opt.label}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-                    <button
-                      onClick={() => setFilters({ biomarker: '', locationState: '', phase: '', status: 'recruiting' })}
-                      className="text-sm text-gray-700 hover:text-gray-900 font-medium"
-                    >
-                      Reset filters
-                    </button>
-                    <button
-                      onClick={searchTrials}
-                      disabled={searching}
-                      className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                    >
-                      {searching ? 'Searching...' : 'Apply Filters'}
-                    </button>
-                  </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {/* Location - Simple text input */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">Location</label>
+                  <input
+                    type="text"
+                    value={filters.location}
+                    onChange={(e) => setFilters({ ...filters, location: e.target.value })}
+                    placeholder="City, state, or country"
+                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
                 </div>
-              )}
+
+                {/* Biomarker Filter */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">Biomarker</label>
+                  {availableBiomarkers.length > 0 ? (
+                    <select
+                      value={filters.biomarker}
+                      onChange={(e) => setFilters({ ...filters, biomarker: e.target.value })}
+                      className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">Any</option>
+                      {availableBiomarkers.map((b) => (
+                        <option key={b.marker} value={b.marker}>{b.marker}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      value={filters.biomarker}
+                      onChange={(e) => setFilters({ ...filters, biomarker: e.target.value })}
+                      placeholder="e.g., EGFR, HER2"
+                      className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  )}
+                </div>
+
+                {/* Phase Filter */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">Phase</label>
+                  <select
+                    value={filters.phase}
+                    onChange={(e) => setFilters({ ...filters, phase: e.target.value })}
+                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    {PHASE_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Status Filter */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">Status</label>
+                  <select
+                    value={filters.status}
+                    onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    {STATUS_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+                <button
+                  onClick={() => setFilters({ biomarker: '', location: '', phase: '', status: 'recruiting' })}
+                  className="text-sm text-gray-500 hover:text-gray-700"
+                >
+                  Reset
+                </button>
+                <button
+                  onClick={searchTrials}
+                  disabled={searching}
+                  className="bg-blue-600 text-white text-sm font-medium px-5 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                >
+                  {searching ? 'Searching...' : 'Search'}
+                </button>
+              </div>
             </div>
 
             {searching && (

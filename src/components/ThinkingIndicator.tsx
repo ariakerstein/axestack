@@ -73,26 +73,26 @@ export function ThinkingIndicator({ size = 48, variant = "light", className = ""
         transform="rotate(110 24 24)" />
 
       {/* Core */}
-      <circle cx="24" cy="24" r="4" fill={v.core} className="oc-core" />
+      <circle cx="24" cy="24" r="5" fill={v.core} className="oc-core" />
 
-      {/* Electron 1 - terracotta */}
+      {/* Electron 1 - terracotta (larger) */}
       <g transform="translate(24 24) rotate(-10)">
         <g className="oc-o1">
-          <circle r="2.5" fill={v.e1} />
+          <circle r="3.5" fill={v.e1} />
         </g>
       </g>
 
-      {/* Electron 2 */}
+      {/* Electron 2 (larger) */}
       <g transform="translate(24 24) rotate(50)">
         <g className="oc-o2">
-          <circle r="2" fill={v.e2} />
+          <circle r="3" fill={v.e2} />
         </g>
       </g>
 
-      {/* Electron 3 */}
+      {/* Electron 3 (larger) */}
       <g transform="translate(24 24) rotate(110)">
         <g className="oc-o3">
-          <circle r="2" fill={v.e3} />
+          <circle r="3" fill={v.e3} />
         </g>
       </g>
     </svg>

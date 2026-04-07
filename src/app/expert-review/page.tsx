@@ -86,14 +86,19 @@ function ExpertReviewContent() {
   const { user } = useAuth()
   const searchParams = useSearchParams()
   const combatResultId = searchParams.get('combat')
+  const expertParam = searchParams.get('expert')
   const fromCombat = !!combatResultId
 
-  const [step, setStep] = useState<'intro' | 'select' | 'consent' | 'submit'>('intro')
+  const [step, setStep] = useState<'intro' | 'select' | 'insurance' | 'consent' | 'submit'>('intro')
   const [selectedExpert, setSelectedExpert] = useState<Expert | null>(null)
   const [expandedExpert, setExpandedExpert] = useState<string | null>(null)
   const [userRecords, setUserRecords] = useState<any[]>([])
   const [selectedRecords, setSelectedRecords] = useState<string[]>([])
   const [combatResult, setCombatResult] = useState<any>(null)
+
+  // Insurance question state
+  const [hasInsurance, setHasInsurance] = useState<boolean | null>(null)
+  const [insuranceProvider, setInsuranceProvider] = useState('')
 
   // Consent form state
   const [signature, setSignature] = useState('')
@@ -107,6 +112,17 @@ function ExpertReviewContent() {
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+
+  // Auto-select expert from URL param (e.g., ?expert=protean)
+  useEffect(() => {
+    if (expertParam) {
+      const expert = experts.find(e => e.id === expertParam)
+      if (expert) {
+        setSelectedExpert(expert)
+        setStep('insurance')
+      }
+    }
+  }, [expertParam])
 
   // Load Combat result if coming from Combat page
   useEffect(() => {
@@ -123,7 +139,7 @@ function ExpertReviewContent() {
           const asyncExpert = experts.find(e => e.id === 'async-expert')
           if (asyncExpert) {
             setSelectedExpert(asyncExpert)
-            setStep('consent')
+            setStep('insurance')
           }
         }
       }
@@ -154,8 +170,13 @@ function ExpertReviewContent() {
       // No records - prompt to upload first
       setStep('intro')
     } else {
-      setStep('consent')
+      // Go to insurance question first (for paid services)
+      setStep(expert.isFree ? 'consent' : 'insurance')
     }
+  }
+
+  const handleInsuranceContinue = () => {
+    setStep('consent')
   }
 
   const isConsentValid = signature.trim().length > 0 && hasReadConsent && hasUnderstoodAI && hasUnderstoodDisclaimer && canWithdraw
@@ -463,10 +484,113 @@ function ExpertReviewContent() {
           </>
         )}
 
+        {/* Insurance Question */}
+        {step === 'insurance' && selectedExpert && (
+          <>
+            <button onClick={() => setStep('select')} className="flex items-center gap-1 text-slate-500 hover:text-slate-900 mb-6">
+              <ArrowLeft className="w-4 h-4" /> Back
+            </button>
+
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
+                <Shield className="w-6 h-6 text-emerald-600" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900">Insurance & Coverage</h2>
+                <p className="text-slate-500 text-sm">Many insurers cover second opinions</p>
+              </div>
+            </div>
+
+            {/* Selected Expert Summary */}
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6">
+              <div className="flex items-center gap-3">
+                <img src={selectedExpert.image} alt={selectedExpert.name} className="w-12 h-12 rounded-full object-cover" />
+                <div>
+                  <p className="font-semibold text-slate-900">{selectedExpert.name}</p>
+                  <p className="text-sm text-slate-500">{selectedExpert.organization} · {selectedExpert.price}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Insurance Question */}
+            <div className="space-y-4 mb-6">
+              <p className="font-medium text-slate-900">Do you have health insurance?</p>
+
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setHasInsurance(true)}
+                  className={`p-4 rounded-xl border-2 transition-all text-left ${
+                    hasInsurance === true
+                      ? 'border-emerald-500 bg-emerald-50'
+                      : 'border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  <p className="font-semibold text-slate-900">Yes, I have insurance</p>
+                  <p className="text-sm text-slate-500 mt-1">May be covered</p>
+                </button>
+
+                <button
+                  onClick={() => setHasInsurance(false)}
+                  className={`p-4 rounded-xl border-2 transition-all text-left ${
+                    hasInsurance === false
+                      ? 'border-slate-500 bg-slate-50'
+                      : 'border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  <p className="font-semibold text-slate-900">No / Self-pay</p>
+                  <p className="text-sm text-slate-500 mt-1">{selectedExpert.price}</p>
+                </button>
+              </div>
+            </div>
+
+            {/* Insurance Provider (if yes) */}
+            {hasInsurance === true && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Insurance Provider (optional)
+                </label>
+                <input
+                  type="text"
+                  value={insuranceProvider}
+                  onChange={(e) => setInsuranceProvider(e.target.value)}
+                  placeholder="e.g., Blue Cross, Aetna, United Healthcare"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                />
+                <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-sm text-blue-800">
+                    <strong>Good news!</strong> Many insurance plans cover second opinions. After checkout, you'll receive documentation to submit for potential reimbursement.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Self-pay info */}
+            {hasInsurance === false && (
+              <div className="mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <p className="text-sm text-amber-800">
+                  <strong>Self-pay pricing:</strong> {selectedExpert.price} covers a comprehensive review with written recommendations delivered within {selectedExpert.responseTime}.
+                </p>
+              </div>
+            )}
+
+            <button
+              onClick={handleInsuranceContinue}
+              disabled={hasInsurance === null}
+              className={`w-full py-3 rounded-xl font-semibold transition-all ${
+                hasInsurance !== null
+                  ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                  : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+              }`}
+            >
+              Continue to Authorization
+            </button>
+          </>
+        )}
+
         {/* Consent Form */}
         {step === 'consent' && selectedExpert && (
           <>
-            <button onClick={() => setStep('select')} className="flex items-center gap-1 text-slate-500 hover:text-slate-900 mb-6">
+            <button onClick={() => setStep(selectedExpert.isFree ? 'select' : 'insurance')} className="flex items-center gap-1 text-slate-500 hover:text-slate-900 mb-6">
               <ArrowLeft className="w-4 h-4" /> Back
             </button>
 

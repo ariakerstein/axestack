@@ -992,19 +992,18 @@ function HomeContent() {
                 <span className="text-2xl">⚔️</span>
               </div>
               <h3 className="font-bold text-slate-900 mb-1">Cancer Combat</h3>
-              <p className="text-slate-600 text-sm mb-2">5 AI experts debate your case.</p>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">Free</span>
+              <p className="text-slate-600 text-sm">5 AI experts debate your case.</p>
             </Link>
 
             {/* Third card: Expert Pathology Review (if records) or Ask Navis (if no records) */}
             {hasRecords ? (
               <Link
-                href="/combat?expert=tony-magliocco"
-                onClick={(e) => handleToolClick(e, '/combat?expert=tony-magliocco')}
+                href="/expert-review?expert=protean"
+                onClick={(e) => handleToolClick(e, '/expert-review?expert=protean')}
                 className="group bg-gradient-to-r from-white to-emerald-50/50 border-2 border-emerald-200 hover:border-emerald-400 rounded-xl p-5 hover:shadow-lg transition-all relative"
               >
                 <span className="absolute -top-2.5 left-4 bg-emerald-600 text-white text-[10px] font-medium px-2.5 py-1 rounded">
-                  Expert review
+                  Premium
                 </span>
                 <div className="mb-3 mt-1 flex items-center gap-2">
                   <img
@@ -1039,8 +1038,7 @@ function HomeContent() {
                   <ThinkingIndicator size={24} variant="dark" />
                 </div>
                 <h3 className="font-bold text-slate-900 mb-1">Ask Navis</h3>
-                <p className="text-slate-600 text-sm mb-2">Research with Claude, GPT-4o, and Gemini.</p>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">Free</span>
+                <p className="text-slate-600 text-sm">Research with Claude, GPT-4o, and Gemini.</p>
               </Link>
             )}
 
@@ -1054,7 +1052,8 @@ function HomeContent() {
               <span className="text-sm font-medium text-slate-500 hidden group-open:inline">Hide tools</span>
             </summary>
             <div className="grid md:grid-cols-4 gap-3">
-              <Link href="/lifestyle" onClick={(e) => handleToolClick(e, '/lifestyle')} className="group bg-gradient-to-r from-rose-50 to-white border border-rose-200 rounded-lg p-4 hover:border-rose-400 transition-all">
+              <Link href="/lifestyle" onClick={(e) => handleToolClick(e, '/lifestyle')} className="group bg-gradient-to-r from-rose-50 to-white border border-rose-200 rounded-lg p-4 hover:border-rose-400 transition-all relative">
+                <span className="absolute -top-2 right-2 bg-rose-500 text-white text-[9px] font-medium px-1.5 py-0.5 rounded">Premium</span>
                 <div className="flex items-center gap-2">
                   <img src="/team/cindy-ness.jpg" alt="Dr. Cindy Ness" className="w-5 h-5 rounded-full object-cover" />
                   <Heart className="w-4 h-4 text-rose-500" />
