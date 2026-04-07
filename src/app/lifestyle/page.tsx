@@ -9,51 +9,62 @@ const PROGRAM_PILLARS = [
   {
     icon: Heart,
     title: 'Emotional Wellbeing',
-    description: 'One-on-one counseling sessions to strengthen resilience and navigate the emotional challenges of diagnosis.',
+    description: 'If your emotional health is compromised, so is your ability to fight off disease. We help "unpack" emotional issues that factor negatively into healing.',
+    offerings: ['Individual Counseling', 'Couples Counseling', 'Workshops', 'Support Groups'],
     color: 'rose',
   },
   {
     icon: Users,
     title: 'Social Connection',
-    description: 'Group support sessions with your cohort. Build "tribe" with others who understand your journey.',
+    description: 'Social connection is a strong protective factor when it comes to staving off recurrence. Build your "tribe" with others who understand.',
+    offerings: ['Social Wellbeing Workshops', 'Community Events', 'Cohort Activities'],
     color: 'blue',
   },
   {
     icon: Brain,
     title: 'Stress Reduction',
-    description: 'Meditation and yoga classes to address the biological impact of stress on cancer outcomes.',
+    description: 'Mindfulness-based stress reduction has a significant positive effect on mental health. Learn restorative techniques of deep relaxation.',
+    offerings: ['Meditation', 'Yoga', 'Stress Management Workshops'],
     color: 'purple',
   },
   {
     icon: Utensils,
     title: 'Enhanced Nutrition',
-    description: 'Personalized nutrition sessions to optimize your immune system and reduce inflammation.',
+    description: 'Licensed nutritionists create an eating regimen that reduces inflammation, promotes insulin reduction, and helps the body heal.',
+    offerings: ['Individual Counseling', 'Supplement Regimen', 'Cooking Demos'],
     color: 'green',
   },
   {
     icon: Dumbbell,
     title: 'Physical Movement',
-    description: 'Movement classes to increase aerobic capacity and build muscle mass during treatment.',
+    description: 'Physical activity slows stress-related hormones and lowers cancer risk. We help design the movement program right for you.',
+    offerings: ['Gentle Movement', 'Full Exercise Classes', 'Movement Workshops'],
     color: 'amber',
   },
   {
     icon: Sparkles,
     title: 'Positive Mindset',
-    description: 'Mindset workshops and consultations to cultivate clarity and forward momentum.',
+    description: 'Cancer "thrivers" have a strong sense of purpose. We work with you to "translate" this moment into a "turn point" toward the life you want.',
+    offerings: ['Mindset Workshops', '"Turn Point" Workshop', 'Building Your A-Team'],
     color: 'indigo',
   },
 ]
 
 const PROGRAM_INCLUDES = [
-  'Introductory consultation with team leader including lab review',
-  '2 additional individual sessions with your team leader',
-  'Emotional Wellbeing Workshop + 4 individual counseling sessions',
-  'Social Wellbeing Workshop + 4 group support sessions',
-  'Stress Reduction Workshop + 12 meditation/yoga classes',
-  'Enhanced Nutrition Workshop + 2 individual nutrition sessions',
-  'Physical Movement Workshop + 12 movement classes',
-  'Positive Mindset Workshop + individual mindset consultation',
-  '24 cohort Q&A sessions and community activities',
+  { title: 'Introductory Consultation', desc: 'Individual consultation with team leader including lab review' },
+  { title: '2 Team Leader Sessions', desc: 'Additional individual sessions with your team leader' },
+  { title: 'Emotional Wellbeing Workshop', desc: 'Key concepts and experiential analysis of your personal situation' },
+  { title: '4 Counseling Sessions', desc: 'Individual emotional wellbeing counseling sessions' },
+  { title: 'Social Wellbeing Workshop', desc: 'Biology of social connection and how it mitigates cancer' },
+  { title: '4 Group Support Sessions', desc: 'Group support sessions with your cohort' },
+  { title: 'Stress Reduction Workshop', desc: 'Impact of stress on cancer biology and outcomes' },
+  { title: '12 Meditation & Yoga Classes', desc: 'Weekly stress reduction classes to address your needs' },
+  { title: 'Nutrition Workshop', desc: 'Overview of key nutrition concepts for cancer care' },
+  { title: '2 Nutrition Sessions', desc: 'Individual sessions to set up your customized nutrition program' },
+  { title: 'Movement Workshop', desc: 'Importance of exercise on your biology' },
+  { title: '12 Movement Classes', desc: 'Classes to increase aerobic capacity and build muscle mass' },
+  { title: 'Positive Mindset Workshop', desc: 'Plus individual mindset consultation for your needs' },
+  { title: '24 Q&A Sessions', desc: 'Cohort events and activities meant to build "tribe"' },
 ]
 
 export default function LifestylePage() {
@@ -101,7 +112,22 @@ export default function LifestylePage() {
           </Link>
 
           <div className="grid md:grid-cols-5 gap-8 items-center">
-            {/* Left: Content */}
+            {/* Cindy's photo - shows first on mobile */}
+            <div className="md:col-span-2 order-first md:order-last">
+              <div className="bg-white rounded-2xl p-4 shadow-lg border border-slate-100">
+                <img
+                  src="/team/cindy-ness.jpg"
+                  alt="Dr. Cindy Ness"
+                  className="w-full rounded-xl mb-3"
+                />
+                <div className="text-center">
+                  <p className="font-semibold text-slate-900">Dr. Cindy Ness, PhD, EdD</p>
+                  <p className="text-sm text-slate-500">Founder · Harvard · Penn · Cancer Survivor</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Content */}
             <div className="md:col-span-3">
               {/* Logo */}
               <img
@@ -150,21 +176,6 @@ export default function LifestylePage() {
                 No commitment · Speak directly with the CCLM team
               </p>
             </div>
-
-            {/* Right: Cindy's photo */}
-            <div className="md:col-span-2">
-              <div className="bg-white rounded-2xl p-4 shadow-lg border border-slate-100">
-                <img
-                  src="/team/cindy-ness.jpg"
-                  alt="Dr. Cindy Ness"
-                  className="w-full rounded-xl mb-3"
-                />
-                <div className="text-center">
-                  <p className="font-semibold text-slate-900">Dr. Cindy Ness, PhD, EdD</p>
-                  <p className="text-sm text-slate-500">Founder · Harvard · Penn · Cancer Survivor</p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -195,8 +206,12 @@ export default function LifestylePage() {
       {/* Mission Statement */}
       <section className="py-12 px-8 bg-white border-y border-slate-200">
         <div className="max-w-3xl mx-auto text-center">
-          <p className="text-xl text-slate-700 italic">
-            "At CCLM, we understand that a cancer diagnosis can be overwhelming. Our team of educated, compassionate professionals promise to bring our 'human' to your 'human.'"
+          <h2 className="text-2xl font-bold text-slate-900 mb-4">Our Purpose</h2>
+          <p className="text-slate-600 mb-6">
+            While individuals with a cancer diagnosis are increasingly told that lifestyle factors can positively influence their treatment, they are rarely provided with the structured protocols or research-informed guidance necessary to integrate these changes into their care.
+          </p>
+          <p className="text-lg text-slate-700 italic">
+            "CCLM offers highly customized programming in each of the six pillars—all in one location—with a dedicated focus on care coordination and taking the confusion out of often competing and conflicting healing claims."
           </p>
           <p className="text-sm text-slate-500 mt-4">— The Center for Cancer Lifestyle Management</p>
         </div>
@@ -237,7 +252,12 @@ export default function LifestylePage() {
                     <Icon className={`w-6 h-6 ${iconColors[pillar.color]}`} />
                   </div>
                   <h3 className="font-bold text-slate-900 mb-2">{pillar.title}</h3>
-                  <p className="text-sm text-slate-600">{pillar.description}</p>
+                  <p className="text-sm text-slate-600 mb-3">{pillar.description}</p>
+                  <div className="flex flex-wrap gap-1">
+                    {pillar.offerings.map((o, j) => (
+                      <span key={j} className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">{o}</span>
+                    ))}
+                  </div>
                 </div>
               )
             })}
@@ -259,7 +279,10 @@ export default function LifestylePage() {
             {PROGRAM_INCLUDES.map((item, i) => (
               <div key={i} className="flex items-start gap-3 bg-slate-50 rounded-lg p-4">
                 <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-slate-700">{item}</p>
+                <div>
+                  <p className="font-medium text-slate-900 text-sm">{item.title}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">{item.desc}</p>
+                </div>
               </div>
             ))}
           </div>
