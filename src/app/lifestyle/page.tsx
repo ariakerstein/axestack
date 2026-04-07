@@ -100,81 +100,53 @@ export default function LifestylePage() {
             ← Back to Home
           </Link>
 
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            {/* Left: Content */}
-            <div>
-              <span className="inline-block bg-rose-100 text-rose-700 text-xs font-medium px-3 py-1 rounded-full mb-4">
-                8-Week Comprehensive Program
-              </span>
-              <h1 className="text-4xl font-bold text-slate-900 mb-4">
-                Cancer Lifestyle Management
-              </h1>
-              <p className="text-lg text-slate-600 mb-6">
-                A science-based program bringing together emotional wellbeing, nutrition, exercise, stress reduction, and community support—all under one roof.
-              </p>
+          <div className="max-w-2xl mx-auto text-center">
+            {/* Logo */}
+            <img
+              src="/logos/cclm-logo.png"
+              alt="CCLM"
+              className="h-12 w-auto mx-auto mb-6"
+              onError={(e) => { e.currentTarget.style.display = 'none' }}
+            />
 
-              <div className="flex items-center gap-4 mb-6">
-                <img
-                  src="/team/cindy-ness.jpg"
-                  alt="Dr. Cindy Ness"
-                  className="w-14 h-14 rounded-full object-cover ring-2 ring-rose-200"
-                />
-                <div>
-                  <p className="font-semibold text-slate-900">Dr. Cindy Ness, PhD, EdD</p>
-                  <p className="text-sm text-slate-500">Harvard · Penn · Founder & Executive Director</p>
-                </div>
+            <span className="inline-block bg-rose-100 text-rose-700 text-xs font-medium px-3 py-1 rounded-full mb-4">
+              8-Week Science-Based Program
+            </span>
+            <h1 className="text-4xl font-bold text-slate-900 mb-4">
+              Cancer Lifestyle Management
+            </h1>
+            <p className="text-lg text-slate-600 mb-8">
+              Emotional wellbeing, nutrition, exercise, stress reduction, and community support—all under one roof. Built for cancer patients, by someone who's been there.
+            </p>
+
+            {/* Stats row */}
+            <div className="flex items-center justify-center gap-8 mb-8">
+              <div className="text-center">
+                <p className="text-3xl font-bold text-slate-900">8</p>
+                <p className="text-xs text-slate-500">Weeks</p>
               </div>
-
-              <div className="flex flex-wrap items-center gap-4">
-                <button
-                  onClick={() => setShowContactModal(true)}
-                  className="bg-rose-600 hover:bg-rose-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-rose-600/25 transition-all flex items-center gap-2"
-                >
-                  Schedule Consultation <ArrowRight className="w-4 h-4" />
-                </button>
-                <a
-                  href="https://www.cancerlifestylemgmt.com/our-programs"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-slate-600 hover:text-slate-900 font-medium"
-                >
-                  Learn more at CCLM →
-                </a>
+              <div className="w-px h-10 bg-slate-200" />
+              <div className="text-center">
+                <p className="text-3xl font-bold text-slate-900">75+</p>
+                <p className="text-xs text-slate-500">Sessions</p>
+              </div>
+              <div className="w-px h-10 bg-slate-200" />
+              <div className="text-center">
+                <p className="text-3xl font-bold text-slate-900">6</p>
+                <p className="text-xs text-slate-500">Pillars</p>
               </div>
             </div>
 
-            {/* Right: Image + Stats */}
-            <div className="relative">
-              <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
-                <img
-                  src="/team/cindy-ness.jpg"
-                  alt="Dr. Cindy Ness"
-                  className="w-full h-64 object-cover rounded-xl mb-4"
-                />
-                <div className="flex items-center justify-center gap-2 mb-4">
-                  <img
-                    src="/logos/cclm-logo.png"
-                    alt="CCLM"
-                    className="h-8 w-auto"
-                    onError={(e) => { e.currentTarget.style.display = 'none' }}
-                  />
-                </div>
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <p className="text-2xl font-bold text-slate-900">8</p>
-                    <p className="text-xs text-slate-500">Weeks</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-slate-900">75+</p>
-                    <p className="text-xs text-slate-500">Sessions</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-slate-900">6</p>
-                    <p className="text-xs text-slate-500">Pillars</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* CTA */}
+            <button
+              onClick={() => setShowContactModal(true)}
+              className="bg-slate-900 hover:bg-slate-800 text-white font-semibold px-8 py-4 rounded-xl shadow-lg transition-all inline-flex items-center gap-2"
+            >
+              Schedule Free Consultation <ArrowRight className="w-4 h-4" />
+            </button>
+            <p className="text-sm text-slate-500 mt-3">
+              No commitment · Speak directly with the CCLM team
+            </p>
           </div>
         </div>
       </section>
