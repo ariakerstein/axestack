@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import DOMPurify from 'dompurify'
@@ -152,7 +152,7 @@ interface ReceivedEmail {
   }[]
 }
 
-export default function RecordsVaultPage() {
+function RecordsVaultPageContent() {
   const searchParams = useSearchParams()
   const isEmbed = searchParams.get('embed') === '1'
 
@@ -3837,5 +3837,14 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
         </div>
       )}
     </main>
+  )
+}
+
+// Wrap with Suspense for useSearchParams
+export default function RecordsVaultPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-white flex items-center justify-center"><div className="animate-pulse text-slate-400">Loading...</div></div>}>
+      <RecordsVaultPageContent />
+    </Suspense>
   )
 }
