@@ -1014,7 +1014,7 @@ function HomeContent() {
               <h3 className="font-bold text-slate-900 mb-1">Lifestyle Management</h3>
               <p className="text-slate-600 text-sm mb-2">Dr. Cindy Ness · Harvard/Penn · 8-week program</p>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] px-2 py-0.5 rounded bg-rose-100 text-rose-700 font-medium">$8,000</span>
+                <span className="text-[10px] px-2 py-0.5 rounded bg-rose-100 text-rose-700 font-medium">Premium</span>
                 <span className="text-[10px] text-slate-400">8 weeks · 75+ sessions</span>
               </div>
             </Link>

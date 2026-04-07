@@ -174,11 +174,6 @@ export default function LifestylePage() {
                   </div>
                 </div>
               </div>
-              {/* Price badge */}
-              <div className="absolute -bottom-4 -right-4 bg-slate-900 text-white px-4 py-2 rounded-lg shadow-lg">
-                <p className="text-xl font-bold">$8,000</p>
-                <p className="text-xs text-slate-300">8-week program</p>
-              </div>
             </div>
           </div>
         </div>
