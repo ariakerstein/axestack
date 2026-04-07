@@ -887,7 +887,9 @@ I can help you with:
                   {message.role === 'assistant' && (
                     <div className="flex items-center gap-2 mb-2">
                       <ThinkingIndicator size={18} variant="light" />
-                      <span className="text-sm font-medium text-gray-700">Navis</span>
+                      <span className="text-sm font-medium text-gray-700">
+                        {message.isLoading ? 'Navis is thinking...' : 'Navis'}
+                      </span>
                     </div>
                   )}
                   <div className={`rounded-2xl px-4 py-3 ${
@@ -896,9 +898,12 @@ I can help you with:
                       : 'bg-gray-50 border border-gray-200 text-gray-900'
                   }`}>
                     {message.isLoading ? (
-                      <div className="flex items-center gap-2 py-2">
-                        <ThinkingIndicator size={20} variant="light" />
-                        <span className="text-sm text-gray-600">Thinking...</span>
+                      <div className="py-1">
+                        <div className="flex gap-1">
+                          <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                          <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                        </div>
                       </div>
                     ) : message.role === 'user' ? (
                       <p className="text-sm leading-relaxed">{message.content}</p>
