@@ -78,7 +78,7 @@ export default function TrialsPage() {
   // Get biomarkers for current cancer type
   const availableBiomarkers = profile ? getBiomarkersForCancer(profile.cancerType) : []
 
-  // Check for records and extract eligibility profile
+  // Check for records and extract eligibility profile, then auto-populate filters
   useEffect(() => {
     const checkRecords = async () => {
       // Check localStorage first
@@ -102,11 +102,17 @@ export default function TrialsPage() {
               }
             })
 
+            const uniqueBiomarkers = [...new Set(allBiomarkers)]
             setEligibilityProfile({
               hasRecords: true,
-              biomarkers: [...new Set(allBiomarkers)],
+              biomarkers: uniqueBiomarkers,
               priorTreatments: [...new Set(allTreatments)],
             })
+
+            // AUTO-POPULATE FILTERS from extracted profile
+            if (uniqueBiomarkers.length > 0) {
+              setFilters(prev => ({ ...prev, biomarker: uniqueBiomarkers[0] }))
+            }
             return
           }
         } catch {
@@ -132,11 +138,17 @@ export default function TrialsPage() {
               }
             })
 
+            const uniqueBiomarkers = [...new Set(allBiomarkers)]
             setEligibilityProfile({
               hasRecords: true,
-              biomarkers: [...new Set(allBiomarkers)],
+              biomarkers: uniqueBiomarkers,
               priorTreatments: [...new Set(allTreatments)],
             })
+
+            // AUTO-POPULATE FILTERS from extracted profile
+            if (uniqueBiomarkers.length > 0) {
+              setFilters(prev => ({ ...prev, biomarker: uniqueBiomarkers[0] }))
+            }
             return
           }
         } catch {
@@ -149,6 +161,13 @@ export default function TrialsPage() {
 
     checkRecords()
   }, [user])
+
+  // Auto-populate location filter from profile
+  useEffect(() => {
+    if (profile?.location && !filters.location) {
+      setFilters(prev => ({ ...prev, location: profile.location || '' }))
+    }
+  }, [profile])
 
   useEffect(() => {
     if (authLoading) return
@@ -359,12 +378,16 @@ export default function TrialsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-blue-800">
-                    Searching trials for <strong>{CANCER_TYPES[profile.cancerType] || profile.cancerType}</strong>
+                    {eligibilityProfile?.hasRecords ? (
+                      <>Finding trials that match your <strong>{CANCER_TYPES[profile.cancerType] || profile.cancerType}</strong> profile</>
+                    ) : (
+                      <>Searching trials for <strong>{CANCER_TYPES[profile.cancerType] || profile.cancerType}</strong></>
+                    )}
                     {profile.stage && <span> (Stage {profile.stage})</span>}
-                    {profile.location && <span> near {profile.location}</span>}
+                    {filters.location && <span> in {filters.location}</span>}
                   </p>
                 </div>
-                <Link href="/profile" className="text-xs text-blue-600 hover:text-blue-800">Edit</Link>
+                <Link href="/profile" className="text-xs text-blue-600 hover:text-blue-800">Edit Profile</Link>
               </div>
             </div>
 
@@ -505,13 +528,17 @@ export default function TrialsPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <p className="text-sm text-slate-600">
-                      Found <strong>{trials.length}</strong> recruiting trials
+                    <p className="text-sm text-slate-700">
+                      {eligibilityProfile?.hasRecords ? (
+                        <><strong>{trials.length}</strong> trials match your profile</>
+                      ) : (
+                        <>Found <strong>{trials.length}</strong> recruiting trials</>
+                      )}
                     </p>
                     <span className="text-slate-300">•</span>
                     <span className="flex items-center gap-1 text-xs text-slate-400">
                       <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                      Data from ClinicalTrials.gov
+                      ClinicalTrials.gov
                     </span>
                   </div>
                   <button
