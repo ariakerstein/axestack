@@ -7,8 +7,9 @@ import { useAnalytics } from '@/hooks/useAnalytics'
 import { useActivityLog } from '@/hooks/useActivityLog'
 import { ShareButton } from '@/components/ShareButton'
 import { useAuth } from '@/lib/auth'
-import { X, ExternalLink, MapPin, Building2, FlaskConical, CheckCircle2, Filter } from 'lucide-react'
+import { X, ExternalLink, MapPin, Building2, FlaskConical, CheckCircle2, Filter, FileText, Send, Shield } from 'lucide-react'
 import { Navbar } from '@/components/Navbar'
+import { supabase } from '@/lib/supabase'
 
 interface PatientProfile {
   cancerType: string
@@ -72,8 +73,44 @@ export default function TrialsPage() {
     priorTreatments: string[]
   } | null>(null)
 
+  // Share records modal state
+  const [showShareModal, setShowShareModal] = useState(false)
+  const [shareTrialId, setShareTrialId] = useState<string | null>(null)
+  const [userRecords, setUserRecords] = useState<Array<{ id: string; fileName: string; documentType: string }>>([])
+  const [selectedRecords, setSelectedRecords] = useState<string[]>([])
+  const [shareConsent, setShareConsent] = useState({
+    hasRead: false,
+    understands: false,
+    canWithdraw: false,
+  })
+  const [shareSignature, setShareSignature] = useState('')
+  const [shareEmail, setShareEmail] = useState('')
+  const [shareMessage, setShareMessage] = useState('')
+  const [isSharing, setIsSharing] = useState(false)
+  const [shareSuccess, setShareSuccess] = useState(false)
+
   const { trackEvent } = useAnalytics()
   const { logTrialSearch, logTrialView } = useActivityLog()
+
+  // Load user records for sharing
+  useEffect(() => {
+    const loadRecords = () => {
+      const localRecords = localStorage.getItem('axestack-translations')
+      if (localRecords) {
+        try {
+          const parsed = JSON.parse(localRecords)
+          setUserRecords(parsed.map((r: { id: string; fileName: string; documentType: string }) => ({
+            id: r.id,
+            fileName: r.fileName,
+            documentType: r.documentType || 'Medical Record',
+          })))
+        } catch {
+          // Ignore
+        }
+      }
+    }
+    loadRecords()
+  }, [])
 
   // Get biomarkers for current cancer type
   const availableBiomarkers = profile ? getBiomarkersForCancer(profile.cancerType) : []
@@ -793,16 +830,291 @@ export default function TrialsPage() {
               <p className="text-xs text-slate-500">
                 Data from ClinicalTrials.gov
               </p>
-              <a
-                href={`https://clinicaltrials.gov/study/${selectedTrial.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                View Official Listing
-                <ExternalLink className="w-4 h-4" />
-              </a>
+              <div className="flex items-center gap-3">
+                {userRecords.length > 0 && (
+                  <button
+                    onClick={() => {
+                      setShareTrialId(selectedTrial.id)
+                      setShowShareModal(true)
+                    }}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+                  >
+                    <FileText className="w-4 h-4" />
+                    Share Records
+                  </button>
+                )}
+                <a
+                  href={`https://clinicaltrials.gov/study/${selectedTrial.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  View Official Listing
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+              </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Share Records Modal */}
+      {showShareModal && (
+        <div
+          className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4"
+          onClick={() => {
+            setShowShareModal(false)
+            setShareTrialId(null)
+            setSelectedRecords([])
+            setShareConsent({ hasRead: false, understands: false, canWithdraw: false })
+            setShareSignature('')
+            setShareEmail('')
+            setShareMessage('')
+            setShareSuccess(false)
+          }}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col"
+            onClick={e => e.stopPropagation()}
+          >
+            {shareSuccess ? (
+              /* Success State */
+              <div className="p-8 text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle2 className="w-8 h-8 text-green-600" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">Records Shared Successfully</h3>
+                <p className="text-slate-600 mb-6">
+                  Your records have been prepared for sharing with the trial coordinator.
+                  They will contact you at <strong>{shareEmail}</strong>.
+                </p>
+                <button
+                  onClick={() => {
+                    setShowShareModal(false)
+                    setShareTrialId(null)
+                    setSelectedRecords([])
+                    setShareConsent({ hasRead: false, understands: false, canWithdraw: false })
+                    setShareSignature('')
+                    setShareEmail('')
+                    setShareMessage('')
+                    setShareSuccess(false)
+                  }}
+                  className="px-6 py-2 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors"
+                >
+                  Done
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* Modal Header */}
+                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                      <Shield className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-900">Share Records with Trial</h3>
+                      <p className="text-xs text-slate-500">Trial ID: {shareTrialId}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowShareModal(false)
+                      setShareTrialId(null)
+                      setSelectedRecords([])
+                      setShareConsent({ hasRead: false, understands: false, canWithdraw: false })
+                      setShareSignature('')
+                      setShareEmail('')
+                      setShareMessage('')
+                    }}
+                    className="text-slate-400 hover:text-slate-600 p-1"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Modal Content */}
+                <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                  {/* Select Records */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-slate-900 mb-3">Select Records to Share</h4>
+                    <div className="space-y-2">
+                      {userRecords.map((record) => (
+                        <label
+                          key={record.id}
+                          className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
+                            selectedRecords.includes(record.id)
+                              ? 'border-indigo-500 bg-indigo-50'
+                              : 'border-slate-200 hover:border-slate-300'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedRecords.includes(record.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedRecords([...selectedRecords, record.id])
+                              } else {
+                                setSelectedRecords(selectedRecords.filter(id => id !== record.id))
+                              }
+                            }}
+                            className="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
+                          />
+                          <FileText className="w-4 h-4 text-slate-400" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-slate-900 truncate">{record.fileName}</p>
+                            <p className="text-xs text-slate-500">{record.documentType}</p>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                    {userRecords.length === 0 && (
+                      <p className="text-sm text-slate-500 text-center py-4">
+                        No records found. <Link href="/records" className="text-indigo-600 hover:underline">Upload records</Link> first.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Contact Email */}
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-900 mb-2">Your Email</label>
+                    <input
+                      type="email"
+                      value={shareEmail}
+                      onChange={(e) => setShareEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      className="w-full border border-slate-300 rounded-lg px-4 py-2 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                    <p className="text-xs text-slate-500 mt-1">Trial coordinator will contact you here</p>
+                  </div>
+
+                  {/* Optional Message */}
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-900 mb-2">Message (Optional)</label>
+                    <textarea
+                      value={shareMessage}
+                      onChange={(e) => setShareMessage(e.target.value)}
+                      placeholder="Any additional context for the trial coordinator..."
+                      rows={3}
+                      className="w-full border border-slate-300 rounded-lg px-4 py-2 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+                    />
+                  </div>
+
+                  {/* Consent Checkboxes */}
+                  <div className="bg-slate-50 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-slate-900 mb-3">Consent to Share</h4>
+                    <div className="space-y-3">
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={shareConsent.hasRead}
+                          onChange={(e) => setShareConsent({ ...shareConsent, hasRead: e.target.checked })}
+                          className="mt-0.5 w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
+                        />
+                        <span className="text-sm text-slate-700">
+                          I have reviewed the records I am sharing and confirm they are accurate.
+                        </span>
+                      </label>
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={shareConsent.understands}
+                          onChange={(e) => setShareConsent({ ...shareConsent, understands: e.target.checked })}
+                          className="mt-0.5 w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
+                        />
+                        <span className="text-sm text-slate-700">
+                          I understand my records will be shared with the trial coordinator to assess eligibility.
+                        </span>
+                      </label>
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={shareConsent.canWithdraw}
+                          onChange={(e) => setShareConsent({ ...shareConsent, canWithdraw: e.target.checked })}
+                          className="mt-0.5 w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
+                        />
+                        <span className="text-sm text-slate-700">
+                          I understand I can withdraw consent at any time by contacting the trial.
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Electronic Signature */}
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-900 mb-2">Electronic Signature</label>
+                    <input
+                      type="text"
+                      value={shareSignature}
+                      onChange={(e) => setShareSignature(e.target.value)}
+                      placeholder="Type your full legal name"
+                      className="w-full border border-slate-300 rounded-lg px-4 py-2 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                    <p className="text-xs text-slate-500 mt-1">
+                      By typing your name, you agree to share the selected records.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Modal Footer */}
+                <div className="px-6 py-4 border-t border-slate-100 bg-slate-50">
+                  <button
+                    onClick={async () => {
+                      if (selectedRecords.length === 0) {
+                        alert('Please select at least one record to share.')
+                        return
+                      }
+                      if (!shareEmail || !shareEmail.includes('@')) {
+                        alert('Please enter a valid email address.')
+                        return
+                      }
+                      if (!shareConsent.hasRead || !shareConsent.understands || !shareConsent.canWithdraw) {
+                        alert('Please check all consent boxes to continue.')
+                        return
+                      }
+                      if (!shareSignature.trim()) {
+                        alert('Please provide your electronic signature.')
+                        return
+                      }
+
+                      setIsSharing(true)
+                      try {
+                        // For now, simulate the share action
+                        // In production, this would call an API to securely share records
+                        await new Promise(resolve => setTimeout(resolve, 1500))
+
+                        // Track the share event
+                        trackEvent('trial_records_shared', {
+                          trial_id: shareTrialId,
+                          records_count: selectedRecords.length,
+                        })
+
+                        setShareSuccess(true)
+                      } catch (err) {
+                        console.error('Share error:', err)
+                        alert('Failed to share records. Please try again.')
+                      } finally {
+                        setIsSharing(false)
+                      }
+                    }}
+                    disabled={isSharing || selectedRecords.length === 0 || !shareEmail || !shareConsent.hasRead || !shareConsent.understands || !shareConsent.canWithdraw || !shareSignature.trim()}
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isSharing ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Sharing...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        Share {selectedRecords.length} Record{selectedRecords.length !== 1 ? 's' : ''} with Trial
+                      </>
+                    )}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

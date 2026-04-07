@@ -575,14 +575,9 @@ function RecordsVaultPageContent() {
     e.preventDefault()
     setIsDragging(false)
 
-    // Gate behind email - require auth to upload
-    if (!user) {
-      setShowAuthModal(true)
-      return
-    }
-
     const files = Array.from(e.dataTransfer.files)
 
+    // Accept files first, THEN check auth (so files aren't lost during auth flow)
     if (files.length > 1) {
       // Bulk upload mode
       setIsBulkMode(true)
@@ -604,19 +599,19 @@ function RecordsVaultPageContent() {
       setResult(null)
       setError(null)
       setChatMessages([])
+    }
+
+    // Show auth modal after files are stored (if not logged in)
+    if (!user) {
+      setShowAuthModal(true)
     }
   }, [user])
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    // Gate behind email - require auth to upload
-    if (!user) {
-      setShowAuthModal(true)
-      e.target.value = '' // Reset file input
-      return
-    }
-
     const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
 
+    // Accept files first, THEN check auth (so files aren't lost during auth flow)
     if (files.length > 1) {
       // Bulk upload mode
       setIsBulkMode(true)
@@ -638,6 +633,11 @@ function RecordsVaultPageContent() {
       setResult(null)
       setError(null)
       setChatMessages([])
+    }
+
+    // Show auth modal after files are stored (if not logged in)
+    if (!user) {
+      setShowAuthModal(true)
     }
   }, [user])
 

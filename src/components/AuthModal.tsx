@@ -145,12 +145,12 @@ export function AuthModal({ isOpen, onClose, prefillEmail, wizardCompleted, redi
         return
       }
 
-      // Auto-logged in - migrate and close
+      // Auto-logged in - migrate and close (no reload needed - auth state updates via context)
       if (data.user && data.session) {
         await migrateLocalStorageRecords(data.user.id, data.session.access_token)
         setLoading(false)
         onClose()
-        window.location.reload()
+        // Don't reload - preserves any pending file uploads in the records page
       }
     } catch (e) {
       setLoading(false)

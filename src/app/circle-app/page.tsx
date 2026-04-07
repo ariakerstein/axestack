@@ -1066,17 +1066,19 @@ export default function CircleAppPage() {
         )}
       </div>
 
-      {/* Footer - minimal */}
-      <div className="border-t bg-white px-3 py-1.5 flex-shrink-0">
-        <div className="flex items-center justify-center gap-2 text-[10px] text-gray-400">
+      {/* Footer */}
+      <div className="border-t bg-white px-4 py-3 flex-shrink-0">
+        <div className="flex flex-col items-center gap-2">
           <a href="https://opencancer.ai" target="_blank" rel="noopener noreferrer">
-            <img src="/logo-black.svg" alt="opencancer.ai" className="h-3 w-auto opacity-60" />
+            <img src="/nav-lockup-black.svg" alt="opencancer.ai" className="h-6 w-auto" />
           </a>
-          <span>© 2026</span>
-          <span>·</span>
-          <a href="https://opencancer.ai/about" target="_blank" rel="noopener noreferrer" className="hover:text-gray-600">
-            Built by cancer survivors
-          </a>
+          <div className="flex items-center gap-2 text-[10px] text-gray-400">
+            <span>© 2026</span>
+            <span>·</span>
+            <a href="https://opencancer.ai/about" target="_blank" rel="noopener noreferrer" className="hover:text-gray-600">
+              Built by cancer survivors
+            </a>
+          </div>
         </div>
       </div>
 
