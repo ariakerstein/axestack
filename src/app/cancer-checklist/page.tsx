@@ -19,7 +19,7 @@ import { Navbar } from '@/components/Navbar'
 import { useAuth } from '@/lib/auth'
 import { AuthModal } from '@/components/AuthModal'
 import { ThinkingIndicator } from '@/components/ThinkingIndicator'
-import { Download, Edit3, Save, Check, X, Mail, Plus, Trash2, User } from 'lucide-react'
+import { Download, Edit3, Save, Check, X, Mail, Plus, Trash2, User, Shield, Heart, CheckCircle, ArrowRight } from 'lucide-react'
 
 type Step = 'type' | 'subtype' | 'results'
 
@@ -621,6 +621,66 @@ ${ragContext}
         </p>
       </section>
 
+      {/* Personalization Banner */}
+      {step === 'type' && (
+        <section className="px-4 pb-4">
+          <div className="max-w-3xl mx-auto">
+            {profile?.cancerType ? (
+              /* Has profile - show trust message */
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <Shield className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-emerald-800">
+                      Welcome back! We have your {CANCER_TYPES[profile.cancerType] || profile.cancerType} profile.
+                    </p>
+                    <p className="text-sm text-emerald-700 mt-1">
+                      Your checklist is personalized based on NCCN guidelines for your specific diagnosis.
+                    </p>
+                    <button
+                      onClick={() => setStep('results')}
+                      className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-emerald-700 hover:text-emerald-800"
+                    >
+                      Go to my checklist <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* No profile - trust-building prompt */
+              <div className="bg-gradient-to-br from-slate-50 to-stone-50 border border-slate-200 rounded-xl p-5">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center">
+                    <Heart className="w-5 h-5 text-slate-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-slate-900 mb-1">We're here to help you prepare</h3>
+                    <p className="text-sm text-slate-600 mb-3">
+                      Cancer is overwhelming. This checklist helps you know which tests to ask about
+                      and what questions to bring to your oncologist—so you can be your own best advocate.
+                    </p>
+                    <div className="flex flex-wrap gap-4 text-sm text-slate-500">
+                      <span className="flex items-center gap-1">
+                        <CheckCircle className="w-4 h-4 text-emerald-500" />
+                        Evidence-based recommendations
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <CheckCircle className="w-4 h-4 text-emerald-500" />
+                        Personalized to your cancer type
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <CheckCircle className="w-4 h-4 text-emerald-500" />
+                        Saves your progress
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
       {/* Progress Steps - Clean monochromatic */}
       <div className="max-w-2xl mx-auto px-4 py-4">
         <div className="flex items-center justify-center gap-4">
@@ -851,24 +911,30 @@ ${ragContext}
               ← Back to details
             </button>
 
-            {/* Summary Header */}
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 mb-8">
+            {/* Summary Header with Trust Message */}
+            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-6 mb-8">
               <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900 mb-2">
-                    Your Cancer Checklist
-                  </h2>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Shield className="w-5 h-5 text-emerald-600" />
+                    <h2 className="text-xl font-bold text-slate-900">
+                      Your Personalized Checklist
+                    </h2>
+                  </div>
+                  <p className="text-sm text-emerald-800 mb-3">
+                    Built specifically for your diagnosis based on NCCN guidelines
+                  </p>
                   <div className="flex flex-wrap gap-2 text-sm">
-                    <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-full">
+                    <span className="bg-white/80 text-slate-700 px-3 py-1 rounded-full border border-emerald-200">
                       {CANCER_TYPES[cancerType]}
                     </span>
                     {subtype && subtype !== 'unknown' && (
-                      <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-full">
+                      <span className="bg-white/80 text-slate-700 px-3 py-1 rounded-full border border-emerald-200">
                         {CANCER_SUBTYPES[cancerType]?.find((s) => s.code === subtype)?.label}
                       </span>
                     )}
                     {stage && stage !== 'unknown' && (
-                      <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-full">
+                      <span className="bg-white/80 text-slate-700 px-3 py-1 rounded-full border border-emerald-200">
                         {STAGES.find((s) => s.code === stage)?.label}
                       </span>
                     )}

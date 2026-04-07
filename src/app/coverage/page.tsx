@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
-import { ChevronRight, ExternalLink, AlertCircle, CheckCircle, Info, DollarSign, Shield, Heart } from 'lucide-react'
+import { ChevronRight, ExternalLink, AlertCircle, CheckCircle, Info, DollarSign, Shield, Heart, Building2, User } from 'lucide-react'
 import {
   INSURANCE_TYPES,
   TREATMENT_COVERAGE,
@@ -13,21 +13,60 @@ import {
 } from '@/lib/coverage-data'
 import { CANCER_TYPES } from '@/lib/cancer-data'
 import { useAuth } from '@/lib/auth'
+import { supabase } from '@/lib/supabase'
 import { Navbar } from '@/components/Navbar'
 
-type Step = 'cancer' | 'insurance' | 'results'
+type Step = 'cancer' | 'insurance' | 'insurance-details' | 'results'
 
 // Common cancer types to show first
 const COMMON_CANCERS = ['breast', 'lung', 'prostate', 'colorectal', 'melanoma', 'lymphoma']
 
+// Common insurance carriers
+const COMMON_CARRIERS = [
+  'UnitedHealthcare',
+  'Blue Cross Blue Shield',
+  'Aetna',
+  'Cigna',
+  'Humana',
+  'Kaiser Permanente',
+  'Anthem',
+  'Medicare',
+  'Medicaid',
+  'Other'
+]
+
+interface ServiceProvider {
+  id: number
+  provider: string
+  logo_url: string | null
+  url: string | null
+  domain: string | null
+  featured: boolean
+  coverage_info: {
+    accepts_insurance?: boolean
+    financial_assistance_available?: boolean
+    financial_assistance_url?: string
+  } | null
+}
+
+interface InsuranceDetails {
+  carrier: string
+  planType: string
+  memberId?: string
+}
+
 export default function CoveragePage() {
-  const { user, profile: authProfile, loading: authLoading } = useAuth()
+  const { user, profile: authProfile, loading: authLoading, refreshProfile } = useAuth()
   const [step, setStep] = useState<Step>('cancer')
   const [cancerType, setCancerType] = useState('')
   const [insuranceType, setInsuranceType] = useState('')
+  const [insuranceDetails, setInsuranceDetails] = useState<InsuranceDetails>({ carrier: '', planType: '' })
   const [showMedicareDetails, setShowMedicareDetails] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [showAllCancers, setShowAllCancers] = useState(false)
+  const [financialProviders, setFinancialProviders] = useState<ServiceProvider[]>([])
+  const [savingInsurance, setSavingInsurance] = useState(false)
+  const [insuranceSaved, setInsuranceSaved] = useState(false)
 
   // Load profile - prefer Supabase for authenticated users
   useEffect(() => {
@@ -38,6 +77,25 @@ export default function CoveragePage() {
       if (authProfile.cancer_type) {
         setCancerType(authProfile.cancer_type)
       }
+      // Load existing insurance if available
+      if ((authProfile as Record<string, unknown>).insurance) {
+        const ins = (authProfile as Record<string, unknown>).insurance as InsuranceDetails
+        setInsuranceDetails({
+          carrier: ins.carrier || '',
+          planType: ins.planType || '',
+          memberId: ins.memberId || ''
+        })
+        if (ins.carrier) {
+          // Determine insurance type from carrier
+          if (ins.carrier.toLowerCase().includes('medicare')) {
+            setInsuranceType('medicare_original')
+          } else if (ins.carrier.toLowerCase().includes('medicaid')) {
+            setInsuranceType('medicaid')
+          } else {
+            setInsuranceType('private_ppo')
+          }
+        }
+      }
     } else {
       // Fall back to localStorage for anonymous users
       const saved = localStorage.getItem('patient-profile')
@@ -46,9 +104,66 @@ export default function CoveragePage() {
         if (profile.cancerType) {
           setCancerType(profile.cancerType)
         }
+        if (profile.insurance) {
+          setInsuranceDetails(profile.insurance)
+        }
       }
     }
   }, [user, authProfile, authLoading])
+
+  // Fetch financial assistance providers
+  useEffect(() => {
+    async function fetchProviders() {
+      const { data, error } = await supabase
+        .from('serviceProviders')
+        .select('id, provider, logo_url, url, domain, featured, coverage_info')
+        .eq('domain', 'financial-legal')
+        .order('featured', { ascending: false })
+        .limit(10)
+
+      if (!error && data) {
+        setFinancialProviders(data)
+      }
+    }
+    fetchProviders()
+  }, [])
+
+  // Save insurance to profile
+  const saveInsuranceToProfile = async () => {
+    if (!insuranceDetails.carrier) return
+
+    setSavingInsurance(true)
+    try {
+      if (user) {
+        // Save to Supabase
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            insurance: insuranceDetails,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', user.id)
+
+        if (!error) {
+          setInsuranceSaved(true)
+          refreshProfile?.()
+          setTimeout(() => setInsuranceSaved(false), 2000)
+        }
+      } else {
+        // Save to localStorage for anonymous users
+        const saved = localStorage.getItem('patient-profile')
+        const profile = saved ? JSON.parse(saved) : {}
+        profile.insurance = insuranceDetails
+        localStorage.setItem('patient-profile', JSON.stringify(profile))
+        setInsuranceSaved(true)
+        setTimeout(() => setInsuranceSaved(false), 2000)
+      }
+    } catch (err) {
+      console.error('Failed to save insurance:', err)
+    } finally {
+      setSavingInsurance(false)
+    }
+  }
 
   const handleCancerSelect = (type: string) => {
     setCancerType(type)
@@ -57,12 +172,20 @@ export default function CoveragePage() {
 
   const handleInsuranceSelect = (type: string) => {
     setInsuranceType(type)
+    // Go to details step to capture carrier info
+    setStep('insurance-details')
+  }
+
+  const handleInsuranceDetailsComplete = async () => {
+    // Save insurance to profile for cross-site personalization
+    await saveInsuranceToProfile()
     setStep('results')
   }
 
   const handleBack = () => {
     if (step === 'insurance') setStep('cancer')
-    if (step === 'results') setStep('insurance')
+    if (step === 'insurance-details') setStep('insurance')
+    if (step === 'results') setStep('insurance-details')
   }
 
   const relevantPrograms = getRelevantPrograms(cancerType, insuranceType)
@@ -77,9 +200,11 @@ export default function CoveragePage() {
         {/* Progress indicator */}
         <div className="flex items-center justify-center gap-2 mb-8">
           <div className={`w-3 h-3 rounded-full ${step === 'cancer' ? 'bg-slate-900' : 'bg-slate-900'}`} />
-          <div className={`w-8 h-0.5 ${step !== 'cancer' ? 'bg-slate-900' : 'bg-slate-200'}`} />
-          <div className={`w-3 h-3 rounded-full ${step === 'insurance' || step === 'results' ? 'bg-slate-900' : 'bg-slate-200'}`} />
-          <div className={`w-8 h-0.5 ${step === 'results' ? 'bg-slate-900' : 'bg-slate-200'}`} />
+          <div className={`w-6 h-0.5 ${step !== 'cancer' ? 'bg-slate-900' : 'bg-slate-200'}`} />
+          <div className={`w-3 h-3 rounded-full ${step === 'insurance' || step === 'insurance-details' || step === 'results' ? 'bg-slate-900' : 'bg-slate-200'}`} />
+          <div className={`w-6 h-0.5 ${step === 'insurance-details' || step === 'results' ? 'bg-slate-900' : 'bg-slate-200'}`} />
+          <div className={`w-3 h-3 rounded-full ${step === 'insurance-details' || step === 'results' ? 'bg-slate-900' : 'bg-slate-200'}`} />
+          <div className={`w-6 h-0.5 ${step === 'results' ? 'bg-slate-900' : 'bg-slate-200'}`} />
           <div className={`w-3 h-3 rounded-full ${step === 'results' ? 'bg-slate-900' : 'bg-slate-200'}`} />
         </div>
 
@@ -218,6 +343,144 @@ export default function CoveragePage() {
                   <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-slate-900 transition-colors" />
                 </button>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Step 2.5: Insurance Details */}
+        {step === 'insurance-details' && (
+          <div className="space-y-6">
+            <button
+              onClick={handleBack}
+              className="text-slate-500 hover:text-slate-900 text-sm flex items-center gap-1"
+            >
+              ← Back
+            </button>
+
+            {/* Trust Banner */}
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <Shield className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm text-emerald-800 font-medium">Your information stays private</p>
+                  <p className="text-sm text-emerald-700 mt-1">
+                    We use this to show you in-network providers and estimate costs across opencancer.ai.
+                    We never share your insurance details with third parties.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-stone-100 mb-4">
+                <User className="w-6 h-6 text-slate-700" />
+              </div>
+              <h1 className="text-2xl font-bold text-slate-900 mb-2">
+                Tell us about your insurance
+              </h1>
+              <p className="text-slate-600">
+                This helps us personalize recommendations across the site
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {/* Carrier Selection */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Insurance carrier
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {COMMON_CARRIERS.map((carrier) => (
+                    <button
+                      key={carrier}
+                      onClick={() => setInsuranceDetails(prev => ({ ...prev, carrier }))}
+                      className={`text-left px-4 py-3 rounded-lg border transition-all text-sm ${
+                        insuranceDetails.carrier === carrier
+                          ? 'border-slate-900 bg-stone-100 text-slate-900'
+                          : 'border-slate-200 bg-white hover:border-slate-400 text-slate-700'
+                      }`}
+                    >
+                      {carrier}
+                    </button>
+                  ))}
+                </div>
+                {insuranceDetails.carrier === 'Other' && (
+                  <input
+                    type="text"
+                    placeholder="Enter your insurance carrier..."
+                    value={insuranceDetails.carrier === 'Other' ? '' : insuranceDetails.carrier}
+                    onChange={(e) => setInsuranceDetails(prev => ({ ...prev, carrier: e.target.value }))}
+                    className="mt-2 w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent text-slate-900"
+                  />
+                )}
+              </div>
+
+              {/* Plan Type */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Plan type (optional)
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {['PPO', 'HMO', 'EPO', 'POS', 'HDHP', "Don't know"].map((type) => (
+                    <button
+                      key={type}
+                      onClick={() => setInsuranceDetails(prev => ({ ...prev, planType: type }))}
+                      className={`text-left px-4 py-2 rounded-lg border transition-all text-sm ${
+                        insuranceDetails.planType === type
+                          ? 'border-slate-900 bg-stone-100 text-slate-900'
+                          : 'border-slate-200 bg-white hover:border-slate-400 text-slate-700'
+                      }`}
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* How this helps */}
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mt-4">
+                <p className="text-sm font-medium text-slate-700 mb-2">How this helps you:</p>
+                <ul className="space-y-1 text-sm text-slate-600">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-500" />
+                    See which labs and providers are in-network
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-500" />
+                    Get estimated costs for tests and treatments
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-500" />
+                    Find financial assistance programs you qualify for
+                  </li>
+                </ul>
+              </div>
+
+              {/* Continue Button */}
+              <div className="pt-4">
+                <button
+                  onClick={handleInsuranceDetailsComplete}
+                  disabled={!insuranceDetails.carrier || savingInsurance}
+                  className="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white font-medium px-6 py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  {savingInsurance ? (
+                    'Saving...'
+                  ) : insuranceSaved ? (
+                    <>
+                      <CheckCircle className="w-5 h-5" />
+                      Saved!
+                    </>
+                  ) : (
+                    'Continue →'
+                  )}
+                </button>
+                <button
+                  onClick={() => setStep('results')}
+                  className="w-full mt-2 text-sm text-slate-500 hover:text-slate-700"
+                >
+                  Skip for now
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -376,6 +639,96 @@ export default function CoveragePage() {
                 ))}
               </div>
             </div>
+
+            {/* Insurance Details Saved Banner */}
+            {insuranceDetails.carrier && (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="w-5 h-5 text-emerald-600" />
+                    <div>
+                      <p className="text-sm font-medium text-emerald-800">
+                        Your insurance: {insuranceDetails.carrier}
+                        {insuranceDetails.planType && insuranceDetails.planType !== "Don't know" && ` (${insuranceDetails.planType})`}
+                      </p>
+                      <p className="text-xs text-emerald-700">
+                        We'll use this to personalize recommendations across opencancer.ai
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setStep('insurance-details')}
+                    className="text-xs text-emerald-700 hover:text-emerald-800"
+                  >
+                    Edit
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Financial Assistance Partners */}
+            {financialProviders.length > 0 && (
+              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <div className="px-6 py-4 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-5 h-5 text-blue-600" />
+                    <h3 className="font-semibold text-slate-900">Financial Navigation Partners</h3>
+                  </div>
+                  <p className="text-sm text-slate-600 mt-1">
+                    Organizations that help cancer patients navigate costs and find assistance
+                  </p>
+                </div>
+                <div className="p-4">
+                  <div className="grid md:grid-cols-2 gap-3">
+                    {financialProviders.map((provider) => (
+                      <a
+                        key={provider.id}
+                        href={provider.url || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg hover:border-slate-300 hover:bg-slate-50 transition-all group"
+                      >
+                        {provider.logo_url ? (
+                          <img
+                            src={provider.logo_url}
+                            alt={provider.provider}
+                            className="w-10 h-10 object-contain rounded"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none'
+                            }}
+                          />
+                        ) : (
+                          <div className="w-10 h-10 bg-slate-100 rounded flex items-center justify-center">
+                            <Heart className="w-5 h-5 text-slate-400" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-slate-900 text-sm truncate group-hover:text-blue-600">
+                            {provider.provider}
+                          </p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            {provider.coverage_info?.financial_assistance_available && (
+                              <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded">
+                                Financial Aid
+                              </span>
+                            )}
+                            {provider.featured && (
+                              <span className="text-[10px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded">
+                                Featured
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-blue-600" />
+                      </a>
+                    ))}
+                  </div>
+                  <p className="text-xs text-slate-400 mt-3 text-center">
+                    opencancer.ai partners with these organizations to help you navigate costs.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Disclaimer */}
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
