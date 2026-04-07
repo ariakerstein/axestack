@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navis Health - Catalyst Launchpad Pitch</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+        * { font-family: 'Inter', sans-serif; }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #1a1a2e;
+        }
+
+        /* Letterbox viewer */
+        .viewer {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        /* Slide container - 16:9 aspect ratio */
+        .slide-container {
+            width: 100%;
+            max-width: calc((100vh - 80px) * 16 / 9);
+            aspect-ratio: 16 / 9;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Controls bar */
+        .controls-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 15px 20px;
+            margin-top: 10px;
+            min-height: 50px;
+            flex-shrink: 0;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }
+
+        .nav-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.7);
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: default;
+        }
+
+        .slide-progress {
+            color: rgba(255,255,255,0.7);
+            font-size: 14px;
+            font-weight: 500;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .fullscreen-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.7);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: 16px;
+        }
+        .fullscreen-btn:hover {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        /* Hint on first load */
+        .nav-hint {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.8);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            z-index: 1000;
+            animation: fadeOut 3s forwards;
+            animation-delay: 3s;
+        }
+        @keyframes fadeOut {
+            to { opacity: 0; visibility: hidden; }
+        }
+
+        /* Small screen warning */
+        .size-warning {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(26, 26, 46, 0.95);
+            z-index: 2000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+        .size-warning h2 {
+            color: white;
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+        .size-warning p {
+            color: rgba(255,255,255,0.7);
+            font-size: 16px;
+            margin-bottom: 24px;
+            max-width: 400px;
+        }
+        .size-warning button {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 8px;
+        }
+        .size-warning button:hover {
+            background: #059669;
+        }
+        .size-warning .dismiss {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .size-warning .dismiss:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        @media (max-width: 900px), (max-height: 600px) {
+            .size-warning {
+                display: flex;
+            }
+            .size-warning.dismissed {
+                display: none;
+            }
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 5% 4% 4% 4%;
+            box-sizing: border-box;
+        }
+        .slide.active {
+            display: flex;
+        }
+
+        /* For title/splash slides that should be centered */
+        .slide-centered {
+            justify-content: center;
+            padding: 4rem;
+        }
+
+        .slide-number {
+            position: absolute;
+            bottom: 2rem;
+            right: 2rem;
+            font-size: 0.875rem;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        /* Stat highlight animation */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(16, 185, 129, 0.5); }
+        }
+        .stat-glow {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+
+            html, body {
+                overflow: visible !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white !important;
+            }
+
+            .viewer, .slide-container {
+                display: contents !important;
+            }
+            .controls-bar, .nav-hint {
+                display: none !important;
+            }
+
+            .slide {
+                overflow: hidden !important;
+                page-break-after: always;
+                page-break-inside: avoid;
+                break-after: page;
+                break-inside: avoid;
+                width: 100% !important;
+                max-width: 11in !important;
+                height: 8.5in !important;
+                min-height: 8.5in !important;
+                max-height: 8.5in !important;
+                display: flex !important;
+                position: relative !important;
+                margin: 0 auto !important;
+                padding: 4rem 2.5rem 2rem 2.5rem !important;
+                box-sizing: border-box !important;
+            }
+
+            .slide-centered {
+                padding: 2.5rem !important;
+                justify-content: center !important;
+            }
+
+            .text-7xl { font-size: 3.5rem !important; }
+            .text-6xl { font-size: 2.75rem !important; }
+            .text-5xl { font-size: 2.25rem !important; }
+            .text-4xl { font-size: 1.75rem !important; }
+
+            .slide:last-of-type {
+                page-break-after: avoid;
+                break-after: avoid;
+            }
+
+            @page {
+                margin: 0;
+                size: 11in 8.5in landscape;
+            }
+
+            .slide-number {
+                display: block !important;
+            }
+
+            .fixed {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Small screen warning -->
+<div class="size-warning" id="sizeWarning">
+    <h2>Window too small</h2>
+    <p>This presentation is best viewed on a larger screen or in fullscreen mode.</p>
+    <div>
+        <button onclick="goFullscreen()">Go Fullscreen</button>
+        <button class="dismiss" onclick="dismissWarning()">Continue Anyway</button>
+    </div>
+</div>
+
+<!-- Hint -->
+<div class="nav-hint">Use arrow keys to navigate | 5 slides, 5 minutes</div>
+
+<!-- Viewer wrapper -->
+<div class="viewer">
+    <div class="slide-container" id="slideContainer">
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SLIDE 1: COVER - The Hook
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<section class="slide slide-centered bg-slate-900 text-white">
+    <div class="max-w-5xl px-12 text-center">
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="mx-auto mb-6" style="height: 120px;">
+
+        <h1 class="text-6xl font-bold mb-10 leading-tight"><span class="text-red-400">84%</span> of cancer patients<br>never get an expert opinion.<br><span class="text-emerald-400">We're changing that.</span></h1>
+
+        <!-- Badges -->
+        <div class="flex justify-center gap-4">
+            <div class="bg-emerald-500/20 border border-emerald-500/50 rounded-full px-5 py-2">
+                <span class="text-emerald-400 font-semibold">Pre-Seed: Raising $1.5M</span>
+            </div>
+        </div>
+    </div>
+    <div class="slide-number text-slate-500">1</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SLIDE 2: THE PROBLEM - Life-or-Death Decisions
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<section class="slide slide-centered bg-slate-900 text-white">
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-400 font-medium uppercase tracking-widest">The Problem</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-30">
+    </div>
+
+    <div class="w-full max-w-6xl px-8">
+        <h2 class="text-4xl font-bold text-white mb-10">Patients Make Life-or-Death Decisions<br>in the <span class="text-red-400">Dark.</span></h2>
+
+        <!-- 3-column layout -->
+        <div class="flex gap-10">
+            <!-- Left: Wait Times Increasing -->
+            <div class="flex-1">
+                <p class="text-red-400 font-semibold uppercase tracking-widest text-sm mb-3">Wait Times Increasing</p>
+                <img src="../pitchAssets/waits.png" alt="Wait times chart" class="w-full rounded-lg" style="max-height: 280px; object-fit: contain;">
+            </div>
+
+            <!-- Arrow -->
+            <div class="flex items-center">
+                <span class="text-4xl text-slate-500">→</span>
+            </div>
+
+            <!-- Middle: The Access Gap -->
+            <div class="flex-1">
+                <p class="text-amber-400 font-semibold uppercase tracking-widest text-sm mb-4">The Access Gap</p>
+                <div class="space-y-4">
+                    <div>
+                        <p class="text-5xl font-bold text-amber-400">84%</p>
+                        <p class="text-slate-400 text-sm">No second opinion</p>
+                    </div>
+                    <div>
+                        <p class="text-4xl font-bold text-amber-400">$15-35K</p>
+                        <p class="text-slate-400 text-sm">Saved/case · #1 employer cost</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Impact (with separator) -->
+            <div class="w-64 border-l-2 border-red-500/40 pl-8">
+                <p class="text-red-400 font-semibold uppercase tracking-widest text-sm mb-5">Impact</p>
+                <div class="space-y-4">
+                    <div>
+                        <p class="text-slate-400 text-sm">Avoidable harm</p>
+                        <p class="text-5xl font-bold text-red-400">1 in 10</p>
+                    </div>
+                    <div>
+                        <p class="text-slate-400 text-sm">Plan revision rate</p>
+                        <p class="text-5xl font-bold text-red-400">37%</p>
+                    </div>
+                    <div>
+                        <p class="text-slate-400 text-sm">Annual waste</p>
+                        <p class="text-5xl font-bold text-amber-400">$20B</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <p class="absolute bottom-5 left-8 text-xs text-slate-600">Sources: Mayo Clinic Proceedings, JCO, Business Group on Health, IOM | Confidential</p>
+    <div class="slide-number text-slate-500">2</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SLIDE 3: THE SOLUTION - The Oncology OS
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<section class="slide slide-centered bg-gradient-to-br from-slate-50 via-white to-slate-50 text-slate-900">
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-400 font-medium uppercase tracking-widest">The Solution</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-40">
+    </div>
+
+    <div class="w-full max-w-6xl px-8">
+        <h2 class="text-5xl font-bold mb-2 text-slate-900">Navis: The <span class="text-sky-600">Cancer</span> Command Center</h2>
+        <p class="text-xl text-slate-500 mb-8">Taking the luck out of medical decisions. Built for patients & caregivers.</p>
+
+        <!-- Ingest → Analyze → Execute - Box layout -->
+        <div class="flex gap-5 mb-8">
+            <!-- 1. Ingest -->
+            <div class="flex-1 bg-white rounded-2xl p-6 border border-slate-200 shadow-lg">
+                <div class="w-12 h-12 bg-sky-100 rounded-xl flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                </div>
+                <p class="text-xl font-bold text-slate-900 mb-3">1. Ingest</p>
+                <p class="text-sm text-slate-600">Fragmented records become a structured <span class="text-slate-900 font-medium">Data Vault</span> — one place for all your records.</p>
+            </div>
+
+            <!-- 2. Analyze -->
+            <div class="flex-1 bg-white rounded-2xl p-6 border border-slate-200 shadow-lg">
+                <div class="w-12 h-12 bg-sky-100 rounded-xl flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                </div>
+                <p class="text-xl font-bold text-slate-900 mb-3">2. Analyze</p>
+                <p class="text-sm text-slate-600">Instant <span class="text-slate-900 font-medium">"Care Gap Check"</span> against NCCN guidelines and genomic breakthroughs.</p>
+            </div>
+
+            <!-- 3. Act - HIGHLIGHTED -->
+            <div class="flex-1 bg-white rounded-2xl p-6 border-2 border-sky-400 shadow-lg">
+                <div class="w-12 h-12 bg-sky-100 rounded-xl flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <p class="text-xl font-bold text-slate-900 mb-3">3. Act</p>
+                <p class="text-sm text-slate-600">Route to <span class="text-slate-900 font-medium">matched experts, trials, services</span>. Agents handle admin.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="slide-number">3</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SLIDE 4: GTM - Path to Scale
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<section class="slide slide-centered bg-slate-900 text-white">
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-400 font-medium uppercase tracking-widest">Go-To-Market</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-30">
+    </div>
+
+    <div class="w-full max-w-6xl px-8">
+        <h2 class="text-5xl font-bold mb-10">The Path to <span class="text-sky-400">1M Expert Opinions</span></h2>
+
+        <!-- Dual-Engine Monetization -->
+        <div class="flex gap-6 mb-6">
+            <!-- D2C Box -->
+            <div class="flex-1 bg-slate-800 rounded-2xl p-6">
+                <p class="text-xl font-bold text-sky-400 mb-2">D2C Command Center</p>
+                <p class="mb-2"><span class="text-5xl font-bold text-white">$99</span><span class="text-xl text-slate-400">/opinion</span></p>
+                <p class="text-sm text-slate-500">Patients & caregivers</p>
+            </div>
+
+            <!-- B2B Box -->
+            <div class="flex-1 bg-slate-800 rounded-2xl p-6">
+                <p class="text-xl font-bold text-amber-400 mb-2">Premium Listings</p>
+                <p class="mb-2"><span class="text-5xl font-bold text-white">$10k-20k</span><span class="text-xl text-slate-400">/mo</span></p>
+                <p class="text-sm text-slate-500">Pharma & Labs</p>
+            </div>
+        </div>
+
+        <!-- Employer Value Prop -->
+        <p class="text-lg text-slate-400 mb-6 text-center"><span class="text-sky-400 font-semibold">Employers save $15-35K per audit.</span> TAM: <span class="text-emerald-400 font-semibold">$50B+</span> → SOM: <span class="text-sky-400 font-semibold">$100M+</span></p>
+
+        <!-- Three Phase Boxes with Arrows -->
+        <div class="flex items-stretch gap-3">
+            <!-- Phase 1 -->
+            <div class="flex-1 bg-slate-800/50 rounded-xl p-5 border-t-3 border-sky-400">
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="text-2xl font-black text-sky-400">1</span>
+                    <p class="text-lg font-bold text-white">Now: 10k</p>
+                </div>
+                <p class="text-base text-slate-300 mb-2">Whitelabel for patient communities</p>
+                <p class="text-sm text-slate-500">D2C gap-checks</p>
+            </div>
+
+            <!-- Arrow -->
+            <div class="flex items-center text-slate-500 text-4xl font-light">→</div>
+
+            <!-- Phase 2 -->
+            <div class="flex-1 bg-slate-800/50 rounded-xl p-5 border-t-3 border-emerald-400">
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="text-2xl font-black text-emerald-400">2</span>
+                    <p class="text-lg font-bold text-white">Next: 100k</p>
+                </div>
+                <p class="text-base text-slate-300 mb-2">Community oncologists & Labs</p>
+                <p class="text-sm text-slate-500">Pharma trials · Chronic expansion</p>
+            </div>
+
+            <!-- Arrow -->
+            <div class="flex items-center text-slate-500 text-4xl font-light">→</div>
+
+            <!-- Phase 3 -->
+            <div class="flex-1 bg-slate-800/50 rounded-xl p-5 border-t-3 border-amber-400">
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="text-2xl font-black text-amber-400">3</span>
+                    <p class="text-lg font-bold text-white">Scale: 1M</p>
+                </div>
+                <p class="text-base text-slate-300 mb-2">Employer & Payor distribution</p>
+                <p class="text-sm text-slate-500">Medicare · Expanded chronic conditions</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-number text-slate-500">4</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SLIDE 5: COMPETITION - Why Navis Wins
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<section class="slide slide-centered bg-slate-900 text-white">
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-400 font-medium uppercase tracking-widest">Competition</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-30">
+    </div>
+
+    <div class="w-full max-w-5xl px-8">
+        <h2 class="text-5xl font-bold mb-10 text-center">The Most <span class="text-sky-400">Complete</span> Solution</h2>
+
+        <div class="bg-slate-800 rounded-2xl overflow-hidden">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b border-slate-700 bg-slate-800/80">
+                        <th class="p-5 text-left text-slate-400 font-medium uppercase text-sm tracking-wide">Feature</th>
+                        <th class="p-5 text-center text-sky-400 font-bold border-l-2 border-sky-500 bg-sky-900/30">NAVIS</th>
+                        <th class="p-5 text-center text-slate-400 font-medium"><div>EPIC</div><div class="text-xs text-slate-500 font-normal">Patient Portals</div></th>
+                        <th class="p-5 text-center text-slate-400 font-medium"><div>LEGACY EMO</div><div class="text-xs text-slate-500 font-normal">Grand Rounds / Academic</div></th>
+                        <th class="p-5 text-center text-slate-400 font-medium"><div>CHATGPT</div><div class="text-xs text-slate-500 font-normal">Frontier Models</div></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="border-b border-slate-700/50">
+                        <td class="p-5 text-slate-300 font-medium">Options Surfaced</td>
+                        <td class="p-5 text-center border-l-2 border-sky-500 bg-sky-900/20"><span class="text-emerald-400">✓</span> <span class="text-white font-bold text-sm">Complete</span></td>
+                        <td class="p-5 text-center"><span class="text-red-400">✗</span> <span class="text-slate-400 text-sm">N/A</span></td>
+                        <td class="p-5 text-center"><span class="text-amber-400">~</span> <span class="text-slate-400 text-sm">Biased</span></td>
+                        <td class="p-5 text-center"><span class="text-amber-400">~</span> <span class="text-slate-400 text-sm">Limited</span></td>
+                    </tr>
+                    <tr class="border-b border-slate-700/50">
+                        <td class="p-5 text-slate-300 font-medium">Speed</td>
+                        <td class="p-5 text-center border-l-2 border-sky-500 bg-sky-900/20"><span class="text-emerald-400">✓</span> <span class="text-white font-bold">Minutes</span><div class="text-xs text-emerald-300">1000x faster</div></td>
+                        <td class="p-5 text-center"><span class="text-emerald-400">✓</span> <span class="text-slate-400">Real-time</span></td>
+                        <td class="p-5 text-center"><span class="text-red-400">✗</span> <span class="text-slate-400">2-4 weeks</span></td>
+                        <td class="p-5 text-center"><span class="text-emerald-400">✓</span> <span class="text-slate-400">Instant</span></td>
+                    </tr>
+                    <tr class="border-b border-slate-700/50">
+                        <td class="p-5 text-slate-300 font-medium">Cost</td>
+                        <td class="p-5 text-center border-l-2 border-sky-500 bg-sky-900/20"><span class="text-emerald-400">✓</span> <span class="text-white font-bold">$99</span><div class="text-xs text-emerald-300">10x cheaper</div></td>
+                        <td class="p-5 text-center"><span class="text-emerald-400">✓</span> <span class="text-slate-400">Free</span></td>
+                        <td class="p-5 text-center"><span class="text-red-400">✗</span> <span class="text-slate-400">$1-2K</span></td>
+                        <td class="p-5 text-center"><span class="text-emerald-400">✓</span> <span class="text-slate-400">Free</span></td>
+                    </tr>
+                    <tr class="border-b border-slate-700/50">
+                        <td class="p-5 text-slate-300 font-medium">What You Get</td>
+                        <td class="p-5 text-center border-l-2 border-sky-500 bg-sky-900/20"><span class="text-emerald-400">✓</span> <span class="text-white font-bold text-sm">Record + actions</span></td>
+                        <td class="p-5 text-center"><span class="text-red-400">✗</span> <span class="text-slate-400 text-sm">Fragmented</span></td>
+                        <td class="p-5 text-center"><span class="text-amber-400">~</span> <span class="text-slate-400 text-sm">One-time PDF</span></td>
+                        <td class="p-5 text-center"><span class="text-red-400">✗</span> <span class="text-slate-400 text-sm">General info</span></td>
+                    </tr>
+                    <tr>
+                        <td class="p-5 text-slate-300 font-medium">Built For</td>
+                        <td class="p-5 text-center border-l-2 border-sky-500 bg-sky-900/20"><span class="text-emerald-400">✓</span> <span class="text-white font-bold text-sm">Patient</span></td>
+                        <td class="p-5 text-center"><span class="text-red-400">✗</span> <span class="text-slate-400 text-sm">Admin</span></td>
+                        <td class="p-5 text-center"><span class="text-amber-400">~</span> <span class="text-slate-400 text-sm">Employers</span></td>
+                        <td class="p-5 text-center"><span class="text-amber-400">~</span> <span class="text-slate-400 text-sm">Public</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="slide-number text-slate-500">5</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SLIDE 6: TEAM + ASK
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<section class="slide slide-centered bg-slate-900 text-white">
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-400 font-medium uppercase tracking-widest">Team & Ask</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-30">
+    </div>
+
+    <div class="w-full max-w-6xl px-8">
+        <h2 class="text-4xl font-bold mb-6 text-center">Team, Progress & <span class="text-sky-400">The Ask</span></h2>
+
+        <!-- Team row - LARGE photos -->
+        <div class="flex justify-center gap-6 mb-4">
+            <div class="text-center">
+                <img src="https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/64694c7d-e3e3-414f-af72-288d201bb060/Screenshot+2024-10-02+at+10.59.02%E2%80%AFAM.jpg" alt="Ari Akerstein" class="w-28 h-28 mx-auto mb-2 rounded-full object-cover border-2 border-slate-600">
+                <p class="font-bold text-white text-base">Ari Akerstein</p>
+                <p class="text-sm text-slate-500">CEO</p>
+            </div>
+            <div class="text-center">
+                <img src="https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/48fdd96b-71a0-41f9-bc5f-f1ae27636b95/Screenshot+2024-09-11+at+7.36.59%E2%80%AFPM.png" alt="Brad Power" class="w-28 h-28 mx-auto mb-2 rounded-full object-cover border-2 border-slate-600">
+                <p class="font-bold text-white text-base">Brad Power</p>
+                <p class="text-sm text-slate-500">Chief Trust Officer</p>
+            </div>
+            <div class="text-center">
+                <img src="https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/5761840d-8d31-4c56-a09e-c6f27510bc5a/Chris-Apfel-Nature-removebg-preview.png" alt="Chris Apfel" class="w-28 h-28 mx-auto mb-2 rounded-full object-cover border-2 border-slate-600 bg-slate-800">
+                <p class="font-bold text-white text-base">Chris Apfel, MD/PhD</p>
+                <p class="text-sm text-slate-500">Chief Medical Officer</p>
+            </div>
+            <div class="text-center">
+                <img src="../pitchAssets/kaumudi.jpg" alt="Kaumudi Bhawe" class="w-28 h-28 mx-auto mb-2 rounded-full object-cover border-2 border-slate-600">
+                <p class="font-bold text-white text-base">Kaumudi Bhawe, PhD</p>
+                <p class="text-sm text-slate-500">CSO / Head of Advocacy</p>
+            </div>
+            <div class="text-center">
+                <img src="../pitchAssets/viktor.jpg" alt="Viktor Tabori" class="w-28 h-28 mx-auto mb-2 rounded-full object-cover border-2 border-slate-600">
+                <p class="font-bold text-white text-base">Viktor Tabori</p>
+                <p class="text-sm text-slate-500">Head of Growth</p>
+            </div>
+        </div>
+
+        <!-- Logo bar (text) -->
+        <div class="flex justify-center items-center gap-6 mb-6 text-slate-500 text-base tracking-wide">
+            <span>Meta</span>
+            <span>·</span>
+            <span>UCSF</span>
+            <span>·</span>
+            <span>Stanford</span>
+            <span>·</span>
+            <span>Genentech</span>
+            <span>·</span>
+            <span>Included Health</span>
+            <span>·</span>
+            <span>Cancer Commons</span>
+        </div>
+
+        <!-- Ask + Traction (side by side, ask on left) -->
+        <div class="flex gap-6 mb-6">
+            <!-- Ask -->
+            <div class="flex-1 bg-slate-800 rounded-2xl p-5 border border-sky-500/30">
+                <p class="text-sm text-slate-500 uppercase tracking-wide mb-2">Pre-Seed Round</p>
+                <p class="text-4xl font-bold text-white mb-3">$1.5M</p>
+                <p class="text-slate-400 text-sm mb-2">$12M cap · Post-money SAFE</p>
+                <div class="space-y-1 text-sm">
+                    <p class="text-slate-400"><span class="text-sky-400">●</span> 10K patients</p>
+                    <p class="text-slate-400"><span class="text-purple-400">●</span> 2+ community partners</p>
+                    <p class="text-slate-400"><span class="text-emerald-400">●</span> 10% conversion to paid</p>
+                </div>
+            </div>
+
+            <!-- Traction -->
+            <div class="flex-1 space-y-2">
+                <div class="flex items-start gap-3">
+                    <span class="text-emerald-400 mt-0.5">✓</span>
+                    <div>
+                        <span class="text-white font-semibold text-base">Closed Beta Active:</span>
+                        <span class="text-slate-400 text-base"> Live patients.</span>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-emerald-400 mt-0.5">✓</span>
+                    <div>
+                        <span class="text-white font-semibold text-base">3 B2B LOIs:</span>
+                        <span class="text-slate-400 text-base"> Verified matching revenue.</span>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-emerald-400 mt-0.5">✓</span>
+                    <div>
+                        <span class="text-white font-semibold text-base">Command Center V1:</span>
+                        <span class="text-slate-400 text-base"> Clinical engine live.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Patient quotes -->
+        <div class="flex gap-4 justify-center">
+            <div class="bg-slate-800/50 rounded-lg px-4 py-2">
+                <p class="text-sm text-slate-300 italic">"I use Navis <span class="text-sky-400 font-semibold">almost daily</span>."</p>
+                <p class="text-xs text-slate-500">— Brian K., Pancreatic</p>
+            </div>
+            <div class="bg-slate-800/50 rounded-lg px-4 py-2">
+                <p class="text-sm text-slate-300 italic">"<span class="text-emerald-400 font-semibold">Much better than ChatGPT</span>."</p>
+                <p class="text-xs text-slate-500">— Michael P.</p>
+            </div>
+            <div class="bg-slate-800/50 rounded-lg px-4 py-2">
+                <p class="text-sm text-slate-300 italic">"I <span class="text-amber-400 font-semibold">point everyone to Navis</span>."</p>
+                <p class="text-xs text-slate-500">— Russ, Patient advocate</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-number text-slate-500">6</div>
+</section>
+
+    </div><!-- /slide-container -->
+
+    <!-- Controls bar -->
+    <div class="controls-bar">
+        <button class="nav-btn" id="prevBtn" aria-label="Previous slide">←</button>
+        <div class="slide-progress" id="progress">1 / 7</div>
+        <button class="nav-btn" id="nextBtn" aria-label="Next slide">→</button>
+        <button class="fullscreen-btn" id="fullscreenBtn" aria-label="Fullscreen">⛶</button>
+        <button class="fullscreen-btn" id="printBtn" aria-label="Download PDF" title="Print/Save as PDF">⬇</button>
+    </div>
+</div><!-- /viewer -->
+
+<script>
+    // Slideshow controls
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const progress = document.getElementById('progress');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const printBtn = document.getElementById('printBtn');
+
+    function showSlide(index) {
+        slides.forEach(s => s.classList.remove('active'));
+        slides[index].classList.add('active');
+        progress.textContent = `${index + 1} / ${totalSlides}`;
+        prevBtn.disabled = index === 0;
+        nextBtn.disabled = index === totalSlides - 1;
+    }
+
+    function nextSlide() {
+        if (currentSlide < totalSlides - 1) {
+            currentSlide++;
+            showSlide(currentSlide);
+        }
+    }
+
+    function prevSlide() {
+        if (currentSlide > 0) {
+            currentSlide--;
+            showSlide(currentSlide);
+        }
+    }
+
+    // Button clicks
+    nextBtn.addEventListener('click', nextSlide);
+    prevBtn.addEventListener('click', prevSlide);
+
+    // Fullscreen toggle
+    fullscreenBtn.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else {
+            document.exitFullscreen();
+        }
+    });
+
+    // Print/PDF
+    printBtn.addEventListener('click', () => {
+        window.print();
+    });
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+            e.preventDefault();
+            nextSlide();
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            prevSlide();
+        }
+    });
+
+    // Initialize first slide
+    showSlide(0);
+
+    // Size warning functions
+    function goFullscreen() {
+        document.documentElement.requestFullscreen();
+        document.getElementById('sizeWarning').classList.add('dismissed');
+    }
+
+    function dismissWarning() {
+        document.getElementById('sizeWarning').classList.add('dismissed');
+    }
+
+    // ============================================
+    // DECK ANALYTICS TRACKING
+    // ============================================
+    (function() {
+        const SUPABASE_URL = 'https://felofmlhqwcdpiyjgstx.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlbG9mbWxocXdjZHBpeWpnc3R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjc5MTI1NzUsImV4cCI6MjA0MzQ4ODU3NX0.bIe6s5IQpM0krqc-n_kq5y6P6mTHNYEacZ0jvlM5rT4';
+
+        // Get investor ID from URL param
+        const urlParams = new URLSearchParams(window.location.search);
+        const investorId = urlParams.get('inv') || null;
+        const deckId = 'catalyst-launchpad';
+
+        // Session tracking
+        let sessionId = localStorage.getItem('deck_session_id');
+        if (!sessionId) {
+            sessionId = crypto.randomUUID();
+            localStorage.setItem('deck_session_id', sessionId);
+        }
+
+        let viewId = null;
+        let maxSlideReached = 1;
+        let startTime = Date.now();
+
+        // Create view record
+        async function createViewRecord() {
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/deck_view_sessions`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify({
+                        deck_id: deckId,
+                        investor_id: investorId,
+                        session_id: sessionId,
+                        total_slides: totalSlides,
+                        user_agent: navigator.userAgent,
+                        referrer: document.referrer || null
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    viewId = data[0]?.id;
+                    console.log('Deck view tracked:', { viewId, investorId });
+                }
+            } catch (e) {
+                console.warn('Analytics error:', e);
+            }
+        }
+
+        // Update view record
+        async function updateViewRecord(completed = false) {
+            if (!viewId) return;
+
+            const now = Date.now();
+            const duration = Math.round((now - startTime) / 1000);
+
+            try {
+                await fetch(`${SUPABASE_URL}/rest/v1/deck_view_sessions?id=eq.${viewId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        duration_seconds: duration,
+                        max_slide_reached: maxSlideReached,
+                        completed: completed,
+                        ended_at: new Date().toISOString()
+                    })
+                });
+            } catch (e) {
+                console.warn('Analytics update error:', e);
+            }
+        }
+
+        // Track slide progress
+        const originalShowSlide = showSlide;
+        showSlide = function(index) {
+            originalShowSlide(index);
+            const slideNum = index + 1;
+            if (slideNum > maxSlideReached) {
+                maxSlideReached = slideNum;
+            }
+            // Check if completed (reached last slide)
+            if (slideNum === totalSlides) {
+                updateViewRecord(true);
+            }
+        };
+
+        // Start tracking
+        createViewRecord();
+
+        // Update every 30 seconds
+        setInterval(() => updateViewRecord(false), 30000);
+
+        // Update on page leave
+        window.addEventListener('beforeunload', () => {
+            if (viewId) {
+                const duration = Math.round((Date.now() - startTime) / 1000);
+                navigator.sendBeacon(
+                    `${SUPABASE_URL}/rest/v1/deck_view_sessions?id=eq.${viewId}`,
+                    JSON.stringify({
+                        duration_seconds: duration,
+                        max_slide_reached: maxSlideReached,
+                        ended_at: new Date().toISOString()
+                    })
+                );
+            }
+        });
+
+        // Also track visibility changes (tab switching)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                updateViewRecord(false);
+            }
+        });
+    })();
+</script>
+
+</body>
+</html>

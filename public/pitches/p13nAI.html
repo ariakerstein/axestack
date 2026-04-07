@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navis Health - Seed Deck v3</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+        * { font-family: 'Inter', sans-serif; }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        .slide {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .slide-number {
+            position: absolute;
+            bottom: 2rem;
+            right: 2rem;
+            font-size: 0.875rem;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        /* Harvey balls for competitive matrix */
+        .harvey-full { background: #22c55e; }
+        .harvey-partial { background: #eab308; }
+        .harvey-none { background: #ef4444; }
+        .harvey-ball {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+
+            html, body {
+                overflow: visible !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .slide {
+                overflow: hidden !important;
+                page-break-after: always;
+                page-break-inside: avoid;
+                break-after: page;
+                break-inside: avoid;
+                width: 100% !important;
+                max-width: 11in !important;
+                height: 8.5in !important;
+                min-height: 8.5in !important;
+                max-height: 8.5in !important;
+                display: flex !important;
+                position: relative !important;
+                margin: 0 auto !important;
+                padding: 2rem !important;
+                box-sizing: border-box !important;
+            }
+
+            .slide:last-of-type {
+                page-break-after: avoid;
+                break-after: avoid;
+            }
+
+            @page {
+                margin: 0;
+                size: 11in 8.5in landscape;
+            }
+
+            .slide-number {
+                display: block !important;
+            }
+
+            .fixed {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-white">
+
+<!-- Export Button -->
+<div class="fixed bottom-4 left-4 z-50 print:hidden">
+    <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-medium opacity-50 hover:opacity-100 transition-opacity flex items-center gap-2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export PDF
+    </button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     NAVIS v3 - VC-FUNDABLE SEED DECK (12 slides)
+     1. One-liner → 2. Problem → 3. Why Now → 4. Solution → 5. Why We Win →
+     6. GTM Flywheel → 7. Business Model → 8. Market → 9. Traction →
+     10. Ecosystem → 11. Team → 12. Ask
+     ═══════════════════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 1: One-Liner -->
+<section class="slide bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 text-white">
+    <div class="text-center max-w-4xl">
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="mx-auto mb-8" style="height: 160px;">
+        <h1 class="text-6xl font-bold mb-6">Your oncologist is not enough.</h1>
+        <p class="text-2xl text-white">Turn cancer records into clear next steps.</p>
+    </div>
+    <div class="slide-number text-blue-300">1</div>
+</section>
+
+<!-- SLIDE 2: Problem -->
+<section class="slide bg-white">
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-500 font-medium uppercase tracking-widest">The problem</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-40">
+    </div>
+
+    <div class="w-full max-w-6xl">
+        <h2 class="text-5xl font-bold text-slate-900 mb-2 text-center">15 minutes with your oncologist.<br/>24/7 with your fear.</h2>
+        <p class="text-2xl text-slate-600 mb-6 text-center">Built for averages. Not personalized to you.</p>
+
+        <!-- Patient stats row -->
+        <div class="flex justify-center gap-6 mb-8">
+            <div class="text-center">
+                <p class="text-3xl font-bold text-slate-900">20M</p>
+                <p class="text-sm text-slate-500">Americans with cancer</p>
+            </div>
+            <div class="text-center border-l border-slate-200 pl-6">
+                <p class="text-3xl font-bold text-red-600">40%</p>
+                <p class="text-sm text-slate-500">can't name their diagnosis</p>
+            </div>
+            <div class="text-center border-l border-slate-200 pl-6">
+                <p class="text-3xl font-bold text-blue-600">70%</p>
+                <p class="text-sm text-slate-500">search online within 24hrs</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-10 items-center">
+            <!-- Left: Pain points (structural) -->
+            <div class="space-y-4">
+                <div class="flex items-start gap-3 bg-red-50 p-4 rounded-xl">
+                    <span class="text-red-500 text-xl">×</span>
+                    <p class="text-lg text-slate-700">Records fragmented across systems</p>
+                </div>
+                <div class="flex items-start gap-3 bg-red-50 p-4 rounded-xl">
+                    <span class="text-red-500 text-xl">×</span>
+                    <p class="text-lg text-slate-700">Guidance inconsistent between providers</p>
+                </div>
+                <div class="bg-slate-800 p-5 rounded-2xl">
+                    <p class="text-lg text-white font-medium">When decisions break, spend flows through confusion.</p>
+                </div>
+                <div class="bg-slate-100 p-5 rounded-2xl">
+                    <p class="text-lg text-slate-700 italic">"Here are 47 PDFs, 3 specialists, and a terrified family. Figure it out."</p>
+                </div>
+            </div>
+
+            <!-- Right: Image -->
+            <div class="flex items-center justify-center">
+                <img src="../pitchAssets/prob2.jpg" alt="Overwhelmed patient" class="rounded-2xl shadow-xl" style="max-height: 360px; object-fit: cover;">
+            </div>
+        </div>
+    </div>
+    <div class="slide-number">2</div>
+</section>
+
+<!-- SLIDE 3: Why Now (The 3-Week Gap) -->
+<section class="slide bg-slate-900 text-white">
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-400 font-medium uppercase tracking-widest">Why now</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-30">
+    </div>
+
+    <div class="text-center max-w-5xl">
+        <h2 class="text-5xl font-bold mb-2">Your diagnosis came Tuesday.</h2>
+        <p class="text-3xl text-slate-400 mb-10">Your oncologist has an opening in 3 weeks.</p>
+
+        <p class="text-xl text-slate-300 mb-6">What happens in between?</p>
+
+        <!-- The desperate search -->
+        <div class="grid grid-cols-4 gap-4 mb-10">
+            <div class="bg-slate-800 p-5 rounded-xl border border-slate-700">
+                <p class="text-3xl mb-2">🌙</p>
+                <p class="text-lg font-semibold text-slate-200">2am Google</p>
+                <p class="text-sm text-slate-500">Terrified. Searching.</p>
+            </div>
+            <div class="bg-slate-800 p-5 rounded-xl border border-slate-700">
+                <p class="text-3xl mb-2">💬</p>
+                <p class="text-lg font-semibold text-slate-200">Reddit rabbit holes</p>
+                <p class="text-sm text-slate-500">Anecdotes, not answers.</p>
+            </div>
+            <div class="bg-slate-800 p-5 rounded-xl border border-slate-700">
+                <p class="text-3xl mb-2">🤖</p>
+                <p class="text-lg font-semibold text-slate-200">ChatGPT</p>
+                <p class="text-sm text-slate-500">No records. No context.</p>
+            </div>
+            <div class="bg-slate-800 p-5 rounded-xl border border-slate-700">
+                <p class="text-3xl mb-2">😔</p>
+                <p class="text-lg font-semibold text-slate-200">Waiting. Alone.</p>
+                <p class="text-sm text-slate-500">Making decisions in fear.</p>
+            </div>
+        </div>
+
+        <!-- The proof -->
+        <div class="bg-red-900/40 border border-red-500/30 px-8 py-4 rounded-xl inline-block mb-4">
+            <p class="text-xl"><span class="text-2xl font-bold text-red-400">1 in 6</span> patients already use AI for medical questions</p>
+        </div>
+        <p class="text-slate-400">They're not waiting for permission. They need help <span class="text-white font-semibold">now</span>.</p>
+    </div>
+    <div class="slide-number text-slate-500">3</div>
+</section>
+
+<!-- SLIDE 4: Solution -->
+<section class="slide bg-white">
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-blue-600 font-medium uppercase tracking-widest">The solution</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-40">
+    </div>
+
+    <div class="w-full max-w-6xl">
+        <h2 class="text-5xl font-bold text-slate-900 mb-6 text-center">Turn cancer records into clear next steps.</h2>
+
+        <!-- Dropbox-style 3-step flow -->
+        <div class="flex justify-center gap-4 mb-8">
+            <div class="bg-blue-100 px-6 py-3 rounded-xl text-center">
+                <p class="text-2xl mb-1">📄</p>
+                <p class="font-bold text-blue-800">Import</p>
+            </div>
+            <span class="text-3xl text-slate-300 self-center">→</span>
+            <div class="bg-emerald-100 px-6 py-3 rounded-xl text-center">
+                <p class="text-2xl mb-1">🧠</p>
+                <p class="font-bold text-emerald-800">Understand</p>
+            </div>
+            <span class="text-3xl text-slate-300 self-center">→</span>
+            <div class="bg-purple-100 px-6 py-3 rounded-xl text-center">
+                <p class="text-2xl mb-1">⚡</p>
+                <p class="font-bold text-purple-800">Act / Share</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-10 items-center">
+            <!-- Left: Features -->
+            <div class="space-y-3">
+                <div class="flex items-start gap-3 bg-emerald-50 p-3 rounded-xl">
+                    <span class="text-emerald-600 text-xl">✓</span>
+                    <p class="text-slate-800">Secure patient vault</p>
+                </div>
+                <div class="flex items-start gap-3 bg-emerald-50 p-3 rounded-xl">
+                    <span class="text-emerald-600 text-xl">✓</span>
+                    <p class="text-slate-800">Plain-English, evidence-grounded summaries</p>
+                </div>
+                <div class="flex items-start gap-3 bg-emerald-50 p-3 rounded-xl">
+                    <span class="text-emerald-600 text-xl">✓</span>
+                    <p class="text-slate-800">Gaps, red flags, and questions to ask</p>
+                </div>
+                <div class="flex items-start gap-3 bg-emerald-50 p-3 rounded-xl">
+                    <span class="text-emerald-600 text-xl">✓</span>
+                    <p class="text-slate-800">Human escalation when needed</p>
+                </div>
+            </div>
+
+            <!-- Right: Ecosystem visual -->
+            <div class="flex items-center justify-center">
+                <img src="../pitchAssets/navisWheel.jpg" alt="Navis Marketplace Ecosystem" class="rounded-2xl shadow-lg" style="max-height: 300px; object-fit: contain;">
+            </div>
+        </div>
+    </div>
+    <div class="slide-number">4</div>
+</section>
+
+<!-- SLIDE 5: Why We Win -->
+<section class="slide bg-slate-900 text-white">
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-400 font-medium uppercase tracking-widest">Why we win</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-30">
+    </div>
+
+    <div class="text-center max-w-4xl">
+        <h2 class="text-5xl font-bold mb-2">Navis becomes the patient platform for cancer.</h2>
+        <p class="text-xl text-slate-300 mb-10">Trust becomes infrastructure.</p>
+
+        <div class="space-y-5 max-w-3xl mx-auto">
+            <div class="bg-blue-600/20 p-5 rounded-xl border border-blue-500/30 text-left flex items-center gap-4">
+                <span class="text-2xl">📁</span>
+                <div>
+                    <span class="text-lg font-bold text-blue-300">System of record</span>
+                    <span class="text-slate-400 ml-2">— patient-owned vault</span>
+                </div>
+            </div>
+            <div class="bg-emerald-600/20 p-5 rounded-xl border border-emerald-500/30 text-left flex items-center gap-4">
+                <span class="text-2xl">⚡</span>
+                <div>
+                    <span class="text-lg font-bold text-emerald-300">System of action</span>
+                    <span class="text-slate-400 ml-2">— workflows</span>
+                </div>
+            </div>
+            <div class="bg-purple-600/20 p-5 rounded-xl border border-purple-500/30 text-left flex items-center gap-4">
+                <span class="text-2xl">🔀</span>
+                <div>
+                    <span class="text-lg font-bold text-purple-300">System of routing</span>
+                    <span class="text-slate-400 ml-2">— marketplace</span>
+                </div>
+            </div>
+            <div class="bg-amber-600/20 p-5 rounded-xl border border-amber-500/30 text-left flex items-center gap-4">
+                <span class="text-2xl">📊</span>
+                <div>
+                    <span class="text-lg font-bold text-amber-300">Longitudinal patient layer</span>
+                    <span class="text-slate-400 ml-2">— compounding data asset</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="slide-number text-slate-500">5</div>
+</section>
+
+<!-- SLIDE 6: GTM (2-Engine Model) -->
+<section class="slide bg-white">
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-500 font-medium uppercase tracking-widest">Go-to-market</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-40">
+    </div>
+
+    <div class="text-center max-w-5xl">
+        <h2 class="text-5xl font-bold text-slate-900 mb-2">Cancer care is multi-player.</h2>
+        <p class="text-xl text-slate-600 mb-10">Efficient adoption. Validate monetization.</p>
+
+        <!-- Growth + Validate Model -->
+        <div class="grid grid-cols-2 gap-8 max-w-4xl mx-auto mb-8">
+            <!-- Left: Patient Growth -->
+            <div class="bg-blue-50 p-6 rounded-2xl border-2 border-blue-200 text-left">
+                <p class="text-sm font-bold text-blue-600 uppercase tracking-wide mb-2">Patient Growth</p>
+                <p class="text-xl font-bold text-slate-900 mb-4">Efficient adoption (low CAC)</p>
+                <div class="space-y-3 text-slate-700 mb-4">
+                    <p>• Communities: trusted cohorts</p>
+                    <p>• Sharing: patients have multiple caregivers</p>
+                </div>
+                <div class="bg-blue-100 px-4 py-2 rounded-lg">
+                    <p class="text-blue-800 font-medium">→ Caregivers drive referrals + repeat usage</p>
+                </div>
+            </div>
+
+            <!-- Right: Validate Monetization -->
+            <div class="bg-emerald-50 p-6 rounded-2xl border-2 border-emerald-200 text-left">
+                <p class="text-sm font-bold text-emerald-600 uppercase tracking-wide mb-2">Validate Monetization</p>
+                <p class="text-xl font-bold text-slate-900 mb-4">Paid pilots (seed)</p>
+                <div class="space-y-3 text-slate-700 mb-4">
+                    <p>• 2–4 pilots (LOIs)</p>
+                    <p>• Paid workflows + referrals</p>
+                </div>
+                <div class="bg-emerald-100 px-4 py-2 rounded-lg">
+                    <p class="text-emerald-800 font-medium">→ Prove WTP + partner ROI</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Compressed footer -->
+        <div class="bg-slate-100 px-8 py-4 rounded-xl inline-block text-left">
+            <p class="text-sm text-slate-700 mb-1"><span class="font-semibold text-blue-600">Prove growth:</span> invites • accept • activation</p>
+            <p class="text-sm text-slate-700"><span class="font-semibold text-emerald-600">Prove $:</span> conversion • attach rate • unit economics</p>
+        </div>
+    </div>
+    <div class="slide-number">6</div>
+</section>
+
+<!-- SLIDE 7: Business Model -->
+<section class="slide bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-400 font-medium uppercase tracking-widest">Business model</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-30">
+    </div>
+
+    <div class="text-center max-w-5xl">
+        <h2 class="text-5xl font-bold mb-2">One model: patient-owned care routing.</h2>
+        <p class="text-2xl text-slate-400 mb-10">Patients pay for workflows. Partners pay for qualified, consented referrals.</p>
+
+        <!-- 2-box model -->
+        <div class="grid grid-cols-2 gap-8 max-w-3xl mx-auto mb-8">
+            <div class="bg-blue-600/20 p-8 rounded-xl border border-blue-500/30 text-left">
+                <p class="text-sm font-bold text-blue-400 uppercase tracking-wide mb-2">Primary</p>
+                <p class="text-2xl font-bold text-white mb-3">Patient subscription</p>
+                <p class="text-slate-300 mb-4">Paid workflows + task completion</p>
+                <p class="text-blue-400 font-semibold text-xl">$29/mo (launch)</p>
+            </div>
+            <div class="bg-emerald-600/20 p-8 rounded-xl border border-emerald-500/30 text-left">
+                <p class="text-sm font-bold text-emerald-400 uppercase tracking-wide mb-2">Expansion</p>
+                <p class="text-2xl font-bold text-white mb-3">Partner-paid referrals</p>
+                <p class="text-slate-300 mb-4">Diagnostics • 2nd opinions • trials</p>
+                <p class="text-emerald-400 font-semibold text-xl">$150–$500+ per qualified referral</p>
+            </div>
+        </div>
+
+        <!-- Single line insight -->
+        <div class="bg-white/5 px-8 py-4 rounded-xl border border-white/10 inline-block">
+            <p class="text-slate-300">Qualified cancer patients are expensive to reach → <span class="text-emerald-400 font-semibold">high value per qualified referral</span></p>
+        </div>
+    </div>
+    <div class="slide-number text-slate-500">7</div>
+</section>
+
+<!-- SLIDE 8: Market (Spend Funnel) -->
+<section class="slide bg-white">
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-500 font-medium uppercase tracking-widest">Market</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-40">
+    </div>
+
+    <div class="text-center max-w-5xl">
+        <h2 class="text-5xl font-bold text-slate-900 mb-4">Cancer is one of the largest consumer healthcare spend funnels.</h2>
+        <p class="text-2xl text-slate-600 mb-8">Money already flows through:</p>
+
+        <!-- 3 spend categories with examples -->
+        <div class="grid grid-cols-3 gap-6 mb-10">
+            <div class="bg-blue-50 p-6 rounded-xl border-2 border-blue-200 text-left">
+                <p class="text-lg font-bold text-blue-800 mb-3">Diagnostics / Testing</p>
+                <p class="text-sm text-slate-600 mb-2">Genomic testing, liquid biopsy, advanced imaging</p>
+                <p class="text-blue-600 font-semibold">$500–$5,000</p>
+            </div>
+            <div class="bg-emerald-50 p-6 rounded-xl border-2 border-emerald-200 text-left">
+                <p class="text-lg font-bold text-emerald-800 mb-3">Second Opinions / COE</p>
+                <p class="text-sm text-slate-600 mb-2">Expert review, center of excellence referrals</p>
+                <p class="text-emerald-600 font-semibold">$300–$1,500</p>
+            </div>
+            <div class="bg-purple-50 p-6 rounded-xl border-2 border-purple-200 text-left">
+                <p class="text-lg font-bold text-purple-800 mb-3">Trials / Navigation</p>
+                <p class="text-sm text-slate-600 mb-2">Trial matching • patient navigation</p>
+                <p class="text-purple-600 font-semibold">Partner-paid referrals: $150–$500+</p>
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-blue-600 to-emerald-600 text-white px-10 py-5 rounded-2xl inline-block">
+            <p class="text-xl font-semibold">Navis captures routing economics above every transaction.</p>
+            <p class="text-blue-100 text-sm mt-1">Take-rate on consented, qualified patient routing.</p>
+        </div>
+    </div>
+    <div class="slide-number">8</div>
+</section>
+
+<!-- SLIDE 9: Progress -->
+<section class="slide bg-slate-50">
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-500 font-medium uppercase tracking-widest">Progress</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-40">
+    </div>
+
+    <div class="w-full max-w-6xl">
+        <h2 class="text-5xl font-bold text-slate-900 mb-8 text-center">Early signals of pull</h2>
+
+        <div class="grid grid-cols-3 gap-8 items-center mb-8">
+            <!-- Left: Metrics + Quote -->
+            <div class="space-y-4">
+                <!-- Combined metrics card -->
+                <div class="bg-white p-5 rounded-xl shadow-sm">
+                    <div class="flex justify-around text-center">
+                        <div>
+                            <p class="text-4xl font-bold text-blue-600">5</p>
+                            <p class="text-xs text-slate-600">LOIs</p>
+                        </div>
+                        <div class="border-l border-slate-200"></div>
+                        <div>
+                            <p class="text-4xl font-bold text-emerald-600">1</p>
+                            <p class="text-xs text-slate-600">Pilot live</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Quote card - larger -->
+                <div class="bg-white p-6 rounded-xl shadow-sm text-left">
+                    <p class="text-lg text-slate-800 italic leading-snug">"I use Navis <span class="font-semibold">almost daily</span> to sift through all my information."</p>
+                    <p class="text-sm text-slate-500 mt-3">— Brian K., pancreatic cancer</p>
+                </div>
+            </div>
+
+            <!-- Right: Testimonial Image (larger, spans 2 cols) -->
+            <div class="col-span-2">
+                <img src="../pitchAssets/testimonialPatients.jpg" alt="Patient testimonials" class="rounded-xl shadow-lg w-full" style="max-height: 420px; object-fit: cover;">
+            </div>
+        </div>
+
+        <!-- Partner logos -->
+        <div class="text-center">
+            <p class="text-sm text-slate-500 mb-2">LOI / Partnerships in progress</p>
+            <img src="../pitchAssets/logos.jpg" alt="Partner Logos" class="mx-auto h-14 object-contain">
+        </div>
+    </div>
+    <div class="slide-number">9</div>
+</section>
+
+<!-- SLIDE 10: Competitive Landscape (Harvey Balls) -->
+<section class="slide bg-slate-900 text-white">
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-400 font-medium uppercase tracking-widest">Competitive landscape</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-30">
+    </div>
+
+    <div class="w-full h-full flex flex-col justify-center px-16">
+        <h2 class="text-4xl font-bold mb-2">Only Navis Covers the Full Patient Journey</h2>
+        <p class="text-lg text-slate-400 mb-6">New layer → new category → platform economics</p>
+
+        <!-- Legend -->
+        <div class="flex gap-6 mb-4 text-sm">
+            <div class="flex items-center gap-2"><span class="harvey-ball harvey-full"></span> Complete</div>
+            <div class="flex items-center gap-2"><span class="harvey-ball harvey-partial"></span> Partial</div>
+            <div class="flex items-center gap-2"><span class="harvey-ball harvey-none"></span> Missing</div>
+        </div>
+
+        <!-- Matrix Table -->
+        <div class="overflow-hidden rounded-xl border border-slate-700">
+            <table class="w-full text-base">
+                <thead>
+                    <tr class="bg-slate-800">
+                        <th class="text-left p-4 font-semibold text-slate-300">Patient Need</th>
+                        <th class="p-4 text-center font-semibold text-slate-300">Top Cancer<br/>Centers (COEs)</th>
+                        <th class="p-4 text-center font-semibold text-slate-300">MyChart/<br/>Epic</th>
+                        <th class="p-4 text-center font-semibold text-slate-300">ChatGPT/<br/>Google</th>
+                        <th class="p-4 text-center font-semibold bg-emerald-900/50 text-emerald-300">Navis</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="border-t border-slate-700">
+                        <td class="p-4 text-slate-200">Records (patient-owned vault)</td>
+                        <td class="p-4 text-center"><span class="harvey-ball harvey-partial"></span></td>
+                        <td class="p-4 text-center"><span class="harvey-ball harvey-full"></span></td>
+                        <td class="p-4 text-center"><span class="harvey-ball harvey-none"></span></td>
+                        <td class="p-4 text-center bg-emerald-900/30"><span class="harvey-ball harvey-full"></span></td>
+                    </tr>
+                    <tr class="border-t border-slate-700">
+                        <td class="p-4 text-slate-200">Guidance (evidence-grounded next steps)</td>
+                        <td class="p-4 text-center"><span class="harvey-ball harvey-full"></span></td>
+                        <td class="p-4 text-center"><span class="harvey-ball harvey-partial"></span></td>
+                        <td class="p-4 text-center"><span class="harvey-ball harvey-partial"></span></td>
+                        <td class="p-4 text-center bg-emerald-900/30"><span class="harvey-ball harvey-full"></span></td>
+                    </tr>
+                    <tr class="border-t border-slate-700">
+                        <td class="p-4 text-slate-200">Care coordination (share + act)</td>
+                        <td class="p-4 text-center"><span class="harvey-ball harvey-partial"></span></td>
+                        <td class="p-4 text-center"><span class="harvey-ball harvey-none"></span></td>
+                        <td class="p-4 text-center"><span class="harvey-ball harvey-none"></span></td>
+                        <td class="p-4 text-center bg-emerald-900/30"><span class="harvey-ball harvey-full"></span></td>
+                    </tr>
+                    <tr class="border-t border-slate-700">
+                        <td class="p-4 text-slate-200">Support (caregivers + community)</td>
+                        <td class="p-4 text-center"><span class="harvey-ball harvey-none"></span></td>
+                        <td class="p-4 text-center"><span class="harvey-ball harvey-none"></span></td>
+                        <td class="p-4 text-center"><span class="harvey-ball harvey-partial"></span></td>
+                        <td class="p-4 text-center bg-emerald-900/30"><span class="harvey-ball harvey-full"></span></td>
+                    </tr>
+                    <tr class="border-t border-slate-700">
+                        <td class="p-4 text-slate-200">Services (routing/marketplace)</td>
+                        <td class="p-4 text-center"><span class="harvey-ball harvey-none"></span></td>
+                        <td class="p-4 text-center"><span class="harvey-ball harvey-partial"></span></td>
+                        <td class="p-4 text-center"><span class="harvey-ball harvey-partial"></span></td>
+                        <td class="p-4 text-center bg-emerald-900/30"><span class="harvey-ball harvey-full"></span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="slide-number text-slate-500">10</div>
+</section>
+
+<!-- SLIDE 11: Team -->
+<section class="slide bg-white">
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-500 font-medium uppercase tracking-widest">Team</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-40">
+    </div>
+
+    <div class="text-center max-w-5xl">
+        <h2 class="text-5xl font-bold text-slate-900 mb-6">Survivors × Product × Cancer Leaders</h2>
+
+        <div class="flex justify-center mb-6">
+            <img src="../pitchAssets/teamslide.jpg" alt="Team" class="rounded-2xl shadow-xl" style="max-height: 450px; max-width: 100%; object-fit: contain;">
+        </div>
+
+        <!-- Unfair advantage -->
+        <div class="bg-slate-800 text-white px-8 py-3 rounded-xl inline-block">
+            <p class="font-medium">Survivor-led · Deep clinical advisors · Distribution into advocacy networks</p>
+        </div>
+    </div>
+    <div class="slide-number">11</div>
+</section>
+
+<!-- SLIDE 12: The Ask -->
+<section class="slide bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 text-white">
+    <div class="text-center max-w-4xl">
+        <h2 class="text-5xl font-bold mb-4">This round buys proof.</h2>
+
+        <div class="bg-white/10 backdrop-blur px-12 py-5 rounded-2xl mb-6">
+            <p class="text-6xl font-bold mb-2">$500K</p>
+            <p class="text-2xl text-blue-200">SAFE · $5M cap</p>
+        </div>
+
+        <!-- What this round proves (milestones) -->
+        <p class="text-lg text-blue-200 mb-4">This round funds:</p>
+        <div class="grid grid-cols-3 gap-4 mb-6 max-w-3xl mx-auto text-left">
+            <div class="bg-white/10 p-4 rounded-xl border border-white/20">
+                <p class="text-lg font-bold mb-2 text-emerald-300">Product pull</p>
+                <p class="text-sm text-blue-100">5K+ MAU target</p>
+            </div>
+            <div class="bg-white/10 p-4 rounded-xl border border-white/20">
+                <p class="text-lg font-bold mb-2 text-purple-300">Distribution pull</p>
+                <p class="text-sm text-blue-100">50K+ partner reach target</p>
+            </div>
+            <div class="bg-white/10 p-4 rounded-xl border border-white/20">
+                <p class="text-lg font-bold mb-2 text-amber-300">Economic pull</p>
+                <p class="text-sm text-blue-100">5+ revenue-linked partners target</p>
+            </div>
+        </div>
+
+        <!-- Backed by operators -->
+        <div class="mb-6">
+            <p class="text-sm text-blue-300 mb-2">Backed by operators from:</p>
+            <p class="text-lg font-semibold text-white">Greylock · PayPal · Figma · Flurry · Outlier AI</p>
+        </div>
+
+        <div class="space-y-2">
+            <p class="text-3xl font-semibold">navis.health</p>
+        </div>
+    </div>
+    <div class="slide-number text-blue-400">12</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     APPENDIX SLIDES
+     ═══════════════════════════════════════════════════════════════════════════ -->
+
+<!-- APPENDIX: Divider -->
+<section class="slide bg-gradient-to-br from-slate-800 to-slate-900 text-white">
+    <div class="slide-number" style="color: #e2e8f0;">A</div>
+    <div class="max-w-4xl mx-auto flex items-center justify-center h-full">
+        <div class="text-center">
+            <h2 class="text-8xl font-bold text-white mb-8">Appendix</h2>
+            <p class="text-2xl text-slate-400 font-light">Additional context & proof points</p>
+        </div>
+    </div>
+</section>
+
+<!-- APPENDIX A1: Competition Matrix (Trust vs Actionable) -->
+<section class="slide bg-white">
+    <div class="slide-number">A1</div>
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-500 font-medium uppercase tracking-widest">Competitive landscape</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-40">
+    </div>
+
+    <div class="w-full px-16 flex flex-col items-center justify-center h-full">
+        <h2 class="text-4xl font-bold mb-8 text-slate-900 text-center">Where Patients Go for Trusted Answers</h2>
+
+        <!-- 2x2 Matrix -->
+        <div class="relative max-w-4xl w-full" style="height: 420px;">
+            <!-- Y-axis: Trusted -->
+            <div class="absolute -left-24 top-1/2 -translate-y-1/2 -rotate-90 whitespace-nowrap">
+                <span class="text-lg font-bold text-slate-700">Trusted</span>
+            </div>
+            <div class="absolute -left-8 bottom-4 text-sm text-slate-400">low</div>
+            <div class="absolute -left-8 top-4 text-sm text-slate-400">high</div>
+
+            <!-- X-axis: Actionable -->
+            <div class="absolute bottom-[-2.5rem] left-1/2 -translate-x-1/2">
+                <span class="text-lg font-bold text-slate-700">Actionable</span>
+            </div>
+            <div class="absolute bottom-[-1rem] left-4 text-sm text-slate-400">low</div>
+            <div class="absolute bottom-[-1rem] right-4 text-sm text-slate-400">high</div>
+
+            <!-- Grid -->
+            <div class="grid grid-cols-2 grid-rows-2 gap-4 h-full">
+                <!-- Top Left: High Trust, Low Action -->
+                <div class="bg-amber-100 p-6 rounded-xl border-2 border-amber-400 flex flex-col justify-center items-center">
+                    <div class="text-4xl mb-3">📋</div>
+                    <h3 class="text-xl font-bold text-amber-800 mb-2">Patient Portals</h3>
+                    <p class="text-sm text-amber-700 text-center font-medium">Trusted but Passive</p>
+                    <p class="text-xs text-slate-500 mt-2">Epic MyChart, health system portals</p>
+                </div>
+
+                <!-- Top Right: HIGH TRUST, HIGH ACTION = NAVIS -->
+                <div class="bg-gradient-to-br from-emerald-500 to-teal-600 p-6 rounded-xl border-4 border-emerald-300 flex flex-col justify-center items-center shadow-xl ring-4 ring-emerald-200">
+                    <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="w-12 h-12 mb-2">
+                    <h3 class="text-2xl font-bold text-white mb-2">Navis</h3>
+                    <p class="text-lg text-white text-center font-semibold">Trusted AND Actionable</p>
+                    <p class="text-sm text-emerald-100 mt-2 font-medium">The winning quadrant</p>
+                </div>
+
+                <!-- Bottom Left: Low Trust, Low Action -->
+                <div class="bg-red-100 p-6 rounded-xl border-2 border-red-400 flex flex-col justify-center items-center">
+                    <div class="text-4xl mb-3">🔍</div>
+                    <h3 class="text-xl font-bold text-red-800 mb-2">Search / Forums</h3>
+                    <p class="text-sm text-red-600 text-center font-medium">Generic, Overwhelming</p>
+                    <p class="text-xs text-slate-500 mt-2">Google, WebMD, Reddit</p>
+                </div>
+
+                <!-- Bottom Right: Low Trust, High Action -->
+                <div class="bg-orange-100 p-6 rounded-xl border-2 border-orange-400 flex flex-col justify-center items-center">
+                    <div class="text-4xl mb-3">🤖</div>
+                    <h3 class="text-xl font-bold text-orange-800 mb-2">Generic AI Chatbots</h3>
+                    <p class="text-sm text-orange-700 text-center font-medium">Actionable but Untrusted</p>
+                    <p class="text-xs text-slate-500 mt-2">ChatGPT, Claude (raw)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- APPENDIX A2: Patient Testimonials -->
+<section class="slide bg-gradient-to-br from-slate-50 to-blue-50">
+    <div class="slide-number">A2</div>
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-500 font-medium uppercase tracking-widest">Social proof</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-40">
+    </div>
+
+    <div class="w-full px-16 flex flex-col items-center justify-center h-full">
+        <h2 class="text-4xl font-bold mb-2 text-slate-900 text-center">Patients Trust Navis</h2>
+        <p class="text-xl text-slate-600 mb-8 text-center">Real feedback from cancer patients and advocates</p>
+
+        <!-- Testimonials -->
+        <div class="space-y-4 max-w-4xl w-full">
+            <!-- Russ Quote -->
+            <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-5 rounded-xl text-white">
+                <p class="text-lg leading-relaxed">
+                    "YES YES YES!!!! From this day forward when someone wants to send me their records, I'm going to <span class="text-yellow-300 font-bold">point them to navis</span>, ask them to upload there and then invite me to their team."
+                </p>
+                <p class="text-sm text-blue-200 mt-2">— Russ, Pancreatic survivor & Patient advocate</p>
+            </div>
+
+            <!-- Brian Quote -->
+            <div class="bg-white p-5 rounded-xl border-2 border-blue-200 shadow-sm">
+                <p class="text-lg text-slate-700 leading-relaxed">
+                    "...this is so comprehensive and user friendly. <span class="text-blue-600 font-bold italic">I would definitely use this!</span>"
+                </p>
+                <p class="text-sm text-slate-500 mt-2">— Brian K., Pancreatic cancer patient</p>
+            </div>
+
+            <!-- Cam Quote -->
+            <div class="bg-white p-5 rounded-xl border-2 border-emerald-200 shadow-sm">
+                <p class="text-lg text-slate-700 leading-relaxed">
+                    "What you have built here is <span class="text-emerald-600 font-bold italic">critical for patients</span>."
+                </p>
+                <p class="text-sm text-slate-500 mt-2">— Cam, MZL stage 4 Cancer</p>
+            </div>
+
+            <!-- David Quote -->
+            <div class="bg-white p-5 rounded-xl border-2 border-purple-200 shadow-sm">
+                <p class="text-lg text-slate-700 leading-relaxed">
+                    "<span class="text-purple-600 font-bold italic">This is brilliant</span>. I'm sharing my records with my sister right now..."
+                </p>
+                <p class="text-sm text-slate-500 mt-2">— David Y., Newly Diagnosed Prostate cancer</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- APPENDIX A3: Live Demo -->
+<section class="slide bg-slate-50">
+    <div class="slide-number">A3</div>
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-500 font-medium uppercase tracking-widest">Product demo</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-40">
+    </div>
+
+    <div class="flex flex-col items-center justify-center h-full px-16">
+        <h2 class="text-4xl font-bold mb-6 text-slate-900 text-center">Live Today, Already in Patients' Hands</h2>
+
+        <!-- Embedded Loom Video -->
+        <a href="https://www.loom.com/share/365b963e781e485d90a700709c54147c" target="_blank" class="block bg-white p-2 rounded-2xl shadow-2xl hover:shadow-3xl transition-shadow" style="width: 90%; max-width: 1100px; text-decoration: none;">
+            <div style="position: relative; padding-bottom: 56.25%; height: 0;">
+                <iframe src="https://www.loom.com/embed/365b963e781e485d90a700709c54147c" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 0.5rem; pointer-events: none;"></iframe>
+            </div>
+        </a>
+
+        <!-- Demo CTA -->
+        <div class="mt-6 text-center">
+            <a href="https://www.loom.com/share/365b963e781e485d90a700709c54147c" target="_blank" class="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-4 rounded-xl font-bold text-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg" style="text-decoration: none;">
+                ▶ Watch 5-Minute Demo
+            </a>
+            <p class="text-sm text-slate-500 mt-3 italic">Click above to view full product walkthrough</p>
+        </div>
+    </div>
+</section>
+
+<!-- APPENDIX A4: 1 in 6 Patients Use AI -->
+<section class="slide bg-slate-900 text-white">
+    <div class="slide-number text-slate-500">A4</div>
+    <div class="w-full px-12 flex flex-col items-center justify-center h-full">
+        <h2 class="text-4xl font-bold mb-2 text-center">1 in 6 Patients Use AI for Medical Questions Monthly</h2>
+        <p class="text-xl text-slate-400 mb-8 text-center">Access is breaking down. Patients are finding alternatives.</p>
+
+        <div class="grid grid-cols-2 gap-8 w-full max-w-5xl mb-8">
+            <!-- Left: Wait times chart -->
+            <div class="bg-white rounded-xl p-4">
+                <p class="text-sm text-slate-600 font-medium mb-2">Average New Patient Appointment Wait Times in 15 Major US Metropolitan Areas by Year</p>
+                <div class="relative h-48">
+                    <img src="../pitchAssets/waits.png" alt="Wait times chart" class="w-full h-full object-contain" onerror="this.parentElement.innerHTML='<div class=\'flex items-center justify-center h-full text-slate-400\'>Chart: 17 days (2009) → 31 days (2025)</div>'">
+                </div>
+                <p class="text-xs text-slate-500 mt-2 text-center">Wait times nearly doubled since 2009</p>
+            </div>
+
+            <!-- Right: 4 stat boxes -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center">
+                    <p class="text-4xl font-bold text-orange-400">77%</p>
+                    <p class="text-lg font-semibold text-slate-200">Dr. Google</p>
+                    <p class="text-xs text-slate-500">Generic, often wrong</p>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center">
+                    <p class="text-4xl font-bold text-red-400">68%</p>
+                    <p class="text-lg font-semibold text-slate-200">Patient Portals</p>
+                    <p class="text-xs text-slate-500">Raw data, no help</p>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center">
+                    <p class="text-4xl font-bold text-yellow-400">45%</p>
+                    <p class="text-lg font-semibold text-slate-200">Social Groups</p>
+                    <p class="text-xs text-slate-500">Anecdotes, not evidence</p>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center relative">
+                    <span class="absolute -top-2 -right-2 bg-cyan-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">Fastest Growing</span>
+                    <p class="text-4xl font-bold text-cyan-400">21%</p>
+                    <p class="text-lg font-semibold text-slate-200">AI & Chatbots</p>
+                    <p class="text-xs text-slate-500">No provenance</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom callout -->
+        <div class="bg-slate-800 border border-slate-700 px-8 py-4 rounded-xl max-w-3xl text-center">
+            <p class="text-lg">Patients want AI. But generic AI <span class="text-red-400 font-semibold">lacks context and trust</span>.</p>
+            <p class="text-slate-300 mt-1">Navis delivers <span class="text-emerald-400 font-semibold">trusted, personalized AI</span> grounded in their own records.</p>
+        </div>
+    </div>
+</section>
+
+<!-- APPENDIX A5: The Trusted Application Layer -->
+<section class="slide bg-slate-900 text-white">
+    <div class="slide-number text-slate-500">A5</div>
+    <div class="w-full px-12 flex flex-col items-center justify-center h-full">
+        <h2 class="text-5xl font-bold mb-1 text-center bg-gradient-to-r from-white to-blue-300 bg-clip-text text-transparent">The Trusted Application Layer</h2>
+        <p class="text-xl mb-8 text-center"><span class="text-yellow-400 font-semibold">Model-Agnostic</span> & <span class="text-emerald-400 font-semibold">Clinically Verified</span></p>
+
+        <!-- Architecture diagram -->
+        <div class="w-full max-w-4xl space-y-4">
+            <!-- Layer 1: Patient Vault -->
+            <div class="bg-slate-800 border-2 border-emerald-500 rounded-xl p-5 text-center">
+                <p class="text-xl font-bold text-emerald-400 mb-1">Patient's Private Health Vault</p>
+                <p class="text-slate-400">Records, context, preferences. Patient-controlled sharing. Fully encrypted.</p>
+            </div>
+
+            <div class="text-center text-3xl text-slate-500">↓</div>
+
+            <!-- Layer 2: Trust Layer -->
+            <div class="bg-slate-800 border-2 border-yellow-500 rounded-xl p-5">
+                <p class="text-xl font-bold text-yellow-400 mb-4 text-center">Navis Trust Layer</p>
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="bg-slate-900 rounded-lg p-4 text-center">
+                        <p class="text-emerald-400 font-bold mb-1">Dynamic Orchestration</p>
+                        <p class="text-xs text-slate-500">Route to best model per task</p>
+                    </div>
+                    <div class="bg-slate-900 rounded-lg p-4 text-center">
+                        <p class="text-purple-400 font-bold mb-1">Proprietary Evals</p>
+                        <p class="text-xs text-slate-500">"Golden Set" of 1000s of scenarios</p>
+                    </div>
+                    <div class="bg-slate-900 rounded-lg p-4 text-center">
+                        <p class="text-orange-400 font-bold mb-1">Clinical Grounding</p>
+                        <p class="text-xs text-slate-500">NCCN/ASCO provenance</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center text-3xl text-slate-500">↓</div>
+
+            <!-- Layer 3: Foundation Models -->
+            <div class="bg-slate-800 border border-slate-600 rounded-xl p-5 text-center">
+                <p class="text-sm text-slate-400 mb-3">Interchangeable Frontier AI Models</p>
+                <div class="flex justify-center gap-3 flex-wrap">
+                    <span class="bg-slate-700 px-4 py-2 rounded-lg text-sm">Claude</span>
+                    <span class="bg-slate-700 px-4 py-2 rounded-lg text-sm">ChatGPT</span>
+                    <span class="bg-slate-700 px-4 py-2 rounded-lg text-sm">Gemini</span>
+                    <span class="bg-slate-700 px-4 py-2 rounded-lg text-sm">Med-PaLM</span>
+                    <span class="bg-slate-700 px-4 py-2 rounded-lg text-sm">Open Source</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom callouts -->
+        <div class="grid grid-cols-2 gap-4 max-w-3xl mt-6">
+            <div class="bg-red-900/30 border border-red-500/30 px-4 py-3 rounded-xl text-center">
+                <p class="text-slate-300">General LLMs stop at advice. <span class="text-emerald-400 font-semibold">We do the work.</span></p>
+            </div>
+            <div class="bg-slate-800 border border-slate-600 px-4 py-3 rounded-xl text-center">
+                <p class="text-slate-300">The patient's <span class="text-blue-400 font-semibold">private health vault</span> powers insights general AI can't match.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- APPENDIX A6: GTM Fast Path to $1M+ ARR -->
+<section class="slide bg-gradient-to-br from-slate-50 to-blue-50">
+    <div class="slide-number">A6</div>
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-500 font-medium uppercase tracking-widest">Go-to-market</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-40">
+    </div>
+
+    <div class="w-full px-12 flex flex-col items-center justify-center h-full">
+        <h2 class="text-4xl font-bold mb-1 text-center"><span class="text-blue-600">Our GTM:</span> <span class="text-emerald-600">Fast Path to $1M+ ARR</span></h2>
+        <p class="text-lg text-slate-500 mb-8 text-center">GTM Milestones | Early Signals</p>
+
+        <div class="grid grid-cols-2 gap-10 w-full max-w-5xl">
+            <!-- Left: GTM Milestones -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                <h3 class="text-xl font-bold text-slate-800 mb-5">GTM Milestones</h3>
+                <div class="space-y-4">
+                    <div class="flex items-start gap-3">
+                        <span class="bg-purple-600 text-white w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm shrink-0">1</span>
+                        <div>
+                            <p class="font-bold text-slate-800">Prove Patient Value</p>
+                            <p class="text-sm text-slate-500">10K-15K registered, 5K+ MAU</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="bg-purple-600 text-white w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm shrink-0">2</span>
+                        <div>
+                            <p class="font-bold text-slate-800">Prove Adoption</p>
+                            <p class="text-sm text-slate-500">50K+ patient access via partners</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="bg-purple-600 text-white w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm shrink-0">3</span>
+                        <div>
+                            <p class="font-bold text-slate-800">Prove Partner Value</p>
+                            <p class="text-sm text-slate-500">5-7 revenue-linked partners</p>
+                            <p class="text-emerald-600 font-semibold mt-1">→ $1M+ ARR line of sight</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Early Signals -->
+            <div class="space-y-4">
+                <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
+                    <p class="text-4xl font-bold text-emerald-600">60%</p>
+                    <p class="text-slate-600">Adoption intent from pilots (n=20)</p>
+                </div>
+                <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
+                    <p class="text-3xl font-bold text-blue-600">5 Embedded Partners</p>
+                    <p class="text-slate-600">Access to 50K+ patients via partner channels</p>
+                </div>
+                <div class="bg-gradient-to-r from-emerald-50 to-blue-50 rounded-xl p-5 border-2 border-emerald-300">
+                    <p class="text-2xl font-bold text-emerald-600 mb-2">Real Patient Love</p>
+                    <p class="text-slate-600 italic text-sm">"I've been using Navis AI almost daily to help me sift through all of the information I've gathered. I find it extremely helpful in writing questions to ask my doctors."</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    // Keyboard navigation
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+            e.preventDefault();
+            if (currentSlide < totalSlides - 1) {
+                currentSlide++;
+                slides[currentSlide].scrollIntoView({ behavior: 'smooth' });
+            }
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (currentSlide > 0) {
+                currentSlide--;
+                slides[currentSlide].scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                currentSlide = Array.from(slides).indexOf(entry.target);
+            }
+        });
+    }, { threshold: 0.5 });
+
+    slides.forEach(slide => observer.observe(slide));
+</script>
+
+</body>
+</html>

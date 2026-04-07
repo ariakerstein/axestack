@@ -8,9 +8,11 @@ interface AuthModalProps {
   onClose: () => void
   prefillEmail?: string // Email from wizard/localStorage
   wizardCompleted?: boolean // User already went through onboarding wizard
+  redirectUrl?: string // Custom redirect URL for magic link/signup (defaults to /records)
 }
 
-export function AuthModal({ isOpen, onClose, prefillEmail, wizardCompleted }: AuthModalProps) {
+export function AuthModal({ isOpen, onClose, prefillEmail, wizardCompleted, redirectUrl }: AuthModalProps) {
+  const defaultRedirectUrl = redirectUrl || `${typeof window !== 'undefined' ? window.location.origin : ''}/records`
   const [email, setEmail] = useState(prefillEmail || '')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -50,7 +52,7 @@ export function AuthModal({ isOpen, onClose, prefillEmail, wizardCompleted }: Au
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/records`,
+          emailRedirectTo: defaultRedirectUrl,
         },
       })
 
@@ -118,7 +120,7 @@ export function AuthModal({ isOpen, onClose, prefillEmail, wizardCompleted }: Au
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/records`,
+          emailRedirectTo: defaultRedirectUrl,
         },
       })
 

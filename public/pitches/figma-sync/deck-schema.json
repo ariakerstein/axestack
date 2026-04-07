@@ -1,0 +1,154 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Pitch Deck Schema",
+  "description": "Schema for HTML pitch deck content that syncs to Figma Slides",
+  "type": "object",
+  "required": ["metadata", "slides"],
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "required": ["id", "title", "version"],
+      "properties": {
+        "id": { "type": "string", "description": "Unique deck identifier" },
+        "title": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "version": { "type": "string" },
+        "lastUpdated": { "type": "string", "format": "date-time" },
+        "sourceFile": { "type": "string", "description": "Path to source HTML" }
+      }
+    },
+    "theme": {
+      "type": "object",
+      "properties": {
+        "colors": {
+          "type": "object",
+          "properties": {
+            "background": { "type": "string" },
+            "text": { "type": "string" },
+            "accent": { "type": "string" },
+            "success": { "type": "string" },
+            "warning": { "type": "string" },
+            "error": { "type": "string" }
+          }
+        },
+        "fonts": {
+          "type": "object",
+          "properties": {
+            "heading": { "type": "string" },
+            "body": { "type": "string" }
+          }
+        }
+      }
+    },
+    "slides": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "content"],
+        "properties": {
+          "id": { "type": "integer", "description": "Slide number (1-indexed)" },
+          "type": {
+            "type": "string",
+            "enum": ["title", "section", "content", "team", "comparison", "metrics", "roadmap", "ask", "appendix"]
+          },
+          "label": { "type": "string", "description": "Section label (e.g., 'The Problem')" },
+          "background": {
+            "type": "string",
+            "enum": ["light", "dark", "gradient"]
+          },
+          "content": {
+            "type": "object",
+            "properties": {
+              "headline": { "type": "string" },
+              "subheadline": { "type": "string" },
+              "body": { "type": "string" },
+              "bullets": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "stats": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "value": { "type": "string" },
+                    "label": { "type": "string" },
+                    "sublabel": { "type": "string" },
+                    "color": { "type": "string" }
+                  }
+                }
+              },
+              "images": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "src": { "type": "string" },
+                    "alt": { "type": "string" },
+                    "caption": { "type": "string" }
+                  }
+                }
+              },
+              "team": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string" },
+                    "title": { "type": "string" },
+                    "credentials": { "type": "string" },
+                    "photo": { "type": "string" }
+                  }
+                }
+              },
+              "table": {
+                "type": "object",
+                "properties": {
+                  "headers": { "type": "array", "items": { "type": "string" } },
+                  "rows": {
+                    "type": "array",
+                    "items": {
+                      "type": "array",
+                      "items": { "type": "string" }
+                    }
+                  }
+                }
+              },
+              "comparison": {
+                "type": "object",
+                "properties": {
+                  "criteria": { "type": "array", "items": { "type": "string" } },
+                  "competitors": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": { "type": "string" },
+                        "icon": { "type": "string" },
+                        "scores": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": ["yes", "partial", "no"]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "cta": {
+                "type": "object",
+                "properties": {
+                  "text": { "type": "string" },
+                  "highlight": { "type": "string" }
+                }
+              }
+            }
+          },
+          "speakerNotes": { "type": "string" }
+        }
+      }
+    }
+  }
+}

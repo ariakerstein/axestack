@@ -1,0 +1,56 @@
+{
+  "function_exists": false,
+  "results": [
+    {
+      "question": "What is bipolar androgen therapy?",
+      "cancer_type": "Prostate",
+      "status": "success",
+      "total_latency_s": 20.84,
+      "search_method": "unknown",
+      "chunks_used": 0,
+      "search_latency_ms": 0,
+      "llm_latency_ms": 0,
+      "total_api_latency_ms": 0,
+      "answer_length": 2828,
+      "keyword_match_pct": 100.0,
+      "keywords_found": "4/4",
+      "eval_scores": {}
+    },
+    {
+      "question": "What are treatment options for glioblastoma?",
+      "cancer_type": "Brain",
+      "status": "success",
+      "total_latency_s": 35.8,
+      "search_method": "unknown",
+      "chunks_used": 0,
+      "search_latency_ms": 0,
+      "llm_latency_ms": 0,
+      "total_api_latency_ms": 0,
+      "answer_length": 6118,
+      "keyword_match_pct": 100.0,
+      "keywords_found": "4/4",
+      "eval_scores": {}
+    },
+    {
+      "question": "What are side effects of immunotherapy?",
+      "cancer_type": "General",
+      "status": "success",
+      "total_latency_s": 20.66,
+      "search_method": "unknown",
+      "chunks_used": 0,
+      "search_latency_ms": 0,
+      "llm_latency_ms": 0,
+      "total_api_latency_ms": 0,
+      "answer_length": 2253,
+      "keyword_match_pct": 100.0,
+      "keywords_found": "4/4",
+      "eval_scores": {}
+    }
+  ],
+  "summary": {
+    "success_rate": 1.0,
+    "avg_latency": 25.766666666666666,
+    "avg_chunks": 0.0,
+    "avg_keyword_match": 100.0
+  }
+}

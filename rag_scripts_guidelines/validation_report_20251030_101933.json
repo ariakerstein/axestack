@@ -1,0 +1,18 @@
+{
+  "timestamp": "2025-10-30T10:19:33.987116",
+  "database": {
+    "total_chunks": 7281,
+    "webinar_titles": 0,
+    "nccn_titles": 0
+  },
+  "responses": {
+    "total_checked": 20,
+    "webinar_citations": 4,
+    "webinar_percentage": 20.0
+  },
+  "scoring": {
+    "matches": 9,
+    "total": 20,
+    "percentage": 45.0
+  }
+}

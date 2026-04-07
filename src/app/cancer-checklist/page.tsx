@@ -21,7 +21,7 @@ import { AuthModal } from '@/components/AuthModal'
 import { ThinkingIndicator } from '@/components/ThinkingIndicator'
 import { Download, Edit3, Save, Check, X, Mail, Plus, Trash2, User, Shield, Heart, CheckCircle, ArrowRight } from 'lucide-react'
 
-type Step = 'type' | 'subtype' | 'results'
+type Step = 'loading' | 'type' | 'subtype' | 'results'
 
 interface PatientProfile {
   role?: string
@@ -98,7 +98,8 @@ export default function CancerChecklistPage() {
   const { trackEvent } = useAnalytics()
   const { user, profile: authProfile, loading: authLoading, signOut } = useAuth()
   const [showAuthModal, setShowAuthModal] = useState(false)
-  const [step, setStep] = useState<Step>('type')
+  const [step, setStep] = useState<Step>('loading')
+  const [cameFromProfile, setCameFromProfile] = useState(false)
   const [cancerType, setCancerType] = useState<string>('')
   const [subtype, setSubtype] = useState<string>('')
   const [stage, setStage] = useState<string>('')
@@ -132,6 +133,8 @@ export default function CancerChecklistPage() {
   useEffect(() => {
     if (authLoading) return
 
+    let hasProfile = false
+
     // Use Supabase profile for authenticated users
     if (user && authProfile) {
       const loadedProfile: PatientProfile = {
@@ -143,7 +146,7 @@ export default function CancerChecklistPage() {
       setProfile(loadedProfile)
       if (loadedProfile.cancerType && !cancerType) {
         setCancerType(loadedProfile.cancerType)
-        setStep('results')
+        hasProfile = true
       }
     } else {
       // Fall back to localStorage for anonymous users
@@ -154,13 +157,20 @@ export default function CancerChecklistPage() {
           setProfile(loadedProfile)
           if (loadedProfile.cancerType && !cancerType) {
             setCancerType(loadedProfile.cancerType)
-            // Skip to results if we have profile data
-            if (loadedProfile.cancerType) setStep('results')
+            hasProfile = true
           }
         } catch (e) {
           // Ignore parse errors
         }
       }
+    }
+
+    // Determine starting step based on profile data
+    if (hasProfile) {
+      setCameFromProfile(true)
+      setStep('results')
+    } else {
+      setStep('type')
     }
   }, [user, authProfile, authLoading])
 
@@ -504,6 +514,7 @@ export default function CancerChecklistPage() {
     setStep('type')
     setShowAllTypes(false)
     setChatMessages([])
+    setCameFromProfile(false)
   }
 
   // Open chat with a pre-filled question
@@ -621,6 +632,13 @@ ${ragContext}
         </p>
       </section>
 
+      {/* Loading State */}
+      {step === 'loading' && (
+        <div className="flex items-center justify-center min-h-[200px]">
+          <div className="animate-pulse text-slate-400">Loading your checklist...</div>
+        </div>
+      )}
+
       {/* Personalization Banner */}
       {step === 'type' && (
         <section className="px-4 pb-4">
@@ -681,58 +699,60 @@ ${ragContext}
         </section>
       )}
 
-      {/* Progress Steps - Clean monochromatic */}
-      <div className="max-w-2xl mx-auto px-4 py-4">
-        <div className="flex items-center justify-center gap-4">
-          {/* Step 1 */}
-          <div className="flex items-center gap-2">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold ${
-              step === 'type'
-                ? 'bg-[#C66B4A] text-white shadow-lg shadow-slate-200'
-                : 'bg-slate-100 text-slate-600'
-            }`}>
-              1
+      {/* Progress Steps - Only show when going through full flow */}
+      {!cameFromProfile && step !== 'loading' && (
+        <div className="max-w-2xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-center gap-4">
+            {/* Step 1 */}
+            <div className="flex items-center gap-2">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold ${
+                step === 'type'
+                  ? 'bg-[#C66B4A] text-white shadow-lg shadow-slate-200'
+                  : 'bg-slate-100 text-slate-600'
+              }`}>
+                1
+              </div>
+              <span className={`font-medium ${step === 'type' ? 'text-slate-700' : 'text-slate-500'}`}>
+                Cancer Type
+              </span>
             </div>
-            <span className={`font-medium ${step === 'type' ? 'text-slate-700' : 'text-slate-500'}`}>
-              Cancer Type
-            </span>
-          </div>
 
-          <div className="w-8 h-0.5 bg-slate-200" />
+            <div className="w-8 h-0.5 bg-slate-200" />
 
-          {/* Step 2 */}
-          <div className="flex items-center gap-2">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold ${
-              step === 'subtype'
-                ? 'bg-[#C66B4A] text-white shadow-lg shadow-slate-200'
-                : step === 'results'
-                ? 'bg-slate-200 text-slate-600'
-                : 'bg-slate-100 text-slate-400'
-            }`}>
-              2
+            {/* Step 2 */}
+            <div className="flex items-center gap-2">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold ${
+                step === 'subtype'
+                  ? 'bg-[#C66B4A] text-white shadow-lg shadow-slate-200'
+                  : step === 'results'
+                  ? 'bg-slate-200 text-slate-600'
+                  : 'bg-slate-100 text-slate-400'
+              }`}>
+                2
+              </div>
+              <span className={`font-medium ${step === 'subtype' ? 'text-slate-700' : step === 'results' ? 'text-slate-500' : 'text-slate-400'}`}>
+                Details
+              </span>
             </div>
-            <span className={`font-medium ${step === 'subtype' ? 'text-slate-700' : step === 'results' ? 'text-slate-500' : 'text-slate-400'}`}>
-              Details
-            </span>
-          </div>
 
-          <div className="w-8 h-0.5 bg-slate-200" />
+            <div className="w-8 h-0.5 bg-slate-200" />
 
-          {/* Step 3 */}
-          <div className="flex items-center gap-2">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold ${
-              step === 'results'
-                ? 'bg-[#C66B4A] text-white shadow-lg shadow-slate-200'
-                : 'bg-slate-100 text-slate-400'
-            }`}>
-              3
+            {/* Step 3 */}
+            <div className="flex items-center gap-2">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold ${
+                step === 'results'
+                  ? 'bg-[#C66B4A] text-white shadow-lg shadow-slate-200'
+                  : 'bg-slate-100 text-slate-400'
+              }`}>
+                3
+              </div>
+              <span className={`font-medium ${step === 'results' ? 'text-slate-700' : 'text-slate-400'}`}>
+                Results
+              </span>
             </div>
-            <span className={`font-medium ${step === 'results' ? 'text-slate-700' : 'text-slate-400'}`}>
-              Results
-            </span>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Step 1: Cancer Type Selection */}
       {step === 'type' && (
@@ -904,13 +924,6 @@ ${ragContext}
       {step === 'results' && (
         <section className="py-8 px-8">
           <div className="max-w-3xl mx-auto">
-            <button
-              onClick={() => setStep('subtype')}
-              className="text-sm text-slate-500 hover:text-slate-900 mb-4 transition-colors"
-            >
-              ← Back to details
-            </button>
-
             {/* Summary Header with Trust Message */}
             <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-6 mb-8">
               <div className="flex items-start justify-between">
@@ -925,18 +938,35 @@ ${ragContext}
                     Built specifically for your diagnosis based on NCCN guidelines
                   </p>
                   <div className="flex flex-wrap gap-2 text-sm">
-                    <span className="bg-white/80 text-slate-700 px-3 py-1 rounded-full border border-emerald-200">
+                    <span className="inline-flex items-center gap-1.5 bg-white/80 text-slate-700 px-3 py-1 rounded-full border border-emerald-200">
                       {CANCER_TYPES[cancerType]}
+                      <Link href="/profile" className="text-slate-400 hover:text-slate-600">
+                        <Edit3 className="w-3 h-3" />
+                      </Link>
                     </span>
                     {subtype && subtype !== 'unknown' && (
-                      <span className="bg-white/80 text-slate-700 px-3 py-1 rounded-full border border-emerald-200">
+                      <span className="inline-flex items-center gap-1.5 bg-white/80 text-slate-700 px-3 py-1 rounded-full border border-emerald-200">
                         {CANCER_SUBTYPES[cancerType]?.find((s) => s.code === subtype)?.label}
+                        <button onClick={() => setStep('subtype')} className="text-slate-400 hover:text-slate-600">
+                          <Edit3 className="w-3 h-3" />
+                        </button>
                       </span>
                     )}
                     {stage && stage !== 'unknown' && (
-                      <span className="bg-white/80 text-slate-700 px-3 py-1 rounded-full border border-emerald-200">
+                      <span className="inline-flex items-center gap-1.5 bg-white/80 text-slate-700 px-3 py-1 rounded-full border border-emerald-200">
                         {STAGES.find((s) => s.code === stage)?.label}
+                        <button onClick={() => setStep('subtype')} className="text-slate-400 hover:text-slate-600">
+                          <Edit3 className="w-3 h-3" />
+                        </button>
                       </span>
+                    )}
+                    {!subtype && (
+                      <button
+                        onClick={() => setStep('subtype')}
+                        className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200"
+                      >
+                        + Add subtype/stage
+                      </button>
                     )}
                   </div>
                 </div>
@@ -1495,14 +1525,23 @@ Example:
               </p>
             </div>
 
-            {/* Start Over */}
-            <div className="text-center mt-8">
-              <button
-                onClick={handleReset}
-                className="text-sm text-slate-500 hover:text-slate-900 transition-colors"
-              >
-                Start over with different cancer type
-              </button>
+            {/* Start Over / Edit Profile */}
+            <div className="text-center mt-8 space-y-2">
+              {cameFromProfile ? (
+                <Link
+                  href="/profile"
+                  className="text-sm text-slate-500 hover:text-slate-900 transition-colors"
+                >
+                  Update my profile →
+                </Link>
+              ) : (
+                <button
+                  onClick={handleReset}
+                  className="text-sm text-slate-500 hover:text-slate-900 transition-colors"
+                >
+                  Start over with different cancer type
+                </button>
+              )}
             </div>
           </div>
         </section>

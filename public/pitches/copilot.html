@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navis Health - The Trusted Patient Co-Pilot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS@3.12.0/dist/pptxgen.bundle.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        .slide {
+            height: 100vh;
+            max-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0.25rem 1rem;
+            position: relative;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+
+            html, body {
+                overflow: visible !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white !important;
+                background-color: white !important;
+            }
+
+            body.bg-slate-50 {
+                background: white !important;
+                background-color: white !important;
+            }
+
+            .slide {
+                overflow: hidden !important;
+                page-break-after: always;
+                page-break-inside: avoid;
+                break-after: page;
+                break-inside: avoid;
+                width: 100% !important;
+                max-width: 11in !important;
+                height: 8.5in !important;
+                min-height: 8.5in !important;
+                max-height: 8.5in !important;
+                display: flex !important;
+                position: relative !important;
+                margin: 0 auto !important;
+                padding: 2rem !important;
+                box-sizing: border-box !important;
+            }
+
+            .slide.bg-white {
+                background: white !important;
+            }
+
+            /* Fix gradient backgrounds for print */
+            .slide.bg-gradient-to-br {
+                background: #1e293b !important; /* slate-800 fallback */
+            }
+
+            .bg-gradient-to-br.from-slate-50,
+            .bg-gradient-to-br.from-slate-50.to-blue-50 {
+                background: #f8fafc !important; /* slate-50 */
+            }
+
+            /* Fix semi-transparent backgrounds */
+            .bg-white\/10,
+            .bg-white\/5 {
+                background: rgba(255, 255, 255, 0.15) !important;
+            }
+
+            /* Fix gradient boxes in appendix */
+            .bg-gradient-to-br.from-purple-600,
+            .bg-gradient-to-br.from-blue-600,
+            .bg-gradient-to-br.from-emerald-600 {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            /* Fix 2x2 matrix quadrants */
+            .bg-emerald-500,
+            .bg-gradient-to-br.from-emerald-500 {
+                background: #10b981 !important;
+            }
+
+            .bg-yellow-50 {
+                background: #fefce8 !important;
+            }
+
+            .bg-red-50 {
+                background: #fef2f2 !important;
+            }
+
+            /* Fix image containers */
+            img {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                background: transparent !important;
+            }
+
+            /* Remove any box shadows that might cause grey artifacts */
+            .shadow-2xl,
+            .shadow-xl,
+            .shadow-lg,
+            .shadow-sm,
+            .shadow {
+                box-shadow: none !important;
+            }
+
+            .slide:last-of-type {
+                page-break-after: avoid;
+                break-after: avoid;
+            }
+
+            @page {
+                margin: 0;
+                size: landscape;
+            }
+
+            .slide-number {
+                display: none !important;
+            }
+
+            .navis-logo {
+                display: block !important;
+                opacity: 0.85 !important;
+            }
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #0057FF 0%, #0088FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .slide-number {
+            position: absolute;
+            bottom: 2rem;
+            right: 2rem;
+            font-size: 0.875rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .navis-logo {
+            position: absolute;
+            bottom: 1.5rem;
+            right: 5rem;
+            height: 50px;
+            opacity: 0.85;
+            pointer-events: none;
+        }
+
+        .export-btn-container {
+            position: fixed;
+            bottom: 1rem;
+            left: 1rem;
+            z-index: 1000;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .export-btn {
+            background: rgba(100, 116, 139, 0.8);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            font-size: 0.75rem;
+            cursor: pointer;
+            opacity: 0.4;
+            transition: opacity 0.2s, background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .export-btn:hover {
+            opacity: 1;
+            background: rgba(59, 130, 246, 0.9);
+        }
+
+        .lens-badge {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: rgba(59, 130, 246, 0.9);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        @media print {
+            .export-btn-container {
+                display: none !important;
+            }
+            .lens-badge {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+
+<!-- Export Buttons -->
+<div class="export-btn-container">
+    <button class="export-btn" onclick="window.print()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Export PDF
+    </button>
+    <button id="export-pptx-btn" class="export-btn" onclick="exportToPPTX()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+            <line x1="8" y1="21" x2="16" y2="21"/>
+            <line x1="12" y1="17" x2="12" y2="21"/>
+        </svg>
+        Export PPTX
+    </button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     LENS 1: PRODUCT / IMPACT PITCH
+     Target: AI, Consumer, Generalist Funds
+     Focus: Product Vision, Engagement, User Pain
+     ═══════════════════════════════════════════════════════════════════════════ -->
+
+<!-- SLIDE 1: Title & Hook -->
+<section class="slide" style="background: linear-gradient(135deg, #0057FF 0%, #003399 50%, #001a4d 100%);">
+    <div class="lens-badge">LENS 1: PRODUCT / IMPACT</div>
+    <div class="w-full h-full flex flex-col items-center justify-center text-center px-16">
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="mb-6" style="max-height: 300px; width: 300px;">
+        <h1 class="text-7xl font-bold text-white mb-4">Navis Health AI</h1>
+        <p class="text-4xl text-blue-100 font-semibold leading-tight mb-8">The Trusted Patient Co-Pilot</p>
+
+        <div class="bg-white/10 backdrop-blur px-8 py-4 rounded-2xl border border-white/20 max-w-4xl">
+            <p class="text-2xl text-white/90 leading-relaxed">
+                We turn patient <span class="text-red-300 font-bold">fear and fragmentation</span> into
+                <span class="text-emerald-300 font-bold">clear, immediate, trusted action</span>
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- SLIDE 2: Problem - The Cognitive Burden -->
+<section class="slide bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 text-white">
+    <div class="slide-number" style="color: #e2e8f0;">2</div>
+    <img src="../pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="w-full px-16 flex flex-col items-center justify-center h-full">
+        <h2 class="text-5xl font-bold mb-6 text-center text-white">Drowning in Information, Starving for Clarity</h2>
+
+        <div class="grid grid-cols-5 gap-6 items-center w-full">
+            <!-- Left: Image -->
+            <div class="col-span-3 flex items-center justify-center">
+                <img src="../pitchAssets/prob2.jpg" alt="Confused patients in chaos" class="w-full h-auto rounded-2xl shadow-2xl border-2 border-slate-500/30" style="max-height: 340px; object-fit: cover;">
+            </div>
+
+            <!-- Right: The stakes -->
+            <div class="col-span-2 space-y-3">
+                <div class="bg-slate-700/50 p-4 rounded-xl border border-red-500/50">
+                    <p class="text-4xl font-bold text-red-400 mb-1">20M</p>
+                    <p class="text-base text-white">Americans living with cancer</p>
+                </div>
+
+                <div class="bg-slate-700/50 p-4 rounded-xl border border-orange-500/50">
+                    <p class="text-4xl font-bold text-orange-400 mb-1">40%</p>
+                    <p class="text-base text-white">can't name their diagnosis</p>
+                </div>
+
+                <div class="bg-slate-700/50 p-4 rounded-xl border border-yellow-500/50">
+                    <p class="text-4xl font-bold text-yellow-400 mb-1">70%</p>
+                    <p class="text-base text-white">search online within 24 hours</p>
+                </div>
+
+                <!-- Economic consequence -->
+                <div class="bg-gradient-to-r from-red-900/50 to-red-800/50 p-3 rounded-xl border border-red-500/50">
+                    <p class="text-sm text-red-300 font-semibold text-center">The consequence: <span class="text-red-200 font-bold">$20B+ spent annually</span> reaching patients</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SLIDE 3: AI Shift - Patients Turning to AI -->
+<section class="slide bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 text-white">
+    <div class="slide-number" style="color: #e2e8f0;">3</div>
+    <img src="../pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="w-full px-16 flex flex-col items-center justify-center h-full">
+        <h2 class="text-4xl font-bold mb-2 text-center text-white">1 in 6 Patients Use AI for Medical Questions Monthly</h2>
+        <p class="text-xl text-slate-400 mb-8 text-center">Access is breaking down. Patients are finding alternatives.</p>
+
+        <!-- Two Column Layout -->
+        <div class="grid grid-cols-2 gap-8 max-w-5xl w-full mb-6">
+            <!-- Left: Wait Times Chart -->
+            <div class="flex flex-col items-center justify-center">
+                <img src="../pitchAssets/waits.png" alt="Wait times growing" class="w-full h-auto rounded-xl shadow-lg border border-slate-600" style="max-height: 280px; object-fit: contain;">
+                <p class="text-sm text-slate-400 mt-3 text-center">Wait times nearly doubled since 2009</p>
+            </div>
+
+            <!-- Right: Where Patients Turn -->
+            <div class="grid grid-cols-2 gap-3">
+                <!-- Dr. Google -->
+                <div class="bg-slate-700/50 p-4 rounded-xl border border-red-500/50 text-center">
+                    <p class="text-4xl font-bold text-red-400 mb-1">77%</p>
+                    <p class="text-sm text-white font-semibold">Dr. Google</p>
+                    <p class="text-xs text-slate-400">Generic, often wrong</p>
+                </div>
+
+                <!-- Patient Portals -->
+                <div class="bg-slate-700/50 p-4 rounded-xl border border-orange-500/50 text-center">
+                    <p class="text-4xl font-bold text-orange-400 mb-1">68%</p>
+                    <p class="text-sm text-white font-semibold">Patient Portals</p>
+                    <p class="text-xs text-slate-400">Raw data, no help</p>
+                </div>
+
+                <!-- Social Support -->
+                <div class="bg-slate-700/50 p-4 rounded-xl border border-yellow-500/50 text-center">
+                    <p class="text-4xl font-bold text-yellow-400 mb-1">45%</p>
+                    <p class="text-sm text-white font-semibold">Social Groups</p>
+                    <p class="text-xs text-slate-400">Anecdotes, not evidence</p>
+                </div>
+
+                <!-- AI & Chatbots - Highlighted -->
+                <div class="bg-blue-900/60 p-4 rounded-xl border-2 border-blue-400 text-center relative">
+                    <span class="absolute -top-2 -right-2 bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">Fastest Growing</span>
+                    <p class="text-4xl font-bold text-blue-400 mb-1">21%</p>
+                    <p class="text-sm text-white font-semibold">AI & Chatbots</p>
+                    <p class="text-xs text-slate-400">No provenance</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Insight -->
+        <div class="bg-gradient-to-r from-blue-900/50 to-blue-800/50 p-4 rounded-xl border border-blue-500/50 max-w-3xl">
+            <p class="text-lg text-white text-center font-semibold">
+                Patients want AI. But generic AI <span class="text-red-300">lacks context and trust.</span>
+            </p>
+            <p class="text-base text-slate-300 text-center mt-1">
+                Navis delivers <span class="text-emerald-400 font-bold">trusted, personalized AI</span> grounded in their own records.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- SLIDE 4: Solution - Connecting Information to Action -->
+<section class="slide bg-white">
+    <div class="slide-number">4</div>
+    <img src="../pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="w-full px-16 flex flex-col items-center justify-center h-full">
+        <h2 class="text-5xl font-bold mb-4 gradient-text text-center">From Information to Action</h2>
+        <p class="text-2xl text-slate-600 mb-10 text-center max-w-4xl">
+            We provide clear, evidence-grounded next steps — <span class="font-bold text-blue-700">then connect patients to the right resources</span>
+        </p>
+
+        <!-- Before/After Visual -->
+        <div class="grid grid-cols-11 gap-6 max-w-6xl mx-auto items-center">
+            <!-- Before -->
+            <div class="col-span-4">
+                <div class="bg-red-50 p-6 rounded-xl border-2 border-red-200">
+                    <h3 class="text-xl font-bold text-red-700 mb-4 text-center">BEFORE</h3>
+                    <div class="space-y-3">
+                        <p class="text-slate-700 flex items-center gap-2"><span class="text-red-500">✗</span> Pile of PDFs</p>
+                        <p class="text-slate-700 flex items-center gap-2"><span class="text-red-500">✗</span> Medical jargon</p>
+                        <p class="text-slate-700 flex items-center gap-2"><span class="text-red-500">✗</span> "What do I do next?"</p>
+                        <p class="text-slate-700 flex items-center gap-2"><span class="text-red-500">✗</span> Weeks of waiting</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Arrow -->
+            <div class="col-span-1 flex flex-col items-center justify-center">
+                <div class="bg-gradient-to-r from-blue-500 to-emerald-500 text-white px-4 py-2 rounded-full font-bold text-sm mb-2">Navis</div>
+                <span class="text-5xl text-slate-400">→</span>
+            </div>
+
+            <!-- After -->
+            <div class="col-span-6">
+                <div class="bg-emerald-50 p-6 rounded-xl border-2 border-emerald-200">
+                    <h3 class="text-xl font-bold text-emerald-700 mb-4 text-center">AFTER</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-white p-4 rounded-lg border border-emerald-200">
+                            <p class="font-bold text-emerald-800 mb-1">Plain-English Summary</p>
+                            <p class="text-sm text-slate-600">Records translated instantly</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg border border-emerald-200">
+                            <p class="font-bold text-emerald-800 mb-1">Next-Step Checklist</p>
+                            <p class="text-sm text-slate-600">Prioritized action items</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg border border-emerald-200">
+                            <p class="font-bold text-emerald-800 mb-1">"What's Missing" List</p>
+                            <p class="text-sm text-slate-600">Gaps identified proactively</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg border border-blue-300">
+                            <p class="font-bold text-blue-800 mb-1">Human Connections</p>
+                            <p class="text-sm text-slate-600">Route to the right support</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Metric -->
+        <div class="mt-8 bg-gradient-to-r from-blue-600 to-emerald-600 text-white px-8 py-4 rounded-xl">
+            <p class="text-xl font-semibold text-center">
+                Key Metric: <span class="text-2xl font-bold"># of Next Steps Activated</span> per active case
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- SLIDE 5: Competition - Where Patients Go (2x2 Matrix) -->
+<section class="slide bg-white">
+    <div class="slide-number">5</div>
+    <img src="../pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="w-full px-16 flex flex-col items-center justify-center h-full">
+        <h2 class="text-5xl font-bold mb-8 gradient-text text-center">Where Patients Go for Trusted Answers</h2>
+
+        <!-- 2x2 Matrix -->
+        <div class="relative max-w-4xl w-full" style="height: 450px;">
+            <!-- Y-axis: Trusted -->
+            <div class="absolute -left-32 top-1/2 -translate-y-1/2 -rotate-90 whitespace-nowrap">
+                <span class="text-xl font-bold text-slate-700">Trusted</span>
+            </div>
+            <div class="absolute -left-12 bottom-4 text-sm text-slate-400">low</div>
+            <div class="absolute -left-12 top-4 text-sm text-slate-400">high</div>
+
+            <!-- X-axis: Actionable -->
+            <div class="absolute bottom-[-2.5rem] left-1/2 -translate-x-1/2">
+                <span class="text-xl font-bold text-slate-700">Actionable</span>
+            </div>
+            <div class="absolute bottom-[-1rem] left-4 text-sm text-slate-400">low</div>
+            <div class="absolute bottom-[-1rem] right-4 text-sm text-slate-400">high</div>
+
+            <!-- Grid -->
+            <div class="grid grid-cols-2 grid-rows-2 gap-4 h-full">
+                <!-- Top Left: High Trust, Low Action -->
+                <div class="bg-amber-100 p-6 rounded-xl border-2 border-amber-400 flex flex-col justify-center items-center">
+                    <div class="text-4xl mb-3">📋</div>
+                    <h3 class="text-xl font-bold text-amber-800 mb-2">Patient Portals</h3>
+                    <p class="text-sm text-amber-700 text-center font-medium">Trusted but Passive</p>
+                    <p class="text-xs text-slate-500 mt-2">Epic MyChart, health system portals</p>
+                </div>
+
+                <!-- Top Right: HIGH TRUST, HIGH ACTION = NAVIS -->
+                <div class="bg-gradient-to-br from-emerald-500 to-teal-600 p-6 rounded-xl border-4 border-emerald-300 flex flex-col justify-center items-center shadow-2xl ring-4 ring-emerald-200">
+                    <img src="../pitchAssets/navisLogo.jpg" alt="Navis" class="w-12 h-12 rounded-lg mb-2 shadow-md">
+                    <h3 class="text-2xl font-bold text-white mb-2">Navis Co-Pilot</h3>
+                    <p class="text-lg text-white text-center font-semibold">Trusted AND Actionable</p>
+                    <p class="text-sm text-emerald-100 mt-2 font-medium">The winning quadrant</p>
+                </div>
+
+                <!-- Bottom Left: Low Trust, Low Action -->
+                <div class="bg-red-100 p-6 rounded-xl border-2 border-red-400 flex flex-col justify-center items-center">
+                    <div class="text-4xl mb-3">🔍</div>
+                    <h3 class="text-xl font-bold text-red-800 mb-2">Search / Forums</h3>
+                    <p class="text-sm text-red-600 text-center font-medium">Generic, Overwhelming</p>
+                    <p class="text-xs text-slate-500 mt-2">Google, WebMD, Reddit</p>
+                </div>
+
+                <!-- Bottom Right: Low Trust, High Action -->
+                <div class="bg-orange-100 p-6 rounded-xl border-2 border-orange-400 flex flex-col justify-center items-center">
+                    <div class="text-4xl mb-3">🤖</div>
+                    <h3 class="text-xl font-bold text-orange-800 mb-2">General AI Chatbots</h3>
+                    <p class="text-sm text-orange-700 text-center font-medium">Actionable but Untrusted</p>
+                    <p class="text-xs text-slate-500 mt-2">ChatGPT, Claude (raw)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SLIDE 6: The Trusted Application Layer -->
+<section class="slide bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 text-white">
+    <div class="slide-number" style="color: #e2e8f0;">6</div>
+    <img src="../pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="w-full px-16 flex flex-col items-center justify-center h-full">
+        <h2 class="text-5xl font-bold mb-1 text-center text-yellow-400">The Trusted Application Layer</h2>
+        <p class="text-2xl text-blue-400 mb-6 text-center font-semibold">Model-Agnostic & Clinically Verified</p>
+
+        <!-- Architecture Diagram -->
+        <div class="max-w-4xl w-full mb-6">
+            <!-- Patient Layer -->
+            <div class="border-2 border-emerald-400 rounded-xl p-4 mb-2 text-center" style="background: #1a3a2e;">
+                <p class="text-xl font-bold text-emerald-300">Patient's Private Health Vault</p>
+                <p class="text-base text-slate-300">Records, context, preferences. Patient-controlled sharing. Fully encrypted.</p>
+            </div>
+
+            <!-- Arrow -->
+            <div class="text-center text-3xl text-slate-500 my-1">↓</div>
+
+            <!-- Navis Layer (Main) -->
+            <div class="border-2 border-yellow-400 rounded-xl p-5 mb-2" style="background: rgba(30, 41, 59, 0.95);">
+                <p class="text-center text-xl font-bold text-yellow-300 mb-4">Navis Trust Layer</p>
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="bg-slate-700/80 p-4 rounded-lg text-center border border-slate-600">
+                        <p class="font-bold text-emerald-400 text-base mb-1">Dynamic Orchestration</p>
+                        <p class="text-sm text-slate-300">Route to best model per task</p>
+                    </div>
+                    <div class="bg-slate-700/80 p-4 rounded-lg text-center border border-slate-600">
+                        <p class="font-bold text-blue-400 text-base mb-1">Proprietary Evals</p>
+                        <p class="text-sm text-slate-300">"Golden Set" of 1000s of scenarios</p>
+                    </div>
+                    <div class="bg-slate-700/80 p-4 rounded-lg text-center border border-slate-600">
+                        <p class="font-bold text-purple-400 text-base mb-1">Clinical Grounding</p>
+                        <p class="text-sm text-slate-300">NCCN/ASCO provenance</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Arrow -->
+            <div class="text-center text-3xl text-slate-500 my-1">↓</div>
+
+            <!-- LLM Layer -->
+            <div class="bg-slate-600/50 border border-slate-500 rounded-xl p-4 text-center">
+                <p class="text-base text-slate-300 mb-2">Interchangeable Frontier AI Models</p>
+                <div class="flex justify-center gap-3">
+                    <span class="bg-slate-700 px-4 py-1.5 rounded text-sm text-slate-200">Claude</span>
+                    <span class="bg-slate-700 px-4 py-1.5 rounded text-sm text-slate-200">ChatGPT</span>
+                    <span class="bg-slate-700 px-4 py-1.5 rounded text-sm text-slate-200">Gemini</span>
+                    <span class="bg-slate-700 px-4 py-1.5 rounded text-sm text-slate-200">Med-PaLM</span>
+                    <span class="bg-slate-700 px-4 py-1.5 rounded text-sm text-slate-200">Open Source</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Core Claims -->
+        <div class="flex gap-4 max-w-4xl">
+            <div class="bg-white/10 backdrop-blur px-6 py-4 rounded-xl border border-white/20 flex-1">
+                <p class="text-lg text-white text-center font-semibold">
+                    General LLMs stop at advice. <span class="text-emerald-400 font-bold">We do the work.</span>
+                </p>
+            </div>
+            <div class="bg-white/10 backdrop-blur px-6 py-4 rounded-xl border border-white/20 flex-1">
+                <p class="text-lg text-white text-center font-semibold">
+                    The patient's <span class="text-yellow-400">private health vault</span> powers insights general AI can't match.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SLIDE 7: Traction & GTM Milestones -->
+<section class="slide bg-gradient-to-br from-slate-50 to-blue-50">
+    <div class="slide-number">7</div>
+    <img src="../pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="w-full px-16 flex flex-col items-center h-full pt-8">
+        <h2 class="text-5xl font-bold mb-2 gradient-text text-center">Our GTM: Fast Path to $1M+ ARR</h2>
+        <p class="text-xl text-slate-600 mb-8 text-center">GTM Milestones | Early Signals</p>
+
+        <div class="grid grid-cols-2 gap-8 max-w-5xl w-full">
+            <!-- Left: GTM Milestones (PRIMARY) -->
+            <div class="bg-white p-8 rounded-xl border-2 border-slate-200 shadow-sm">
+                <h3 class="text-2xl font-bold text-slate-900 mb-6">GTM Milestones</h3>
+                <div class="space-y-6">
+                    <div class="flex items-start gap-4">
+                        <span class="bg-blue-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0">1</span>
+                        <div>
+                            <p class="text-xl font-semibold text-slate-800">Prove Patient Value</p>
+                            <p class="text-lg text-slate-600">10K-15K registered, 5K+ MAU</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <span class="bg-emerald-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0">2</span>
+                        <div>
+                            <p class="text-xl font-semibold text-slate-800">Prove Adoption</p>
+                            <p class="text-lg text-slate-600">50K+ patient access via partners</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <span class="bg-purple-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0">3</span>
+                        <div>
+                            <p class="text-xl font-semibold text-slate-800">Prove Partner Value</p>
+                            <p class="text-lg text-slate-600">5-7 revenue-linked partners</p>
+                            <p class="text-lg font-semibold text-purple-700 mt-1">→ $1M+ ARR line of sight</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Early Signals (supporting) -->
+            <div class="space-y-3">
+                <div class="bg-white p-4 rounded-xl border-2 border-blue-300 shadow-sm">
+                    <p class="text-3xl font-bold text-blue-700 mb-1">60%</p>
+                    <p class="text-sm text-slate-700">Adoption intent from pilots (n=20)</p>
+                </div>
+                <div class="bg-white p-4 rounded-xl border-2 border-emerald-300 shadow-sm">
+                    <p class="text-3xl font-bold text-emerald-700 mb-1">5 Embedded Partners</p>
+                    <p class="text-sm text-slate-700">Access to 50K+ patients via partner channels</p>
+                </div>
+                <div class="bg-white p-4 rounded-xl border-2 border-purple-300 shadow-sm">
+                    <p class="text-3xl font-bold text-purple-700 mb-1">Real Patient Love</p>
+                    <p class="text-sm text-slate-700 italic leading-relaxed">"<strong class="font-bold">I've been using Navis AI almost daily</strong> to help me sift through all of the information I've gathered. I find it extremely helpful in writing questions to ask my doctors."</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SLIDE 8: Business Model - Dual Engine -->
+<section class="slide bg-white">
+    <div class="slide-number">8</div>
+    <img src="../pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="w-full px-16 flex flex-col items-center justify-center h-full">
+        <h2 class="text-5xl font-bold mb-2 gradient-text text-center">The Dual-Engine Business Model</h2>
+        <p class="text-xl text-slate-600 mb-6 text-center">B2C Product Revenue + B2B Partner Revenue</p>
+
+        <div class="grid grid-cols-2 gap-8 max-w-5xl w-full">
+            <!-- Left: B2C Engine -->
+            <div class="bg-blue-50 p-6 rounded-xl border-2 border-blue-300">
+                <h3 class="text-2xl font-bold text-blue-900 mb-4">B2C: The Agent</h3>
+                <div class="space-y-3">
+                    <div class="bg-white p-3 rounded-lg border border-blue-200">
+                        <p class="font-semibold text-slate-800">Free: Clarity</p>
+                        <p class="text-sm text-slate-600">Upload → summary + next-step checklist</p>
+                    </div>
+                    <div class="bg-white p-3 rounded-lg border border-blue-200">
+                        <p class="font-semibold text-slate-800">Paid: Task Completion</p>
+                        <p class="text-sm text-slate-600">Record packaging, trial pre-screen, logistics</p>
+                    </div>
+                    <div class="bg-white p-3 rounded-lg border border-blue-200">
+                        <p class="font-semibold text-slate-800">Scale: Trust Layer API</p>
+                        <p class="text-sm text-slate-600">B2B licensing to patient apps</p>
+                    </div>
+                </div>
+                <p class="text-sm text-blue-700 font-semibold mt-4">Revenue: Subscription + Transaction Fees</p>
+            </div>
+
+            <!-- Right: B2B Engine (Stage-Based Referral Engine) -->
+            <div class="bg-purple-50 p-6 rounded-xl border-2 border-purple-300">
+                <h3 class="text-2xl font-bold text-purple-900 mb-4">B2B: Stage-Based Referral Engine</h3>
+
+                <!-- The Problem -->
+                <div class="bg-red-50 p-3 rounded-lg border border-red-200 mb-3">
+                    <p class="font-semibold text-red-800">The Problem</p>
+                    <p class="text-sm text-slate-700">Pharma/Trials spend <span class="font-bold">$20B+</span> acquiring patients</p>
+                    <p class="text-sm text-slate-700">Avg cost per trial recruit: <span class="font-bold">$6.5K</span></p>
+                </div>
+
+                <!-- Our Advantage -->
+                <div class="bg-emerald-50 p-3 rounded-lg border border-emerald-200 mb-3">
+                    <p class="font-semibold text-emerald-800">Our Advantage</p>
+                    <p class="text-sm text-slate-700">Structurally lower CAC via organic, consented patient intent</p>
+                </div>
+
+                <!-- Revenue -->
+                <div class="bg-white p-3 rounded-lg border border-purple-200">
+                    <p class="font-semibold text-purple-800">Revenue by Scale</p>
+                    <p class="text-sm text-slate-700">Near-term: Trial leads ($1-2K/lead)</p>
+                    <p class="text-sm text-slate-700">At scale: Strategic partnerships</p>
+                </div>
+
+                <p class="text-sm text-purple-700 font-semibold mt-4">Revenue: Partner Match Fees (outcomes-priced)</p>
+            </div>
+        </div>
+
+        <!-- One Product Footer -->
+        <div class="mt-6 bg-gradient-to-r from-slate-800 to-slate-900 p-4 rounded-xl max-w-4xl">
+            <p class="text-lg text-white text-center font-semibold">
+                <span class="text-yellow-400">One product, two revenue streams.</span> We build for patients; the data monetizes itself.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- SLIDE 9: Financial Roadmap -->
+<section class="slide bg-white">
+    <div class="slide-number">9</div>
+    <img src="../pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="w-full px-16 flex flex-col items-center justify-center h-full">
+        <h2 class="text-5xl font-bold mb-2 gradient-text text-center">Capital Efficient Path to $35M+</h2>
+        <p class="text-xl text-slate-600 mb-6 text-center">High ARPU from B2B value subsidizes B2C growth</p>
+
+        <!-- Financial Table -->
+        <div class="max-w-5xl w-full mb-6">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b-2 border-slate-300">
+                        <th class="py-3 px-4 text-slate-600 font-semibold"></th>
+                        <th class="py-3 px-4 text-center bg-blue-50 rounded-tl-lg">
+                            <p class="text-lg font-bold text-blue-700">Seed</p>
+                            <p class="text-sm text-slate-500">12-18 months</p>
+                        </th>
+                        <th class="py-3 px-4 text-center bg-emerald-50">
+                            <p class="text-lg font-bold text-emerald-700">Series A</p>
+                            <p class="text-sm text-slate-500">Year 2-3</p>
+                        </th>
+                        <th class="py-3 px-4 text-center bg-purple-50 rounded-tr-lg">
+                            <p class="text-lg font-bold text-purple-700">Scale</p>
+                            <p class="text-sm text-slate-500">Year 4-5</p>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="border-b border-slate-200">
+                        <td class="py-3 px-4 font-semibold text-slate-700">Focus</td>
+                        <td class="py-3 px-4 text-center text-slate-600">Prove Unit Economics</td>
+                        <td class="py-3 px-4 text-center text-slate-600">Scale Distribution</td>
+                        <td class="py-3 px-4 text-center text-slate-600">Category Leadership</td>
+                    </tr>
+                    <tr class="border-b border-slate-200">
+                        <td class="py-3 px-4 font-semibold text-slate-700">Active Patients</td>
+                        <td class="py-3 px-4 text-center text-blue-700 font-bold">15K</td>
+                        <td class="py-3 px-4 text-center text-emerald-700 font-bold">150K</td>
+                        <td class="py-3 px-4 text-center text-purple-700 font-bold">500K+</td>
+                    </tr>
+                    <tr class="border-b border-slate-200">
+                        <td class="py-3 px-4 font-semibold text-slate-700">Revenue Driver</td>
+                        <td class="py-3 px-4 text-center text-slate-600 text-sm">Trial Leads @ $1.5K</td>
+                        <td class="py-3 px-4 text-center text-slate-600 text-sm">Volume Matches</td>
+                        <td class="py-3 px-4 text-center text-slate-600 text-sm">Platform (CPM + API)</td>
+                    </tr>
+                    <tr>
+                        <td class="py-3 px-4 font-semibold text-slate-700">Projected ARR</td>
+                        <td class="py-3 px-4 text-center">
+                            <span class="text-2xl font-bold text-blue-700">$1-1.5M</span>
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            <span class="text-2xl font-bold text-emerald-700">$10-15M</span>
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            <span class="text-2xl font-bold text-purple-700">$35M+</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Unit Economics Box -->
+        <div class="grid grid-cols-3 gap-6 max-w-4xl w-full mb-4">
+            <div class="bg-blue-50 p-4 rounded-xl border-2 border-blue-200 text-center">
+                <p class="text-sm text-slate-600 mb-1">Blended CAC</p>
+                <p class="text-2xl font-bold text-blue-700">$15</p>
+                <p class="text-xs text-slate-500">Leveraging partner channels</p>
+            </div>
+            <div class="bg-emerald-50 p-4 rounded-xl border-2 border-emerald-200 text-center">
+                <p class="text-sm text-slate-600 mb-1">Blended LTV</p>
+                <p class="text-2xl font-bold text-emerald-700">$72+</p>
+                <p class="text-xs text-slate-500">B2B match + B2C value</p>
+            </div>
+            <div class="bg-purple-50 p-4 rounded-xl border-2 border-purple-200 text-center">
+                <p class="text-sm text-slate-600 mb-1">Break-even</p>
+                <p class="text-2xl font-bold text-purple-700">&lt;50K users</p>
+                <p class="text-xs text-slate-500">Profitability possible early</p>
+            </div>
+        </div>
+
+        <!-- Key Insight -->
+        <div class="bg-gradient-to-r from-slate-800 to-slate-900 px-6 py-3 rounded-xl mb-3">
+            <p class="text-base text-white text-center">
+                High B2B ARPU (<span class="text-emerald-400 font-bold">$1.5K/match</span>) subsidizes B2C growth — we don't need millions of users to win.
+            </p>
+        </div>
+
+        <!-- Assumptions Footnote -->
+        <p class="text-xs text-slate-400 text-center max-w-3xl">
+            Unit economics: 2.5% match rate × $1.5K ARPM + B2C value = <strong>4.8:1 LTV:CAC</strong> (conservative)
+        </p>
+    </div>
+</section>
+
+<!-- SLIDE 10: Vision / Summary -->
+<section class="slide" style="background: linear-gradient(135deg, #0057FF 0%, #003399 50%, #001a4d 100%);">
+    <div class="slide-number" style="color: #e2e8f0;">10</div>
+
+    <div class="w-full h-full flex flex-col items-center justify-center text-center px-16">
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="mb-8" style="max-height: 200px; width: 200px;">
+
+        <h2 class="text-5xl font-bold text-white mb-8 leading-tight max-w-5xl">
+            The Unified Vision
+        </h2>
+
+        <div class="bg-white/10 backdrop-blur px-10 py-8 rounded-2xl border border-white/20 max-w-5xl mb-10">
+            <p class="text-2xl text-white leading-relaxed">
+                Navis turns <span class="text-red-300 font-bold">fragmented cancer records</span> into an
+                <span class="text-emerald-300 font-bold">evidence-grounded plan with provenance</span>, then uses that trust to:
+            </p>
+            <div class="grid grid-cols-3 gap-6 mt-6">
+                <div class="text-center">
+                    <p class="text-4xl mb-2">✓</p>
+                    <p class="text-lg text-white/90">Complete high-leverage <span class="font-bold">tasks</span> for patients</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-4xl mb-2">✓</p>
+                    <p class="text-lg text-white/90"><span class="font-bold">Route</span> them to the right next step, unlocking a high-margin economic engine</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-4xl mb-2">✓</p>
+                    <p class="text-lg text-white/90">Create the patient-owned <span class="font-bold">longitudinal record</span></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <p class="text-3xl text-blue-200 font-semibold mb-4">aria@navis.health</p>
+            <p class="text-xl text-blue-300">navis.health</p>
+        </div>
+    </div>
+</section>
+
+<!-- SLIDE 11: Team & Advisors -->
+<section class="slide bg-slate-50">
+    <div class="slide-number">11</div>
+    <img src="../pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="w-full px-16 flex flex-col items-center justify-center h-full">
+        <h2 class="text-4xl font-bold mb-8 gradient-text text-center">The Right Team: Survivors × Clinical Experts × Product Leaders</h2>
+
+        <!-- Team Slide Image -->
+        <div class="w-full flex items-center justify-center" style="max-width: 90%;">
+            <img src="../pitchAssets/teamslide.jpg" alt="Team" class="w-full h-auto rounded-2xl shadow-2xl" onerror="this.style.display='none'">
+        </div>
+
+        <!-- Investor logos -->
+        <div class="mt-8 text-center">
+            <p class="text-lg text-slate-600 mb-2">Backed by operators from:</p>
+            <p class="text-xl text-slate-700 font-semibold">Greylock · PayPal · Figma · Flurry · Outlier AI</p>
+        </div>
+    </div>
+</section>
+
+<!-- SLIDE 12: The Ask -->
+<section class="slide bg-white">
+    <div class="slide-number">12</div>
+    <img src="../pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="w-full px-16 flex flex-col items-center justify-center h-full">
+        <!-- Combined Headline -->
+        <h2 class="text-5xl font-bold mb-3 gradient-text text-center">The Ask: $500K SAFE @ $5M cap</h2>
+        <p class="text-xl text-slate-600 mb-8 text-center">Backed by operators from: <span class="font-bold text-slate-800">Greylock · PayPal · Figma · Flurry · Outlier AI</span></p>
+
+        <!-- This Round Proves -->
+        <div class="bg-gradient-to-br from-slate-50 to-slate-100 p-6 rounded-2xl border-2 border-slate-200 max-w-3xl w-full mb-8">
+            <p class="text-lg font-bold text-slate-700 text-center mb-4">This Round Proves:</p>
+            <div class="grid grid-cols-2 gap-6">
+                <div class="bg-white p-5 rounded-xl border-2 border-emerald-300 text-center">
+                    <p class="text-2xl font-bold text-emerald-700 mb-2">Patient Value & Adoption</p>
+                    <p class="text-sm text-slate-600">Daily engagement</p>
+                    <p class="text-sm text-slate-600">Retention & referrals</p>
+                </div>
+                <div class="bg-white p-5 rounded-xl border-2 border-blue-300 text-center">
+                    <p class="text-2xl font-bold text-blue-700 mb-2">Business Model</p>
+                    <p class="text-sm text-slate-600">Partner revenue</p>
+                    <p class="text-sm text-slate-600">Unit economics work</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Use of Funds -->
+        <p class="text-sm font-semibold text-slate-500 mb-3">USE OF FUNDS</p>
+        <div class="grid grid-cols-3 gap-4 max-w-3xl">
+            <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 text-center">
+                <h3 class="text-base font-bold text-slate-900 mb-1">Product Depth</h3>
+                <p class="text-xs text-slate-600">AI features, workflows</p>
+            </div>
+            <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-200 text-center">
+                <h3 class="text-base font-bold text-slate-900 mb-1">Team Expansion</h3>
+                <p class="text-xs text-slate-600">AI/ML + Clinical</p>
+            </div>
+            <div class="bg-purple-50 p-4 rounded-xl border border-purple-200 text-center">
+                <h3 class="text-base font-bold text-slate-900 mb-1">Distribution</h3>
+                <p class="text-xs text-slate-600">Partner integrations</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     APPENDIX SLIDES
+     ═══════════════════════════════════════════════════════════════════════════ -->
+
+<!-- APPENDIX: Divider -->
+<section class="slide bg-gradient-to-br from-slate-800 to-slate-900 text-white">
+    <div class="slide-number" style="color: #e2e8f0;">A</div>
+    <div class="max-w-4xl mx-auto flex items-center justify-center h-full">
+        <div class="text-center">
+            <h2 class="text-8xl font-bold text-white mb-8">Appendix</h2>
+            <p class="text-2xl text-slate-400 font-light">Additional context & technical details</p>
+        </div>
+    </div>
+</section>
+
+<!-- APPENDIX A1: Pharma Revenue Opportunity -->
+<section class="slide bg-gradient-to-br from-slate-50 to-blue-50">
+    <div class="slide-number">A1</div>
+    <img src="../pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="w-full px-16 flex flex-col h-full pt-6">
+        <h2 class="text-5xl font-bold mb-4 gradient-text text-center">Pharma Revenue Opportunity</h2>
+
+        <!-- Hero Market Numbers -->
+        <div class="flex justify-center gap-8 mb-6">
+            <div class="bg-gradient-to-br from-purple-600 to-purple-800 px-10 py-5 rounded-2xl text-center shadow-xl">
+                <p class="text-5xl font-bold text-white">$20B+</p>
+                <p class="text-lg text-purple-200">Pharma DTC Spend (US)</p>
+            </div>
+            <div class="bg-gradient-to-br from-blue-600 to-blue-800 px-10 py-5 rounded-2xl text-center shadow-xl">
+                <p class="text-5xl font-bold text-white">$8B+</p>
+                <p class="text-lg text-blue-200">Oncology Segment</p>
+            </div>
+            <div class="bg-gradient-to-br from-emerald-600 to-emerald-800 px-10 py-5 rounded-2xl text-center shadow-xl">
+                <p class="text-5xl font-bold text-white">$6.5K</p>
+                <p class="text-lg text-emerald-200">Avg Cost per Trial Recruit</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6 max-w-5xl mx-auto flex-1">
+            <!-- Left: Problem / Solution -->
+            <div class="space-y-4">
+                <div class="bg-white rounded-xl p-5 shadow border-2 border-red-100">
+                    <h3 class="font-bold text-slate-900 mb-3 text-xl">The Problem</h3>
+                    <div class="space-y-2 text-base">
+                        <p class="text-slate-700">✗ 70%+ of DTC ads reach non-patients</p>
+                        <p class="text-slate-700">✗ HIPAA limits targeting</p>
+                        <p class="text-slate-700">✗ Patients distrust pharma messaging</p>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-5 shadow border-2 border-emerald-300">
+                    <h3 class="font-bold text-emerald-900 mb-3 text-xl">Navis Advantage</h3>
+                    <div class="space-y-2 text-base">
+                        <p class="text-slate-700">✓ 100% verified cancer patients</p>
+                        <p class="text-slate-700">✓ Consent-based, opt-in</p>
+                        <p class="text-slate-700">✓ Trusted clinical context</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Scale-Based Revenue Model -->
+            <div class="bg-white rounded-xl p-5 shadow border-2 border-slate-200">
+                <h3 class="font-bold text-slate-900 mb-3 text-xl">Revenue by Scale</h3>
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b-2 border-slate-200">
+                            <th class="py-2 text-left text-slate-600 font-semibold">Scale</th>
+                            <th class="py-2 text-left text-slate-600 font-semibold">Model</th>
+                            <th class="py-2 text-right text-slate-600 font-semibold">Potential</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b border-slate-100">
+                            <td class="py-2 text-slate-700 font-medium">1K-10K</td>
+                            <td class="py-2 text-slate-700">Trial leads ($1-2K/lead)</td>
+                            <td class="py-2 text-right font-bold text-slate-400">—</td>
+                        </tr>
+                        <tr class="border-b border-slate-100">
+                            <td class="py-2 text-slate-700 font-medium">10K-50K</td>
+                            <td class="py-2 text-slate-700">+ Sponsored content</td>
+                            <td class="py-2 text-right font-bold text-emerald-700">$10-25K/mo</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 text-slate-700 font-medium">100K+</td>
+                            <td class="py-2 text-slate-700">+ CPM ads ($15-30)</td>
+                            <td class="py-2 text-right font-bold text-emerald-700">$20-60K/mo</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p class="text-sm text-slate-500 mt-3">Trial leads work at any scale; CPM requires 100K+ to justify pharma setup costs</p>
+            </div>
+        </div>
+
+        <!-- Full-width bottom banner -->
+        <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-4 text-white text-center mt-4">
+            <p class="text-xl font-semibold">Near-term: Trial leads (works now) → At scale: CPM advertising (100K+ patients)</p>
+        </div>
+    </div>
+</section>
+
+<!-- APPENDIX A2: Confusion to Clarity in Minutes -->
+<section class="slide bg-white">
+    <div class="slide-number">A2</div>
+    <img src="../pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="w-full px-12 flex flex-col justify-center h-full">
+        <h2 class="text-5xl font-bold mb-8 gradient-text text-center">From Confusion to Clarity in Minutes</h2>
+
+        <div class="grid grid-cols-11 gap-4 max-w-6xl mx-auto items-start">
+            <!-- Left: Personalization -->
+            <div class="col-span-4 flex flex-col">
+                <h3 class="text-lg font-bold text-blue-700 mb-3 text-center h-8 flex items-center justify-center">1. Personalize</h3>
+                <img src="../pitchAssets/p13n1b.jpg" alt="Navis Personalization - Upload and tailor insights" class="w-full rounded-xl shadow-xl">
+            </div>
+
+            <!-- Arrow -->
+            <div class="col-span-1 flex items-center justify-center pt-16">
+                <span class="text-6xl text-slate-400">→</span>
+            </div>
+
+            <!-- Right: Care Opportunities -->
+            <div class="col-span-6 flex flex-col">
+                <h3 class="text-lg font-bold text-emerald-700 mb-3 text-center h-8 flex items-center justify-center">2. Get personalized gaps, opportunities, education</h3>
+                <img src="../pitchAssets/p13nf.jpg" alt="Navis Care Opportunities - Clear actionable next steps" class="w-full rounded-xl shadow-2xl">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- APPENDIX A3: Network Effects / Flywheel -->
+<section class="slide bg-white">
+    <div class="slide-number">A3</div>
+    <img src="../pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="w-full px-16 flex flex-col items-center justify-center h-full">
+        <h2 class="text-5xl font-bold mb-4 gradient-text text-center">Each Patient Makes Navis Smarter</h2>
+
+        <!-- Network Effects One-Liner -->
+        <div class="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-2xl border-l-4 border-purple-500 mb-8 max-w-4xl">
+            <p class="text-xl text-slate-800 text-center leading-relaxed">
+                "Every record uploaded increases precision and engagement to build <strong>a compounding data network.</strong>"
+            </p>
+        </div>
+
+        <!-- Flywheel Visualization -->
+        <div class="grid grid-cols-4 gap-6 max-w-5xl mb-8">
+            <div class="bg-blue-50 p-6 rounded-xl border-2 border-blue-300 text-center">
+                <div class="text-4xl mb-3">📄</div>
+                <h3 class="font-bold text-blue-900 mb-2">More Records</h3>
+                <p class="text-sm text-slate-600">Patients upload records for clarity</p>
+            </div>
+            <div class="bg-emerald-50 p-6 rounded-xl border-2 border-emerald-300 text-center">
+                <div class="text-4xl mb-3">🧠</div>
+                <h3 class="font-bold text-emerald-900 mb-2">Smarter AI</h3>
+                <p class="text-sm text-slate-600">Better context, better guidance</p>
+            </div>
+            <div class="bg-purple-50 p-6 rounded-xl border-2 border-purple-300 text-center">
+                <div class="text-4xl mb-3">🤝</div>
+                <h3 class="font-bold text-purple-900 mb-2">More Partners</h3>
+                <p class="text-sm text-slate-600">Better matches attract partners</p>
+            </div>
+            <div class="bg-amber-50 p-6 rounded-xl border-2 border-amber-300 text-center">
+                <div class="text-4xl mb-3">📈</div>
+                <h3 class="font-bold text-amber-900 mb-2">More Patients</h3>
+                <p class="text-sm text-slate-600">Success drives referrals</p>
+            </div>
+        </div>
+
+        <!-- Arrow showing cycle -->
+        <div class="flex items-center justify-center gap-4 text-slate-400 text-2xl mb-8">
+            <span>↻</span>
+            <span class="text-lg font-semibold text-slate-600">Virtuous cycle compounds over time</span>
+            <span>↻</span>
+        </div>
+
+        <!-- Key insight -->
+        <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-xl max-w-3xl">
+            <p class="text-xl text-white text-center font-semibold">
+                Network effects = <span class="text-emerald-400">defensible moat</span> that competitors cannot replicate quickly
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- APPENDIX A4: Patient Testimonials -->
+<section class="slide bg-gradient-to-br from-slate-50 to-blue-50">
+    <div class="slide-number">A4</div>
+    <img src="../pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="w-full px-16 flex flex-col items-center justify-center h-full">
+        <h2 class="text-5xl font-bold mb-2 gradient-text text-center">Patient Testimonials</h2>
+        <p class="text-xl text-slate-600 mb-8 text-center">Patients with Cancer Trust Navis</p>
+
+        <!-- Testimonials -->
+        <div class="space-y-4 max-w-5xl w-full">
+            <!-- Russ Quote -->
+            <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-5 rounded-xl text-white">
+                <p class="text-lg leading-relaxed">
+                    "YES YES YES!!!! From this day forward when someone wants to send me their records, I'm going to <span class="text-yellow-300 font-bold">point them to navis</span>, ask them to upload there and then invite me to their team."
+                </p>
+                <p class="text-sm text-blue-200 mt-2">- Russ, Pancreatic survivor & Patient advocate</p>
+            </div>
+
+            <!-- Brian Quote -->
+            <div class="bg-white p-5 rounded-xl border-2 border-blue-200 shadow-sm">
+                <p class="text-lg text-slate-700 leading-relaxed">
+                    "...this is so comprehensive and user friendly. <span class="text-blue-600 font-bold italic">I would definitely use this!</span>"
+                </p>
+                <p class="text-sm text-slate-500 mt-2">- Brian K. Pancreatic cancer patient</p>
+            </div>
+
+            <!-- Cam Quote -->
+            <div class="bg-white p-5 rounded-xl border-2 border-emerald-200 shadow-sm">
+                <p class="text-lg text-slate-700 leading-relaxed">
+                    "What you have built here is <span class="text-emerald-600 font-bold italic">critical for patients</span>."
+                </p>
+                <p class="text-sm text-slate-500 mt-2">- Cam, MZL stage 4 Cancer</p>
+            </div>
+
+            <!-- David Quote -->
+            <div class="bg-white p-5 rounded-xl border-2 border-purple-200 shadow-sm">
+                <p class="text-lg text-slate-700 leading-relaxed">
+                    "<span class="text-purple-600 font-bold italic">This is brilliant</span>. I'm sharing my records with my sister right now..."
+                </p>
+                <p class="text-sm text-slate-500 mt-2">- David Y. Newly Diagnosed Prostate cancer</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- APPENDIX A5: Live Demo -->
+<section class="slide bg-slate-50">
+    <div class="slide-number">A5</div>
+    <img src="../pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="flex flex-col items-center justify-center h-full px-16">
+        <h2 class="text-5xl font-bold mb-6 gradient-text text-center">Live Today, Already in Patients' Hands</h2>
+
+        <!-- Embedded Loom Video -->
+        <a href="https://www.loom.com/share/365b963e781e485d90a700709c54147c" target="_blank" class="block bg-white p-2 rounded-2xl shadow-2xl hover:shadow-3xl transition-shadow" style="width: 70%; max-width: 900px; text-decoration: none;">
+            <div style="position: relative; padding-bottom: 56.25%; height: 0;">
+                <iframe src="https://www.loom.com/embed/365b963e781e485d90a700709c54147c" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 0.5rem; pointer-events: none;"></iframe>
+            </div>
+        </a>
+
+        <!-- Demo CTA -->
+        <div class="mt-6 text-center">
+            <a href="https://www.loom.com/share/365b963e781e485d90a700709c54147c" target="_blank" class="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-4 rounded-xl font-bold text-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg" style="text-decoration: none;">
+                ▶ Watch 5-Minute Demo
+            </a>
+            <p class="text-sm text-slate-500 mt-3 italic">Click above to view full product walkthrough</p>
+        </div>
+    </div>
+</section>
+
+<script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    // Keyboard navigation for slides
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+
+    function goToSlide(index) {
+        if (index >= 0 && index < totalSlides) {
+            currentSlide = index;
+            slides[currentSlide].scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+
+    function nextSlide() {
+        goToSlide(currentSlide + 1);
+    }
+
+    function prevSlide() {
+        goToSlide(currentSlide - 1);
+    }
+
+    document.addEventListener('keydown', (e) => {
+        switch(e.key) {
+            case 'ArrowRight':
+            case 'ArrowDown':
+            case ' ':
+            case 'PageDown':
+                e.preventDefault();
+                nextSlide();
+                break;
+            case 'ArrowLeft':
+            case 'ArrowUp':
+            case 'PageUp':
+                e.preventDefault();
+                prevSlide();
+                break;
+            case 'Home':
+                e.preventDefault();
+                goToSlide(0);
+                break;
+            case 'End':
+                e.preventDefault();
+                goToSlide(totalSlides - 1);
+                break;
+        }
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                currentSlide = Array.from(slides).indexOf(entry.target);
+            }
+        });
+    }, { threshold: 0.5 });
+
+    slides.forEach(slide => observer.observe(slide));
+
+    // PPTX Export Function
+    async function exportToPPTX() {
+        const btn = document.getElementById('export-pptx-btn');
+        const exportContainer = document.querySelector('.export-btn-container');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = 'Generating...';
+
+        exportContainer.style.display = 'none';
+
+        try {
+            const pptx = new PptxGenJS();
+            pptx.author = 'Navis Health';
+            pptx.title = 'Navis Health - Trusted Patient Co-Pilot';
+            pptx.subject = 'Product/Impact Pitch Deck';
+            pptx.layout = 'LAYOUT_WIDE';
+
+            const slideElements = document.querySelectorAll('.slide');
+            const captureWidth = 1920;
+            const captureHeight = 1080;
+
+            for (let i = 0; i < slideElements.length; i++) {
+                btn.innerHTML = `Slide ${i + 1}/${slideElements.length}`;
+
+                const slideEl = slideElements[i];
+                const originalStyle = slideEl.getAttribute('style') || '';
+
+                slideEl.style.width = captureWidth + 'px';
+                slideEl.style.height = captureHeight + 'px';
+                slideEl.style.minHeight = captureHeight + 'px';
+                slideEl.style.maxHeight = captureHeight + 'px';
+                slideEl.style.overflow = 'hidden';
+
+                const canvas = await html2canvas(slideEl, {
+                    scale: 1,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff',
+                    logging: false,
+                    width: captureWidth,
+                    height: captureHeight
+                });
+
+                if (originalStyle) {
+                    slideEl.setAttribute('style', originalStyle);
+                } else {
+                    slideEl.removeAttribute('style');
+                }
+
+                const imgData = canvas.toDataURL('image/png', 1.0);
+                const slide = pptx.addSlide();
+                slide.addImage({ data: imgData, x: 0, y: 0, w: 13.33, h: 7.5 });
+            }
+
+            await pptx.writeFile({ fileName: 'Navis-CoPilot-Pitch.pptx' });
+            btn.innerHTML = 'Done!';
+            setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
+        } catch (error) {
+            console.error('Export failed:', error);
+            btn.innerHTML = 'Failed';
+            setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 3000);
+        } finally {
+            exportContainer.style.display = 'flex';
+        }
+    }
+</script>
+
+</body>
+</html>

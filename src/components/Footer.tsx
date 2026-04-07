@@ -8,7 +8,7 @@ export function Footer() {
   const pathname = usePathname()
 
   // Hide footer on pages with fixed input bars (chat interfaces)
-  const hideFooterRoutes = ['/ask']
+  const hideFooterRoutes = ['/ask', '/circle-app']
   if (hideFooterRoutes.includes(pathname)) {
     return null
   }

@@ -1,0 +1,316 @@
+{
+  "metadata": {
+    "id": "2026-institutional-v2",
+    "title": "Navis Health - Investor Deck v2 (OpenAI Style)",
+    "version": "2.0.0",
+    "lastUpdated": "2026-03-09T20:05:06.202Z",
+    "sourceFile": "../2026-institutional-v2.html",
+    "slideCount": 10
+  },
+  "theme": {
+    "colors": {
+      "background": "#ffffff",
+      "backgroundDark": "#0f172a",
+      "text": "#1e293b",
+      "textLight": "#94a3b8",
+      "accent": "#10b981",
+      "blue": "#3b82f6",
+      "emerald": "#10b981",
+      "purple": "#8b5cf6",
+      "red": "#ef4444",
+      "amber": "#f59e0b"
+    },
+    "fonts": {
+      "heading": "Inter",
+      "body": "Inter"
+    }
+  },
+  "slides": [
+    {
+      "id": 1,
+      "type": "title",
+      "background": "gradient",
+      "label": null,
+      "speakerNotes": null,
+      "content": {
+        "headline": "Navis Health",
+        "subheadline": "Battling Cancer, Together."
+      }
+    },
+    {
+      "id": 2,
+      "type": "content",
+      "background": "dark",
+      "label": "The problem",
+      "speakerNotes": null,
+      "content": {
+        "headline": "Doctors have Epic.",
+        "body": [
+          "Life-or-death decisions. Incomplete tools."
+        ],
+        "stats": [
+          {
+            "value": "17→31",
+            "label": "days to see oncologist (2009→2025)"
+          },
+          {
+            "value": "77%",
+            "label": "Google it (scary, often wrong)"
+          },
+          {
+            "value": "68%",
+            "label": "use portals (raw data, no guidance)"
+          },
+          {
+            "value": "63M",
+            "label": "caregivers — zero tools"
+          }
+        ],
+        "bullets": [
+          "17→31 days to see oncologist (2009→2025)",
+          "77% Google it (scary, often wrong)",
+          "68% use portals (raw data, no guidance)",
+          "63M caregivers — zero tools"
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "type": "content",
+      "background": "dark",
+      "label": "Why us",
+      "speakerNotes": null,
+      "content": {
+        "headline": "We Lived This Problem",
+        "subheadline": "Best doctors. Still lost.",
+        "body": [
+          "Aggressive blood cancer",
+          "Complete remission",
+          "Engaged patients get better outcomes."
+        ],
+        "images": [
+          {
+            "src": "../lovable-uploads/ari-chemo.png",
+            "alt": ""
+          },
+          {
+            "src": "../pitchAssets/family.png",
+            "alt": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "type": "team",
+      "background": "light",
+      "label": "Team",
+      "speakerNotes": null,
+      "content": {
+        "headline": "Startup DNA + Clinical Expertise",
+        "images": [
+          {
+            "src": "https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/64694c7d-e3e3-414f-af72-288d201bb060/Screenshot+2024-10-02+at+10.59.02%E2%80%AFAM.jpg",
+            "alt": ""
+          },
+          {
+            "src": "https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/48fdd96b-71a0-41f9-bc5f-f1ae27636b95/Screenshot+2024-09-11+at+7.36.59%E2%80%AFPM.png",
+            "alt": ""
+          },
+          {
+            "src": "https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/5761840d-8d31-4c56-a09e-c6f27510bc5a/Chris-Apfel-Nature-removebg-preview.png",
+            "alt": ""
+          },
+          {
+            "src": "../pitchAssets/kaumudi.jpg",
+            "alt": ""
+          },
+          {
+            "src": "../pitchAssets/viktor.jpg",
+            "alt": ""
+          }
+        ],
+        "team": [
+          {
+            "photo": "https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/64694c7d-e3e3-414f-af72-288d201bb060/Screenshot+2024-10-02+at+10.59.02%E2%80%AFAM.jpg",
+            "name": "Chris Apfel, MD/PhD",
+            "title": "CMO · UCSF"
+          },
+          {
+            "photo": "../pitchAssets/kaumudi.jpg",
+            "name": "Kaumudi Bhawe, PhD",
+            "title": "CSO · Ex-Genentech"
+          },
+          {
+            "photo": "../pitchAssets/viktor.jpg",
+            "name": "Viktor Tabori",
+            "title": "Growth · Stanford"
+          }
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "type": "content",
+      "background": "light",
+      "label": "The solution",
+      "speakerNotes": null,
+      "content": {
+        "headline": "Your complete picture. Your next step.",
+        "bullets": [
+          "NCCN Your labs",
+          "● Latest science ● Personalized",
+          "Latest science",
+          "Personalized",
+          "24/7 access",
+          "Human experts"
+        ]
+      }
+    },
+    {
+      "id": 6,
+      "type": "content",
+      "background": "light",
+      "label": "Business model",
+      "speakerNotes": null,
+      "content": {
+        "headline": "Two Revenue Streams",
+        "body": [
+          "Patients & Caregivers"
+        ],
+        "stats": [
+          {
+            "value": "$99/mo",
+            "label": "Whole care circle"
+          },
+          {
+            "value": "$10–20K/mo",
+            "label": "Listing + lead fees"
+          },
+          {
+            "value": "$99/mo",
+            "label": "Whole care circle"
+          },
+          {
+            "value": "$10–20K/mo",
+            "label": "Listing + lead fees"
+          }
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "type": "comparison",
+      "background": "dark",
+      "label": "Competition",
+      "speakerNotes": null,
+      "content": {
+        "headline": "Why We Win",
+        "subheadline": "Most complete record → Best personalization",
+        "table": {
+          "headers": [
+            "Navis ChatGPT Portals"
+          ],
+          "rows": [
+            [
+              "Your records",
+              "yes",
+              "no",
+              "partial"
+            ],
+            [
+              "Clinical AI",
+              "yes",
+              "partial",
+              "no"
+            ],
+            [
+              "Care circle",
+              "yes",
+              "no",
+              "no"
+            ],
+            [
+              "Actionable",
+              "yes",
+              "no",
+              "partial"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": 8,
+      "type": "comparison",
+      "background": "dark",
+      "label": "Roadmap",
+      "speakerNotes": null,
+      "content": {
+        "headline": "Path to $100M ARR",
+        "table": {
+          "headers": [
+            "Patients D2C B2B ARR"
+          ],
+          "rows": [
+            [
+              "10K",
+              "$0.6M",
+              "$0.5M",
+              "~$1M"
+            ],
+            [
+              "100K",
+              "$6M",
+              "$3–12M",
+              "$9–18M"
+            ],
+            [
+              "1M",
+              "$60M",
+              "$40–140M",
+              "$100–200M"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": 9,
+      "type": "metrics",
+      "background": "dark",
+      "label": "Progress",
+      "speakerNotes": null,
+      "content": {
+        "headline": "Early Signs of Pull",
+        "stats": [
+          {
+            "value": "5",
+            "label": "LOIs Signed"
+          },
+          {
+            "value": "2",
+            "label": "Pilots Live"
+          },
+          {
+            "value": "2-3x",
+            "label": "Care Circle"
+          }
+        ]
+      }
+    },
+    {
+      "id": 10,
+      "type": "ask",
+      "background": "light",
+      "label": "The ask",
+      "speakerNotes": null,
+      "content": {
+        "subheadline": "Revenue",
+        "body": [
+          "What $1.5M Proves"
+        ]
+      }
+    }
+  ]
+}

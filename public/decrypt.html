@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navis Case Bundle Decryption Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            color: #1F2937;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #6B7280;
+            font-size: 14px;
+        }
+
+        .upload-area {
+            border: 3px dashed #D1D5DB;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #F9FAFB;
+        }
+
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: #EEF2FF;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        input[type="password"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #D1D5DB;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .status.success {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .status.error {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .status.info {
+            background: #DBEAFE;
+            color: #1E40AF;
+        }
+
+        .file-info {
+            background: #F3F4F6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .file-info strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #1F2937;
+        }
+
+        .file-info small {
+            color: #6B7280;
+        }
+
+        .instructions {
+            background: #FEF3C7;
+            border: 2px solid #F59E0B;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .instructions h3 {
+            color: #92400E;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .instructions ol {
+            color: #78350F;
+            font-size: 14px;
+            line-height: 1.6;
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+        }
+
+        .progress {
+            width: 100%;
+            height: 8px;
+            background: #E5E7EB;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🔓</div>
+            <h1>Navis Case Bundle Decryptor</h1>
+            <p class="subtitle">Decrypt AES-256-GCM encrypted case bundles from Navis Health</p>
+        </div>
+
+        <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+            <div class="upload-icon">📦</div>
+            <p style="color: #6B7280; margin-bottom: 5px;">Click to select encrypted file (.enc)</p>
+            <p style="color: #9CA3AF; font-size: 12px;">or drag and drop here</p>
+        </div>
+
+        <input type="file" id="fileInput" accept=".enc" />
+
+        <div id="fileInfo" style="display: none;"></div>
+
+        <input
+            type="password"
+            id="passwordInput"
+            placeholder="Enter decryption password..."
+            style="display: none;"
+        />
+
+        <button id="decryptBtn" style="display: none;" onclick="decryptFile()">
+            🔓 Decrypt and Download
+        </button>
+
+        <div id="status"></div>
+
+        <div class="instructions">
+            <h3>📋 Instructions</h3>
+            <ol>
+                <li>Download the encrypted bundle (.enc file) from the email</li>
+                <li>Upload the encrypted file using the area above</li>
+                <li>Enter the decryption password from the email</li>
+                <li>Click "Decrypt and Download" to get the ZIP bundle</li>
+                <li>Extract the ZIP to access all medical documents and FHIR data</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+
+        // File upload handling
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const passwordInput = document.getElementById('passwordInput');
+        const decryptBtn = document.getElementById('decryptBtn');
+        const fileInfo = document.getElementById('fileInfo');
+        const status = document.getElementById('status');
+
+        fileInput.addEventListener('change', handleFileSelect);
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        function handleFile(file) {
+            if (!file.name.endsWith('.enc')) {
+                showStatus('Please select a .enc encrypted file', 'error');
+                return;
+            }
+
+            selectedFile = file;
+
+            fileInfo.innerHTML = `
+                <strong>Selected File:</strong>
+                <div style="margin-top: 5px;">
+                    <div style="color: #1F2937;">${file.name}</div>
+                    <small>${(file.size / 1024 / 1024).toFixed(2)} MB</small>
+                </div>
+            `;
+            fileInfo.style.display = 'block';
+            passwordInput.style.display = 'block';
+            decryptBtn.style.display = 'block';
+
+            showStatus('File loaded! Enter the password to decrypt.', 'info');
+        }
+
+        async function decryptFile() {
+            const password = passwordInput.value.trim();
+
+            if (!password) {
+                showStatus('Please enter the decryption password', 'error');
+                return;
+            }
+
+            if (!selectedFile) {
+                showStatus('Please select a file first', 'error');
+                return;
+            }
+
+            decryptBtn.disabled = true;
+            showStatus('Decrypting... This may take a moment.', 'info');
+
+            try {
+                // Read encrypted file
+                const encryptedData = await selectedFile.arrayBuffer();
+                const encryptedArray = new Uint8Array(encryptedData);
+
+                // Decrypt
+                const decryptedData = await decryptWithPassword(encryptedArray, password);
+
+                // Create blob and download
+                const blob = new Blob([decryptedData], { type: 'application/zip' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = selectedFile.name.replace('.enc', '.zip');
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                showStatus('✅ Success! Your ZIP bundle has been downloaded. Extract it to access all documents.', 'success');
+            } catch (error) {
+                console.error('Decryption error:', error);
+                showStatus('❌ Decryption failed. Please check your password and try again.', 'error');
+            } finally {
+                decryptBtn.disabled = false;
+            }
+        }
+
+        async function decryptWithPassword(encryptedData, password) {
+            // Extract salt, IV, and encrypted data
+            const salt = encryptedData.slice(0, 16);
+            const iv = encryptedData.slice(16, 28);
+            const data = encryptedData.slice(28);
+
+            // Derive key from password using PBKDF2
+            const encoder = new TextEncoder();
+            const passwordKey = await crypto.subtle.importKey(
+                'raw',
+                encoder.encode(password),
+                'PBKDF2',
+                false,
+                ['deriveBits', 'deriveKey']
+            );
+
+            const key = await crypto.subtle.deriveKey(
+                {
+                    name: 'PBKDF2',
+                    salt: salt,
+                    iterations: 100000,
+                    hash: 'SHA-256'
+                },
+                passwordKey,
+                { name: 'AES-GCM', length: 256 },
+                false,
+                ['decrypt']
+            );
+
+            // Decrypt data
+            const decryptedData = await crypto.subtle.decrypt(
+                { name: 'AES-GCM', iv: iv },
+                key,
+                data
+            );
+
+            return new Uint8Array(decryptedData);
+        }
+
+        function showStatus(message, type) {
+            status.innerHTML = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

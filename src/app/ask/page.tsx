@@ -9,6 +9,7 @@ import { AuthModal } from '@/components/AuthModal'
 import { TypewriterMarkdown } from '@/components/TypewriterMarkdown'
 import { fetchSuggestedQuestions, getCategoryColor, SuggestedQuestion } from '@/lib/suggested-questions'
 import { useAnalytics } from '@/hooks/useAnalytics'
+import { useActivityLog } from '@/hooks/useActivityLog'
 import { ShareButton } from '@/components/ShareButton'
 import { Navbar } from '@/components/Navbar'
 import { ThinkingIndicator } from '@/components/ThinkingIndicator'
@@ -65,6 +66,7 @@ function AskPageContent() {
   const searchParams = useSearchParams()
   const { user, profile: authProfile, loading: authLoading } = useAuth()
   const { trackEvent } = useAnalytics()
+  const { logQuestion, logRecordUpload } = useActivityLog()
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [hasTrackedRef, setHasTrackedRef] = useState(false)
@@ -537,6 +539,13 @@ I can help you with:
         entities_found: entities.length,
         saved_to_records: true,
       })
+
+      // Also log to patient_activity for admin dashboard metrics
+      logRecordUpload({
+        fileType: file.type,
+        fileSize: file.size,
+        extractedEntities: entities.length,
+      })
     } catch (err) {
       console.error('File processing error:', err)
       setAttachedFiles([{
@@ -664,6 +673,12 @@ I can help you with:
       cancer_type: cancerType || null,
       is_suggested_question: !!messageText,
       has_file_attachment: !!readyAttachment,
+    })
+
+    // Also log to patient_activity for admin dashboard metrics
+    logQuestion({
+      question: text.trim(),
+      hasPatientContext: hasPatientContext || !!readyAttachment,
     })
 
     // Soft auth gate

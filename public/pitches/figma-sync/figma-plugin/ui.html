@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 12px;
+      color: #333;
+      padding: 16px;
+      background: #fff;
+    }
+
+    h2 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #1a1a2e;
+    }
+
+    .section {
+      margin-bottom: 20px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .section-icon {
+      width: 20px;
+      height: 20px;
+      background: #10b981;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 12px;
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: #666;
+    }
+
+    textarea {
+      width: 100%;
+      height: 200px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 11px;
+      resize: vertical;
+      background: #fafafa;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #10b981;
+      background: #fff;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-primary {
+      background: #10b981;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #059669;
+    }
+
+    .btn-primary:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .btn-secondary:hover {
+      background: #e5e7eb;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .status {
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      margin-top: 12px;
+    }
+
+    .status-success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+
+    .status-error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    .status-info {
+      background: #e0f2fe;
+      color: #075985;
+      border: 1px solid #bae6fd;
+    }
+
+    .preview {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 12px;
+      margin-top: 12px;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+
+    .preview-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .preview-item:last-child {
+      border-bottom: none;
+    }
+
+    .preview-num {
+      width: 24px;
+      height: 24px;
+      background: #e2e8f0;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .preview-type {
+      font-size: 10px;
+      padding: 2px 6px;
+      background: #f1f5f9;
+      border-radius: 4px;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .preview-title {
+      flex: 1;
+      font-size: 12px;
+      color: #1e293b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .instructions {
+      background: #f8fafc;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+
+    .instructions h3 {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #1e293b;
+    }
+
+    .instructions ol {
+      margin-left: 16px;
+      color: #64748b;
+      line-height: 1.6;
+    }
+
+    .instructions code {
+      background: #e2e8f0;
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 11px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h2>Navis Deck Sync</h2>
+
+  <div class="instructions">
+    <h3>How to use:</h3>
+    <ol>
+      <li>Run <code>node parse-html-deck.js deck.html</code> to generate JSON</li>
+      <li>Paste the JSON content below</li>
+      <li>Click "Import Deck" to create slides</li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon">1</div>
+      <label>Paste deck JSON:</label>
+    </div>
+    <textarea id="jsonInput" placeholder='{
+  "metadata": { "title": "My Deck" },
+  "slides": [...]
+}'></textarea>
+  </div>
+
+  <div id="preview" class="preview hidden">
+    <div id="previewContent"></div>
+  </div>
+
+  <div class="btn-group">
+    <button id="importBtn" class="btn btn-primary" disabled>
+      Import Deck
+    </button>
+    <button id="validateBtn" class="btn btn-secondary">
+      Validate JSON
+    </button>
+  </div>
+
+  <div id="status" class="status hidden"></div>
+
+  <script>
+    const jsonInput = document.getElementById('jsonInput');
+    const importBtn = document.getElementById('importBtn');
+    const validateBtn = document.getElementById('validateBtn');
+    const statusDiv = document.getElementById('status');
+    const previewDiv = document.getElementById('preview');
+    const previewContent = document.getElementById('previewContent');
+
+    let parsedDeck = null;
+
+    function showStatus(message, type = 'info') {
+      statusDiv.textContent = message;
+      statusDiv.className = `status status-${type}`;
+      statusDiv.classList.remove('hidden');
+    }
+
+    function hideStatus() {
+      statusDiv.classList.add('hidden');
+    }
+
+    function validateJSON() {
+      hideStatus();
+      previewDiv.classList.add('hidden');
+
+      const jsonText = jsonInput.value.trim();
+      if (!jsonText) {
+        showStatus('Please paste JSON content', 'error');
+        importBtn.disabled = true;
+        return null;
+      }
+
+      try {
+        const deck = JSON.parse(jsonText);
+
+        // Validate structure
+        if (!deck.metadata || !deck.slides) {
+          showStatus('Invalid deck structure: missing metadata or slides', 'error');
+          importBtn.disabled = true;
+          return null;
+        }
+
+        if (!Array.isArray(deck.slides) || deck.slides.length === 0) {
+          showStatus('Deck must have at least one slide', 'error');
+          importBtn.disabled = true;
+          return null;
+        }
+
+        // Show preview
+        previewContent.innerHTML = deck.slides.map(slide => `
+          <div class="preview-item">
+            <div class="preview-num">${slide.id}</div>
+            <span class="preview-type">${slide.type}</span>
+            <span class="preview-title">${slide.content?.headline || slide.label || '(untitled)'}</span>
+          </div>
+        `).join('');
+        previewDiv.classList.remove('hidden');
+
+        showStatus(`Valid deck: "${deck.metadata.title}" with ${deck.slides.length} slides`, 'success');
+        importBtn.disabled = false;
+        parsedDeck = deck;
+        return deck;
+
+      } catch (e) {
+        showStatus(`JSON parse error: ${e.message}`, 'error');
+        importBtn.disabled = true;
+        return null;
+      }
+    }
+
+    validateBtn.addEventListener('click', validateJSON);
+
+    jsonInput.addEventListener('input', () => {
+      // Auto-validate after a short delay
+      clearTimeout(window.validateTimeout);
+      window.validateTimeout = setTimeout(() => {
+        if (jsonInput.value.trim()) {
+          validateJSON();
+        }
+      }, 500);
+    });
+
+    importBtn.addEventListener('click', () => {
+      if (!parsedDeck) {
+        validateJSON();
+      }
+
+      if (parsedDeck) {
+        showStatus('Importing slides...', 'info');
+        importBtn.disabled = true;
+        parent.postMessage({ pluginMessage: { type: 'import-deck', content: parsedDeck } }, '*');
+      }
+    });
+
+    // Handle messages from plugin
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+      if (!msg) return;
+
+      if (msg.type === 'import-complete') {
+        showStatus(`Successfully imported ${msg.slideCount} slides!`, 'success');
+        importBtn.disabled = false;
+      } else if (msg.type === 'error') {
+        showStatus(msg.message, 'error');
+        importBtn.disabled = false;
+      }
+    };
+  </script>
+</body>
+</html>

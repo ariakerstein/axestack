@@ -1,0 +1,15 @@
+{
+  "name": "Navis Deck Sync",
+  "id": "navis-deck-sync",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "documentAccess": "dynamic-page",
+  "editorType": ["slides"],
+  "capabilities": [],
+  "enableProposedApi": false,
+  "permissions": ["currentuser"],
+  "networkAccess": {
+    "allowedDomains": ["none"]
+  }
+}

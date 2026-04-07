@@ -1,0 +1,321 @@
+{
+  "metadata": {
+    "id": "2026-institutional",
+    "title": "Navis Health - Investor Deck (10-Year Vision)",
+    "version": "1.0.0",
+    "lastUpdated": "2026-03-09T18:37:05.728Z",
+    "sourceFile": "../2026-institutional.html"
+  },
+  "theme": {
+    "colors": {
+      "background": "#ffffff",
+      "backgroundDark": "#1a1a2e",
+      "text": "#1e293b",
+      "textLight": "#94a3b8",
+      "accent": "#10b981",
+      "success": "#22c55e",
+      "warning": "#eab308",
+      "error": "#ef4444"
+    },
+    "fonts": {
+      "heading": "Inter",
+      "body": "Inter"
+    }
+  },
+  "slides": [
+    {
+      "id": 1,
+      "type": "title",
+      "background": "light",
+      "content": {
+        "headline": "Navis Health",
+        "subheadline": "Battling Cancer, Together."
+      }
+    },
+    {
+      "id": 2,
+      "type": "content",
+      "background": "light",
+      "content": {
+        "headline": "Doctors have Epic. Patients have a mess.",
+        "stats": [
+          {
+            "value": "68%",
+            "label": ""
+          },
+          {
+            "value": "45%",
+            "label": ""
+          },
+          {
+            "value": "21%",
+            "label": ""
+          }
+        ],
+        "images": [
+          {
+            "src": "../pitchAssets/waits.png",
+            "alt": "Wait times chart"
+          }
+        ]
+      },
+      "label": "The problem"
+    },
+    {
+      "id": 3,
+      "type": "content",
+      "background": "light",
+      "content": {
+        "headline": "We Lived This Problem",
+        "images": [
+          {
+            "src": "../lovable-uploads/ari-chemo.png",
+            "alt": "In chemo"
+          },
+          {
+            "src": "../pitchAssets/family.png",
+            "alt": "Family"
+          }
+        ]
+      },
+      "label": "Why us"
+    },
+    {
+      "id": 4,
+      "type": "team",
+      "background": "light",
+      "content": {
+        "headline": "Startup DNA + Clinical Expertise + Survivors",
+        "team": [
+          {
+            "photo": "../pitchAssets/navis-logo-circle-only.svg",
+            "name": "Ari Akerstein, MS",
+            "title": "Co-Founder/CEO",
+            "credentials": "Startup vet · Ex-Meta PM ·"
+          },
+          {
+            "photo": "https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/48fdd96b-71a0-41f9-bc5f-f1ae27636b95/Screenshot+2024-09-11+at+7.36.59%E2%80%AFPM.png",
+            "name": "Brad Power",
+            "title": "Co-Founder/Chief Trust",
+            "credentials": "Stanford · CPL CEO ·"
+          },
+          {
+            "photo": "https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/5761840d-8d31-4c56-a09e-c6f27510bc5a/Chris-Apfel-Nature-removebg-preview.png",
+            "name": "Chris Apfel, MD/PhD",
+            "title": "Chief Medical Officer",
+            "credentials": "UCSF · SageMedic CEO"
+          },
+          {
+            "photo": "../pitchAssets/kaumudi.jpg",
+            "name": "Kaumudi Bhawe, PhD",
+            "title": "Chief Scientific Officer",
+            "credentials": "Ex-Genentech"
+          },
+          {
+            "photo": "../pitchAssets/viktor.jpg",
+            "name": "Viktor Tabori",
+            "title": "Head of Growth",
+            "credentials": "Stanford · Deloitte"
+          }
+        ],
+        "images": [
+          {
+            "src": "https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/64694c7d-e3e3-414f-af72-288d201bb060/Screenshot+2024-10-02+at+10.59.02%E2%80%AFAM.jpg",
+            "alt": "Ari Akerstein"
+          },
+          {
+            "src": "https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/48fdd96b-71a0-41f9-bc5f-f1ae27636b95/Screenshot+2024-09-11+at+7.36.59%E2%80%AFPM.png",
+            "alt": "Brad Power"
+          },
+          {
+            "src": "https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/5761840d-8d31-4c56-a09e-c6f27510bc5a/Chris-Apfel-Nature-removebg-preview.png",
+            "alt": "Chris Apfel"
+          },
+          {
+            "src": "../pitchAssets/kaumudi.jpg",
+            "alt": "Kaumudi Bhawe"
+          },
+          {
+            "src": "../pitchAssets/viktor.jpg",
+            "alt": "Viktor Tabori"
+          }
+        ]
+      },
+      "label": "Team"
+    },
+    {
+      "id": 5,
+      "type": "content",
+      "background": "light",
+      "content": {
+        "headline": "Your complete picture. Your next step."
+      },
+      "label": "The solution"
+    },
+    {
+      "id": 6,
+      "type": "content",
+      "background": "light",
+      "content": {
+        "headline": "We Make Money Two Ways"
+      },
+      "label": "Business model"
+    },
+    {
+      "id": 7,
+      "type": "comparison",
+      "background": "light",
+      "content": {
+        "headline": "One Place for Patients & Caregivers",
+        "comparison": {
+          "criteria": [],
+          "competitors": []
+        }
+      },
+      "label": "Competition"
+    },
+    {
+      "id": 8,
+      "type": "content",
+      "background": "light",
+      "content": {
+        "headline": "How We Get to 10K Patients"
+      },
+      "label": "Growth strategy"
+    },
+    {
+      "id": 9,
+      "type": "roadmap",
+      "background": "light",
+      "content": {
+        "headline": "The Path to $100M ARR",
+        "subheadline": "Next"
+      },
+      "label": "Roadmap"
+    },
+    {
+      "id": 10,
+      "type": "metrics",
+      "background": "light",
+      "content": {
+        "headline": "Early Signs of Pull",
+        "stats": [
+          {
+            "value": "5",
+            "label": ""
+          },
+          {
+            "value": "2",
+            "label": ""
+          },
+          {
+            "value": "2-3x",
+            "label": ""
+          }
+        ]
+      },
+      "label": "Progress"
+    },
+    {
+      "id": 11,
+      "type": "ask",
+      "background": "dark",
+      "content": {
+        "headline": "$1.5M",
+        "subheadline": "Monetization"
+      },
+      "label": "The ask"
+    },
+    {
+      "id": 12,
+      "type": "appendix",
+      "background": "light",
+      "content": {
+        "headline": "Appendix",
+        "subheadline": "Additional context & proof points"
+      }
+    },
+    {
+      "id": 13,
+      "type": "team",
+      "background": "light",
+      "content": {
+        "team": [],
+        "images": [
+          {
+            "src": "https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/de0bbdd8-6a9d-49ec-8631-fc28d5ad0b3b/IMG_1551.jpg",
+            "alt": "Anthony Magliocco"
+          },
+          {
+            "src": "https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/e075f295-a096-4801-bc95-9e2e9f9b2930/Screenshot+2024-09-25+at+1.03.10%E2%80%AFPM.jpg",
+            "alt": "Jane Wilkinson"
+          },
+          {
+            "src": "../pitchAssets/richardAnders.png",
+            "alt": "Richard Anders"
+          },
+          {
+            "src": "https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/37e483f4-a5b9-407d-9aab-d16a8a6e6e0c/Screenshot+2024-09-11+at+7.39.34%E2%80%AFPM.png",
+            "alt": "Roger Royse"
+          },
+          {
+            "src": "https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/12bb19aa-c454-4a7a-84cb-81b56bce00ad/1638331200353-2.jpg",
+            "alt": "Eric Grossberg"
+          },
+          {
+            "src": "https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/1dda8c88-1974-43c9-a97c-f620c37dc6bb/A-62.JPG",
+            "alt": "Anne Aula"
+          },
+          {
+            "src": "../pitchAssets/marty.webp",
+            "alt": "Marty Tenenbaum"
+          },
+          {
+            "src": "../pitchAssets/aaronRich.jpg",
+            "alt": "Aaron Rich"
+          },
+          {
+            "src": "../pitchAssets/dmoz.jpg",
+            "alt": "Dan Mosedale"
+          },
+          {
+            "src": "../pitchAssets/zoya.jpg",
+            "alt": "Zoya Mohiuddin"
+          }
+        ]
+      },
+      "label": "Advisory board"
+    },
+    {
+      "id": 14,
+      "type": "content",
+      "background": "dark",
+      "content": {
+        "headline": "63M",
+        "stats": [
+          {
+            "value": "6.1M",
+            "label": ""
+          },
+          {
+            "value": "33 hrs",
+            "label": ""
+          },
+          {
+            "value": "32%",
+            "label": ""
+          },
+          {
+            "value": "50%",
+            "label": ""
+          },
+          {
+            "value": "$870B",
+            "label": ""
+          }
+        ]
+      },
+      "label": "Caregiver Market"
+    }
+  ]
+}

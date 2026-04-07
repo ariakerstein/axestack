@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navis - TBD Angels Pitch Deck</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .slide {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 3rem;
+            position: relative;
+        }
+        
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                box-shadow: none !important;
+            }
+
+            section > div > h2 {
+                background: none !important;
+                -webkit-background-clip: unset !important;
+                -webkit-text-fill-color: unset !important;
+                background-clip: unset !important;
+            }
+            
+            .slide {
+                page-break-after: always;
+                page-break-inside: avoid;
+                min-height: 100vh;
+                max-height: 100vh;
+                break-after: page;
+                break-inside: avoid;
+                overflow: hidden;
+            }
+
+            .slide:last-of-type {
+                page-break-after: avoid;
+            }
+            
+            body {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+            
+            @page {
+                margin: 0;
+                size: letter landscape;
+            }
+            
+            /* Prevent elements from breaking across pages */
+            h1, h2, h3, h4, h5, h6, .grid, table, .bg-white, .rounded-2xl {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e3a8a 0%, #0d9488 100%);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #2563eb 0%, #14b8a6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .pulse-dot {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .5;
+            }
+        }
+    </style>
+</head>
+<body class="bg-white">
+
+<!-- Slide 1: The Hook -->
+<section class="slide gradient-bg text-white">
+    <div class="max-w-6xl mx-auto text-center">
+        <div class="mb-8">
+            <div class="text-5xl md:text-6xl font-bold mb-6 leading-tight">
+                "I just heard the word 'cancer.'<br/>
+                I'm drowning in a choppy ocean<br/>
+                of options.<br/>
+                Where do I even start?"
+            </div>
+            <div class="text-xl text-teal-200 italic">
+                — Every newly diagnosed patient
+            </div>
+        </div>
+        
+        <div class="mt-12 mb-6">
+            <div class="text-7xl font-black tracking-tight">
+                NAVIS
+            </div>
+        </div>
+        
+        <div class="text-4xl font-bold mb-4">
+            The trusted marketplace guiding patients <br/>from confusion to clear next steps.
+        </div>
+        
+        <div class="text-xl text-teal-100 mb-3 font-semibold bg-black/20 rounded-full inline-block px-6 py-2">
+            Built by operators. Driven by survivors. A new category with a zero-CAC moat.
+        </div>
+    </div>
+</section>
+
+<!-- Slide 2: The Team of Operators -->
+<section class="slide bg-gradient-to-br from-indigo-50 to-blue-50">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-5xl font-bold mb-4 text-center text-gray-900">Operator-Led, Survivor-Driven.</h1>
+        <h2 class="text-3xl font-semibold mb-6 text-center gradient-text">We Are Built To Win This.</h2>
+        
+        <div class="grid grid-cols-2 gap-8 items-center">
+            <!-- Team Photos -->
+            <div class="flex items-center justify-center">
+                <div class="space-y-4">
+                    <div class="flex justify-center gap-4">
+                        <img src="https://navis.epicday.workers.dev/static/navis-ari.jpg" alt="Ari Akerstein" class="w-32 h-32 rounded-full object-cover shadow-xl border-4 border-white">
+                        <img src="https://navis.epicday.workers.dev/static/navis-brad.jpg" alt="Brad Power" class="w-32 h-32 rounded-full object-cover shadow-xl border-4 border-white">
+                        <img src="https://navis.epicday.workers.dev/static/navis-viktor.jpg" alt="Viktor Tabori" class="w-32 h-32 rounded-full object-cover shadow-xl border-4 border-white">
+                    </div>
+                    <div class="flex justify-center gap-4">
+                        <img src="https://navis.epicday.workers.dev/static/navis-chris.jpg" alt="Chris Apfel" class="w-32 h-32 rounded-full object-cover shadow-xl border-4 border-white">
+                        <img src="https://navis.epicday.workers.dev/static/navis-kaumudi.jpg" alt="Kaumudi Bhawe" class="w-32 h-32 rounded-full object-cover shadow-xl border-4 border-white">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Team Credentials -->
+            <div>
+                <div class="text-2xl leading-relaxed mb-4 text-gray-700">
+                    We combine <span class="font-bold text-blue-600">20 years of consumer tech execution</span> with <span class="font-bold text-teal-600">30 years of healthcare insight</span> and the authentic trust only <span class="font-bold text-gray-900">4-time cancer survivors</span> can bring.
+                </div>
+                
+                <div class="bg-white rounded-2xl p-6 shadow-lg">
+                    <div class="text-xl font-bold mb-4 text-center text-gray-900">Why This Team Wins</div>
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                            <div class="text-4xl mb-2">🚀</div>
+                            <div class="text-lg font-bold">Proven Operators</div>
+                            <div class="text-sm text-gray-600">(Meta, 6x Founder)</div>
+                        </div>
+                        <div>
+                            <div class="text-4xl mb-2">💪</div>
+                            <div class="text-lg font-bold">Unfair Trust Advantage</div>
+                            <div class="text-sm text-gray-600">(Multiple Survivors)</div>
+                        </div>
+                        <div>
+                            <div class="text-4xl mb-2">🧬</div>
+                            <div class="text-lg font-bold">Deep Domain Expertise</div>
+                            <div class="text-sm text-gray-600">(MD/PhD, Genentech)</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4 bg-blue-100 border-l-4 border-blue-500 p-4 rounded-r-lg">
+                    <div class="font-bold text-blue-900">Founder Superpower Highlight:</div>
+                    <div class="text-sm text-blue-800">Our CEO (Ari) led News Feed algorithms at Meta, directly influencing a multi-billion dollar revenue stream and building products for 2.9B users. We know how to scale.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 3: The Market Failure -->
+<section class="slide bg-gradient-to-br from-gray-900 to-gray-800 text-white">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-5xl font-bold mb-6 text-center">The Cancer Journey Isn't Just Broken; <br/>It's a Market Failure.</h1>
+        
+        <div class="text-center text-xl text-gray-300 mb-6">
+            This is a classic case of information asymmetry in a high-stakes market. The value is locked, and the customer experience is abysmal. This is exactly where a technology-driven marketplace can create a new category and unlock billions in value.
+        </div>
+        
+        <!-- Impact columns -->
+        <div class="grid grid-cols-3 gap-6 mt-8">
+            <div class="text-center bg-red-900/30 p-6 rounded-2xl">
+                <div class="flex justify-center mb-2">
+                    <i data-lucide="skull" class="w-14 h-14 text-red-400"></i>
+                </div>
+                <div class="text-4xl font-bold text-red-400 mb-2">795,000</div>
+                <div class="text-lg">Americans suffer serious harm annually from diagnostic errors</div>
+            </div>
+            
+            <div class="text-center bg-orange-900/30 p-6 rounded-2xl">
+                <div class="flex justify-center mb-2">
+                    <i data-lucide="flame" class="w-14 h-14 text-orange-400"></i>
+                </div>
+                <div class="text-4xl font-bold text-orange-400 mb-2">$4-17B</div>
+                <div class="text-lg">Wasted annually on redundant tests and delayed treatments</div>
+            </div>
+            
+            <div class="text-center bg-yellow-900/30 p-6 rounded-2xl">
+                <div class="flex justify-center mb-2">
+                    <i data-lucide="help-circle" class="w-14 h-14 text-yellow-400"></i>
+                </div>
+                <div class="text-4xl font-bold text-yellow-400 mb-2">72%</div>
+                <div class="text-lg">Don't even know targeted testing options exist</div>
+            </div>
+        </div>
+        
+        <div class="text-center mt-8 text-gray-400 text-lg italic bg-black/20 rounded-full inline-block px-6 py-2">
+            Every 4-week delay increases mortality risk
+        </div>
+    </div>
+</section>
+
+<!-- Slide 4: The Inevitable Playbook -->
+<section class="slide bg-gradient-to-br from-slate-900 to-gray-800 text-white">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-4xl font-bold mb-6 text-center">We're Executing a Proven Playbook: <br/>The Marketplace That Commoditizes Asymmetry.</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <!-- 4 Industry Examples -->
+            <div class="md:col-span-4 grid grid-cols-2 md:grid-cols-4 print:grid-cols-4 gap-3">
+                <!-- Real Estate -->
+                <div class="bg-gradient-to-br from-blue-900 to-blue-800 rounded-lg p-3 border-2 border-blue-400 flex flex-col">
+                    <div class="flex justify-center mb-2"><i data-lucide="home" class="w-8 h-8 text-blue-300"></i></div>
+                    <div class="text-lg font-bold text-center mb-2 text-blue-200">Real Estate</div>
+                    <div class="bg-red-900/40 rounded p-1.5 mb-1.5"><div class="text-xs text-red-100">Agents controlled MLS</div></div>
+                    <div class="bg-green-900/40 rounded p-1.5"><div class="text-xs text-green-100">Everyone has access</div></div>
+                    <div class="flex-grow"></div>
+                    <div class="bg-white/20 rounded p-1.5 text-center mt-2"><div class="text-sm font-bold text-white">Zillow ($10B+)</div></div>
+                </div>
+                <!-- Trading -->
+                <div class="bg-gradient-to-br from-green-900 to-green-800 rounded-lg p-3 border-2 border-green-400 flex flex-col">
+                    <div class="flex justify-center mb-2"><i data-lucide="trending-up" class="w-8 h-8 text-green-300"></i></div>
+                    <div class="text-lg font-bold text-center mb-2 text-green-200">Trading</div>
+                    <div class="bg-red-900/40 rounded p-1.5 mb-1.5"><div class="text-xs text-red-100">Brokers held price info</div></div>
+                    <div class="bg-green-900/40 rounded p-1.5"><div class="text-xs text-green-100">Real-time data for all</div></div>
+                    <div class="flex-grow"></div>
+                    <div class="bg-white/20 rounded p-1.5 text-center mt-2"><div class="text-sm font-bold text-white">Robinhood ($32B)</div></div>
+                </div>
+                <!-- Education -->
+                <div class="bg-gradient-to-br from-purple-900 to-purple-800 rounded-lg p-3 border-2 border-purple-400 flex flex-col">
+                    <div class="flex justify-center mb-2"><i data-lucide="graduation-cap" class="w-8 h-8 text-purple-300"></i></div>
+                    <div class="text-lg font-bold text-center mb-2 text-purple-200">Education</div>
+                    <div class="bg-red-900/40 rounded p-1.5 mb-1.5"><div class="text-xs text-red-100">Universities gatekept</div></div>
+                    <div class="bg-green-900/40 rounded p-1.5"><div class="text-xs text-green-100">Top courses for millions</div></div>
+                    <div class="flex-grow"></div>
+                    <div class="bg-white/20 rounded p-1.5 text-center mt-2"><div class="text-sm font-bold text-white">Coursera ($5B+)</div></div>
+                </div>
+                <!-- Taxes -->
+                <div class="bg-gradient-to-br from-orange-900 to-orange-800 rounded-lg p-3 border-2 border-orange-400 flex flex-col">
+                    <div class="flex justify-center mb-2"><i data-lucide="calculator" class="w-8 h-8 text-orange-300"></i></div>
+                    <div class="text-lg font-bold text-center mb-2 text-orange-200">Taxes</div>
+                    <div class="bg-red-900/40 rounded p-1.5 mb-1.5"><div class="text-xs text-red-100">CPAs held expertise</div></div>
+                    <div class="bg-green-900/40 rounded p-1.5"><div class="text-xs text-green-100">Guided millions</div></div>
+                    <div class="flex-grow"></div>
+                    <div class="bg-white/20 rounded p-1.5 text-center mt-2"><div class="text-sm font-bold text-white">TurboTax ($130B+)</div></div>
+                </div>
+            </div>
+            
+            <!-- Arrow -->
+            <div class="hidden md:flex print:hidden items-center justify-center">
+                <div class="text-6xl text-teal-400 animate-pulse">→</div>
+            </div>
+
+            <div class="flex md:hidden print:flex items-center justify-center my-4">
+                <div class="text-6xl text-teal-400">↓</div>
+            </div>
+
+        </div>
+
+        <!-- Healthcare - The Next Domino -->
+        <div class="bg-gradient-to-br from-teal-600 to-blue-600 rounded-xl p-6 mt-6 border-4 border-teal-300 shadow-2xl">
+            <div class="flex items-center justify-center gap-4 mb-4">
+                <i data-lucide="heart-pulse" class="w-16 h-16 text-white"></i>
+                <div class="text-4xl font-bold text-white">Healthcare's Turn: Patient Relationship Management (PRM)</div>
+            </div>
+            <div class="text-center bg-black/30 rounded-lg p-4">
+                <div class="text-2xl font-bold text-white">This isn't a disruption; it's a predictable market evolution.</div>
+                <div class="text-xl text-teal-200 mt-2">The only question is who builds the category-defining platform. <span class="font-bold text-white">We are first.</span></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 5: The Unfair Advantage (Flywheel) -->
+<section class="slide bg-gradient-to-br from-indigo-50 to-purple-50">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-5xl font-bold mb-6 text-center text-gray-900">Our Unfair Advantage: <br/> A Zero-CAC Flywheel Fueled by Trust</h1>
+        
+        <div class="grid grid-cols-5 gap-6 items-center">
+            <!-- Flywheel Visualization -->
+            <div class="col-span-3 relative h-96 flex items-center justify-center">
+                <!-- Center -->
+                <div class="absolute z-20 bg-gradient-to-br from-blue-600 to-purple-600 text-white w-40 h-40 rounded-full flex flex-col items-center justify-center shadow-2xl">
+                    <div class="text-3xl font-black">NAVIS</div>
+                    <div class="text-sm">The Engine</div>
+                </div>
+
+                <!-- Flywheel Segments with Arrows -->
+                <div class="absolute w-full h-full">
+                    <!-- Segment 1 -->
+                    <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 w-56">
+                        <div class="bg-blue-100 p-3 rounded-xl text-center shadow-lg border-2 border-blue-300">
+                            <i data-lucide="gift" class="w-8 h-8 text-blue-600 mx-auto mb-2"></i>
+                            <div class="font-bold text-blue-900">1. Provide Free Portals</div>
+                            <div class="text-xs text-blue-700">Give advocacy groups the tools they lack.</div>
+                        </div>
+                    </div>
+                    <!-- Segment 2 -->
+                    <div class="absolute top-1/2 right-0 translate-x-6 -translate-y-1/2 w-56">
+                        <div class="bg-teal-100 p-3 rounded-xl text-center shadow-lg border-2 border-teal-300">
+                            <i data-lucide="users" class="w-8 h-8 text-teal-600 mx-auto mb-2"></i>
+                            <div class="font-bold text-teal-900">2. Drive Patient Adoption</div>
+                            <div class="text-xs text-teal-700">Trusted groups bring their members to Navis.</div>
+                        </div>
+                    </div>
+                    <!-- Segment 3 -->
+                    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-12 w-56">
+                        <div class="bg-purple-100 p-3 rounded-xl text-center shadow-lg border-2 border-purple-300">
+                            <i data-lucide="dollar-sign" class="w-8 h-8 text-purple-600 mx-auto mb-2"></i>
+                            <div class="font-bold text-purple-900">3. Monetize with Partners</div>
+                            <div class="text-xs text-purple-700">Connect qualified patients to labs & centers.</div>
+                        </div>
+                    </div>
+                    <!-- Segment 4 -->
+                    <div class="absolute top-1/2 left-0 -translate-x-6 -translate-y-1/2 w-56">
+                        <div class="bg-indigo-100 p-3 rounded-xl text-center shadow-lg border-2 border-indigo-300">
+                            <i data-lucide="trending-up" class="w-8 h-8 text-indigo-600 mx-auto mb-2"></i>
+                            <div class="font-bold text-indigo-900">4. Improve the Product</div>
+                            <div class="text-xs text-indigo-700">Revenue funds better tools, adding more value.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Moat Callout & CAC Comparison -->
+            <div class="col-span-2">
+                <div class="bg-gradient-to-r from-amber-100 to-orange-100 border-3 border-amber-500 rounded-2xl p-6">
+                    <div class="flex items-start gap-3 mb-4">
+                        <i data-lucide="lock-keyhole" class="w-10 h-10 text-amber-700 flex-shrink-0"></i>
+                        <div>
+                            <div class="text-2xl font-bold text-amber-900 mb-1">Our Defensible Moat</div>
+                            <div class="text-base text-amber-800">
+                                While competitors burn capital on ads, we acquire patients for <span class="font-bold text-lg">near-zero cost</span>.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 gap-3">
+                        <div class="bg-white rounded-lg p-3 text-center border-2 border-red-300">
+                            <div class="text-sm font-semibold text-gray-700">Typical HealthTech CAC</div>
+                            <div class="text-2xl font-bold text-red-600">$150 - $200+</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 text-center border-4 border-green-500">
+                            <div class="text-sm font-semibold text-gray-700">Navis CAC</div>
+                            <div class="text-2xl font-bold text-green-600">~$0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 6: Execution Proof -->
+<section class="slide bg-white">
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-5xl font-bold mb-2 text-center text-gray-900">Execution is Everything:</h1>
+        <h2 class="text-3xl font-semibold mb-6 text-center gradient-text">Our Data-Driven Momentum</h2>
+        
+        <div class="grid grid-cols-2 gap-6">
+            <!-- Left Column: Hard Traction Metrics -->
+            <div class="bg-gradient-to-br from-blue-50 to-teal-50 rounded-2xl p-6 border-2 border-blue-300">
+                <div class="text-3xl font-bold text-center mb-4 text-gray-900">Traction & Validation</div>
+                <div class="space-y-4">
+                    <div class="bg-white rounded-xl p-4 shadow-md">
+                        <div class="flex items-center gap-3 mb-1">
+                            <div class="bg-green-500 text-white rounded-full p-2"><i data-lucide="check" class="w-6 h-6"></i></div>
+                            <div class="text-2xl font-bold text-gray-900">Product Launched</div>
+                        </div>
+                        <div class="ml-12 text-base text-gray-600">Fully functional portal with AI guidance engine.</div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl p-4 shadow-md border-l-4 border-green-500">
+                        <div class="flex items-center gap-3 mb-1">
+                            <div class="bg-green-500 text-white rounded-full p-2"><i data-lucide="file-text" class="w-6 h-6"></i></div>
+                            <div class="text-2xl font-bold text-gray-900">$150k ARR Pipeline</div>
+                        </div>
+                        <div class="ml-12 text-base text-gray-700 font-semibold">From 5 paying LOIs signed before we asked for money.</div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl p-4 shadow-md border-l-4 border-blue-500">
+                        <div class="flex items-center gap-3 mb-1">
+                            <div class="bg-blue-500 text-white rounded-full p-2"><i data-lucide="trending-up" class="w-6 h-6"></i></div>
+                            <div class="text-2xl font-bold text-gray-900">Validated Demand</div>
+                        </div>
+                        <div class="ml-12 text-base text-gray-600"><strong class="text-gray-800">60% of 60+ interviewees</strong> converted to a product waitlist within 48 hours.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: The Momentum Timeline -->
+            <div class="bg-gray-800 text-white rounded-2xl p-6">
+                <div class="text-3xl font-bold text-center mb-4">Our Progress & Plan</div>
+                <div class="space-y-4">
+                    <!-- Phase 1: Built -->
+                    <div class="flex items-start gap-4">
+                        <div class="flex flex-col items-center">
+                            <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center border-4 border-gray-700"><i data-lucide="check-circle"></i></div>
+                            <div class="w-1 flex-grow bg-gray-600"></div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-400">Q3-Q4 2025</div>
+                            <div class="text-xl font-bold text-green-400">BUILT</div>
+                            <div class="text-base text-gray-200">From concept to live product with partnerships in 4 months.</div>
+                        </div>
+                    </div>
+                    <!-- Phase 2: Validated -->
+                    <div class="flex items-start gap-4">
+                        <div class="flex flex-col items-center">
+                            <div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center border-4 border-gray-700 pulse-dot"><i data-lucide="radio"></i></div>
+                            <div class="w-1 flex-grow bg-gray-600"></div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-400">Q1 2026 (YOU ARE HERE)</div>
+                            <div class="text-xl font-bold text-orange-400">VALIDATED</div>
+                            <div class="text-base text-gray-200">First portal launches Jan 20. Waitlist growing. $250k of this round committed.</div>
+                        </div>
+                    </div>
+                    <!-- Phase 3: Scaling -->
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center border-4 border-gray-700"><i data-lucide="rocket"></i></div>
+                        <div>
+                            <div class="text-sm text-gray-400">Q2-Q4 2026</div>
+                            <div class="text-xl font-bold text-purple-400">SCALING</div>
+                            <div class="text-base text-gray-200">With this investment, we scale to 10k+ patients and hit <strong class="text-white">$1M ARR</strong>.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6 text-center bg-gradient-to-r from-blue-600 to-teal-600 text-white rounded-2xl p-4">
+            <div class="text-xl font-bold">This investment accelerates, it does not enable. We are happening.</div>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 7: Competition & Vision -->
+<section class="slide bg-gradient-to-br from-gray-50 to-gray-100">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-5xl font-bold mb-6 text-center text-gray-900">Our Vision: To Be the Undisputed Category Leader</h1>
+        
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <div class="bg-white/10 backdrop-blur rounded-2xl p-6 border-2 border-gray-300 bg-white shadow-lg">
+                <div class="text-3xl font-bold mb-3 text-indigo-700">"Navis" becomes a verb.</div>
+                <div class="text-lg text-gray-700">"Did you Navis your diagnosis?" replaces "Did you Google it?"</div>
+            </div>
+            <div class="bg-white/10 backdrop-blur rounded-2xl p-6 border-2 border-gray-300 bg-white shadow-lg">
+                <div class="text-3xl font-bold mb-3 text-purple-700">We become the Standard of Care.</div>
+                <div class="text-lg text-gray-700">Every cancer patient starts their journey with Navis.</div>
+            </div>
+        </div>
+        
+        <!-- Competition table -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
+            <table class="w-full">
+                <thead class="bg-gradient-to-r from-blue-600 to-teal-600 text-white">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xl font-bold">Category</th>
+                        <th class="px-6 py-4 text-left text-xl font-bold">Their Weakness</th>
+                        <th class="px-6 py-4 text-left text-xl font-bold">Our Edge</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="border-b border-gray-200">
+                        <td class="px-8 py-6 font-bold text-gray-900 text-xl">Google / WebMD</td>
+                        <td class="px-8 py-6 text-gray-700">Noisy, generic, ad-driven content</td>
+                        <td class="px-8 py-6 font-semibold text-gray-900"><div class="flex items-center gap-2"><i data-lucide="check-circle" class="w-6 h-6 text-green-600"></i><span>Curated, phase-aware guidance</span></div></td>
+                    </tr>
+                    <tr class="border-b border-gray-200 bg-gray-50">
+                        <td class="px-8 py-6 font-bold text-gray-900 text-xl">Patient Forums</td>
+                        <td class="px-8 py-6 text-gray-700">Discussion without clear action</td>
+                        <td class="px-8 py-6 font-semibold text-gray-900"><div class="flex items-center gap-2"><i data-lucide="check-circle" class="w-6 h-6 text-green-600"></i><span>Connects patients directly to services</span></div></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="bg-gradient-to-br from-amber-100 to-orange-100 border-3 border-amber-400 rounded-2xl p-6">
+            <div class="text-3xl font-bold text-center mb-4 text-amber-900">Why We Win and They Can't Follow</div>
+            <div class="text-xl text-center text-amber-800">
+                Our survivor-led <strong class="text-black">trust</strong> and zero-CAC GTM are moats that incumbents <strong class="text-black">cannot buy</strong> and startups <strong class="text-black">cannot replicate</strong>.
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 8: The Operator's Ask -->
+<section class="slide bg-white">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-5xl font-bold mb-4 text-center text-gray-900">The Foundation Round:</h1>
+        <h2 class="text-3xl font-semibold mb-6 text-center gradient-text">We Need Operators, Not Just Capital.</h2>
+
+        <div class="grid grid-cols-2 gap-8">
+            <!-- Left Column: The Deal -->
+            <div class="bg-gradient-to-br from-gray-800 to-gray-900 text-white rounded-2xl p-8">
+                <div class="text-3xl font-bold mb-6 text-center">The Deal</div>
+                
+                <div class="text-xl font-bold mb-2">Terms</div>
+                <div class="bg-gray-700/50 rounded-lg p-4 mb-6">
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center"><span class="text-gray-300">Structure:</span><span class="font-bold text-lg">SAFE</span></div>
+                        <div class="flex justify-between items-center"><span class="text-gray-300">Valuation Cap:</span><span class="font-bold text-lg text-teal-300">$4M</span></div>
+                        <div class="flex justify-between items-center"><span class="text-gray-300">Total Round:</span><span class="font-bold text-lg">$500k</span></div>
+                        <div class="flex justify-between items-center"><span class="text-gray-300">Committed:</span><span class="font-bold text-lg text-green-400">$250k (50%)</span></div>
+                    </div>
+                </div>
+
+                <div class="text-xl font-bold mb-2">Capital Allocation (12-Month Milestones)</div>
+                <div class="bg-gray-700/50 rounded-lg p-4">
+                     <div class="space-y-3">
+                        <div class="flex items-center gap-3"><div class="w-12 h-8 bg-blue-500 rounded flex-shrink-0 flex items-center justify-center font-bold">60%</div><div><strong>Product & Portals</strong> to reach 10,000 active patients.</div></div>
+                        <div class="flex items-center gap-3"><div class="w-12 h-8 bg-teal-500 rounded flex-shrink-0 flex items-center justify-center font-bold">40%</div><div><strong>Partner Acquisition</strong> to convert pipeline and hit $1M ARR.</div></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column: The Operator Ask -->
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 border-4 border-blue-500">
+                <div class="text-3xl font-bold mb-6 text-center text-blue-900">Where We Need Your Operator Expertise</div>
+                <div class="space-y-6">
+                    <div class="flex items-start gap-4">
+                        <div class="bg-blue-500 text-white rounded-full p-3 mt-1"><i data-lucide="lightbulb" class="w-8 h-8"></i></div>
+                        <div>
+                            <div class="text-2xl font-bold text-gray-900">GTM & Pricing Strategy</div>
+                            <div class="text-lg text-gray-700">Hands-on advice from B2B SaaS experts to refine our partner pricing tiers for Q2.</div>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="bg-blue-500 text-white rounded-full p-3 mt-1"><i data-lucide="users" class="w-8 h-8"></i></div>
+                        <div>
+                            <div class="text-2xl font-bold text-gray-900">Key Hires</div>
+                            <div class="text-lg text-gray-700">Warm intros and help vetting two senior engineers from your networks.</div>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="bg-blue-500 text-white rounded-full p-3 mt-1"><i data-lucide="building-2" class="w-8 h-8"></i></div>
+                        <div>
+                            <div class="text-2xl font-bold text-gray-900">Enterprise Introductions</div>
+                            <div class="text-lg text-gray-700">Strategic connections to leaders at Optum, CVS, or large employers to validate our long-term vision.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Big CTA -->
+        <div class="mt-6 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white rounded-2xl p-6 text-center">
+            <div class="text-2xl font-bold mb-2">
+                This is the last chance to invest at this valuation.
+            </div>
+            <div class="text-xl font-bold">
+                Join us: <a href="mailto:contact@navis.health" class="underline hover:text-teal-200">contact@navis.health</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+    
+    // Optional: Add smooth scrolling or other interactivity here
+    document.addEventListener('DOMContentLoaded', function() {
+        lucide.createIcons();
+    });
+
+    // Optional: Add navigation controls for viewing in browser
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' && currentSlide < slides.length - 1) {
+            currentSlide++;
+            slides[currentSlide].scrollIntoView({ behavior: 'smooth' });
+        } else if (e.key === 'ArrowLeft' && currentSlide > 0) {
+            currentSlide--;
+            slides[currentSlide].scrollIntoView({ behavior: 'smooth' });
+        }
+    });
+    
+    // Track which slide is in view
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                currentSlide = Array.from(slides).indexOf(entry.target);
+            }
+        });
+    }, { threshold: 0.5 });
+    
+    slides.forEach(slide => observer.observe(slide));
+</script>
+
+</body>
+</html>

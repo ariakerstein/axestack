@@ -1,0 +1,632 @@
+{
+  "claude-3-5-sonnet_What is bipolar androgen therapy?_Prostate": {
+    "latency": {
+      "total": 30.615195751190186,
+      "search": 1.015,
+      "llm": 25.974
+    },
+    "search": {
+      "method": "semantic_vector_similarity",
+      "chunks_used": 8,
+      "top_chunk_similarity": 0.676318049430847
+    },
+    "eval_scores": {
+      "accuracy": 6,
+      "completeness": 10,
+      "questionFit": 10,
+      "sourceSupport": 9,
+      "trustworthiness": 3,
+      "communication": 5.1,
+      "overallConfidence": 7.31,
+      "confidenceLevel": "high"
+    },
+    "answer": {
+      "length": 4224,
+      "preview": "# Bipolar Androgen Therapy (BAT) for Prostate Cancer\n\nBipolar androgen therapy is an innovative treatment approach that works by rapidly cycling testosterone levels between extremely high and extremel"
+    },
+    "citations": 9,
+    "quality_indicators": {
+      "has_chunks": true,
+      "high_similarity": true,
+      "sufficient_length": true,
+      "has_citations": true,
+      "uses_semantic_search": true
+    },
+    "quality_score": 1.0
+  },
+  "claude-3-haiku_What is bipolar androgen therapy?_Prostate": {
+    "latency": {
+      "total": 9.989055871963501,
+      "search": 0.628,
+      "llm": 5.424
+    },
+    "search": {
+      "method": "semantic_vector_similarity",
+      "chunks_used": 8,
+      "top_chunk_similarity": 0.676305532455444
+    },
+    "eval_scores": {
+      "accuracy": 5,
+      "completeness": 10,
+      "questionFit": 10,
+      "sourceSupport": 7,
+      "trustworthiness": 3,
+      "communication": 6,
+      "overallConfidence": 6.85,
+      "confidenceLevel": "high"
+    },
+    "answer": {
+      "length": 1762,
+      "preview": "# Understanding Bipolar Androgen Therapy (BAT)\n\nBipolar androgen therapy is an innovative treatment approach for men with **castration-resistant prostate cancer (CRPC)**\u2014cancer that continues to grow "
+    },
+    "citations": 6,
+    "quality_indicators": {
+      "has_chunks": true,
+      "high_similarity": true,
+      "sufficient_length": true,
+      "has_citations": true,
+      "uses_semantic_search": true
+    },
+    "quality_score": 1.0
+  },
+  "gpt-4.1-nano_What is bipolar androgen therapy?_Prostate": {
+    "latency": {
+      "total": 10.15149998664856,
+      "search": 0.6,
+      "llm": 6.594
+    },
+    "search": {
+      "method": "semantic_vector_similarity",
+      "chunks_used": 8,
+      "top_chunk_similarity": 0.676305532455444
+    },
+    "eval_scores": {
+      "accuracy": 3,
+      "completeness": 10,
+      "questionFit": 10,
+      "sourceSupport": 9,
+      "trustworthiness": 4.5,
+      "communication": 6,
+      "overallConfidence": 6.88,
+      "confidenceLevel": "high"
+    },
+    "answer": {
+      "length": 2398,
+      "preview": "Bipolar androgen therapy (BAT) is an experimental treatment approach for advanced prostate cancer, especially when the cancer has become resistant to traditional hormone therapies. It involves cycling"
+    },
+    "citations": 7,
+    "quality_indicators": {
+      "has_chunks": true,
+      "high_similarity": true,
+      "sufficient_length": true,
+      "has_citations": true,
+      "uses_semantic_search": true
+    },
+    "quality_score": 1.0
+  },
+  "claude-3-5-sonnet_What are the side effects of immunotherapy?_Lung": {
+    "latency": {
+      "total": 20.18866467475891,
+      "search": 0.434,
+      "llm": 16.179
+    },
+    "search": {
+      "method": "semantic_vector_similarity",
+      "chunks_used": 8,
+      "top_chunk_similarity": 0.58783093618339
+    },
+    "eval_scores": {
+      "accuracy": 6,
+      "completeness": 10,
+      "questionFit": 10,
+      "sourceSupport": 9,
+      "trustworthiness": 3,
+      "communication": 5.7,
+      "overallConfidence": 7.37,
+      "confidenceLevel": "high"
+    },
+    "answer": {
+      "length": 3117,
+      "preview": "# Side Effects of Immunotherapy for Lung Cancer\n\nImmunotherapy works differently than chemotherapy\u2014it activates your immune system to fight cancer cells. However, this can sometimes cause your immune "
+    },
+    "citations": 6,
+    "quality_indicators": {
+      "has_chunks": true,
+      "high_similarity": true,
+      "sufficient_length": true,
+      "has_citations": true,
+      "uses_semantic_search": true
+    },
+    "quality_score": 1.0
+  },
+  "claude-3-haiku_What are the side effects of immunotherapy?_Lung": {
+    "latency": {
+      "total": 9.429605722427368,
+      "search": 0.833,
+      "llm": 5.382
+    },
+    "search": {
+      "method": "semantic_vector_similarity",
+      "chunks_used": 8,
+      "top_chunk_similarity": 0.58790817332816
+    },
+    "eval_scores": {
+      "accuracy": 5,
+      "completeness": 10,
+      "questionFit": 10,
+      "sourceSupport": 9,
+      "trustworthiness": 3,
+      "communication": 5.7,
+      "overallConfidence": 7.12,
+      "confidenceLevel": "high"
+    },
+    "answer": {
+      "length": 1917,
+      "preview": "# Side Effects of Immunotherapy for Lung Cancer\n\nImmunotherapy is an important treatment option for lung cancer, but like all cancer treatments, it can cause side effects. Let me explain what you shou"
+    },
+    "citations": 6,
+    "quality_indicators": {
+      "has_chunks": true,
+      "high_similarity": true,
+      "sufficient_length": true,
+      "has_citations": true,
+      "uses_semantic_search": true
+    },
+    "quality_score": 1.0
+  },
+  "gpt-4.1-nano_What are the side effects of immunotherapy?_Lung": {
+    "latency": {
+      "total": 11.214195966720581,
+      "search": 0.367,
+      "llm": 7.078
+    },
+    "search": {
+      "method": "semantic_vector_similarity",
+      "chunks_used": 8,
+      "top_chunk_similarity": 0.58783093618339
+    },
+    "eval_scores": {
+      "accuracy": 6,
+      "completeness": 10,
+      "questionFit": 4,
+      "sourceSupport": 9,
+      "trustworthiness": 4.5,
+      "communication": 6,
+      "overallConfidence": 6.73,
+      "confidenceLevel": "high"
+    },
+    "answer": {
+      "length": 2128,
+      "preview": "Immunotherapy is a type of cancer treatment that helps your immune system recognize and attack cancer cells. For lung cancer, immune checkpoint inhibitors are commonly used, which target proteins like"
+    },
+    "citations": 6,
+    "quality_indicators": {
+      "has_chunks": true,
+      "high_similarity": true,
+      "sufficient_length": true,
+      "has_citations": true,
+      "uses_semantic_search": true
+    },
+    "quality_score": 1.0
+  },
+  "claude-3-5-sonnet_What is PD-L1 testing and why is it important?_Lung": {
+    "latency": {
+      "total": 23.425914764404297,
+      "search": 0.833,
+      "llm": 19.219
+    },
+    "search": {
+      "method": "semantic_vector_similarity",
+      "chunks_used": 8,
+      "top_chunk_similarity": 0.617752570442954
+    },
+    "eval_scores": {
+      "accuracy": 6,
+      "completeness": 10,
+      "questionFit": 6,
+      "sourceSupport": 10,
+      "trustworthiness": 3,
+      "communication": 5.7,
+      "overallConfidence": 6.92,
+      "confidenceLevel": "high"
+    },
+    "answer": {
+      "length": 3680,
+      "preview": "# Understanding PD-L1 Testing\n\nPD-L1 testing is a laboratory test that measures how much of a specific protein called **PD-L1 (programmed death-ligand 1)** appears on the surface of your cancer cells."
+    },
+    "citations": 13,
+    "quality_indicators": {
+      "has_chunks": true,
+      "high_similarity": true,
+      "sufficient_length": true,
+      "has_citations": true,
+      "uses_semantic_search": true
+    },
+    "quality_score": 1.0
+  },
+  "claude-3-haiku_What is PD-L1 testing and why is it important?_Lung": {
+    "latency": {
+      "total": 9.674077987670898,
+      "search": 0.614,
+      "llm": 5.758
+    },
+    "search": {
+      "method": "semantic_vector_similarity",
+      "chunks_used": 8,
+      "top_chunk_similarity": 0.617758471302963
+    },
+    "eval_scores": {
+      "accuracy": 5,
+      "completeness": 10,
+      "questionFit": 6,
+      "sourceSupport": 9,
+      "trustworthiness": 3,
+      "communication": 5.7,
+      "overallConfidence": 6.52,
+      "confidenceLevel": "high"
+    },
+    "answer": {
+      "length": 1625,
+      "preview": "# Understanding PD-L1 Testing for Lung Cancer\n\n## What is PD-L1?\n\nPD-L1 is a protein that appears on the surface of some lung cancer cells. Think of it as a \"disguise\" that cancer cells use to hide fr"
+    },
+    "citations": 6,
+    "quality_indicators": {
+      "has_chunks": true,
+      "high_similarity": true,
+      "sufficient_length": true,
+      "has_citations": true,
+      "uses_semantic_search": true
+    },
+    "quality_score": 1.0
+  },
+  "gpt-4.1-nano_What is PD-L1 testing and why is it important?_Lung": {
+    "latency": {
+      "total": 9.952234983444214,
+      "search": 0.515,
+      "llm": 6.128
+    },
+    "search": {
+      "method": "semantic_vector_similarity",
+      "chunks_used": 8,
+      "top_chunk_similarity": 0.617758471302963
+    },
+    "eval_scores": {
+      "accuracy": 5,
+      "completeness": 10,
+      "questionFit": 6,
+      "sourceSupport": 10,
+      "trustworthiness": 3,
+      "communication": 7.7,
+      "overallConfidence": 6.87,
+      "confidenceLevel": "high"
+    },
+    "answer": {
+      "length": 1718,
+      "preview": "PD-L1 testing is a laboratory test that looks for a protein called PD-L1 on the surface of cancer cells. PD-L1 (programmed death-ligand 1) is a protein that helps cancer cells hide from the immune sys"
+    },
+    "citations": 11,
+    "quality_indicators": {
+      "has_chunks": true,
+      "high_similarity": true,
+      "sufficient_length": true,
+      "has_citations": true,
+      "uses_semantic_search": true
+    },
+    "quality_score": 1.0
+  },
+  "claude-3-5-sonnet_Should I get BRCA testing for breast cancer?_Breast": {
+    "latency": {
+      "total": 18.86232018470764,
+      "search": 0.509,
+      "llm": 15.216
+    },
+    "search": {
+      "method": "semantic_vector_similarity",
+      "chunks_used": 8,
+      "top_chunk_similarity": 0.59970489139928
+    },
+    "eval_scores": {
+      "accuracy": 5,
+      "completeness": 10,
+      "questionFit": 10,
+      "sourceSupport": 9,
+      "trustworthiness": 3,
+      "communication": 6,
+      "overallConfidence": 7.15,
+      "confidenceLevel": "high"
+    },
+    "answer": {
+      "length": 3279,
+      "preview": "# Should You Get BRCA Testing for Breast Cancer?\n\nBRCA testing is an important consideration for many people with breast cancer. Let me help you understand when it's recommended and why it matters.\n\n#"
+    },
+    "citations": 6,
+    "quality_indicators": {
+      "has_chunks": true,
+      "high_similarity": true,
+      "sufficient_length": true,
+      "has_citations": true,
+      "uses_semantic_search": true
+    },
+    "quality_score": 1.0
+  },
+  "claude-3-haiku_Should I get BRCA testing for breast cancer?_Breast": {
+    "latency": {
+      "total": 8.943517923355103,
+      "search": 0.403,
+      "llm": 5.359
+    },
+    "search": {
+      "method": "semantic_vector_similarity",
+      "chunks_used": 8,
+      "top_chunk_similarity": 0.59970489139928
+    },
+    "eval_scores": {
+      "accuracy": 6,
+      "completeness": 10,
+      "questionFit": 10,
+      "sourceSupport": 9,
+      "trustworthiness": 4.5,
+      "communication": 8,
+      "overallConfidence": 7.82,
+      "confidenceLevel": "high"
+    },
+    "answer": {
+      "length": 1761,
+      "preview": "# BRCA Testing for Breast Cancer: What You Should Know\n\nThis is an important question, and the answer depends on your individual situation. Let me explain what BRCA testing is and when it's recommende"
+    },
+    "citations": 6,
+    "quality_indicators": {
+      "has_chunks": true,
+      "high_similarity": true,
+      "sufficient_length": true,
+      "has_citations": true,
+      "uses_semantic_search": true
+    },
+    "quality_score": 1.0
+  },
+  "gpt-4.1-nano_Should I get BRCA testing for breast cancer?_Breast": {
+    "latency": {
+      "total": 11.055830717086792,
+      "search": 0.727,
+      "llm": 6.718
+    },
+    "search": {
+      "method": "semantic_vector_similarity",
+      "chunks_used": 8,
+      "top_chunk_similarity": 0.59970489139928
+    },
+    "eval_scores": {
+      "accuracy": 5,
+      "completeness": 10,
+      "questionFit": 10,
+      "sourceSupport": 9,
+      "trustworthiness": 3,
+      "communication": 8,
+      "overallConfidence": 7.35,
+      "confidenceLevel": "high"
+    },
+    "answer": {
+      "length": 2043,
+      "preview": "Deciding whether to get BRCA testing for breast cancer is an important question, and it depends on your personal and family health history. BRCA1 and BRCA2 are genes that, when mutated, can increase t"
+    },
+    "citations": 6,
+    "quality_indicators": {
+      "has_chunks": true,
+      "high_similarity": true,
+      "sufficient_length": true,
+      "has_citations": true,
+      "uses_semantic_search": true
+    },
+    "quality_score": 1.0
+  },
+  "claude-3-5-sonnet_What does stage 3 ovarian cancer mean?_Ovarian": {
+    "latency": {
+      "total": 15.468126058578491,
+      "search": 0.687,
+      "llm": 11.216
+    },
+    "search": {
+      "method": "semantic_vector_similarity",
+      "chunks_used": 8,
+      "top_chunk_similarity": 0.598112511859837
+    },
+    "eval_scores": {
+      "accuracy": 6,
+      "completeness": 10,
+      "questionFit": 8,
+      "sourceSupport": 10,
+      "trustworthiness": 3,
+      "communication": 5.4,
+      "overallConfidence": 7.19,
+      "confidenceLevel": "high"
+    },
+    "answer": {
+      "length": 2024,
+      "preview": "# Understanding Stage 3 Ovarian Cancer\n\nStage 3 ovarian cancer means the cancer has spread beyond the ovaries to other areas within the abdomen or to nearby lymph nodes, but has not reached distant or"
+    },
+    "citations": 11,
+    "quality_indicators": {
+      "has_chunks": true,
+      "high_similarity": true,
+      "sufficient_length": true,
+      "has_citations": true,
+      "uses_semantic_search": true
+    },
+    "quality_score": 1.0
+  },
+  "claude-3-haiku_What does stage 3 ovarian cancer mean?_Ovarian": {
+    "latency": {
+      "total": 9.708443880081177,
+      "search": 0.667,
+      "llm": 5.191
+    },
+    "search": {
+      "method": "semantic_vector_similarity",
+      "chunks_used": 8,
+      "top_chunk_similarity": 0.598096763974236
+    },
+    "eval_scores": {
+      "accuracy": 4,
+      "completeness": 10,
+      "questionFit": 8,
+      "sourceSupport": 9,
+      "trustworthiness": 3,
+      "communication": 5.4,
+      "overallConfidence": 6.54,
+      "confidenceLevel": "high"
+    },
+    "answer": {
+      "length": 1575,
+      "preview": "# Understanding Stage 3 Ovarian Cancer\n\nI appreciate your question. I want to be transparent with you: **the medical guidelines I have available don't include specific NCCN Guidelines for Ovarian Canc"
+    },
+    "citations": 6,
+    "quality_indicators": {
+      "has_chunks": true,
+      "high_similarity": true,
+      "sufficient_length": true,
+      "has_citations": true,
+      "uses_semantic_search": true
+    },
+    "quality_score": 1.0
+  },
+  "gpt-4.1-nano_What does stage 3 ovarian cancer mean?_Ovarian": {
+    "latency": {
+      "total": 12.460770845413208,
+      "search": 0.549,
+      "llm": 8.215
+    },
+    "search": {
+      "method": "semantic_vector_similarity",
+      "chunks_used": 8,
+      "top_chunk_similarity": 0.598088944072191
+    },
+    "eval_scores": {
+      "accuracy": 5,
+      "completeness": 10,
+      "questionFit": 8,
+      "sourceSupport": 10,
+      "trustworthiness": 3,
+      "communication": 7.7,
+      "overallConfidence": 7.17,
+      "confidenceLevel": "high"
+    },
+    "answer": {
+      "length": 1526,
+      "preview": "Stage 3 ovarian cancer means that the cancer has spread beyond the ovaries to other areas within the abdomen or pelvis, but it has not yet spread to distant parts of the body like the liver or lungs. "
+    },
+    "citations": 11,
+    "quality_indicators": {
+      "has_chunks": true,
+      "high_similarity": true,
+      "sufficient_length": true,
+      "has_citations": true,
+      "uses_semantic_search": true
+    },
+    "quality_score": 1.0
+  },
+  "claude-3-5-sonnet_What is metastatic cancer?_General": {
+    "latency": {
+      "total": 14.109644174575806,
+      "search": 0.731,
+      "llm": 10.593
+    },
+    "search": {
+      "method": "semantic_vector_similarity",
+      "chunks_used": 8,
+      "top_chunk_similarity": 0.787540341908897
+    },
+    "eval_scores": {
+      "accuracy": 5,
+      "completeness": 10,
+      "questionFit": 10,
+      "sourceSupport": 10,
+      "trustworthiness": 3,
+      "communication": 5.7,
+      "overallConfidence": 7.27,
+      "confidenceLevel": "high"
+    },
+    "answer": {
+      "length": 2126,
+      "preview": "# Understanding Metastatic Cancer\n\nMetastatic cancer is cancer that has **spread from where it originally started to other parts of the body**. According to the **NCCN (National Comprehensive Cancer N"
+    },
+    "citations": 12,
+    "quality_indicators": {
+      "has_chunks": true,
+      "high_similarity": true,
+      "sufficient_length": true,
+      "has_citations": true,
+      "uses_semantic_search": true
+    },
+    "quality_score": 1.0
+  },
+  "claude-3-haiku_What is metastatic cancer?_General": {
+    "latency": {
+      "total": 9.273797273635864,
+      "search": 0.414,
+      "llm": 4.496
+    },
+    "search": {
+      "method": "semantic_vector_similarity",
+      "chunks_used": 8,
+      "top_chunk_similarity": 0.78744547479343
+    },
+    "eval_scores": {
+      "accuracy": 5,
+      "completeness": 10,
+      "questionFit": 10,
+      "sourceSupport": 9,
+      "trustworthiness": 3,
+      "communication": 6,
+      "overallConfidence": 7.15,
+      "confidenceLevel": "high"
+    },
+    "answer": {
+      "length": 1613,
+      "preview": "# Understanding Metastatic Cancer\n\nMetastatic cancer is cancer that has spread from where it originally started to other parts of the body. According to the **NCCN Guidelines for Patients**, metastati"
+    },
+    "citations": 7,
+    "quality_indicators": {
+      "has_chunks": true,
+      "high_similarity": true,
+      "sufficient_length": true,
+      "has_citations": true,
+      "uses_semantic_search": true
+    },
+    "quality_score": 1.0
+  },
+  "gpt-4.1-nano_What is metastatic cancer?_General": {
+    "latency": {
+      "total": 7.959740877151489,
+      "search": 0.43,
+      "llm": 4.333
+    },
+    "search": {
+      "method": "semantic_vector_similarity",
+      "chunks_used": 8,
+      "top_chunk_similarity": 0.78744547479343
+    },
+    "eval_scores": {
+      "accuracy": 5,
+      "completeness": 10,
+      "questionFit": 10,
+      "sourceSupport": 10,
+      "trustworthiness": 3,
+      "communication": 5.4,
+      "overallConfidence": 7.24,
+      "confidenceLevel": "high"
+    },
+    "answer": {
+      "length": 1485,
+      "preview": "Metastatic cancer is when cancer cells spread from the original (primary) site where they started to other parts of the body. This process is called metastasis. When cancer spreads, it forms new tumor"
+    },
+    "citations": 12,
+    "quality_indicators": {
+      "has_chunks": true,
+      "high_similarity": true,
+      "sufficient_length": true,
+      "has_citations": true,
+      "uses_semantic_search": true
+    },
+    "quality_score": 1.0
+  }
+}

@@ -1,0 +1,523 @@
+{
+  "test_type": "baseline",
+  "timestamp": "2025-10-29T20:11:12.249731",
+  "total_tests": 17,
+  "results": [
+    {
+      "success": true,
+      "question": "What are the treatment options for glioblastoma?",
+      "cancer_type": "brain",
+      "response_id": "81210fbe-b17c-4627-b054-beac032a5393",
+      "answer": "# Treatment Options for Glioblastoma\n\nI understand you're looking for information about glioblastoma treatment. This is a serious diagnosis, and I want to provide you with clear, evidence-based information from trusted medical guidelines.\n\n## Understanding Glioblastoma\n\nAccording to the **NCCN (National Comprehensive Cancer Network) Guidelines**, glioblastomas are fast-growing and aggressive grade 4 tumors\u2014the most common and most dangerous type of malignant brain tumor in adults. Because glioblastomas grow quickly and invade deeply into surrounding brain tissue, they require prompt diagnosis and treatment.\n\n## Primary Treatment Approach\n\n### 1. **Surgery (Tumor Resection)**\n\nThe first step in treating glioblastoma is surgery to remove as much of the tumor as safely possible. According to **NCCN Guidelines**, the main goals are to:\n- Relieve pressure on the brain\n- Remove as much tumor tissue as possible (called \"maximal safe resection\")\n\nHowever, because glioblastoma cells invade so deeply into brain tissue, removing the entire tumor isn't possible. This is why additional treatments are always needed after surgery.\n\n### 2. **Additional (Adjuvant) Treatment**\n\nAfter surgery, the **NCCN** strongly recommends that people with glioblastoma consider joining a **clinical trial** as part of their treatment plan. Clinical trials may offer access to newer therapies and approaches.\n\nIf a clinical trial isn't available or suitable, standard adjuvant treatment typically involves **radiation therapy plus chemotherapy**, often with other therapies added.\n\n## Treatment Options Based on Age and Physical Condition\n\nThe **NCCN Guidelines** recognize that treatment intensity should be tailored to each person's situation. Here's how treatment typically varies:\n\n### **For Adults Under Age 70 with Good Physical Capability**\n\nPeople who are younger and have good performance status (ability to carry out daily activities) can generally handle more intensive treatment. Options include:\n\n- **Radiation therapy and temozolomide chemotherapy** given together, followed by more temozolomide chemotherapy, plus **tumor treating fields (TTFields)**\u2014a device that uses electrical fields to disrupt cancer cell division\n\n- **Radiation therapy and temozolomide chemotherapy** given together, followed by additional temozolomide chemotherapy\n\n- **Radiation therapy and lomustine/temozolomide chemotherapy** given together, followed by more chemotherapy\n\n- **Radiation therapy alone**\n\n### **For Adults Under Age 70 with Limited Physical Capability**\n\nIf you have lower performance status (more difficulty with daily activities), less intense treatment may be recommended:\n\n- **Hypofractionated radiation therapy** (larger doses given in fewer sessions) with or without temozolomide chemotherapy\n\n- **Temozolomide chemotherapy only**\n\n- **Supportive (palliative) care** focused on quality of life\n\n### **For Adults Over Age 70**\n\nAccording to **NCCN Guidelines**, older adults often receive modified treatment because they may have additional health problems, reduced physical capability, or greater risk of side effects. However, some adults over 70 can tolerate more intensive treatment and achieve good results.\n\n**With good physical capability:**\n- Hypofractionated radiation therapy and temozolomide chemotherapy together, followed by more temozolomide\n- Temozolomide chemotherapy only\n- Hypofractionated radiation therapy only\n\n**With limited physical capability:**\n- Hypofractionated radiation therapy only\n- Temozolomide chemotherapy only\n- Supportive care\n\n## Important Biomarker: MGMT Promoter Methylation\n\nThe **NCCN Guidelines** note that nearly half of glioblastomas have something called **MGMT promoter methylation**\u2014a biomarker (biological characteristic) that's important for treatment decisions. Glioblastomas with a methylated MGMT promoter tend to respond better to temozolomide chemotherapy and are associated with longer survival compared to those with an unmethylated MGMT promoter.\n\n## Follow-Up Care\n\nAfter treatment, you'll need regular **MRI scans** to monitor whether the glioblastoma is under control and to check for side effects. According to **NCCN Guidelines**, scans are typically scheduled:\n- Every 2 to 4 months initially\n- Then 3 to 6 times per year if there's no recurrence\n\n## What About Recurrence?\n\nThe **NCCN Guidelines** acknowledge that glioblastoma will likely come back eventually or may continue to grow despite treatment. When this happens, additional treatment options are available, which your care team will discuss with you.\n\n## Focus on Quality of Life\n\nAccording to **NCCN Guidelines**, your **quality of life should be the main priority** guiding your treatment and care. Successful treatment isn't just about reducing the tumor\u2014it also includes:\n- Minimizing cognitive (thinking and memory) problems\n- Reducing pain\n- Lowering anxiety and stress\n- Maintaining ability to do regular activities\n- Spending time with friends and family\n- Enjoying life as much as possible\n\n## Next Steps\n\nI strongly encourage you to:\n1. **Discuss these options with your multidisciplinary care team**, which should include neurosurgeons, neuro-oncologists, radiation oncologists, and other specialists\n2. **Ask about clinical trials** that might be appropriate for your situation\n3. **Request molecular testing** of your tumor, including MGMT promoter status\n4. **Consider getting a second opinion** from a comprehensive cancer center\n\nYour treatment team will help you determine the best approach based on your specific situation, including the tumor's location, your age, overall health, and personal preferences.\n\n**Sources cited:**\n- NCCN (National Comprehensive Cancer Network) Guidelines for Patients: Glioma, 2024\n\nIs there a specific aspect of glioblastoma treatment you'd like me to explain in more detail?",
+      "answer_length": 5850,
+      "elapsed_time": 34.82880687713623,
+      "status_code": 200,
+      "error": null,
+      "test_number": 1,
+      "category_name": "brain_cancer",
+      "category": "treatment",
+      "difficulty": "basic",
+      "expected_keywords": [
+        "chemotherapy",
+        "radiation",
+        "surgery",
+        "temozolomide"
+      ],
+      "note": null,
+      "test_type": "baseline",
+      "timestamp": "2025-10-29T20:04:49.234035",
+      "keywords_found": [
+        "chemotherapy",
+        "radiation",
+        "surgery",
+        "temozolomide"
+      ],
+      "keyword_match_rate": 1.0
+    },
+    {
+      "success": true,
+      "question": "What are the side effects of radiation therapy for brain tumors?",
+      "cancer_type": "brain",
+      "response_id": "f4243d4c-fcb5-4ca4-aecb-3655d8574d40",
+      "answer": "# Side Effects of Radiation Therapy for Brain Tumors\n\nRadiation therapy is a common treatment for brain tumors that uses intense energy to destroy tumor cells. While it's an important part of treatment, it can cause side effects that affect both your brain and overall health.\n\n## Understanding the Side Effects\n\nAccording to the **NCCN Guidelines for Central Nervous System Cancers**, radiation therapy can cause various side effects because it affects not only the tumor but also surrounding healthy brain tissue. The **American Cancer Society** and **NCI (National Cancer Institute)** provide detailed information about both short-term and long-term effects patients may experience.\n\n### Common Side Effects During and Shortly After Treatment:\n\n**Physical symptoms:**\n- **Fatigue** - Often the most common side effect, making you feel unusually tired\n- **Headaches** - May worsen temporarily during treatment\n- **Nausea and vomiting** - Caused by swelling around the tumor\n- **Hair loss** - Usually occurs in the area where radiation enters the scalp\n- **Skin changes** - Redness, dryness, or irritation on the scalp where radiation passes through\n\n**Neurological symptoms:**\n- **Cognitive changes** - Problems with memory, concentration, or thinking clearly\n- **Mood changes** - Increased anxiety, depression, or irritability\n- **Seizures** - May occur or worsen temporarily\n\n### Why These Side Effects Occur\n\nThe **blood-brain barrier** (the protective layer around your brain) and the sensitive nature of brain tissue make radiation effects particularly noticeable. As noted in the NCCN Guidelines, radiation can cause swelling (edema) in the brain, which creates pressure and leads to many of these symptoms.\n\n### Long-Term Considerations\n\nThe NCCN Guidelines emphasize the importance of **regular MRI scans every 2 to 4 months** after treatment to:\n- Monitor if the tumor is under control\n- Check the health of your brain\n- **Identify any side effects of radiation**\n\n**Late effects** (appearing months to years after treatment) may include:\n- Continued cognitive difficulties\n- Hormone problems (if the pituitary gland was in the radiation field)\n- Increased risk of stroke or other blood vessel problems\n- Rarely, radiation necrosis (damage to brain tissue that can look like tumor growth on scans)\n\n### What's Called \"Pseudoprogression\"\n\nAccording to the NCCN Guidelines, there's a phenomenon called **pseudoprogression** where \"imaging scans show that the tumor appears to be growing after treatment, but what looks like tumor growth on the images is actually a reaction to treatment.\" This can be stressful but is actually a side effect of radiation rather than true tumor growth.\n\n## Managing Side Effects\n\nThe NCCN Guidelines strongly recommend **supportive care** (also called palliative care) for managing these symptoms. This includes:\n\n- **Medications** to reduce brain swelling (steroids)\n- **Anti-seizure medications** if needed\n- **Pain management** for headaches\n- **Rehabilitation services** if radiation affects your abilities\n\n### Rehabilitation Options\n\nBecause radiation can affect areas of the brain controlling important functions, the NCCN Guidelines note you may benefit from:\n\n- **Physical therapy** - For movement, balance, and strength\n- **Occupational therapy** - For daily activities\n- **Speech therapy** - For communication difficulties\n- **Neuropsychiatric care** - For mood, behavior, and memory changes\n\n## Important Points to Remember\n\n1. **Not everyone experiences all side effects** - Your specific symptoms depend on the radiation dose, treatment area, and your individual health\n\n2. **Many side effects are manageable** - Your treatment team can help prevent or reduce most symptoms\n\n3. **Report symptoms promptly** - According to the NCCN Guidelines, staying in close contact with your care team is essential for managing side effects effectively\n\n4. **Quality of life matters** - The NCCN Guidelines emphasize that \"your quality of life should be the main priority that guides your treatment and care\"\n\n## When to Contact Your Care Team\n\nReach out immediately if you experience:\n- Severe headaches that don't improve with medication\n- New or worsening seizures\n- Sudden changes in vision, speech, or movement\n- Significant confusion or personality changes\n- Persistent nausea and vomiting\n\n**Sources cited:** NCCN Clinical Practice Guidelines in Oncology for Central Nervous System Cancers, which incorporate evidence from leading organizations including the American Cancer Society and National Cancer Institute.\n\nYour healthcare team can provide personalized information about which side effects you're most likely to experience based on your specific treatment plan and tumor location.",
+      "answer_length": 4736,
+      "elapsed_time": 29.090395212173462,
+      "status_code": 200,
+      "error": null,
+      "test_number": 2,
+      "category_name": "brain_cancer",
+      "category": "side_effects",
+      "difficulty": "basic",
+      "expected_keywords": [
+        "fatigue",
+        "hair loss",
+        "cognitive",
+        "memory"
+      ],
+      "note": null,
+      "test_type": "baseline",
+      "timestamp": "2025-10-29T20:05:20.351379",
+      "keywords_found": [
+        "fatigue",
+        "hair loss",
+        "cognitive",
+        "memory"
+      ],
+      "keyword_match_rate": 1.0
+    },
+    {
+      "success": true,
+      "question": "What is the prognosis for stage 4 glioblastoma?",
+      "cancer_type": "brain",
+      "response_id": "87c828e9-9615-4942-b0c6-a77ab5c8caaf",
+      "answer": "I understand this is a very difficult question, and I want to provide you with honest, evidence-based information while acknowledging the emotional weight of this diagnosis.\n\n## Understanding Stage 4 Glioblastoma Prognosis\n\nGlioblastoma (GBM) is classified as a Grade IV brain tumor by the World Health Organization, representing the most aggressive form of brain cancer. Here's what the medical evidence tells us:\n\n### Survival Statistics\n\nAccording to the **National Cancer Institute (NCI)** and **American Cancer Society**:\n- The median survival time for glioblastoma is approximately **12-18 months** with standard treatment\n- The 5-year relative survival rate is approximately **6-7%**\n- However, these are statistical averages, and individual outcomes vary significantly\n\n### Factors That Influence Prognosis\n\nThe **NCCN (National Comprehensive Cancer Network) Guidelines** identify several factors that can affect outcomes:\n\n**Favorable factors:**\n- Younger age (under 50-60)\n- Good performance status (ability to carry out daily activities)\n- MGMT promoter methylation (a genetic marker that predicts better response to chemotherapy)\n- Extent of surgical resection (how much tumor can be safely removed)\n- IDH mutation status (though rare in primary GBM)\n\n**Less favorable factors:**\n- Older age\n- Poor functional status\n- Tumor location that limits surgical options\n- Unmethylated MGMT status\n\n### Standard Treatment Approach\n\nAccording to **ASCO (American Society of Clinical Oncology)** guidelines, the standard treatment typically includes:\n1. **Maximal safe surgical resection** when possible\n2. **Concurrent radiation and temozolomide chemotherapy** (the Stupp protocol)\n3. **Adjuvant temozolomide** for 6-12 months\n\nThis combined approach has been shown to extend survival compared to radiation alone.\n\n### Important Context\n\n**Individual variation matters greatly.** Some patients live significantly longer than the median, while others have shorter survival times. Factors like:\n- Your specific tumor biology\n- Response to treatment\n- Overall health\n- Access to clinical trials\n- Newer treatment options (tumor treating fields/Optune, immunotherapy trials)\n\n...all play important roles that statistics alone cannot capture.\n\n### Moving Forward\n\nI strongly encourage you to:\n- Have an in-depth discussion with your neuro-oncologist about your specific situation\n- Ask about clinical trials that might be appropriate for you\n- Consider getting a second opinion at a comprehensive cancer center\n- Discuss quality of life goals alongside treatment options\n\nThe **American Cancer Society** emphasizes that while GBM is a serious diagnosis, treatment advances continue to emerge, and supportive care has improved significantly to help maintain quality of life during treatment.\n\nIs there a specific aspect of prognosis or treatment you'd like to discuss further?",
+      "answer_length": 2873,
+      "elapsed_time": 19.619906902313232,
+      "status_code": 200,
+      "error": null,
+      "test_number": 3,
+      "category_name": "brain_cancer",
+      "category": "prognosis",
+      "difficulty": "basic",
+      "expected_keywords": [
+        "survival",
+        "months",
+        "median",
+        "prognosis"
+      ],
+      "note": null,
+      "test_type": "baseline",
+      "timestamp": "2025-10-29T20:05:41.977493",
+      "keywords_found": [
+        "survival",
+        "months",
+        "median",
+        "prognosis"
+      ],
+      "keyword_match_rate": 1.0
+    },
+    {
+      "success": true,
+      "question": "Are there any experimental treatments for GBM?",
+      "cancer_type": "brain",
+      "response_id": "ae3c7405-99d6-44bf-88ea-bdd90f311f9f",
+      "answer": "# Experimental Treatments for Glioblastoma (GBM)\n\nYes, there are several promising experimental approaches being studied for GBM. Here's what's currently in development:\n\n## **Immunotherapy Approaches**\n\n**CAR T-Cell Therapy** is being investigated specifically for GBM, targeting proteins like IL-13R\u03b12 and EGFRvIII that appear on glioblastoma cells. According to **NCCN Guidelines**, while still experimental, early-phase trials have shown some promising responses in recurrent GBM patients.\n\n**Checkpoint Inhibitors** (like nivolumab and pembrolizumab) are being tested, though results have been mixed. The **FDA** has not yet approved these for GBM outside of clinical trials, as GBM tumors have proven more resistant to these drugs than other cancers.\n\n**Tumor-Treating Fields (TTFields)** combined with immunotherapy is an active area of research, building on the FDA-approved Optune device.\n\n## **Targeted Therapies**\n\nAccording to **ASCO Guidelines**, several molecular targets are under investigation:\n\n- **EGFR inhibitors** for tumors with EGFR amplification\n- **BRAF/MEK inhibitors** for rare GBM cases with BRAF mutations\n- **IDH inhibitors** for IDH-mutant gliomas\n- **PARP inhibitors** being tested in combination approaches\n\n## **Vaccine Therapies**\n\n**Personalized tumor vaccines** (like DCVax-L and SurVaxM) are in late-stage trials. These vaccines train your immune system to recognize specific proteins on your tumor cells. The **NCI** notes these represent a novel approach to \"teaching\" the immune system to fight GBM.\n\n## **Oncolytic Virus Therapy**\n\nModified viruses designed to infect and kill cancer cells while sparing normal tissue are being tested. **NCCN** lists several oncolytic viruses in clinical trials, including modified polio virus and herpes simplex virus.\n\n## **Novel Drug Delivery Methods**\n\n- **Convection-enhanced delivery (CED)**: Direct infusion of drugs into the tumor\n- **Focused ultrasound**: Using sound waves to temporarily open the blood-brain barrier\n- **Implantable drug delivery systems**: Beyond the Gliadel wafers currently approved\n\n## **How to Access Experimental Treatments**\n\n**Clinical trials** are the primary way to access these therapies. The **American Cancer Society** recommends:\n\n1. **Ask your neuro-oncologist** about trials you might qualify for\n2. **Search ClinicalTrials.gov** for GBM studies at major cancer centers\n3. **Contact NCI-designated cancer centers** that specialize in brain tumors\n4. **Consider molecular testing** of your tumor to identify targeted therapy trials\n\n## **Important Considerations**\n\nAccording to **NCCN Guidelines**, experimental treatments:\n- May have unknown side effects\n- Require careful monitoring\n- Often involve additional testing and visits\n- May not be covered by insurance\n- Should be discussed thoroughly with your medical team\n\n**The reality**: GBM remains a difficult cancer to treat, but research is very active. Many patients find hope and potential benefit in clinical trials, which also advance science for future patients.\n\n**Next step**: Talk with your neuro-oncologist about whether any experimental approaches might be appropriate for your specific situation, including your tumor's molecular profile and your overall health status.\n\nWould you like information about how to find clinical trials, or do you have questions about any specific experimental approach?",
+      "answer_length": 3383,
+      "elapsed_time": 29.24556016921997,
+      "status_code": 200,
+      "error": null,
+      "test_number": 4,
+      "category_name": "brain_cancer",
+      "category": "treatment",
+      "difficulty": "advanced",
+      "expected_keywords": [
+        "clinical trial",
+        "immunotherapy",
+        "experimental"
+      ],
+      "note": "Tests synonym matching (GBM = glioblastoma)",
+      "test_type": "baseline",
+      "timestamp": "2025-10-29T20:06:13.228661",
+      "keywords_found": [
+        "clinical trial",
+        "immunotherapy",
+        "experimental"
+      ],
+      "keyword_match_rate": 1.0
+    },
+    {
+      "success": true,
+      "question": "How is breast cancer staged?",
+      "cancer_type": "breast",
+      "response_id": "f2b074e0-be0b-4567-9e7b-7a0d12330d6c",
+      "answer": "# How Breast Cancer Is Staged\n\nBreast cancer staging is a systematic way to describe **how much cancer is present in your body and where it has spread** at the time of diagnosis. According to the **NCCN Guidelines**, staging helps your care team predict your prognosis (the likely course your cancer will take) and make informed treatment decisions.\n\n## The TNM Staging System\n\nBreast cancer uses the **TNM system**, which evaluates three key factors:\n\n### **T = Tumor**\nThis describes the size of the primary tumor in your breast, measured in centimeters (cm):\n- **T1**: Tumor is 2 cm (about the size of a large pea) or less\n- **T2**: Tumor is 2.1 to 5 cm\n- **T3**: Tumor is more than 5 cm\n- **T4**: Tumor of any size that has invaded nearby structures like the chest wall or breast skin\n\n### **N = Nodes**\nThis indicates whether cancer has spread to nearby (regional) lymph nodes:\n- **N0**: No cancer in regional lymph nodes\n- **N1, N2, N3**: Cancer found in lymph nodes (higher numbers mean more lymph nodes affected)\n\nAccording to the **NCCN Guidelines**, regional lymph nodes are those near the breast, primarily in the armpit (axilla), but also near the collarbone or breastbone.\n\n### **M = Metastasis**\nThis shows whether cancer has spread to distant parts of the body:\n- **M0**: No evidence of distant spread\n- **M1**: Cancer has spread to distant organs (most commonly bones or lungs)\n\n## The Numbered Stages\n\nThe **NCCN Guidelines** explain that TNM scores are combined with additional factors to assign a numbered stage from 0 to 4:\n\n### **Stage 0** (Noninvasive)\n- Cancer cells remain in place (in situ) in the milk ducts\n- This is **DCIS (Ductal Carcinoma In Situ)**\n- Has not spread to surrounding tissue, lymph nodes, or distant sites\n\n### **Stages 1, 2, and 3** (Invasive but Not Metastatic)\n- Cancer has grown outside the ducts or lobules into surrounding breast tissue\n- May or may not involve nearby lymph nodes\n- Has not spread to distant organs\n\n### **Stage 4** (Metastatic)\n- Cancer has spread to distant parts of the body\n- Can develop from earlier stages or be diagnosed as stage 4 initially (called \"de novo\" metastatic breast cancer)\n\n## Two Types of Staging\n\nThe **NCCN Guidelines** note that breast cancer is often staged **twice**:\n\n1. **Clinical Stage (c)**: Determined before any treatment using physical exams, imaging tests, and biopsies (example: cT2N1M0)\n\n2. **Pathologic Stage (p)**: Determined after surgery by examining the removed tissue, providing more specific and accurate details (example: pT2N1M0)\n\n## Beyond Basic TNM: Prognostic Staging\n\nModern breast cancer staging goes beyond just tumor size and spread. According to the **NCCN Guidelines**, prognostic staging also includes:\n\n- **Hormone receptor status** (ER and PR): Whether cancer cells have estrogen or progesterone receptors\n- **HER2 status**: Whether cancer makes too much HER2 protein\n- **Tumor grade**: How abnormal the cancer cells look under a microscope (G1-G3, with G3 being highest grade)\n- **Biomarker testing**: Specific genes, proteins, or mutations that might guide treatment\n\nThis comprehensive approach helps predict how your cancer will behave and which treatments will work best for your specific situation.\n\n## Key Takeaway\n\nAs the **NCCN Guidelines** emphasize, staging provides crucial information that helps you and your care team make the best treatment decisions together. It's not just about numbers\u2014it's about understanding your unique cancer and creating a personalized treatment plan.\n\n**Questions to ask your care team:**\n- What is my cancer stage and tumor grade?\n- What does my stage mean for treatment options and prognosis?\n- Is cancer in my lymph nodes? If so, which ones?\n- What are my tumor's hormone receptor and HER2 status?",
+      "answer_length": 3765,
+      "elapsed_time": 26.57532286643982,
+      "status_code": 200,
+      "error": null,
+      "test_number": 5,
+      "category_name": "breast_cancer",
+      "category": "diagnosis",
+      "difficulty": "basic",
+      "expected_keywords": [
+        "TNM",
+        "stage",
+        "tumor size",
+        "lymph nodes"
+      ],
+      "note": null,
+      "test_type": "baseline",
+      "timestamp": "2025-10-29T20:06:41.809951",
+      "keywords_found": [
+        "TNM",
+        "stage",
+        "tumor size",
+        "lymph nodes"
+      ],
+      "keyword_match_rate": 1.0
+    },
+    {
+      "success": true,
+      "question": "What is the difference between hormone receptor positive and triple negative breast cancer?",
+      "cancer_type": "breast",
+      "response_id": "33d75393-d58d-4336-b52b-c51c5ab90e3e",
+      "answer": "# Understanding Hormone Receptor-Positive vs. Triple-Negative Breast Cancer\n\nThese are two distinct types of breast cancer based on what proteins are found on the cancer cells. Let me explain the key differences:\n\n## **Hormone Receptor-Positive (HR+) Breast Cancer**\n\nAccording to the **NCCN Guidelines**, hormone receptor-positive breast cancer means the cancer cells have receptors for estrogen (ER+), progesterone (PR+), or both. Here's what this means:\n\n**How it works:**\n- **Estrogen receptors (ER)** are stimulated by estrogen and provide survival and growth signals to cancer cells\n- **Progesterone receptors (PR)** bind progesterone and also provide survival signals\n- When hormones attach to these receptors inside breast cancer cells, they can cause the cancer to grow\n\n**Testing criteria:**\n- A cancer is considered ER+ if testing finds estrogen hormone receptors in at least 1 out of every 100 cancer cells\n- Both ER and PR need to be negative for the cancer to be considered hormone receptor-negative (HR-)\n\n**Treatment advantage:**\nHR+ breast cancers can be treated with **endocrine therapy** (also called hormone therapy), which either blocks estrogen receptor signaling or decreases estrogen production in the body. This gives patients an important targeted treatment option.\n\n## **Triple-Negative Breast Cancer**\n\nTriple-negative breast cancer means the cancer cells test negative for all three key receptors:\n- **Estrogen receptor-negative (ER-)**\n- **Progesterone receptor-negative (PR-)**\n- **HER2-negative** (doesn't make too much of the HER2 protein)\n\n**Key characteristics:**\n- These cancers don't have the hormone receptors that fuel HR+ cancers\n- They also don't overproduce HER2 protein\n- According to **NCCN Guidelines**, HR- cancers often grow faster than HR+ cancers\n- They cannot be treated with endocrine therapy or HER2-targeted therapies\n\n## **Why This Matters for Treatment**\n\nThe **American Cancer Society** and **NCCN** emphasize that knowing your cancer's receptor status is crucial because:\n\n1. **HR+ cancers** respond to endocrine therapies that block hormones\n2. **Triple-negative cancers** require different approaches, typically chemotherapy and sometimes immunotherapy\n3. Treatment is personalized based on these biomarkers\n\nBoth types can occur in inflammatory breast cancer (IBC), and as the **NCCN Guidelines** note: \"IBC can vary in its expression of these receptors and is not confined to one subtype of breast cancer.\"\n\n**Important:** Your pathology report will include your specific receptor status, which your care team uses to create your personalized treatment plan. Always discuss your specific results with your oncologist to understand what they mean for your individual situation.",
+      "answer_length": 2737,
+      "elapsed_time": 20.173412084579468,
+      "status_code": 200,
+      "error": null,
+      "test_number": 6,
+      "category_name": "breast_cancer",
+      "category": "subtype",
+      "difficulty": "intermediate",
+      "expected_keywords": [
+        "ER",
+        "PR",
+        "HER2",
+        "receptor"
+      ],
+      "note": null,
+      "test_type": "baseline",
+      "timestamp": "2025-10-29T20:07:03.992957",
+      "keywords_found": [
+        "ER",
+        "PR",
+        "HER2",
+        "receptor"
+      ],
+      "keyword_match_rate": 1.0
+    },
+    {
+      "success": true,
+      "question": "Should I get genetic testing for breast cancer?",
+      "cancer_type": "breast",
+      "response_id": "3c0b9339-8a3f-4456-b9b9-3ca9dcc628d1",
+      "answer": "# Should You Get Genetic Testing for Breast Cancer?\n\nGenetic testing can be an important part of your breast cancer care, but it's not necessary for everyone. Let me help you understand when it's recommended and why it matters.\n\n## What Genetic Testing Looks For\n\nGenetic testing examines your blood or saliva to look for **germline mutations**\u2014gene changes you inherited from your biological parents that can increase cancer risk. According to the **NCCN Guidelines**, about 1 out of 10 breast cancers are hereditary, meaning they run in families.\n\nThe most well-known genes tested are **BRCA1 and BRCA2**. Everyone has these genes\u2014they normally help prevent tumor growth and fix damaged cells. When these genes mutate (change abnormally), they no longer work correctly. BRCA mutations increase your risk for:\n- Breast cancer\n- Ovarian cancer\n- Prostate cancer\n- Pancreatic cancer\n- Colorectal cancer\n- Melanoma skin cancer\n\nOther important genes include **PALB2, p53, CHEK2, and ATM**, which also affect cancer risk when mutated.\n\n## When Genetic Testing Is Recommended\n\nAccording to **NCCN Guidelines for Patients: Inflammatory Breast Cancer** and **Metastatic Breast Cancer**, you should consider genetic testing if:\n\n1. **You have a family history of cancer**, especially:\n   - Multiple family members with breast, ovarian, pancreatic, or prostate cancer\n   - Cancer diagnosed at young ages (under 50)\n   - The same person having more than one type of cancer\n\n2. **You have certain features of your cancer** that suggest hereditary risk\n\n3. **You have metastatic (stage 4) breast cancer**\u2014the NCCN specifically recommends germline BRCA1/2 testing for all patients with metastatic breast cancer (unless already done recently after 2014)\n\n4. **You have triple-negative breast cancer (TNBC)**\u2014this type has higher rates of hereditary mutations\n\n## Why Genetic Testing Matters\n\n**For Your Treatment:**\n- Mutated BRCA genes can affect how some treatments work\n- Certain targeted therapies work specifically for cancers with BRCA or other mutations\n- Results help your care team choose the most effective treatment plan\n\n**For Your Future Health:**\n- Knowing your mutation status helps plan cancer surveillance\n- Guides decisions about risk-reducing surgeries or medications\n- Helps you understand your risk for other cancers\n\n**For Your Family:**\n- You can pass these gene mutations to your children\n- Other family members (siblings, parents, children) might carry the same mutations\n- They can get tested and take preventive steps if needed\n\n## What to Expect\n\nAccording to the **NCCN Guidelines**, genetic testing involves:\n- A blood draw or saliva sample (spitting into a cup or cheek swab)\n- Meeting with a **genetic counselor** or trained provider who will:\n  - Review your family history\n  - Explain what the test looks for\n  - Discuss what results might mean\n  - Help you understand your options\n\n**Important note:** Testing takes time\u2014it might take days or weeks for results to come in.\n\n## Taking the Next Step\n\nThe **American Cancer Society** and **NCCN** both emphasize that genetic counseling should be part of this process. A genetic counselor can help you:\n- Understand if testing is right for you\n- Interpret your results\n- Make informed decisions about your care\n- Discuss implications for family members\n\n## Questions to Ask Your Care Team\n\n- Based on my cancer type and family history, do you recommend genetic testing?\n- Should I see a genetic counselor?\n- How will the results affect my treatment options?\n- If I have a mutation, what does that mean for my family members?\n- When should testing be done\u2014before or during treatment?\n\n## Bottom Line\n\nGenetic testing is particularly important if you have metastatic breast cancer, triple-negative breast cancer, or a family history of cancer. Even if you don't fit these categories, it's worth discussing with your care team. The results can guide your treatment, help protect your future health, and provide valuable information for your family members.\n\n**Remember:** Having a genetic mutation doesn't mean you caused your cancer or did anything wrong\u2014it's simply information that helps you and your care team make the best decisions for your health.\n\n*Sources: NCCN Guidelines for Patients: Inflammatory Breast Cancer (2025), NCCN Guidelines for Patients: Metastatic Breast Cancer (2024), NCCN Guidelines for Patients: Genetic Testing for Hereditary Breast, Ovarian, Pancreatic, and Prostate Cancers*",
+      "answer_length": 4470,
+      "elapsed_time": 30.051196098327637,
+      "status_code": 200,
+      "error": null,
+      "test_number": 7,
+      "category_name": "breast_cancer",
+      "category": "screening",
+      "difficulty": "basic",
+      "expected_keywords": [
+        "BRCA",
+        "genetic",
+        "mutation",
+        "family history"
+      ],
+      "note": null,
+      "test_type": "baseline",
+      "timestamp": "2025-10-29T20:07:36.049436",
+      "keywords_found": [
+        "BRCA",
+        "genetic",
+        "mutation",
+        "family history"
+      ],
+      "keyword_match_rate": 1.0
+    },
+    {
+      "success": true,
+      "question": "What are the benefits of exercise during breast cancer treatment?",
+      "cancer_type": "breast",
+      "response_id": "6f352aab-0ff4-4206-9422-6b2414350ad2",
+      "answer": "I appreciate your question about exercise during breast cancer treatment. However, I need to be transparent with you: **the medical guidelines I have access to focus specifically on cervical cancer, not breast cancer.** While both are gynecologic cancers, the treatment approaches and specific recommendations can differ significantly.\n\nThat said, I can share some general principles about exercise during cancer treatment that are widely supported across cancer types, though I cannot cite breast cancer-specific guidelines from my trusted sources for this particular question.\n\n## General Benefits of Exercise During Cancer Treatment\n\nResearch across multiple cancer types has shown that appropriate physical activity during treatment can help with:\n\n- **Reducing fatigue** - one of the most common side effects of cancer treatment\n- **Maintaining strength and physical function**\n- **Improving mood and reducing anxiety or depression**\n- **Better sleep quality**\n- **Maintaining a healthy body weight**\n- **Potentially improving treatment outcomes**\n\n## What I Can Tell You From Cervical Cancer Guidelines\n\nAccording to the **NCCN Guidelines** I have access to, cancer survivors are encouraged to exercise at moderate intensity for **at least 150 minutes per week**. However, they emphasize that patients should **talk to their doctor before starting a new exercise regimen**.\n\n## My Strong Recommendation for You\n\n**Please consult with your oncology team** about exercise recommendations specific to:\n- Your type of breast cancer\n- Your current treatment plan\n- Your individual health status and any limitations\n\nYour healthcare team can provide personalized guidance, and many cancer centers have:\n- Oncology rehabilitation specialists\n- Physical therapists trained in cancer care\n- Exercise programs designed for patients in active treatment\n\nI want to help you get accurate, evidence-based information for breast cancer specifically. Is there anything about cervical cancer I can help you with, or would you like guidance on finding reliable breast cancer resources?",
+      "answer_length": 2073,
+      "elapsed_time": 16.354516983032227,
+      "status_code": 200,
+      "error": null,
+      "test_number": 8,
+      "category_name": "breast_cancer",
+      "category": "lifestyle",
+      "difficulty": "basic",
+      "expected_keywords": [
+        "exercise",
+        "physical activity",
+        "fatigue",
+        "quality of life"
+      ],
+      "note": null,
+      "test_type": "baseline",
+      "timestamp": "2025-10-29T20:07:54.410966",
+      "keywords_found": [
+        "exercise",
+        "physical activity",
+        "fatigue"
+      ],
+      "keyword_match_rate": 0.75
+    },
+    {
+      "success": true,
+      "question": "What are the latest immunotherapy options for lung cancer?",
+      "cancer_type": "lung",
+      "response_id": "322afbfb-8886-47c2-b6ae-9c805510d479",
+      "answer": "# Latest Immunotherapy Options for Lung Cancer\n\nImmunotherapy has revolutionized lung cancer treatment over the past decade. Here are the current evidence-based options:\n\n## **Checkpoint Inhibitors (Most Common)**\n\nThese medications help your immune system recognize and attack cancer cells by blocking proteins that prevent immune response:\n\n### **First-Line Treatment (Initial Therapy)**\n- **Pembrolizumab (Keytruda)** - FDA-approved for metastatic NSCLC with high PD-L1 expression (\u226550%), either alone or combined with chemotherapy. According to **NCCN Guidelines**, this is a preferred first-line option for many patients.\n- **Cemiplimab (Libtayo)** - Approved for advanced NSCLC with PD-L1 \u226550%\n- **Atezolizumab (Tecentriq)** - Used with chemotherapy and bevacizumab for metastatic non-squamous NSCLC, per **FDA approval**\n\n### **After Prior Treatment**\n- **Nivolumab (Opdivo)** - **ASCO Guidelines** support its use after platinum-based chemotherapy\n- **Dostarlimab (Jemperli)** - Recently approved option\n\n## **Combination Approaches**\n\n**NCCN Guidelines** now emphasize combination strategies:\n- **Dual checkpoint inhibition**: Nivolumab + ipilimumab (Yervoy) for patients with PD-L1 \u22651%\n- **Immunotherapy + chemotherapy**: Often more effective than either alone\n- **Immunotherapy + targeted therapy**: For patients with specific mutations\n\n## **Small Cell Lung Cancer (SCLC)**\n\nAccording to **American Cancer Society** recommendations:\n- **Atezolizumab or durvalumab** combined with chemotherapy for extensive-stage SCLC\n- Represents significant progress for this aggressive cancer type\n\n## **Important Considerations**\n\n**Biomarker testing** is essential - your oncologist will test for:\n- **PD-L1 expression levels** (helps predict response)\n- **Tumor mutational burden (TMB)** - higher levels may respond better\n- **Specific gene mutations** (EGFR, ALK) - these typically receive targeted therapy first\n\n### **Who Benefits Most?**\nNot everyone responds equally. **NCCN Guidelines** indicate better responses in patients with:\n- Higher PD-L1 expression\n- Non-squamous histology (for some drugs)\n- No contraindications like active autoimmune disease\n\n## **Next Steps**\n\nI strongly encourage you to:\n1. **Ask your oncologist about PD-L1 testing** if not already done\n2. **Discuss which immunotherapy regimen** fits your specific cancer characteristics\n3. **Understand potential side effects** (immune-related adverse events)\n4. **Ask about clinical trials** - new combinations are constantly being studied\n\nWould you like more information about how these treatments work, their side effects, or how to prepare for immunotherapy treatment?",
+      "answer_length": 2647,
+      "elapsed_time": 19.04074192047119,
+      "status_code": 200,
+      "error": null,
+      "test_number": 9,
+      "category_name": "lung_cancer",
+      "category": "treatment",
+      "difficulty": "advanced",
+      "expected_keywords": [
+        "pembrolizumab",
+        "nivolumab",
+        "checkpoint inhibitor",
+        "PD-1"
+      ],
+      "note": null,
+      "test_type": "baseline",
+      "timestamp": "2025-10-29T20:08:15.457857",
+      "keywords_found": [
+        "pembrolizumab",
+        "nivolumab",
+        "checkpoint inhibitor"
+      ],
+      "keyword_match_rate": 0.75
+    },
+    {
+      "success": true,
+      "question": "How does targeted therapy work for lung cancer?",
+      "cancer_type": "lung",
+      "response_id": "275d829e-6d1b-4165-bf5e-8b7b508df8ee",
+      "answer": "I appreciate your question about targeted therapy for lung cancer. However, I need to clarify something important: **the medical guidelines I have access to are specifically for Acute Lymphoblastic Leukemia (ALL), not lung cancer.** These are two very different types of cancer with different treatment approaches.\n\nThat said, I can explain the general concept of targeted therapy based on the ALL guidelines, which may help you understand the principle, though the specific drugs and targets differ significantly for lung cancer.\n\n## How Targeted Therapy Works (General Principle)\n\nAccording to the **NCCN Guidelines for Acute Lymphoblastic Leukemia**, targeted therapy is defined as:\n\n> \"a form of systemic therapy that focuses on specific or unique features of cancer cells. Targeted therapies seek out how cancer cells grow, divide, and move in the body. These drugs stop the action of molecules that help cancer cells grow and/or survive.\"\n\n### The Basic Mechanism:\n\n1. **Identifies specific targets**: These therapies look for particular proteins or genetic mutations that cancer cells use to grow\n2. **Blocks growth signals**: They interrupt the chemical signals that tell cancer cells to multiply\n3. **More precise than chemotherapy**: Unlike chemotherapy (which affects all fast-growing cells), targeted therapy aims specifically at cancer cell characteristics\n\n### Example from the Guidelines:\n\nThe NCCN Guidelines describe **tyrosine kinase inhibitors (TKIs)** for ALL, which \"block the signals that cause cancer to grow and spread.\" These drugs work by stopping proteins from transferring chemicals between molecules\u2014essentially cutting off the cancer's growth signals.\n\n## Important for Lung Cancer:\n\n**For lung cancer specifically**, you would need:\n- **Biomarker testing** to identify which mutations your cancer has (such as EGFR, ALK, ROS1, KRAS, or others)\n- **Lung cancer-specific targeted therapies** approved by the FDA for those particular mutations\n- Guidance from **NCCN Guidelines for Non-Small Cell Lung Cancer** or **Small Cell Lung Cancer**\n\n### My Recommendation:\n\nI strongly encourage you to:\n1. **Ask your oncologist** about biomarker/genetic testing for your specific lung cancer\n2. **Request information** about targeted therapies appropriate for YOUR cancer's genetic profile\n3. **Consult lung cancer-specific resources** from trusted organizations like:\n   - NCCN Guidelines for Lung Cancer (available at NCCN.org/patientguidelines)\n   - American Cancer Society lung cancer information\n   - LUNGevity Foundation\n\n**I cannot provide specific lung cancer treatment guidance** because that would require lung cancer-specific medical guidelines, which I don't have access to in this context. Your care team can provide accurate, personalized information based on your specific diagnosis and test results.\n\nIs there anything about ALL treatment I can help clarify, or would you like guidance on where to find reliable lung cancer information?",
+      "answer_length": 2972,
+      "elapsed_time": 20.94087505340576,
+      "status_code": 200,
+      "error": null,
+      "test_number": 10,
+      "category_name": "lung_cancer",
+      "category": "treatment",
+      "difficulty": "intermediate",
+      "expected_keywords": [
+        "EGFR",
+        "ALK",
+        "targeted therapy",
+        "mutation"
+      ],
+      "note": null,
+      "test_type": "baseline",
+      "timestamp": "2025-10-29T20:08:38.404285",
+      "keywords_found": [
+        "EGFR",
+        "ALK",
+        "targeted therapy",
+        "mutation"
+      ],
+      "keyword_match_rate": 1.0
+    },
+    {
+      "success": true,
+      "question": "What is bipolar androgen therapy?",
+      "cancer_type": "prostate",
+      "response_id": "9c65ebf2-9f18-420f-9764-b2e169b2ac1e",
+      "answer": "# Bipolar Androgen Therapy (BAT)\n\nBipolar androgen therapy is an innovative treatment approach for prostate cancer that takes a counterintuitive strategy: instead of continuously blocking testosterone (the hormone that typically fuels prostate cancer), it alternates between **removing testosterone** and then **flooding the body with high doses of testosterone**.\n\n## How It Works\n\nThe treatment cycles between two opposite states:\n\n1. **Androgen deprivation** - Using standard hormone therapy to lower testosterone levels\n2. **Testosterone flooding** - Administering high doses of testosterone to create supraphysiologic (abnormally high) levels\n\nThis \"bipolar\" approach creates dramatic swings in hormone levels, which can actually work against cancer cells that have adapted to low testosterone environments.\n\n## The Evolutionary Strategy\n\nAccording to discussions with **Dr. Emmanuel Antonarakis**, a leading proponent of this approach, BAT works on an evolutionary principle:\n\n- Cancer cells that were surviving in low-testosterone conditions (castration-resistant cells) may actually be vulnerable to sudden testosterone surges\n- The high testosterone can suppress these resistant cancer cell populations\n- Meanwhile, cells that respond to normal androgen levels are controlled during the deprivation phase\n- This back-and-forth prevents any single resistant clone from dominating\n\nAs noted in research discussions, BAT represents \"taking the evolutionary approach that has been proposed to an extreme\" - it's an aggressive application of adaptive therapy principles.\n\n## Clinical Evidence and Patient Responses\n\n**Current Status:**\n- BAT has shown particular promise in patients with **DNA damage repair pathway mutations**\n- Initial reports have been primarily case studies rather than large randomized trials\n- Some patients have shown good responses, particularly after standard androgen deprivation therapy has stopped working\n- There are reports of patients responding well to immune checkpoint inhibitors following BAT treatment\n\n**According to clinical experience shared by prostate cancer specialists**, patients on BAT report it's \"a whole different ball game\" compared to continuous hormone therapy, with different side effect profiles and energy levels.\n\n## Important Considerations\n\n**This is still an evolving treatment approach:**\n- Most evidence comes from specialized centers and case reports\n- It requires careful medical supervision and monitoring\n- Not all patients are appropriate candidates\n- The optimal cycling schedule is still being refined\n\n**Consult with your oncologist** if you're interested in BAT, particularly if:\n- You have castration-resistant prostate cancer\n- Standard hormone therapy is no longer working effectively\n- You have DNA repair pathway mutations\n- You're being treated at a center with BAT experience\n\nWould you like to know more about how BAT compares to standard hormone therapy, or about the specific side effects patients experience?\n\n---\n**Sources cited:** Clinical research discussions with Dr. Emmanuel Antonarakis (Johns Hopkins), evolutionary therapy principles, and patient experience reports from specialized prostate cancer treatment programs.",
+      "answer_length": 3211,
+      "elapsed_time": 22.342622995376587,
+      "status_code": 200,
+      "error": null,
+      "test_number": 11,
+      "category_name": "prostate_cancer",
+      "category": "treatment",
+      "difficulty": "advanced",
+      "expected_keywords": [
+        "testosterone",
+        "androgen",
+        "cycling",
+        "BAT"
+      ],
+      "note": "Tests webinar content retrieval",
+      "test_type": "baseline",
+      "timestamp": "2025-10-29T20:09:02.753015",
+      "keywords_found": [
+        "testosterone",
+        "androgen",
+        "cycling",
+        "BAT"
+      ],
+      "keyword_match_rate": 1.0
+    },
+    {
+      "success": true,
+      "question": "What are the side effects of hormone therapy for prostate cancer?",
+      "cancer_type": "prostate",
+      "response_id": "67b6f1f4-fe9f-41f3-9639-d5d1f5b0ba86",
+      "answer": "I appreciate your question about hormone therapy for prostate cancer. However, I need to be transparent with you: **the medical guidelines I have access to focus specifically on Acute Lymphoblastic Leukemia (ALL), not prostate cancer.** These sources don't contain information about hormone therapy for prostate cancer.\n\n## What I Can Tell You\n\nWhile I cannot provide specific information from authoritative prostate cancer guidelines, I can share that hormone therapy (also called androgen deprivation therapy or ADT) is indeed a common treatment for prostate cancer, but I would not be providing you with properly sourced medical information if I elaborated further.\n\n## What You Should Do\n\nFor accurate, evidence-based information about hormone therapy side effects for prostate cancer, I strongly recommend:\n\n1. **Consult with your oncologist or urologist** - They can discuss specific side effects based on the exact type of hormone therapy being considered\n\n2. **Access trusted prostate cancer resources:**\n   - **NCCN (National Comprehensive Cancer Network)** has specific guidelines for prostate cancer patients at NCCN.org/patientguidelines\n   - **American Cancer Society** provides detailed prostate cancer information\n   - **American Urological Association (AUA)** offers prostate cancer guidelines\n\n3. **Ask your care team for:**\n   - A complete list of potential side effects for your specific treatment\n   - Which side effects are most common vs. rare\n   - How side effects can be managed or prevented\n   - What symptoms require immediate medical attention\n\nI apologize I cannot provide the specific information you're looking for, but getting information from the correct prostate cancer guidelines will serve you much better than general information I might provide without proper sourcing.\n\nIs there anything about ALL treatment or care that I can help you with instead?",
+      "answer_length": 1887,
+      "elapsed_time": 15.379602909088135,
+      "status_code": 200,
+      "error": null,
+      "test_number": 12,
+      "category_name": "prostate_cancer",
+      "category": "side_effects",
+      "difficulty": "basic",
+      "expected_keywords": [
+        "hot flashes",
+        "fatigue",
+        "bone loss",
+        "ADT"
+      ],
+      "note": null,
+      "test_type": "baseline",
+      "timestamp": "2025-10-29T20:09:20.138348",
+      "keywords_found": [
+        "ADT"
+      ],
+      "keyword_match_rate": 0.25
+    },
+    {
+      "success": true,
+      "question": "What lifestyle changes can help during cancer treatment?",
+      "cancer_type": null,
+      "response_id": "d2bb73ba-5818-49f2-ba20-b8d3736f1baa",
+      "answer": "# Lifestyle Changes to Support You During Cancer Treatment\n\nMaking thoughtful lifestyle adjustments can significantly improve how you feel during treatment and support your overall well-being. Here are evidence-based recommendations from leading cancer organizations:\n\n## **Nutrition and Eating Well**\n\n**According to the American Cancer Society**, maintaining good nutrition is crucial during treatment. Focus on:\n- **Eating small, frequent meals** (5-6 times daily) if you have appetite changes\n- **Prioritizing protein** to help your body repair tissues and maintain strength\n- **Staying hydrated** - aim for 8-10 cups of fluids daily unless your doctor advises otherwise\n- **Managing side effects** through food choices (bland foods for nausea, soft foods for mouth sores)\n\n## **Physical Activity**\n\n**The ASCO (American Society of Clinical Oncology) Guidelines** strongly recommend:\n- **At least 150 minutes of moderate exercise weekly** if possible, adjusted to your energy levels\n- **Strength training 2-3 times per week** to combat muscle loss and fatigue\n- **Even light activity matters** - short walks, gentle stretching, or chair exercises can help reduce treatment-related fatigue (a condition called cancer-related fatigue or CRF)\n\nThe key is finding what works for your current abilities and gradually building up.\n\n## **Rest and Sleep**\n\n**The National Cancer Institute (NCI)** emphasizes quality sleep:\n- Maintain a consistent sleep schedule\n- Create a restful environment (cool, dark, quiet)\n- Limit screen time before bed\n- Take short naps (20-30 minutes) if needed, but avoid long daytime sleep that disrupts nighttime rest\n\n## **Stress Management**\n\n**NCCN (National Comprehensive Cancer Network) Guidelines** recognize that emotional well-being directly impacts physical health:\n- **Mind-body practices** like meditation, yoga, or deep breathing\n- **Support groups** - connecting with others facing similar challenges\n- **Professional counseling** when anxiety or depression interfere with daily life\n- **Enjoyable activities** that provide distraction and normalcy\n\n## **Important Considerations**\n\n- **Always consult your healthcare team** before starting new supplements, as some can interfere with treatment\n- **Avoid alcohol and tobacco**, which can worsen side effects and reduce treatment effectiveness\n- **Communicate openly** with your medical team about side effects - many can be managed with adjustments\n\n## **Remember**\n\nThese changes should be **personalized to your specific situation**. What works during one phase of treatment may need adjustment during another. Your oncology team, including oncology nurses and dietitians, can help tailor these recommendations to your cancer type, treatment plan, and individual needs.\n\nWould you like more specific information about any of these areas, or do you have questions about managing particular side effects?",
+      "answer_length": 2892,
+      "elapsed_time": 18.18562889099121,
+      "status_code": 200,
+      "error": null,
+      "test_number": 13,
+      "category_name": "general",
+      "category": "lifestyle",
+      "difficulty": "basic",
+      "expected_keywords": [
+        "nutrition",
+        "exercise",
+        "rest",
+        "stress"
+      ],
+      "note": null,
+      "test_type": "baseline",
+      "timestamp": "2025-10-29T20:09:40.329379",
+      "keywords_found": [
+        "nutrition",
+        "exercise",
+        "rest",
+        "stress"
+      ],
+      "keyword_match_rate": 1.0
+    },
+    {
+      "success": true,
+      "question": "How can I manage cancer-related fatigue?",
+      "cancer_type": null,
+      "response_id": "d4562bac-e920-4171-ba78-863cc1bb8404",
+      "answer": "# Managing Cancer-Related Fatigue\n\nCancer-related fatigue is one of the most common and challenging side effects patients face. It's different from normal tiredness - it doesn't improve much with rest and can significantly impact your daily life. Here are evidence-based strategies to help manage it:\n\n## Physical Activity (Counterintuitive but Effective)\n\n**According to NCCN Guidelines**, moderate exercise is one of the most effective interventions for cancer-related fatigue. Even light activity like:\n- Short 10-15 minute walks\n- Gentle stretching or yoga\n- Resistance training (with your doctor's approval)\n\nThe key is starting slowly and gradually increasing as tolerated. Exercise actually helps reduce fatigue rather than worsening it.\n\n## Energy Conservation Strategies\n\n**The American Cancer Society recommends** these practical approaches:\n- **Prioritize activities**: Focus energy on what matters most to you\n- **Plan rest periods**: Schedule short breaks before you become exhausted\n- **Accept help**: Let others assist with tasks like cooking, cleaning, or errands\n- **Track your energy**: Keep a fatigue diary to identify your best times of day\n\n## Medical Management\n\n**ASCO Guidelines** emphasize treating underlying causes:\n- **Anemia management**: Your oncologist may recommend medications like erythropoiesis-stimulating agents (ESAs) or iron supplementation if blood counts are low\n- **Nutrition support**: Work with a dietitian to ensure adequate calories and protein\n- **Sleep hygiene**: Address insomnia or sleep disturbances\n- **Medication review**: Some drugs may worsen fatigue and could be adjusted\n\n## When to Contact Your Healthcare Team\n\nReach out if you experience:\n- Sudden worsening of fatigue\n- Dizziness or confusion\n- Shortness of breath\n- Inability to perform basic self-care\n\n## Important Note\n\nEvery patient's fatigue is unique, and what works varies by individual, cancer type, and treatment phase. **Please discuss these strategies with your oncology team** - they can tailor recommendations to your specific situation and rule out treatable causes like anemia, thyroid problems, or depression.\n\nWould you like more specific information about any of these strategies?",
+      "answer_length": 2210,
+      "elapsed_time": 16.881271839141846,
+      "status_code": 200,
+      "error": null,
+      "test_number": 14,
+      "category_name": "general",
+      "category": "supportive_care",
+      "difficulty": "basic",
+      "expected_keywords": [
+        "fatigue",
+        "rest",
+        "exercise",
+        "energy"
+      ],
+      "note": null,
+      "test_type": "baseline",
+      "timestamp": "2025-10-29T20:09:59.214775",
+      "keywords_found": [
+        "fatigue",
+        "rest",
+        "exercise",
+        "energy"
+      ],
+      "keyword_match_rate": 1.0
+    },
+    {
+      "success": true,
+      "question": "What should I know about clinical trials?",
+      "cancer_type": null,
+      "response_id": "9ca86c20-b68a-4daf-9de4-4443f9a554f4",
+      "answer": "# Understanding Clinical Trials: A Comprehensive Guide\n\nClinical trials are research studies that test new treatments, drugs, or approaches to cancer care. Here's what you should know:\n\n## **What Are Clinical Trials?**\n\nClinical trials evaluate whether new treatments are **safe and effective** before they become standard care. They test innovations like new drugs, drug combinations, surgical techniques, radiation methods, or prevention strategies.\n\n**According to the National Cancer Institute (NCI)**, clinical trials happen in phases:\n- **Phase I**: Tests safety and dosage (20-80 participants)\n- **Phase II**: Evaluates effectiveness and side effects (100-300 participants)\n- **Phase III**: Compares new treatment to standard care (hundreds to thousands of participants)\n- **Phase IV**: Monitors long-term effects after FDA approval\n\n## **Key Benefits to Consider**\n\n**The American Cancer Society** highlights these potential advantages:\n- Access to promising new treatments before they're widely available\n- Close monitoring by a specialized medical team\n- Contributing to cancer research that helps future patients\n- Receiving cutting-edge care at no cost (investigational treatment is typically free)\n\n## **Important Considerations**\n\n**ASCO (American Society of Clinical Oncology) Guidelines** emphasize understanding:\n- **Eligibility criteria**: Specific requirements based on cancer type, stage, and prior treatments\n- **Informed consent**: You'll receive detailed information about risks, benefits, and alternatives\n- **Randomization**: Some trials randomly assign treatments; you may receive standard care instead of the experimental treatment\n- **Side effects**: New treatments may have unknown or unexpected side effects\n- **Time commitment**: More frequent visits and monitoring than standard care\n\n## **Protections in Place**\n\nAll clinical trials must be:\n- Approved by an **Institutional Review Board (IRB)** that protects participant rights\n- Registered with the FDA and monitored for safety\n- Conducted with your **voluntary informed consent** - you can leave at any time\n\n## **Finding Trials**\n\n**The NCI recommends** these resources:\n- **ClinicalTrials.gov**: Comprehensive federal database\n- **NCI's Cancer Information Service**: 1-800-4-CANCER\n- Your oncologist's recommendations\n- Major cancer centers often have trial coordinators\n\n## **Questions to Ask Your Team**\n\n- What is the purpose of this trial?\n- What are the potential risks and benefits compared to standard treatment?\n- What will my participation involve (visits, tests, duration)?\n- Who will oversee my care?\n- What happens if the treatment doesn't work or I experience side effects?\n- Will I have any costs?\n\n## **Important to Remember**\n\nClinical trials are **completely voluntary**. Choosing not to participate won't affect your standard care. Many patients find trials offer hope and access to innovation, while others prefer established treatments.\n\n**Your healthcare team is your best resource** for discussing whether a specific trial matches your situation, values, and treatment goals.\n\nWould you like help finding trials for a specific cancer type, or do you have questions about a particular trial you're considering?",
+      "answer_length": 3219,
+      "elapsed_time": 20.09436273574829,
+      "status_code": 200,
+      "error": null,
+      "test_number": 15,
+      "category_name": "general",
+      "category": "research",
+      "difficulty": "intermediate",
+      "expected_keywords": [
+        "clinical trial",
+        "research",
+        "enrollment",
+        "phases"
+      ],
+      "note": null,
+      "test_type": "baseline",
+      "timestamp": "2025-10-29T20:10:21.315001",
+      "keywords_found": [
+        "clinical trial",
+        "research",
+        "phases"
+      ],
+      "keyword_match_rate": 0.75
+    },
+    {
+      "success": true,
+      "question": "What are the treatment options for breast cancer?",
+      "cancer_type": "brain",
+      "response_id": "6d305133-0006-4d37-b08c-34961f5fd665",
+      "answer": "I appreciate your question, but I want to clarify something important: you mentioned having brain cancer in your profile, but you're asking about breast cancer treatment. I want to make sure I'm providing you with the most relevant information for your situation.\n\n**If you're asking about breast cancer that has spread to the brain (brain metastases):**\n\nThis requires a coordinated approach between oncology and neuro-oncology teams. According to **NCCN Guidelines**, treatment typically includes:\n\n1. **Local brain treatments:**\n   - Stereotactic radiosurgery (SRS) - precisely targeted radiation for 1-4 metastases\n   - Whole brain radiation therapy (WBRT) - for multiple metastases\n   - Surgical resection - for accessible, symptomatic lesions\n\n2. **Systemic therapies** (treating cancer throughout the body):\n   - HER2-targeted therapies like tucatinib or trastuzumab deruxtecan, which **FDA-approved** specifically because they can cross the blood-brain barrier\n   - Hormone therapy for ER/PR-positive cancers\n   - Chemotherapy regimens selected based on breast cancer subtype\n\n**If you're asking about primary breast cancer treatment options in general:**\n\nAccording to **ASCO Guidelines** and the **American Cancer Society**, treatment depends on several factors (stage, hormone receptor status, HER2 status, and overall health):\n\n1. **Surgery:** Lumpectomy or mastectomy\n2. **Radiation therapy:** Often after lumpectomy or for certain high-risk features\n3. **Chemotherapy:** Various regimens based on cancer characteristics\n4. **Hormone therapy:** For ER/PR-positive cancers (tamoxifen, aromatase inhibitors)\n5. **Targeted therapy:** HER2-targeted drugs for HER2-positive cancers\n6. **Immunotherapy:** For triple-negative breast cancer in certain situations\n\n**Could you clarify which situation applies to you?** This will help me provide more specific, relevant information from the appropriate guidelines for your care.",
+      "answer_length": 1931,
+      "elapsed_time": 15.1146559715271,
+      "status_code": 200,
+      "error": null,
+      "test_number": 16,
+      "category_name": "edge_cases",
+      "category": "treatment",
+      "difficulty": "edge_case",
+      "expected_keywords": [
+        "surgery",
+        "chemotherapy",
+        "radiation",
+        "hormone therapy"
+      ],
+      "note": "Tests cancer type mismatch handling",
+      "test_type": "baseline",
+      "timestamp": "2025-10-29T20:10:38.430859",
+      "keywords_found": [
+        "surgery",
+        "chemotherapy",
+        "radiation",
+        "hormone therapy"
+      ],
+      "keyword_match_rate": 1.0
+    },
+    {
+      "success": true,
+      "question": "Tell me about pancreatic cancer",
+      "cancer_type": "brain",
+      "response_id": "bdb79350-0569-4092-a8e0-45b015490185",
+      "answer": "# Understanding Pancreatic Cancer\n\nPancreatic cancer is a disease where cells in the pancreas grow out of control. Let me explain what this means and what you should know about it.\n\n## What is the Pancreas?\n\nThe pancreas is a gland located deep inside your abdomen (belly area), just below your stomach and behind the lower part of your rib cage. It's about 6 inches long and performs two critical jobs:\n\n1. **Digestive function**: It makes enzymes (special proteins) that help break down the food you eat\n2. **Blood sugar control**: It produces hormones like insulin that regulate your blood sugar levels\n\n## Types of Pancreatic Cancer\n\nAccording to the **NCCN Guidelines**, the most common type is **pancreatic adenocarcinoma**, which forms from exocrine cells that line the ducts (small tubes) of the pancreas. This is the type that most medical guidelines focus on when discussing pancreatic cancer.\n\n## Cancer Stages\n\nThe **NCCN Guidelines** describe five stages of pancreatic cancer, ranging from stage 0 to stage 4:\n\n- **Stage 0**: Cancer is only in the duct lining\n- **Stage 1**: Cancer is only in the pancreas\n- **Stage 2**: Cancer may have spread to 1-3 nearby lymph nodes (small bean-shaped structures that help fight disease) or the tumor is larger than 4 centimeters\n- **Stage 3**: Cancer has grown to nearby major arteries or spread to 4 or more lymph nodes\n- **Stage 4**: Cancer has spread far from the pancreas (metastatic cancer), commonly to the liver, lungs, or abdominal lining\n\n## Symptoms to Watch For\n\nUnfortunately, pancreatic cancer often shows no symptoms in early stages. When symptoms do appear, they may include:\n\n- **Jaundice**: Yellowing of the skin or eyes\n- Abdominal or back pain\n- Unexplained weight loss\n- Loss of appetite\n- Light-colored stools or dark urine\n- Digestive problems\n\n**Important note**: These symptoms can also be caused by other health conditions, so they don't necessarily mean you have pancreatic cancer.\n\n## Who is at Risk?\n\nAccording to the **NCCN Guidelines**, about **1 in 10 pancreatic cancers are hereditary**, meaning a higher risk was passed down through genes from your parents. Risk factors include:\n\n- **Family history**: Having close relatives with pancreatic cancer or certain other cancers (breast, ovarian, colon)\n- **Genetic mutations**: Inherited changes in genes like BRCA1, BRCA2, and others\n- **Age**: Risk increases as you get older\n- **Lifestyle factors**: Smoking and obesity increase risk\n\n## How is it Diagnosed?\n\nThe **NCCN Guidelines** recommend several tests:\n\n1. **Imaging**: CT or MRI scans using special \"pancreatic protocols\" to get the clearest pictures\n2. **Biopsy**: Removing small tissue samples to confirm cancer cells are present\n3. **Blood tests**: Including liver function tests and CA 19-9 marker levels\n4. **Genetic testing**: To check for inherited mutations that might affect treatment options\n5. **Biomarker testing**: To create a \"molecular profile\" of your specific cancer\n\n## Treatment Approaches\n\nTreatment depends on the cancer stage and your overall health:\n\n- **Surgery**: For some people with stage 1, 2, or 3 cancer, surgery to remove the tumor may be an option. According to the **NCCN Guidelines**, more people can have surgery now than in the past due to medical advances.\n\n- **Drug treatment**: For most people, chemotherapy and other medications are used to control cancer growth and reduce symptoms\n\n- **Clinical trials**: The **NCCN Guidelines** note that clinical trials offer hope to all people with pancreatic cancer by testing new treatments\n\n## The Importance of Expert Care\n\nThe **NCCN Guidelines** strongly emphasize that **pancreatic cancer is complex and requires a multidisciplinary team** of experts, including:\n\n- Surgical oncologists\n- Medical oncologists\n- Radiation oncologists\n- Gastroenterologists\n- Diagnostic and interventional radiologists\n- Pathologists\n- Genetic counselors\n- Palliative care providers\n\nThe guidelines recommend seeking care at a **high-volume center** with extensive experience treating pancreatic cancer.\n\n## Supportive Care Matters\n\nAccording to the **NCCN Guidelines**, supportive care should start as soon as possible. This includes:\n\n- Managing symptoms like blocked bile ducts or pain\n- Nutritional support for digestive issues\n- Emotional and mental health support\n- Advance care planning\n\n## A Message of Hope\n\nWhile pancreatic cancer is serious, the **NCCN Guidelines** note that treatment options have improved significantly in recent years. Genetic testing and biomarker profiling now allow for more personalized treatment approaches. Some treatments target specific genetic mutations found in your cancer, potentially improving outcomes.\n\n---\n\n**Do you have specific questions about pancreatic cancer?** I'm here to help you understand your diagnosis, treatment options, or any aspect of this disease. Please don't hesitate to ask.",
+      "answer_length": 4897,
+      "elapsed_time": 29.809722185134888,
+      "status_code": 200,
+      "error": null,
+      "test_number": 17,
+      "category_name": "edge_cases",
+      "category": "general",
+      "difficulty": "edge_case",
+      "expected_keywords": [
+        "pancreas",
+        "treatment",
+        "prognosis"
+      ],
+      "note": "Tests robustness when profile != question",
+      "test_type": "baseline",
+      "timestamp": "2025-10-29T20:11:10.244596",
+      "keywords_found": [
+        "pancreas",
+        "treatment"
+      ],
+      "keyword_match_rate": 0.6666666666666666
+    }
+  ]
+}

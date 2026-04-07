@@ -1,0 +1,487 @@
+[
+  {
+    "filename": "_A Guy with Two Cancers Explores Treatments and Life\u201d (Burt Rosen) [#112].pdf",
+    "success": false,
+    "error": "[Errno 32] Broken pipe"
+  },
+  {
+    "filename": "_A Marketing Analytics Expert\u2019s Journey Through Testicular Cancer Treatment_ (Scott Petinga) [#123].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/_A Marketing Analytics Expert\u2019s Journey Through Testicular Cancer Treatment_ (Scott Petinga) [}"
+  },
+  {
+    "filename": "_A Patient Uses Novel Testing Services to Guide His Treatment_ (Brad Power) [#83].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/_A Patient Uses Novel Testing Services to Guide His Treatment_ (Brad Power) [}"
+  },
+  {
+    "filename": "_Accessing the Latest Developments in Liquid Biopsies_ (Lauren Leiman and Jenn Dickey) [#148].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/_Accessing the Latest Developments in Liquid Biopsies_ (Lauren Leiman and Jenn Dickey) [}"
+  },
+  {
+    "filename": "_An MD PhD Navigates Breast Cancer_ (Catalina Lopez-Correa, MD, PhD) [#155].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/_An MD PhD Navigates Breast Cancer_ (Catalina Lopez-Correa, MD, PhD) [}"
+  },
+  {
+    "filename": "_How to Care for Yourself When You Have Cancer_ (Thanos Kosmidis) [#165].pdf",
+    "success": false,
+    "error": "[Errno 32] Broken pipe"
+  },
+  {
+    "filename": "_Illuminating the Path of Cancer Care with a Chatbot_ (Vanessa Liu, CareBud) [#82].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/_Illuminating the Path of Cancer Care with a Chatbot_ (Vanessa Liu, CareBud) [}"
+  },
+  {
+    "filename": "_Organoids Guide Treatment Decisions\u201c (Payel Chatterjee, SEngine) [#13].pdf",
+    "success": false,
+    "error": "[Errno 32] Broken pipe"
+  },
+  {
+    "filename": "_Testing Your RNA with Liquid Biopsies\u201d (Alex Rolland) [#116].pdf",
+    "success": false,
+    "error": "[SSL: SSLV3_ALERT_BAD_RECORD_MAC] ssl/tls alert bad record mac (_ssl.c:2648)"
+  },
+  {
+    "filename": "\u201cA Cancer Hacker Solves His Own Needs and Helps Others Access the Best, New, Personalized Tests and Treatments\u201d (Mark Taylor) [#71].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cA Cancer Hacker Solves His Own Needs and Helps Others Access the Best, New, Personalized Tests and Treatments\u201d (Mark Taylor) [}"
+  },
+  {
+    "filename": "\u201cA Hackathon (Molecular Tumor Board) for Advanced Prostate Cancer Patient and Cancer Researcher Dr. Elliot Davis\u201d [#114].pdf",
+    "success": false,
+    "error": "[SSL: SSLV3_ALERT_BAD_RECORD_MAC] ssl/tls alert bad record mac (_ssl.c:2648)"
+  },
+  {
+    "filename": "\u201cA New Blood-based Test which Predicts Your Response to Immune Checkpoint Inhibitors\u201d (Rob Kimmerling and Dennis Watson) [#153].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cA New Blood-based Test which Predicts Your Response to Immune Checkpoint Inhibitors\u201d (Rob Kimmerling and Dennis Watson) [}"
+  },
+  {
+    "filename": "\u201cA Novel Immunotherapy Approach for _Cold_ Cancers\u201d (Gary Onik, MD) [#86].pdf",
+    "success": false,
+    "error": "[SSL: SSLV3_ALERT_BAD_RECORD_MAC] ssl/tls alert bad record mac (_ssl.c:2648)"
+  },
+  {
+    "filename": "\u201cA Patient\u2019s View on Nutrition, Supplements, Integrative Oncology, and Complementary Therapies\u201d (Robert Ellis and Glenn Sabin) [#33].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cA Patient\u2019s View on Nutrition, Supplements, Integrative Oncology, and Complementary Therapies\u201d (Robert Ellis and Glenn Sabin) [}"
+  },
+  {
+    "filename": "\u201cA Rogue Cancer Patient Gets Better Outcomes\u201d (Ari Akerstein) [#109].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cA Rogue Cancer Patient Gets Better Outcomes\u201d (Ari Akerstein) [}"
+  },
+  {
+    "filename": "\u201cA Unique Personalized Killer T-cell Treatment for Glioblastoma_ (Wayne Carter, DVM, PhD) [#110].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cA Unique Personalized Killer T-cell Treatment for Glioblastoma_ (Wayne Carter, DVM, PhD) [}"
+  },
+  {
+    "filename": "\u201cAdaptive Therapy\u201d (Brad Power) [#10].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cAdaptive Therapy\u201d (Brad Power) [}"
+  },
+  {
+    "filename": "\u201cAdding Exercise for Everyday Life and Developing a Medical Device to Personalize Cancer Treatment\u201d (Cathy Skinner) [#47].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cAdding Exercise for Everyday Life and Developing a Medical Device to Personalize Cancer Treatment\u201d (Cathy Skinner) [}"
+  },
+  {
+    "filename": "\u201cAn Engaged Caregiver\u201d (Rochelle Prosser, RN, CLNC) [#101].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cAn Engaged Caregiver\u201d (Rochelle Prosser, RN, CLNC) [}"
+  },
+  {
+    "filename": "\u201cAn Evolutionary Treatment Strategy\u201d (Bob Gatenby, MD) [#9].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cAn Evolutionary Treatment Strategy\u201d (Bob Gatenby, MD) [}"
+  },
+  {
+    "filename": "\u201cBipolar Androgen Therapy for Prostate Cancer_ (Emmanuel Antonarakis) [#56].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cBipolar Androgen Therapy for Prostate Cancer_ (Emmanuel Antonarakis) [}"
+  },
+  {
+    "filename": "\u201cBipolar Androgen Therapy\u201d (Bryce Olson and Bob Gatenby) [#21].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cBipolar Androgen Therapy\u201d (Bryce Olson and Bob Gatenby) [}"
+  },
+  {
+    "filename": "\u201cBlueprint to Beat Cancer\u201d (Robb Owen) [#103].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cBlueprint to Beat Cancer\u201d (Robb Owen) [}"
+  },
+  {
+    "filename": "\u201cBrian McCloskey\u2019s Tissue and Testing\u201d (Brian McCloskey) [#22].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cBrian McCloskey\u2019s Tissue and Testing\u201d (Brian McCloskey) [}"
+  },
+  {
+    "filename": "\u201cBringing Novel Immune System Tests from Research to Clinical Use\u201d (Keith Wharton) [#28].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cBringing Novel Immune System Tests from Research to Clinical Use\u201d (Keith Wharton) [}"
+  },
+  {
+    "filename": "\u201cCancer Scams_ Don\u2019t Get Taken\u201d (Bapcha Murty) [#94].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cCancer Scams_ Don\u2019t Get Taken\u201d (Bapcha Murty) [}"
+  },
+  {
+    "filename": "\u201cCancer Vaccines\u201d (Lisa Butterfield) [#50].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cCancer Vaccines\u201d (Lisa Butterfield) [}"
+  },
+  {
+    "filename": "\u201cCardio-Oncology_ A New Clinical Frontier\u201d (Javid Moslehi, MD) [#129].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cCardio-Oncology_ A New Clinical Frontier\u201d (Javid Moslehi, MD) [}"
+  },
+  {
+    "filename": "\u201cClinical Guidance from Proteomics\u201d (Sheeno Thyparambil) [#26].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cClinical Guidance from Proteomics\u201d (Sheeno Thyparambil) [}"
+  },
+  {
+    "filename": "\u201cComparing Test Results and Treatment Strategies across 10 Advanced Prostate Cancer Patients\u201d (Brian McCloskey) [#45].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cComparing Test Results and Treatment Strategies across 10 Advanced Prostate Cancer Patients\u201d (Brian McCloskey) [}"
+  },
+  {
+    "filename": "\u201cDecisions in Advanced Prostate Cancer\u201d (Rick Stanton) [#8].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cDecisions in Advanced Prostate Cancer\u201d (Rick Stanton) [}"
+  },
+  {
+    "filename": "\u201cDesigning the Right Exercise Program for Your Cancer Situation\u201d (Kathryn Schmitz, PhD, MPH) [#157].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cDesigning the Right Exercise Program for Your Cancer Situation\u201d (Kathryn Schmitz, PhD, MPH) [}"
+  },
+  {
+    "filename": "\u201cDevelopments in Radiation for Cancer Care\u201d (Carl Rossi) [#57].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cDevelopments in Radiation for Cancer Care\u201d (Carl Rossi) [}"
+  },
+  {
+    "filename": "\u201cDrug Combinations Promise Precision\u201d (Ally Perlina, CureMatch) [#5].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cDrug Combinations Promise Precision\u201d (Ally Perlina, CureMatch) [}"
+  },
+  {
+    "filename": "\u201cDrug Combinations and Off-Label Drugs\u201d (Ally Perlina) [#7].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cDrug Combinations and Off-Label Drugs\u201d (Ally Perlina) [}"
+  },
+  {
+    "filename": "\u201cEducating Cancer Patients and Caregivers about Drug Discovery and Development\u201d (Kevin Freiert) [#96].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cEducating Cancer Patients and Caregivers about Drug Discovery and Development\u201d (Kevin Freiert) [}"
+  },
+  {
+    "filename": "\u201cEmpowering Cancer Patients_ Navigating the Complexities of Diagnosis and Care\u201d (Ari Akerstein and Brad Power) [#130].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cEmpowering Cancer Patients_ Navigating the Complexities of Diagnosis and Care\u201d (Ari Akerstein and Brad Power) [}"
+  },
+  {
+    "filename": "\u201cEmpowering Clinicians and Patients with Personalized AI Co-pilots\u201d (Kingsley Ndoh, MD, MPH) [#146].pdf",
+    "success": false,
+    "error": "[SSL: SSLV3_ALERT_BAD_RECORD_MAC] ssl/tls alert bad record mac (_ssl.c:2648)"
+  },
+  {
+    "filename": "\u201cEvaluating Complementary Therapies in Cancer Care\u201d (Martin Luz\u030cbeta\u0301k, MD, MS) [#108].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cEvaluating Complementary Therapies in Cancer Care\u201d (Martin Luz\u030cbeta\u0301k, MD, MS) [}"
+  },
+  {
+    "filename": "\u201cExercise and Cancer Development and Progression_ (Lee Jones, PhD) [#143].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cExercise and Cancer Development and Progression_ (Lee Jones, PhD) [}"
+  },
+  {
+    "filename": "\u201cExercise as a Countermeasure to Hormone Deprivation Therapy Side Effects and for Bone and Mental Health\u201d (Kerri Winters-Stone) [#48].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cExercise as a Countermeasure to Hormone Deprivation Therapy Side Effects and for Bone and Mental Health\u201d (Kerri Winters-Stone) [}"
+  },
+  {
+    "filename": "\u201cExercise to Boost Your Immune System to Fight Cancer\u201d (Dr. Tom Incledon) [#49].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cExercise to Boost Your Immune System to Fight Cancer\u201d (Dr. Tom Incledon) [}"
+  },
+  {
+    "filename": "\u201cExpert Patient Navigation\u201d (Deb Christensen, MSN, APRN) [#99].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cExpert Patient Navigation\u201d (Deb Christensen, MSN, APRN) [}"
+  },
+  {
+    "filename": "\u201cFeedback on My 17 Treatment Options_\u201d (Brian McCloskey) [#15].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cFeedback on My 17 Treatment Options_\u201d (Brian McCloskey) [}"
+  },
+  {
+    "filename": "\u201cFinding Personalized Cancer Treatments Beyond the Standard through a Unique Test\u201d (Travera) [#77].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cFinding Personalized Cancer Treatments Beyond the Standard through a Unique Test\u201d (Travera) [}"
+  },
+  {
+    "filename": "\u201cFinding Trustworthy Alternative Cancer Clinics and Integrative Treatments Worldwide\u201d (Adi Hertz and Paityn Thorne) [#160].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cFinding Trustworthy Alternative Cancer Clinics and Integrative Treatments Worldwide\u201d (Adi Hertz and Paityn Thorne) [}"
+  },
+  {
+    "filename": "\u201cFinding the Best Clinical Trial\u201d (Selin Kurnaz, Massive Bio) [#14].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cFinding the Best Clinical Trial\u201d (Selin Kurnaz, Massive Bio) [}"
+  },
+  {
+    "filename": "\u201cFrom My Breast Cancer to Enabling Genetic Testing Access\u201d (Sandra Balladares, PhD, MSc) [#145].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cFrom My Breast Cancer to Enabling Genetic Testing Access\u201d (Sandra Balladares, PhD, MSc) [}"
+  },
+  {
+    "filename": "\u201cFunctional Drug Testing and AI_ML for Treatment Decisions\u201d (Noah Berlow and Diana Azzam) [#18].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cFunctional Drug Testing and AI_ML for Treatment Decisions\u201d (Noah Berlow and Diana Azzam) [}"
+  },
+  {
+    "filename": "\u201cFunctional Precision Testing\u201d (Tony Letai, MD, PhD) [#11].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cFunctional Precision Testing\u201d (Tony Letai, MD, PhD) [}"
+  },
+  {
+    "filename": "\u201cGetting Access to Your Cancer Treatment_ (Chris Beardmore) [#73].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cGetting Access to Your Cancer Treatment_ (Chris Beardmore) [}"
+  },
+  {
+    "filename": "\u201cGetting a Better Diagnostic (DPYD) into the Standard of Care\u201d (Karen Merritt) [#137].pdf",
+    "success": false,
+    "error": "[SSL: SSLV3_ALERT_BAD_RECORD_MAC] ssl/tls alert bad record mac (_ssl.c:2648)"
+  },
+  {
+    "filename": "\u201cGrowing Your White Blood Cells to Treat Your Cancer\u201d (Matthew Dons) [#79].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cGrowing Your White Blood Cells to Treat Your Cancer\u201d (Matthew Dons) [}"
+  },
+  {
+    "filename": "\u201cGuiding Personalized Treatment for Advanced Prostate Cancer (Round Two)\u201d (Andrew Armstrong) [#70].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cGuiding Personalized Treatment for Advanced Prostate Cancer (Round Two)\u201d (Andrew Armstrong) [}"
+  },
+  {
+    "filename": "\u201cHacking Cancer 0.1, and the Endgame Strategy for Cancer\u201d (Mark Taylor and Gabriele Gavazzi) [#156].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cHacking Cancer 0.1, and the Endgame Strategy for Cancer\u201d (Mark Taylor and Gabriele Gavazzi) [}"
+  },
+  {
+    "filename": "\u201cHacking the Proteome for Cancer Treatment\u201d (Karin Rodland) [#12].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cHacking the Proteome for Cancer Treatment\u201d (Karin Rodland) [}"
+  },
+  {
+    "filename": "\u201cHealing the Cancer Journey_ Tools for Emotional Wellness\u201d (Savio P. Clemente) [#87].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cHealing the Cancer Journey_ Tools for Emotional Wellness\u201d (Savio P. Clemente) [}"
+  },
+  {
+    "filename": "\u201cHelping Patients Navigate Cancer\u201d (Manta Cares) [#93].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cHelping Patients Navigate Cancer\u201d (Manta Cares) [}"
+  },
+  {
+    "filename": "\u201cHow AI Is Shifting the Dynamics of Your Next Doctor Visit\u201d (Ezra Cohen, MD) [#121].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cHow AI Is Shifting the Dynamics of Your Next Doctor Visit\u201d (Ezra Cohen, MD) [}"
+  },
+  {
+    "filename": "\u201cHow Advocacy Leads to Better Patient Outcomes and Experiences\u201d (Steven Merlin) [#126].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cHow Advocacy Leads to Better Patient Outcomes and Experiences\u201d (Steven Merlin) [}"
+  },
+  {
+    "filename": "\u201cHow Daily Lifestyle Interventions Improve Your Cancer Outcomes\u201d (Amanda Grilli) [#158].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cHow Daily Lifestyle Interventions Improve Your Cancer Outcomes\u201d (Amanda Grilli) [}"
+  },
+  {
+    "filename": "\u201cHow Disparities and Workforce Diversity Impact Cancer Patients and Caregivers\u201d (Eugene Manley, PhD) [#111].pdf",
+    "success": false,
+    "error": "[Errno 32] Broken pipe"
+  },
+  {
+    "filename": "\u201cHow Do You Choose Your Diagnostics_ \u2013 A Guide\u201d (Richard Anders and Brad Power) [#100].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cHow Do You Choose Your Diagnostics_ \u2013 A Guide\u201d (Richard Anders and Brad Power) [}"
+  },
+  {
+    "filename": "\u201cHow Hormone Receptors Affect Prostate Cancer\u201d (Ed Friedman) [#59].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cHow Hormone Receptors Affect Prostate Cancer\u201d (Ed Friedman) [}"
+  },
+  {
+    "filename": "\u201cHow I Am Running Experiments on Myself to Control My Prostate Cancer \u2013 Using Bipolar Androgen Therapy\u201d (Russ Hollyer) [#58].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cHow I Am Running Experiments on Myself to Control My Prostate Cancer \u2013 Using Bipolar Androgen Therapy\u201d (Russ Hollyer) [}"
+  },
+  {
+    "filename": "\u201cHow I Help Patients Access New Diagnostics\u201d (Joanne Weidhaas, MD, PhD, MS) [#138].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cHow I Help Patients Access New Diagnostics\u201d (Joanne Weidhaas, MD, PhD, MS) [}"
+  },
+  {
+    "filename": "\u201cHow I Use Hemp to Manage My Cancer Pain\u201d (Jeff Dwyer) [#152].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cHow I Use Hemp to Manage My Cancer Pain\u201d (Jeff Dwyer) [}"
+  },
+  {
+    "filename": "\u201cHow MSI and Other Tests Can Guide Immunotherapies for Cancer Treatment\u201d (Heather Tomlinson) [#43].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cHow MSI and Other Tests Can Guide Immunotherapies for Cancer Treatment\u201d (Heather Tomlinson) [}"
+  },
+  {
+    "filename": "\u201cHow Proteomics and RNA Sequencing Are Guiding My Treatment\u201d (Mike Yancey) [#51].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cHow Proteomics and RNA Sequencing Are Guiding My Treatment\u201d (Mike Yancey) [}"
+  },
+  {
+    "filename": "\u201cHow a Particular Protein (Tumor Necrosis Factor) Might Control the Immune Response in Prostate Cancer\u201d (Ida Deichaite, PhD) [#118].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cHow a Particular Protein (Tumor Necrosis Factor) Might Control the Immune Response in Prostate Cancer\u201d (Ida Deichaite, PhD) [}"
+  },
+  {
+    "filename": "\u201cHow to Survive the Health System and Get Good Care\u201d (Philip Leming, MD, and Jillian Hunt, AOCNP) [#150].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cHow to Survive the Health System and Get Good Care\u201d (Philip Leming, MD, and Jillian Hunt, AOCNP) [}"
+  },
+  {
+    "filename": "\u201cIdentifying Personalized Treatment Recommendations for Gastro-Intestinal Cancers\u201c (Laura Towart and Nahuel Villegas, PhD) [#131].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cIdentifying Personalized Treatment Recommendations for Gastro-Intestinal Cancers\u201c (Laura Towart and Nahuel Villegas, PhD) [}"
+  },
+  {
+    "filename": "\u201cIdentifying the Most Effective Treatment on the Tumor Rather than Trying It Out on the Patient\u201d (Dr. Chris Apfel) [#84].pdf",
+    "success": false,
+    "error": "[SSL: SSLV3_ALERT_BAD_RECORD_MAC] ssl/tls alert bad record mac (_ssl.c:2648)"
+  },
+  {
+    "filename": "\u201cImmunotherapy in Prostate Cancer - CAR-T and the Tumor Microenvironment\u201d (Andrew Rech) [#63].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cImmunotherapy in Prostate Cancer - CAR-T and the Tumor Microenvironment\u201d (Andrew Rech) [}"
+  },
+  {
+    "filename": "\u201cIncreasing the Effectiveness of Immune Checkpoint Inhibitors\u201d (Vikas Sukhatme, MD, ScD, and Vidula Sukhatme, MS) [#147].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cIncreasing the Effectiveness of Immune Checkpoint Inhibitors\u201d (Vikas Sukhatme, MD, ScD, and Vidula Sukhatme, MS) [}"
+  },
+  {
+    "filename": "\u201cIntegrating Diverse Test Results for Cancer Patient Guidance\u201d (Joe Lennerz, MD, PhD, MSc) [#142].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cIntegrating Diverse Test Results for Cancer Patient Guidance\u201d (Joe Lennerz, MD, PhD, MSc) [}"
+  },
+  {
+    "filename": "\u201cIntegrative Cancer Care_ (Donald Abrams, MD) [#102].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cIntegrative Cancer Care_ (Donald Abrams, MD) [}"
+  },
+  {
+    "filename": "\u201cIntroducing an App for Navigating Cancer Care\u201d (Berries) [#67].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cIntroducing an App for Navigating Cancer Care\u201d (Berries) [}"
+  },
+  {
+    "filename": "\u201cLatest Insights from Applying Evolutionary Theory to the Treatment Strategies of Cancer Patients\u201d (Bob Gatenby, MD) [#154].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cLatest Insights from Applying Evolutionary Theory to the Treatment Strategies of Cancer Patients\u201d (Bob Gatenby, MD) [}"
+  },
+  {
+    "filename": "\u201cLaunch Meeting_ Introductions and Purpose\u201d (Brian McCloskey, Rick Stanton, Brad Power) [#1].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cLaunch Meeting_ Introductions and Purpose\u201d (Brian McCloskey, Rick Stanton, Brad Power) [}"
+  },
+  {
+    "filename": "\u201cLiquid Biopsies\u201d (Peter Kuhn and Stephanie Shishido) [#23](1).pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cLiquid Biopsies\u201d (Peter Kuhn and Stephanie Shishido) [}"
+  },
+  {
+    "filename": "\u201cLiquid Biopsies\u201d (Peter Kuhn and Stephanie Shishido) [#23].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cLiquid Biopsies\u201d (Peter Kuhn and Stephanie Shishido) [}"
+  },
+  {
+    "filename": "\u201cMaking Decisions in the Complexity of Healthcare\u201d (Michael Liebman, PhD) [#144].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cMaking Decisions in the Complexity of Healthcare\u201d (Michael Liebman, PhD) [}"
+  },
+  {
+    "filename": "\u201cMatching Patients with Treatments\u201d (Istvan Petak, MD, PhD) [#107].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cMatching Patients with Treatments\u201d (Istvan Petak, MD, PhD) [}"
+  },
+  {
+    "filename": "\u201cModeling Disease\u201d (Michael Liebman) [#24].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cModeling Disease\u201d (Michael Liebman) [}"
+  },
+  {
+    "filename": "\u201cMolecular Integrative Oncology_ In Addition to \u2013 Not instead of \u2013 Conventional Oncology Treatment\u201d (William LaValley, MD) [#134].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cMolecular Integrative Oncology_ In Addition to \u2013 Not instead of \u2013 Conventional Oncology Treatment\u201d (William LaValley, MD) [}"
+  },
+  {
+    "filename": "\u201cMore than 60_ of the Cancer Journey Happens at Home_ Why No Comprehensive Support_\u201d (Katie Quintas) [#115].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cMore than 60_ of the Cancer Journey Happens at Home_ Why No Comprehensive Support_\u201d (Katie Quintas) [}"
+  },
+  {
+    "filename": "\u201cMulti-omic Analysis Guides the Decisions of Brian McCloskey\u201d (Rana McKay, MD, and BostonGene) [#98].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cMulti-omic Analysis Guides the Decisions of Brian McCloskey\u201d (Rana McKay, MD, and BostonGene) [}"
+  },
+  {
+    "filename": "\u201cMy Journey to Becoming the CEO of My Health_ (Jeff Holtmeier) [#162].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cMy Journey to Becoming the CEO of My Health_ (Jeff Holtmeier) [}"
+  },
+  {
+    "filename": "\u201cNavigating Brain Cancer\u201d (Al Musella) [#80].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cNavigating Brain Cancer\u201d (Al Musella) [}"
+  },
+  {
+    "filename": "\u201cNavigating Cancer Survivorship_ (Caroline Knudsen and Chasse Bailey-Dorton, MD) [#140].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cNavigating Cancer Survivorship_ (Caroline Knudsen and Chasse Bailey-Dorton, MD) [}"
+  },
+  {
+    "filename": "\u201cNavigating Cancer with the Mind as Your Ally\u201d (Sheryl Anjanette) [#124].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cNavigating Cancer with the Mind as Your Ally\u201d (Sheryl Anjanette) [}"
+  },
+  {
+    "filename": "\u201cNavigating Pancreatic Cancer\u201d (John Strickler, MD) [#91].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cNavigating Pancreatic Cancer\u201d (John Strickler, MD) [}"
+  },
+  {
+    "filename": "\u201cNavigating Radiation Treatments\u201d (Chandra Kota, PhD) [#97].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cNavigating Radiation Treatments\u201d (Chandra Kota, PhD) [}"
+  },
+  {
+    "filename": "\u201cNavigating Relational Health Through the Challenges of Cancer\u201d (Jason Binder) [#127].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cNavigating Relational Health Through the Challenges of Cancer\u201d (Jason Binder) [}"
+  },
+  {
+    "filename": "\u201cNovel Testing to Guide Personalized Cancer Treatment\u201d (RGCC) [#61].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201cNovel Testing to Guide Personalized Cancer Treatment\u201d (RGCC) [}"
+  },
+  {
+    "filename": "\u201c\u200bNew \u200bMetabolic Approaches to Cancer Treatment\u201d (\u200bA\u200bhmed Elsakka, MD) [#120].pdf",
+    "success": false,
+    "error": "{'statusCode': 400, 'error': InvalidKey, 'message': Invalid key: webinars/\u201c\u200bNew \u200bMetabolic Approaches to Cancer Treatment\u201d (\u200bA\u200bhmed Elsakka, MD) [}"
+  }
+]

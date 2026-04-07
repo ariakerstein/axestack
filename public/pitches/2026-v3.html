@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navis Health - 2026 v3</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+        * { font-family: 'Inter', sans-serif; }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #1a1a2e;
+        }
+
+        /* Letterbox viewer */
+        .viewer {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        /* Slide container - 16:9 aspect ratio */
+        .slide-container {
+            width: 100%;
+            max-width: calc((100vh - 80px) * 16 / 9);
+            aspect-ratio: 16 / 9;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Controls bar */
+        .controls-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 15px 20px;
+            margin-top: 10px;
+            min-height: 50px;
+            flex-shrink: 0;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }
+
+        .nav-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.7);
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: default;
+        }
+
+        .slide-progress {
+            color: rgba(255,255,255,0.7);
+            font-size: 14px;
+            font-weight: 500;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .fullscreen-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.7);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: 16px;
+        }
+        .fullscreen-btn:hover {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        /* Hint on first load */
+        .nav-hint {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.8);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            z-index: 1000;
+            animation: fadeOut 3s forwards;
+            animation-delay: 3s;
+        }
+        @keyframes fadeOut {
+            to { opacity: 0; visibility: hidden; }
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 5% 4% 4% 4%;
+            box-sizing: border-box;
+        }
+        .slide.active {
+            display: flex;
+        }
+
+        /* For title/splash slides that should be centered */
+        .slide-centered {
+            justify-content: center;
+            padding: 4rem;
+        }
+
+        .slide-number {
+            position: absolute;
+            bottom: 2rem;
+            right: 2rem;
+            font-size: 0.875rem;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        /* 30pt minimum for key text */
+        .text-30 { font-size: 30px; line-height: 1.2; }
+
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+
+            html, body {
+                overflow: visible !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white !important;
+            }
+
+            .viewer, .slide-container {
+                display: contents !important;
+            }
+            .controls-bar, .nav-hint {
+                display: none !important;
+            }
+
+            .slide {
+                overflow: hidden !important;
+                page-break-after: always;
+                page-break-inside: avoid;
+                break-after: page;
+                break-inside: avoid;
+                width: 100% !important;
+                max-width: 11in !important;
+                height: 8.5in !important;
+                min-height: 8.5in !important;
+                max-height: 8.5in !important;
+                display: flex !important;
+                position: relative !important;
+                margin: 0 auto !important;
+                padding: 4rem 2.5rem 2rem 2.5rem !important;
+                box-sizing: border-box !important;
+            }
+
+            .slide-centered {
+                padding: 2.5rem !important;
+                justify-content: center !important;
+            }
+
+            .slide:last-of-type {
+                page-break-after: avoid;
+                break-after: avoid;
+            }
+
+            @page {
+                margin: 0;
+                size: 11in 8.5in landscape;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Hint -->
+<div class="nav-hint">Use arrow keys to navigate | 10 slides</div>
+
+<!-- Viewer wrapper -->
+<div class="viewer">
+    <div class="slide-container" id="slideContainer">
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SLIDE 1: COVER - The Hook
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<section class="slide slide-centered bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
+    <div class="text-center max-w-5xl">
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="mx-auto mb-6" style="height: 140px;">
+
+        <h1 class="text-7xl font-bold mb-4">Navis Health AI</h1>
+        <p class="text-4xl text-emerald-400 mb-4">Get the Right Next Step</p>
+        <p class="text-2xl text-slate-400 mb-10">Structured guidance for cancer patients • Starting with 2nd Opinions</p>
+
+        <!-- Badges -->
+        <div class="flex justify-center gap-4">
+            <div class="bg-emerald-500/20 border border-emerald-500/50 rounded-full px-5 py-2">
+                <span class="text-emerald-400 font-semibold">Pre-Seed: Raising $500K</span>
+            </div>
+        </div>
+    </div>
+    <div class="slide-number text-slate-500">1</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SLIDE 2: THE PROBLEM - Luck Matters Too Much
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<section class="slide slide-centered bg-slate-900 text-white">
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-400 font-medium uppercase tracking-widest">The Problem</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-30">
+    </div>
+
+    <div class="w-full max-w-6xl">
+        <h2 class="text-5xl font-bold mb-10 text-center">Doctors have Epic. Patients have a mess.</h2>
+
+        <!-- Two column layout -->
+        <div class="grid grid-cols-2 gap-10 mb-8">
+            <!-- Left: Wait times -->
+            <div class="text-center">
+                <p class="text-xl font-bold text-red-400 uppercase tracking-wide mb-4">Wait Times Increasing</p>
+                <img src="../pitchAssets/waits.png" alt="Wait times chart" class="w-full rounded-lg" style="max-height: 260px; object-fit: contain;">
+                <p class="text-lg text-slate-400 mt-3">17 days (2009) → 31 days (2025)</p>
+            </div>
+
+            <!-- Right: Fragmentation cards stacked 2x2 -->
+            <div>
+                <p class="text-xl font-bold text-orange-400 uppercase tracking-wide mb-4">Patients Turn to Incomplete Tools</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-slate-800 rounded-xl p-4 text-center border border-orange-500/50">
+                        <p class="text-3xl font-bold text-orange-400">77%</p>
+                        <p class="text-base font-semibold text-slate-200">🔍 Dr. Google</p>
+                        <p class="text-sm text-slate-500">Scary, often wrong</p>
+                    </div>
+                    <div class="bg-slate-800 rounded-xl p-4 text-center border border-red-500/50">
+                        <p class="text-3xl font-bold text-red-400">68%</p>
+                        <p class="text-base font-semibold text-slate-200">🏥 Portals</p>
+                        <p class="text-sm text-slate-500">Raw data, no help</p>
+                    </div>
+                    <div class="bg-slate-800 rounded-xl p-4 text-center border border-yellow-500/50">
+                        <p class="text-3xl font-bold text-yellow-400">45%</p>
+                        <p class="text-base font-semibold text-slate-200">👥 Social</p>
+                        <p class="text-sm text-slate-500">Anecdotes, not evidence</p>
+                    </div>
+                    <div class="bg-slate-800 rounded-xl p-4 text-center border border-cyan-500/50">
+                        <p class="text-3xl font-bold text-cyan-400">21%</p>
+                        <p class="text-base font-semibold text-slate-200">🤖 ChatGPT</p>
+                        <p class="text-sm text-slate-500">No records, no context</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom zingers -->
+        <p class="text-2xl text-white font-bold text-center mb-2"><span class="text-amber-400">84%</span> never get a second opinion. <span class="text-emerald-400">1 in 3</span> change treatment after expert review.</p>
+        <p class="text-xl text-slate-300 text-center mt-4">They have fragments. <span class="text-white font-bold">They need guidance.</span></p>
+    </div>
+
+    <div class="slide-number text-slate-500">2</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SLIDE 3: FOUNDER STORY - We Lived This Problem
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<section class="slide slide-centered bg-slate-900 text-white">
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-400 font-medium uppercase tracking-widest">Why Us</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-30">
+    </div>
+
+    <div class="w-full max-w-5xl mt-4">
+        <h2 class="text-5xl font-bold mb-10 text-center">We Lived This Problem</h2>
+
+        <div class="grid grid-cols-[1fr_auto_1fr] gap-6 items-center max-w-4xl mx-auto">
+            <!-- Before -->
+            <div class="text-center">
+                <img src="../lovable-uploads/ari-chemo.png" alt="In chemo" class="rounded-xl shadow-xl mx-auto mb-4" style="height: 180px;">
+                <p class="text-xl text-red-400 font-bold">Aggressive blood cancer</p>
+                <p class="text-lg text-slate-400">Best doctors. Still lost.</p>
+            </div>
+
+            <div class="text-5xl text-emerald-400 font-bold">→</div>
+
+            <!-- After -->
+            <div class="text-center">
+                <img src="../pitchAssets/family.png" alt="Family" class="rounded-xl shadow-xl mx-auto mb-4" style="height: 180px;">
+                <p class="text-xl text-emerald-400 font-bold">Complete remission</p>
+                <p class="text-lg text-slate-400">Engaged fully. Did my homework.</p>
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-emerald-600 to-blue-600 p-5 rounded-xl mt-8 max-w-xl mx-auto">
+            <p class="text-xl font-bold text-center">Engaged patients get better outcomes.</p>
+        </div>
+    </div>
+    <div class="slide-number text-slate-500">3</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SLIDE 4: TEAM - Founder-Market Fit (Moved Early)
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<section class="slide slide-centered bg-white">
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-500 font-medium uppercase tracking-widest">Team</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-40">
+    </div>
+
+    <div class="w-full max-w-6xl">
+        <h2 class="text-5xl font-bold text-slate-900 mb-3 text-center">Founder-Market Fit</h2>
+        <p class="text-xl text-slate-500 mb-8 text-center">We lived this problem. Now we're solving it.</p>
+
+        <!-- Team Grid -->
+        <div class="grid grid-cols-5 gap-8 mb-6">
+            <!-- Ari -->
+            <div class="text-center">
+                <img src="https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/64694c7d-e3e3-414f-af72-288d201bb060/Screenshot+2024-10-02+at+10.59.02%E2%80%AFAM.jpg" alt="Ari Akerstein" class="w-36 h-36 mx-auto mb-4 rounded-full object-cover shadow-lg border-4 border-red-200">
+                <p class="font-bold text-slate-800">Ari Akerstein, MS</p>
+                <p class="text-sm text-slate-600">Co-Founder/CEO</p>
+                <p class="text-xs text-slate-500"><span class="font-semibold text-sky-600">Meta</span> · <span class="text-red-600 font-medium">2x Survivor</span></p>
+            </div>
+            <!-- Brad -->
+            <div class="text-center">
+                <img src="https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/48fdd96b-71a0-41f9-bc5f-f1ae27636b95/Screenshot+2024-09-11+at+7.36.59%E2%80%AFPM.png" alt="Brad Power" class="w-36 h-36 mx-auto mb-4 rounded-full object-cover shadow-lg border-4 border-red-200">
+                <p class="font-bold text-slate-800">Brad Power</p>
+                <p class="text-sm text-slate-600">Co-Founder/Chief Trust</p>
+                <p class="text-xs text-slate-500"><span class="font-semibold text-sky-600">Stanford</span> · <span class="text-red-600 font-medium">Survivor</span></p>
+            </div>
+            <!-- Chris -->
+            <div class="text-center">
+                <img src="https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/5761840d-8d31-4c56-a09e-c6f27510bc5a/Chris-Apfel-Nature-removebg-preview.png" alt="Chris Apfel" class="w-36 h-36 mx-auto mb-4 rounded-full object-cover shadow-lg bg-slate-100">
+                <p class="font-bold text-slate-800">Chris Apfel, MD/PhD</p>
+                <p class="text-sm text-slate-600">Chief Medical Officer</p>
+                <p class="text-xs text-slate-500"><span class="font-semibold text-sky-600">UCSF</span> · 500+ publications</p>
+            </div>
+            <!-- Kaumudi -->
+            <div class="text-center">
+                <img src="../pitchAssets/kaumudi.jpg" alt="Kaumudi Bhawe" class="w-36 h-36 mx-auto mb-4 rounded-full object-cover shadow-lg">
+                <p class="font-bold text-slate-800">Kaumudi Bhawe, PhD</p>
+                <p class="text-sm text-slate-600">Chief Scientific Officer</p>
+                <p class="text-xs text-slate-500"><span class="font-semibold text-sky-600">Genentech</span> · Cancer Commons</p>
+            </div>
+            <!-- Viktor -->
+            <div class="text-center">
+                <img src="../pitchAssets/viktor.jpg" alt="Viktor Tabori" class="w-36 h-36 mx-auto mb-4 rounded-full object-cover shadow-lg">
+                <p class="font-bold text-slate-800">Viktor Tabori</p>
+                <p class="text-sm text-slate-600">Head of Growth</p>
+                <p class="text-xs text-slate-500"><span class="font-semibold text-sky-600">Stanford</span> · Deloitte</p>
+            </div>
+        </div>
+
+        <!-- Founder-Market Fit callout -->
+        <div class="bg-slate-900 rounded-xl px-8 py-4 text-center">
+            <p class="text-lg text-white"><span class="text-red-400 font-bold">Co-founders are cancer survivors</span> · <span class="text-sky-400 font-bold">UCSF MD/PhD</span> clinical leadership · Operators from <span class="text-emerald-400 font-bold">Meta, Genentech, Included Health, Stanford</span></p>
+        </div>
+    </div>
+
+    <div class="slide-number">4</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SLIDE 5: SOLUTION - Ingest → Analyze → Act
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<section class="slide slide-centered bg-gradient-to-br from-slate-50 via-white to-slate-50 text-slate-900">
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-400 font-medium uppercase tracking-widest">The Solution</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-40">
+    </div>
+
+    <div class="w-full max-w-6xl px-8">
+        <h2 class="text-5xl font-bold mb-2 text-slate-900">Your case. Your gaps. <span class="text-sky-600">Your next step.</span></h2>
+        <p class="text-xl text-slate-500 mb-10">Others stop at information. We drive the decision forward.</p>
+
+        <!-- Ingest → Analyze → Execute -->
+        <div class="flex gap-6">
+            <!-- 1. Ingest -->
+            <div class="flex-1 bg-white rounded-2xl p-8 border border-slate-200 shadow-lg">
+                <div class="w-14 h-14 bg-sky-100 rounded-xl flex items-center justify-center mb-4">
+                    <svg class="w-7 h-7 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                </div>
+                <p class="text-2xl font-bold text-slate-900 mb-3">1. Share your case</p>
+                <p class="text-slate-600">Upload records or describe your situation. We structure it into a <span class="text-slate-900 font-semibold">clear clinical picture</span>.</p>
+            </div>
+
+            <!-- 2. Analyze -->
+            <div class="flex-1 bg-white rounded-2xl p-8 border border-slate-200 shadow-lg">
+                <div class="w-14 h-14 bg-sky-100 rounded-xl flex items-center justify-center mb-4">
+                    <!-- Branching path / decision fork icon -->
+                    <svg class="w-7 h-7 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle cx="12" cy="4" r="2" stroke-width="2"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v4"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10L6 17"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10L18 17"/>
+                        <circle cx="6" cy="19" r="2" stroke-width="2"/>
+                        <circle cx="18" cy="19" r="2" stroke-width="2"/>
+                    </svg>
+                </div>
+                <p class="text-2xl font-bold text-slate-900 mb-3">2. Find the gaps</p>
+                <p class="text-slate-600">AI + clinical rules identify <span class="text-slate-900 font-semibold">gaps and decision forks</span> based on guidelines.</p>
+            </div>
+
+            <!-- 3. Execute -->
+            <div class="flex-1 bg-white rounded-2xl p-8 border-2 border-sky-400 shadow-lg">
+                <div class="w-14 h-14 bg-sky-100 rounded-xl flex items-center justify-center mb-4">
+                    <svg class="w-7 h-7 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <p class="text-2xl font-bold text-slate-900 mb-3">3. Get your next step</p>
+                <p class="text-slate-600">Expert, test, trial — or <span class="text-slate-900 font-semibold">confidence in your current plan</span>. We guide you forward.</p>
+            </div>
+        </div>
+
+        <!-- Human-in-the-Loop badge -->
+        <div class="mt-8 text-center">
+            <span class="inline-flex items-center gap-2 bg-emerald-100 text-emerald-800 px-4 py-2 rounded-full text-sm font-medium">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                AI flags gaps from NCCN/ASCO guidelines. Human experts verify. We don't practice medicine.
+            </span>
+        </div>
+    </div>
+
+    <div class="slide-number">5</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SLIDE 6: BUSINESS MODEL
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<section class="slide slide-centered bg-white">
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-500 font-medium uppercase tracking-widest">Business Model</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-40">
+    </div>
+
+    <div class="w-full max-w-5xl text-center">
+        <h2 class="text-5xl font-bold text-slate-900 mb-12">One core SKU. <span class="text-sky-600">Simple economics.</span></h2>
+
+        <!-- Core SKU - Hero -->
+        <div class="bg-sky-50 border-2 border-sky-400 rounded-2xl p-8 max-w-md mx-auto mb-10">
+            <p class="text-lg font-bold text-sky-600 uppercase tracking-wide mb-3">Guidance</p>
+            <p class="text-7xl font-bold text-sky-600 mb-3">$99</p>
+            <p class="text-xl text-slate-600">Structured case review + expert-informed next-step guidance</p>
+        </div>
+
+        <!-- Secondary tiers - muted -->
+        <div class="flex justify-center gap-8 mb-10 opacity-60">
+            <div class="text-center">
+                <p class="text-xl font-medium text-slate-400">$29</p>
+                <p class="text-xs text-slate-400">Self-serve AI gap check</p>
+            </div>
+            <div class="text-slate-300">|</div>
+            <div class="text-center">
+                <p class="text-xl font-medium text-slate-400">$199</p>
+                <p class="text-xs text-slate-400">Navigation + ongoing support</p>
+            </div>
+        </div>
+
+        <!-- Future expansion note -->
+        <p class="text-base text-slate-400">Future: partner routing fees and channel partnerships</p>
+    </div>
+
+    <div class="slide-number">6</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SLIDE 8: GTM - How We Get to 10K
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<section class="slide slide-centered bg-slate-900 text-white">
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-400 font-medium uppercase tracking-widest">Roadmap</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-30">
+    </div>
+
+    <div class="w-full max-w-5xl text-center">
+        <h2 class="text-5xl font-bold text-white mb-4">We start with second opinions.</h2>
+        <p class="text-2xl text-slate-400 mb-10">We become the missing patient navigation layer.</p>
+
+        <!-- Three-step progression -->
+        <div class="flex items-center justify-center gap-4 mb-10">
+            <!-- Now -->
+            <div class="bg-slate-800 rounded-2xl p-6 border-2 border-sky-500 text-center flex-1 max-w-xs">
+                <p class="text-xl font-bold text-sky-400 uppercase tracking-wide mb-3">Now</p>
+                <p class="text-lg text-white font-semibold mb-2">Prove patient adoption</p>
+                <p class="text-base text-slate-400">Second opinion + high-stakes decision workflow</p>
+            </div>
+
+            <div class="text-3xl text-slate-600 font-bold">→</div>
+
+            <!-- Next -->
+            <div class="bg-slate-800 rounded-2xl p-6 border-2 border-emerald-500 text-center flex-1 max-w-xs">
+                <p class="text-xl font-bold text-emerald-400 uppercase tracking-wide mb-3">Next</p>
+                <p class="text-lg text-white font-semibold mb-2">Expand navigation</p>
+                <p class="text-base text-slate-400">Trial matching, routing, ongoing support</p>
+            </div>
+
+            <div class="text-3xl text-slate-600 font-bold">→</div>
+
+            <!-- Future -->
+            <div class="bg-slate-800 rounded-2xl p-6 border-2 border-purple-500 text-center flex-1 max-w-xs">
+                <p class="text-xl font-bold text-purple-400 uppercase tracking-wide mb-3">Later</p>
+                <p class="text-lg text-white font-semibold mb-2">Chronic disease expansion</p>
+                <p class="text-base text-slate-400">Apply playbook beyond cancer</p>
+            </div>
+        </div>
+
+        <!-- Bottom line -->
+        <div class="bg-slate-800 rounded-xl px-8 py-4 max-w-2xl mx-auto">
+            <p class="text-lg text-slate-300">Cancer-specific. Workflow-driven. <span class="text-emerald-400 font-semibold">Earn trust at the hardest moment.</span></p>
+        </div>
+    </div>
+
+    <div class="slide-number text-slate-500">7</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SLIDE 9: COMPETITION - Why Navis Wins
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<section class="slide slide-centered bg-white">
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-500 font-medium uppercase tracking-widest">Competition</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-40">
+    </div>
+
+    <div class="w-full max-w-5xl px-8">
+        <h2 class="text-5xl font-bold mb-3 text-center text-slate-900">Others stop at information.</h2>
+        <p class="text-2xl text-slate-500 mb-10 text-center">We <span class="text-sky-600 font-semibold">guide the decision forward</span>.</p>
+
+        <div class="bg-slate-100 rounded-2xl overflow-hidden border border-slate-200">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b border-slate-300 bg-slate-200">
+                        <th class="p-4 text-left text-slate-600 font-medium uppercase text-sm tracking-wide"></th>
+                        <th class="p-4 text-center text-sky-700 font-bold border-l-2 border-sky-500 bg-sky-100">NAVIS</th>
+                        <th class="p-4 text-center text-slate-600 font-medium"><div>LEGACY 2ND OPINIONS</div><div class="text-xs text-slate-500 font-normal">2nd.MD, Included Health</div></th>
+                        <th class="p-4 text-center text-slate-600 font-medium"><div>GENERAL AI</div><div class="text-xs text-slate-500 font-normal">ChatGPT, Claude</div></th>
+                        <th class="p-4 text-center text-slate-600 font-medium"><div>PATIENT PORTALS</div><div class="text-xs text-slate-500 font-normal">MyChart, etc.</div></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="border-b border-slate-200">
+                        <td class="p-4 text-slate-700 font-medium">Uses your records</td>
+                        <td class="p-4 text-center border-l-2 border-sky-500 bg-sky-50"><span class="text-emerald-600 text-xl">✓</span></td>
+                        <td class="p-4 text-center"><span class="text-amber-500 text-xl">~</span></td>
+                        <td class="p-4 text-center"><span class="text-red-500 text-xl">✗</span></td>
+                        <td class="p-4 text-center"><span class="text-emerald-600 text-xl">✓</span></td>
+                    </tr>
+                    <tr class="border-b border-slate-200">
+                        <td class="p-4 text-slate-700 font-medium">Structured case</td>
+                        <td class="p-4 text-center border-l-2 border-sky-500 bg-sky-50"><span class="text-emerald-600 text-xl">✓</span></td>
+                        <td class="p-4 text-center"><span class="text-amber-500 text-xl">~</span></td>
+                        <td class="p-4 text-center"><span class="text-red-500 text-xl">✗</span></td>
+                        <td class="p-4 text-center"><span class="text-red-500 text-xl">✗</span></td>
+                    </tr>
+                    <tr class="border-b border-slate-200">
+                        <td class="p-4 text-slate-700 font-medium">Guideline-based gaps</td>
+                        <td class="p-4 text-center border-l-2 border-sky-500 bg-sky-50"><span class="text-emerald-600 text-xl">✓</span></td>
+                        <td class="p-4 text-center"><span class="text-red-500 text-xl">✗</span></td>
+                        <td class="p-4 text-center"><span class="text-amber-500 text-xl">~</span></td>
+                        <td class="p-4 text-center"><span class="text-red-500 text-xl">✗</span></td>
+                    </tr>
+                    <tr class="border-b border-slate-200">
+                        <td class="p-4 text-slate-700 font-medium">Next-step guidance</td>
+                        <td class="p-4 text-center border-l-2 border-sky-500 bg-sky-50"><span class="text-emerald-600 text-xl">✓</span></td>
+                        <td class="p-4 text-center"><span class="text-amber-500 text-xl">~</span></td>
+                        <td class="p-4 text-center"><span class="text-red-500 text-xl">✗</span></td>
+                        <td class="p-4 text-center"><span class="text-red-500 text-xl">✗</span></td>
+                    </tr>
+                    <tr>
+                        <td class="p-4 text-slate-700 font-medium">Guided action</td>
+                        <td class="p-4 text-center border-l-2 border-sky-500 bg-sky-50"><span class="text-emerald-600 text-xl">✓</span></td>
+                        <td class="p-4 text-center"><span class="text-red-500 text-xl">✗</span></td>
+                        <td class="p-4 text-center"><span class="text-red-500 text-xl">✗</span></td>
+                        <td class="p-4 text-center"><span class="text-red-500 text-xl">✗</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Supporting points -->
+        <p class="text-sm text-slate-400 mt-6 text-center opacity-70">Also: $99 vs $1-2K · 24 hrs vs 2 weeks · No employer required</p>
+    </div>
+
+    <div class="slide-number">8</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SLIDE 10: PROGRESS - What's Working
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<section class="slide slide-centered bg-slate-900 text-white">
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-400 font-medium uppercase tracking-widest">Progress</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-30">
+    </div>
+
+    <div class="w-full max-w-6xl">
+        <h2 class="text-5xl font-bold mb-10 text-center">Early Signs of <span class="text-emerald-400">Pull</span></h2>
+
+        <!-- Metrics row - bigger cards -->
+        <div class="flex justify-center gap-6 mb-12">
+            <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 flex items-center gap-4">
+                <p class="text-6xl font-bold text-emerald-400">Live</p>
+                <div>
+                    <p class="text-xl font-bold text-white">Product</p>
+                    <p class="text-sm text-slate-300">Few dozen patients in beta</p>
+                </div>
+            </div>
+            <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 flex items-center gap-4">
+                <p class="text-6xl font-bold text-amber-400">50+</p>
+                <div>
+                    <p class="text-xl font-bold text-white">Interviews</p>
+                    <p class="text-sm text-slate-300">Extensive patient discovery</p>
+                </div>
+            </div>
+            <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 flex items-center gap-4">
+                <p class="text-6xl font-bold text-sky-400">3</p>
+                <div>
+                    <p class="text-xl font-bold text-white">LOIs Signed</p>
+                    <p class="text-sm text-slate-300">Diagnostics + navigation</p>
+                </div>
+            </div>
+            <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 flex items-center gap-4">
+                <p class="text-6xl font-bold text-purple-400">1</p>
+                <div>
+                    <p class="text-xl font-bold text-white">Pilot Live</p>
+                    <p class="text-sm text-slate-300">Advocacy org partnership</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quotes - Staggered layout -->
+        <div class="grid grid-cols-3 gap-3">
+            <!-- Featured - spans 2 cols -->
+            <div class="col-span-2 bg-gradient-to-br from-sky-600 to-sky-800 px-5 py-4 rounded-xl">
+                <p class="text-lg italic leading-relaxed mb-2">"I use Navis <span class="font-bold text-yellow-300">almost daily</span>."</p>
+                <p class="text-sm text-sky-200">— Brian K., Pancreatic</p>
+            </div>
+            <!-- Short quote -->
+            <div class="bg-slate-800 px-4 py-4 rounded-xl border border-slate-700">
+                <p class="text-sm text-slate-200 italic leading-relaxed mb-2">"<span class="text-emerald-400 font-semibold">Critical for patients</span>."</p>
+                <p class="text-xs text-slate-400">— Cam, MZL Stage 4</p>
+            </div>
+            <!-- Row 2: 3 quotes -->
+            <div class="bg-slate-800 px-4 py-4 rounded-xl border border-slate-700">
+                <p class="text-sm text-slate-200 italic leading-relaxed mb-2">"<span class="text-purple-400 font-semibold">This is brilliant</span>."</p>
+                <p class="text-xs text-slate-400">— David Y., Prostate</p>
+            </div>
+            <div class="bg-slate-800 px-4 py-4 rounded-xl border border-slate-700">
+                <p class="text-sm text-slate-200 italic leading-relaxed mb-2">"<span class="text-teal-400 font-semibold">Much better than ChatGPT</span>."</p>
+                <p class="text-xs text-slate-400">— Michael P., Prostate</p>
+            </div>
+            <div class="bg-slate-800 px-4 py-4 rounded-xl border border-slate-700">
+                <p class="text-sm text-slate-200 italic leading-relaxed mb-2">"I <span class="text-yellow-300 font-semibold">point everyone to Navis</span>."</p>
+                <p class="text-xs text-slate-400">— Russ, Patient advocate, Prostate</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-number text-slate-500">9</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SLIDE 11: THE ASK
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<section class="slide slide-centered bg-white">
+    <div class="absolute top-8 left-8 right-8 flex justify-between items-center">
+        <p class="text-sm text-slate-500 font-medium uppercase tracking-widest">The Ask</p>
+        <img src="../pitchAssets/navis-logo-circle-only.svg" alt="Navis" class="h-8 opacity-40">
+    </div>
+
+    <div class="max-w-5xl w-full px-8">
+        <h2 class="text-5xl font-bold text-slate-900 text-center mb-10">The Ask</h2>
+
+        <div class="flex gap-6 items-stretch">
+            <!-- Left: The Ask - narrower -->
+            <div class="w-[240px] bg-slate-900 rounded-2xl p-6 text-center flex flex-col justify-center">
+                <p class="text-xs text-slate-400 uppercase tracking-wide mb-2">Pre-Seed Round</p>
+                <p class="text-5xl font-bold text-white mb-2">$500K</p>
+                <p class="text-slate-400 text-sm">$5M cap · Post-money SAFE</p>
+            </div>
+
+            <!-- Right: What It Proves - wider, 3-column metrics -->
+            <div class="flex-1 bg-slate-100 rounded-2xl p-8">
+                <p class="text-base text-slate-800 font-bold uppercase mb-6">What This Round Proves</p>
+
+                <!-- 3 metric tiles -->
+                <div class="grid grid-cols-3 gap-4 mb-5">
+                    <div class="bg-white rounded-xl p-4 text-center border border-slate-200">
+                        <p class="text-3xl font-bold text-sky-600">1,000+</p>
+                        <p class="text-xs text-slate-600 mt-1">Completed cases</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-4 text-center border border-slate-200">
+                        <p class="text-3xl font-bold text-emerald-600">100+</p>
+                        <p class="text-xs text-slate-600 mt-1">Paid cases</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-4 text-center border border-slate-200">
+                        <p class="text-3xl font-bold text-purple-600">30%+</p>
+                        <p class="text-xs text-slate-600 mt-1">Share / return</p>
+                    </div>
+                </div>
+
+                <!-- Channel signal - integrated with border -->
+                <div class="flex items-center gap-3 bg-white rounded-xl border border-slate-200 px-4 py-3">
+                    <div class="w-2 h-2 rounded-full bg-amber-500"></div>
+                    <div>
+                        <p class="text-sm font-semibold text-slate-700">Repeatable channel signal</p>
+                        <p class="text-xs text-slate-500">1–2 channels with repeat patient flow</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="slide-number">10</div>
+</section>
+
+
+    </div><!-- /slide-container -->
+
+    <!-- Controls bar -->
+    <div class="controls-bar">
+        <button class="nav-btn" id="prevBtn" aria-label="Previous slide">←</button>
+        <div class="slide-progress" id="progress">1 / 10</div>
+        <button class="nav-btn" id="nextBtn" aria-label="Next slide">→</button>
+        <button class="fullscreen-btn" id="fullscreenBtn" aria-label="Fullscreen">⛶</button>
+        <button class="fullscreen-btn" id="printBtn" aria-label="Download PDF" title="Print/Save as PDF">⬇</button>
+    </div>
+</div><!-- /viewer -->
+
+<script>
+    // Slideshow controls
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const progress = document.getElementById('progress');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const printBtn = document.getElementById('printBtn');
+
+    function showSlide(index) {
+        slides.forEach(s => s.classList.remove('active'));
+        slides[index].classList.add('active');
+        progress.textContent = `${index + 1} / ${totalSlides}`;
+        prevBtn.disabled = index === 0;
+        nextBtn.disabled = index === totalSlides - 1;
+    }
+
+    function nextSlide() {
+        if (currentSlide < totalSlides - 1) {
+            currentSlide++;
+            showSlide(currentSlide);
+        }
+    }
+
+    function prevSlide() {
+        if (currentSlide > 0) {
+            currentSlide--;
+            showSlide(currentSlide);
+        }
+    }
+
+    // Button clicks
+    nextBtn.addEventListener('click', nextSlide);
+    prevBtn.addEventListener('click', prevSlide);
+
+    // Fullscreen toggle
+    fullscreenBtn.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else {
+            document.exitFullscreen();
+        }
+    });
+
+    // Print/PDF
+    printBtn.addEventListener('click', () => {
+        window.print();
+    });
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+            e.preventDefault();
+            nextSlide();
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            prevSlide();
+        }
+    });
+
+    // Initialize first slide
+    showSlide(0);
+
+    // ============================================
+    // DECK ANALYTICS TRACKING
+    // ============================================
+    (function() {
+        const SUPABASE_URL = 'https://felofmlhqwcdpiyjgstx.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlbG9mbWxocXdjZHBpeWpnc3R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjc5MTI1NzUsImV4cCI6MjA0MzQ4ODU3NX0.bIe6s5IQpM0krqc-n_kq5y6P6mTHNYEacZ0jvlM5rT4';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const investorId = urlParams.get('inv') || null;
+        const deckId = '2026-v3';
+
+        let sessionId = localStorage.getItem('deck_session_id');
+        if (!sessionId) {
+            sessionId = crypto.randomUUID();
+            localStorage.setItem('deck_session_id', sessionId);
+        }
+
+        let viewId = null;
+        let maxSlideReached = 1;
+        let startTime = Date.now();
+
+        async function createViewRecord() {
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/deck_view_sessions`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify({
+                        deck_id: deckId,
+                        investor_id: investorId,
+                        session_id: sessionId,
+                        total_slides: totalSlides,
+                        user_agent: navigator.userAgent,
+                        referrer: document.referrer || null
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    viewId = data[0]?.id;
+                }
+            } catch (e) {
+                console.warn('Analytics error:', e);
+            }
+        }
+
+        async function updateViewRecord(completed = false) {
+            if (!viewId) return;
+
+            const now = Date.now();
+            const duration = Math.round((now - startTime) / 1000);
+
+            try {
+                await fetch(`${SUPABASE_URL}/rest/v1/deck_view_sessions?id=eq.${viewId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        duration_seconds: duration,
+                        max_slide_reached: maxSlideReached,
+                        completed: completed,
+                        ended_at: new Date().toISOString()
+                    })
+                });
+            } catch (e) {
+                console.warn('Analytics update error:', e);
+            }
+        }
+
+        const originalShowSlide = showSlide;
+        showSlide = function(index) {
+            originalShowSlide(index);
+            const slideNum = index + 1;
+            if (slideNum > maxSlideReached) {
+                maxSlideReached = slideNum;
+            }
+            if (slideNum === totalSlides) {
+                updateViewRecord(true);
+            }
+        };
+
+        createViewRecord();
+        setInterval(() => updateViewRecord(false), 30000);
+
+        window.addEventListener('beforeunload', () => {
+            if (viewId) {
+                const duration = Math.round((Date.now() - startTime) / 1000);
+                navigator.sendBeacon(
+                    `${SUPABASE_URL}/rest/v1/deck_view_sessions?id=eq.${viewId}`,
+                    JSON.stringify({
+                        duration_seconds: duration,
+                        max_slide_reached: maxSlideReached,
+                        ended_at: new Date().toISOString()
+                    })
+                );
+            }
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                updateViewRecord(false);
+            }
+        });
+    })();
+</script>
+
+</body>
+</html>

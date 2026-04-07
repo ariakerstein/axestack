@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
           .update({
             feedback_type: feedbackType,
             feedback_comment: feedbackComment || null,
+            source_types: source ? [source] : undefined,
           })
           .eq('id', existing.id)
 

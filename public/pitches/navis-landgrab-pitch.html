@@ -1,0 +1,2018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Navis - Land Grab Pitch</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        .slide {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem 3rem;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            /* Override viewport scrolling to make all slides visible */
+            html, body {
+                overflow: visible !important;
+                height: auto !important;
+            }
+
+            .slide {
+                overflow: visible !important;
+                page-break-after: always;
+                page-break-inside: avoid;
+                min-height: 100vh;
+                height: 100vh;
+                break-after: page;
+                display: flex !important;
+                position: relative !important;
+            }
+
+            .slide:last-of-type {
+                page-break-after: avoid;
+            }
+
+            @page {
+                margin: 0;
+                size: letter landscape;
+            }
+
+            /* Hide PDF button when printing */
+            #export-pdf-btn {
+                display: none !important;
+            }
+
+            /* Show all progressive build cards on Slide 16 when printing */
+            #principle-trust,
+            #principle-personalization,
+            #principle-personalization-ai,
+            #principle-easy,
+            #principle-easy-2 {
+                display: block !important;
+                page-break-before: always !important;
+                page-break-after: always !important;
+                page-break-inside: avoid !important;
+                min-height: 100vh !important;
+                height: 100vh !important;
+            }
+
+            /* First principle card should not have page break before (already on Slide 16) */
+            #principle-trust {
+                page-break-before: avoid !important;
+            }
+
+            /* Hide slide navigation elements */
+            .slide-number {
+                display: none !important;
+            }
+
+            .navis-logo {
+                display: block !important;
+                opacity: 0.85 !important;
+            }
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #0057FF 0%, #003399 100%);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #0057FF 0%, #0088FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .pulse-dot {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+
+        .operator-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .slide-number {
+            position: absolute;
+            bottom: 2rem;
+            right: 2rem;
+            font-size: 0.875rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .navis-logo {
+            position: absolute;
+            bottom: 1.5rem;
+            right: 5rem;
+            height: 50px;
+            opacity: 0.85;
+            pointer-events: none;
+        }
+
+        /* Always hide minimalist content, always show detailed */
+        .minimalist-content {
+            display: none !important;
+        }
+
+        .detailed-content {
+            display: block !important;
+        }
+
+        /* Ensure slides have proper vertical spacing and don't overflow */
+        .slide {
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        /* Prevent content from going under fixed elements */
+        .slide > .detailed-content,
+        .slide > .minimalist-content {
+            padding-bottom: 5rem; /* Space for slide number and logo */
+            max-width: 100%;
+        }
+
+        /* Reduce heading margins globally to prevent overflow */
+        .detailed-content h2 {
+            margin-bottom: 1.5rem !important;
+        }
+
+        .detailed-content h3 {
+            margin-bottom: 1rem !important;
+        }
+
+        /* Ensure grid layouts work properly */
+        .detailed-content .grid {
+            align-items: start;
+        }
+
+        /* Prevent images from being too large */
+        .detailed-content img {
+            max-height: 65vh;
+            width: auto;
+            object-fit: contain;
+        }
+
+        /* Reduce spacing in grid columns */
+        .detailed-content .grid.gap-12 {
+            gap: 2rem !important;
+        }
+
+        .detailed-content .grid.gap-16 {
+            gap: 2.5rem !important;
+        }
+
+        /* Ensure text doesn't overflow */
+        .detailed-content {
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+        }
+
+        /* Minimalist Typography */
+        .mega-headline {
+            font-size: 5rem;
+            line-height: 1.1;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .giant-number {
+            font-size: 8rem;
+            line-height: 1;
+            font-weight: 800;
+        }
+
+        .big-tagline {
+            font-size: 3rem;
+            line-height: 1.2;
+            font-weight: 600;
+        }
+
+    </style>
+</head>
+<body class="bg-slate-50">
+
+
+<!-- Slide 1: Land Grab Title -->
+<section class="slide bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white">
+    <div class="slide-number" style="color: #e2e8f0;">1</div>
+    <img src="./pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="detailed-content max-w-6xl mx-auto flex items-center justify-center h-full">
+        <div class="text-center">
+            <h1 class="text-8xl font-bold mb-8 text-white leading-tight">
+                There's a Land Grab<br>in Healthcare AI
+            </h1>
+            <p class="text-3xl text-blue-200 font-light mt-12">
+                Every major player is racing to own the interface<br>between humans and health data
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 2: Provider Side - The Explosion Has Begun -->
+<section class="slide bg-white">
+    <div class="slide-number">2</div>
+    <img src="./pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="detailed-content max-w-7xl mx-auto">
+        <h2 class="text-5xl font-bold mb-8 gradient-text text-center">Provider Side: The Explosion Has Begun</h2>
+        <p class="text-2xl text-center text-slate-600 mb-12 italic">OpenEvidence shows what happens when the right UX meets the right timing</p>
+
+        <div class="grid grid-cols-2 gap-12 items-center">
+            <!-- Left: Stats -->
+            <div class="space-y-6">
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border-l-4 border-blue-500 shadow-lg">
+                    <div class="text-5xl font-bold text-blue-900 mb-2">10,000+</div>
+                    <p class="text-lg text-slate-700">Hospitals and medical centers onboarded in <strong>under 12 months</strong></p>
+                </div>
+
+                <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 p-6 rounded-xl border-l-4 border-emerald-500 shadow-lg">
+                    <div class="text-5xl font-bold text-emerald-900 mb-2">40%</div>
+                    <p class="text-lg text-slate-700">of U.S. physicians already using it</p>
+                </div>
+
+                <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border-l-4 border-purple-500 shadow-lg">
+                    <div class="text-5xl font-bold text-purple-900 mb-2">65,000</div>
+                    <p class="text-lg text-slate-700">new physician sign-ups per month — <strong>entirely word-of-mouth</strong></p>
+                </div>
+
+                <div class="bg-gradient-to-br from-amber-50 to-amber-100 p-6 rounded-xl border-l-4 border-amber-500 shadow-lg">
+                    <div class="text-5xl font-bold text-amber-900 mb-2">8.5M+</div>
+                    <p class="text-lg text-slate-700">physician queries answered monthly</p>
+                </div>
+            </div>
+
+            <!-- Right: Key Insight -->
+            <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-12 rounded-2xl text-white shadow-2xl">
+                <div class="text-6xl mb-6">💡</div>
+                <h3 class="text-3xl font-bold mb-6">The Fastest-Adopted Technology Among Doctors Since EHRs</h3>
+                <p class="text-xl text-slate-300 leading-relaxed mb-8">
+                    This happened in <strong class="text-emerald-400">under 12 months</strong>.
+                </p>
+                <p class="text-2xl font-bold text-blue-300">
+                    The patient side is next.
+                </p>
+            </div>
+        </div>
+
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-xl mt-8 max-w-4xl mx-auto">
+            <p class="text-sm text-slate-700 text-center">
+                <strong>Source:</strong> <em>Les Echos</em>, Sept 2025 | Sequoia Capital | Valuation: $3.5B (July 2024), raising at $6B
+            </p>
+            <p class="text-xs text-slate-500 text-center mt-2 italic">
+                "One of the fastest-adopted technologies by doctors" — Sequoia Capital
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 3: Patient Side - Wide Open and Locked Out -->
+<section class="slide bg-gradient-to-br from-red-50 to-orange-50">
+    <div class="slide-number">3</div>
+    <img src="./pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="detailed-content max-w-7xl mx-auto">
+        <h2 class="text-5xl font-bold mb-6 gradient-text text-center">Patients have questions, but no good answers</h2>
+        <p class="text-2xl text-center text-slate-700 mb-12 italic">Patient Side: Wide Open and Locked Out</p>
+
+        <div class="grid grid-cols-3 gap-8 mb-12">
+            <!-- Google/ChatGPT -->
+            <div class="bg-white p-6 rounded-xl shadow-lg border-2 border-red-300">
+                <div class="text-5xl mb-4 text-center">🤖</div>
+                <h3 class="text-xl font-bold text-red-900 mb-3 text-center">Google / ChatGPT</h3>
+                <ul class="text-base text-slate-700 space-y-2">
+                    <li>• <strong>Hallucinate</strong></li>
+                    <li>• Low signal/noise ratio</li>
+                    <li>• <strong>Black box</strong></li>
+                    <li>• No personalization</li>
+                    <li>• No connection to care</li>
+                </ul>
+            </div>
+
+            <!-- Doctors -->
+            <div class="bg-white p-6 rounded-xl shadow-lg border-2 border-orange-300">
+                <div class="text-5xl mb-4 text-center">⏱️</div>
+                <h3 class="text-xl font-bold text-orange-900 mb-3 text-center">Doctors</h3>
+                <ul class="text-base text-slate-700 space-y-2">
+                    <li>• <strong>Limited time</strong></li>
+                    <li>• High cost</li>
+                    <li>• Slow (weeks to months)</li>
+                    <li>• Fragmented across 7+ specialists</li>
+                </ul>
+            </div>
+
+            <!-- Family/Friends/Podcasts -->
+            <div class="bg-white p-6 rounded-xl shadow-lg border-2 border-amber-300">
+                <div class="text-5xl mb-4 text-center">👥</div>
+                <h3 class="text-xl font-bold text-amber-900 mb-3 text-center">Family / Friends / Podcasts</h3>
+                <ul class="text-base text-slate-700 space-y-2">
+                    <li>• <strong>Also hallucinate</strong></li>
+                    <li>• Anecdotal, not evidence-based</li>
+                    <li>• Well-meaning but unqualified</li>
+                    <li>• Can be dangerous</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Key Insights Box -->
+        <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-10 rounded-2xl text-white shadow-2xl mb-8">
+            <div class="grid grid-cols-2 gap-12 items-center">
+                <div>
+                    <h3 class="text-2xl font-bold mb-4 text-red-300">⚠️ "Your Money, Your Life" Policy</h3>
+                    <p class="text-lg text-slate-300 leading-relaxed">
+                        Generalist AI tools like ChatGPT are <strong class="text-white">blocked from offering medical advice</strong> due to liability concerns.
+                    </p>
+                    <p class="text-base text-slate-400 mt-4 italic">
+                        Screenshot: ChatGPT refusing to answer a clinical question →
+                    </p>
+                </div>
+                <div class="bg-slate-700 p-6 rounded-xl border-2 border-slate-500">
+                    <p class="text-sm font-mono text-slate-300 italic">
+                        "I can't provide medical advice or diagnose conditions. Please consult with a healthcare professional for personalized medical guidance."
+                    </p>
+                    <p class="text-xs text-slate-400 mt-4 text-right">— ChatGPT</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Callout -->
+        <div class="bg-blue-100 border-l-4 border-blue-500 p-6 rounded-xl">
+            <p class="text-2xl text-blue-900 font-bold text-center">
+                The same revolution hasn't reached patients — yet.
+            </p>
+            <p class="text-lg text-slate-700 text-center mt-3">
+                Patients are left unserved — right where the <strong class="text-blue-700">next wave of value will be created</strong>
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 4: Navis = ChatGPT + MyChart + Amazon for Cancer -->
+<section class="slide bg-white">
+    <div class="slide-number">4</div>
+    <img src="./pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="detailed-content max-w-7xl mx-auto">
+        <h2 class="text-5xl font-bold mb-10 gradient-text text-center">ChatGPT + MyChart + Amazon for Cancer</h2>
+
+        <!-- Logo Visual Equation -->
+        <div class="flex items-center justify-center gap-8 mb-12">
+            <!-- ChatGPT -->
+            <div class="flex flex-col items-center">
+                <div class="w-28 h-28 bg-emerald-100 rounded-2xl flex items-center justify-center shadow-xl border-2 border-emerald-400">
+                    <div class="text-5xl">💬</div>
+                </div>
+                <p class="text-base font-bold text-slate-800 mt-3">ChatGPT</p>
+            </div>
+
+            <div class="text-5xl font-bold text-blue-600">+</div>
+
+            <!-- MyChart -->
+            <div class="flex flex-col items-center">
+                <div class="w-28 h-28 bg-blue-100 rounded-2xl flex items-center justify-center shadow-xl border-2 border-blue-400">
+                    <div class="text-5xl">📋</div>
+                </div>
+                <p class="text-base font-bold text-slate-800 mt-3">MyChart</p>
+            </div>
+
+            <div class="text-5xl font-bold text-blue-600">+</div>
+
+            <!-- Amazon -->
+            <div class="flex flex-col items-center">
+                <div class="w-28 h-28 bg-orange-100 rounded-2xl flex items-center justify-center shadow-xl border-2 border-orange-400">
+                    <div class="text-5xl">🛒</div>
+                </div>
+                <p class="text-base font-bold text-slate-800 mt-3">Amazon</p>
+            </div>
+
+            <div class="text-5xl font-bold text-emerald-600">=</div>
+
+            <!-- Navis -->
+            <div class="flex flex-col items-center">
+                <div class="w-36 h-36 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-2xl border-4 border-white">
+                    <div class="text-6xl">🧭</div>
+                </div>
+                <p class="text-xl font-bold text-blue-900 mt-3">Navis</p>
+            </div>
+        </div>
+
+        <!-- Key Differentiator Callout -->
+        <div class="bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-400 p-8 rounded-xl mb-8 max-w-5xl mx-auto">
+            <h3 class="text-2xl font-bold text-amber-900 text-center mb-6">Where Generalist Tools Stop, We Go Further</h3>
+            <div class="grid grid-cols-4 gap-6 text-center">
+                <div class="bg-white/60 p-4 rounded-xl">
+                    <p class="text-4xl mb-3">🎯</p>
+                    <p class="text-base font-bold text-slate-800">Cancer-Specific</p>
+                </div>
+                <div class="bg-white/60 p-4 rounded-xl">
+                    <p class="text-4xl mb-3">👨‍⚕️</p>
+                    <p class="text-base font-bold text-slate-800">Human-Verified</p>
+                </div>
+                <div class="bg-white/60 p-4 rounded-xl">
+                    <p class="text-4xl mb-3">🔐</p>
+                    <p class="text-base font-bold text-slate-800">Private Hub</p>
+                </div>
+                <div class="bg-white/60 p-4 rounded-xl">
+                    <p class="text-4xl mb-3">⚡</p>
+                    <p class="text-base font-bold text-slate-800">Connects to Care</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Competitive Differentiation Table -->
+        <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-xl text-white shadow-2xl max-w-4xl mx-auto">
+            <h4 class="text-2xl font-bold mb-6 text-blue-300 text-center">Why We Win</h4>
+            <table class="w-full text-base">
+                <thead>
+                    <tr class="border-b-2 border-slate-600">
+                        <th class="text-left py-3 text-slate-400 font-semibold">Player</th>
+                        <th class="text-center py-3 text-slate-400 font-semibold">Focus</th>
+                        <th class="text-center py-3 text-slate-400 font-semibold">Action</th>
+                        <th class="text-center py-3 text-slate-400 font-semibold">Human Verified</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm">
+                    <tr class="border-b border-slate-700">
+                        <td class="py-3 text-white font-semibold">ChatGPT</td>
+                        <td class="py-3 text-center text-slate-400">General</td>
+                        <td class="py-3 text-center text-xl">❌</td>
+                        <td class="py-3 text-center text-xl">❌</td>
+                    </tr>
+                    <tr class="border-b border-slate-700">
+                        <td class="py-3 text-white font-semibold">OpenEvidence</td>
+                        <td class="py-3 text-center text-slate-400">Providers</td>
+                        <td class="py-3 text-center text-xl">❌</td>
+                        <td class="py-3 text-center text-xl">✅</td>
+                    </tr>
+                    <tr class="border-b border-slate-700">
+                        <td class="py-3 text-white font-semibold">Doctolib AI</td>
+                        <td class="py-3 text-center text-slate-400">Everyday</td>
+                        <td class="py-3 text-center text-xl">⚠️</td>
+                        <td class="py-3 text-center text-xl">❌</td>
+                    </tr>
+                    <tr class="bg-blue-900/40">
+                        <td class="py-3 text-emerald-300 font-bold text-lg">Navis</td>
+                        <td class="py-3 text-center text-emerald-300 font-semibold">Cancer</td>
+                        <td class="py-3 text-center text-xl">✅</td>
+                        <td class="py-3 text-center text-xl">✅</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 5: Traction -->
+<section class="slide bg-slate-50">
+    <div class="slide-number">5</div>
+    <img src="./pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="detailed-content max-w-7xl mx-auto">
+        <h2 class="text-5xl font-bold mb-8 gradient-text text-center">Live. Validated. Scaling.</h2>
+
+        <!-- Traction Grid -->
+        <div class="grid grid-cols-4 gap-6 mb-10 max-w-6xl mx-auto">
+            <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl shadow-lg text-center">
+                <p class="text-5xl font-bold text-blue-900 mb-2">2</p>
+                <p class="text-sm font-semibold text-slate-700">Paying Partners</p>
+                <p class="text-xs text-slate-600 mt-1">Protean, Cancer Commons</p>
+            </div>
+
+            <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 p-6 rounded-xl shadow-lg text-center">
+                <p class="text-5xl font-bold text-emerald-900 mb-2">3</p>
+                <p class="text-sm font-semibold text-slate-700">LOIs Converting</p>
+                <p class="text-xs text-slate-600 mt-1">$150K ARR pipeline</p>
+            </div>
+
+            <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl shadow-lg text-center">
+                <p class="text-5xl font-bold text-purple-900 mb-2">500+</p>
+                <p class="text-sm font-semibold text-slate-700">Waitlist</p>
+                <p class="text-xs text-slate-600 mt-1">60% would pay</p>
+            </div>
+
+            <div class="bg-gradient-to-br from-amber-50 to-amber-100 p-6 rounded-xl shadow-lg text-center">
+                <p class="text-5xl font-bold text-amber-900 mb-2">✓</p>
+                <p class="text-sm font-semibold text-slate-700">MVP Shipped</p>
+                <p class="text-xs text-slate-600 mt-1">Bootstrapped</p>
+            </div>
+        </div>
+
+        <!-- Unit Economics Table -->
+        <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-xl text-white shadow-2xl max-w-4xl mx-auto">
+            <h3 class="text-2xl font-bold mb-6 text-center text-blue-300">💎 Unit Economics</h3>
+            <div class="grid grid-cols-3 gap-8 text-center">
+                <div>
+                    <p class="text-sm text-slate-400 mb-2">LTV (Year 1)</p>
+                    <p class="text-5xl font-bold text-emerald-400 mb-2">$800</p>
+                    <p class="text-xs text-slate-500">2-3 referrals/year</p>
+                </div>
+                <div>
+                    <p class="text-sm text-slate-400 mb-2">CAC</p>
+                    <p class="text-5xl font-bold text-blue-400 mb-2">~$0</p>
+                    <p class="text-xs text-slate-500">Advocacy partnerships</p>
+                </div>
+                <div>
+                    <p class="text-sm text-slate-400 mb-2">Gross Margin</p>
+                    <p class="text-5xl font-bold text-purple-400 mb-2">70%</p>
+                    <p class="text-xs text-slate-500">Platform model</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Two Testimonials Side-by-Side -->
+        <div class="grid grid-cols-2 gap-8 mb-6">
+            <!-- Tony Magliocco Testimonial -->
+            <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-emerald-500">
+                <div class="flex items-start gap-3 mb-3">
+                    <img src="/lovable-uploads/2fdf08f9-8d86-4d67-a75c-2199dba8c089.png" alt="Dr. Tony Magliocco" class="w-12 h-12 object-cover rounded-full" onerror="this.style.display='none'">
+                </div>
+                <p class="text-sm text-slate-700 italic leading-relaxed mb-3">
+                    NAVIS has been doing great things in the cancer care community. Protean appreciates the authentic empathy and enthusiasm of NAVIS in helping bring Protean MAPS to the world, thereby creating optimum cancer diagnostics and treatment options.
+                </p>
+                <p class="text-xs text-slate-600 font-semibold">
+                    — Dr. Tony Magliocco, MD FRCPC FCAP
+                    <span class="text-slate-500 font-normal block">Protean Founder & President</span>
+                </p>
+            </div>
+
+            <!-- Kaumudi Bhawe Testimonial -->
+            <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-purple-500">
+                <p class="text-sm text-slate-700 italic leading-relaxed mb-3">
+                    As a caregiver, NAVIS brings all documents into one place where multiple experts can communicate, collaborate and support the patient. With NAVIS showing you the landscape, you don't have to feel lost anymore.
+                </p>
+                <p class="text-xs text-slate-600 font-semibold">
+                    — Kaumudi Bhawe, PhD
+                    <span class="text-slate-500 font-normal block">Patient Navigator, CancerCommons</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Partner Logos at Bottom -->
+        <div class="text-center mt-auto">
+            <img src="./pitchAssets/logos.jpg" alt="Partner Logos" class="mx-auto h-20 object-contain" onerror="this.style.display='none'">
+        </div>
+    </div>
+
+    <!-- MINIMALIST VERSION (Jobs Style) -->
+    <div class="minimalist-content max-w-6xl mx-auto flex items-center justify-center h-full">
+        <div class="text-center">
+            <h2 class="mega-headline gradient-text mb-12">
+                Live.<br>
+                <span class="text-emerald-500">Validated.</span>
+            </h2>
+            <p class="big-tagline text-slate-800 mb-16">
+                Shipping daily.
+            </p>
+            <div class="grid grid-cols-3 gap-12 text-left max-w-5xl mx-auto">
+                <div>
+                    <p class="text-xl text-slate-600 mb-4">LTV (Yr 1)</p>
+                    <p class="text-5xl font-bold text-emerald-600">$800</p>
+                    <p class="text-xs text-slate-500 mt-2">2-3 referrals + 10% premium</p>
+                </div>
+                <div>
+                    <p class="text-xl text-slate-600 mb-4">CAC</p>
+                    <p class="text-5xl font-bold text-blue-600">~$0</p>
+                </div>
+                <div>
+                    <p class="text-xl text-slate-600 mb-4">Pilots</p>
+                    <p class="text-5xl font-bold text-purple-600">2</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 6: Patient Testimonials -->
+<section class="slide bg-white">
+    <div class="slide-number">6</div>
+    <img src="./pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="w-full h-full flex flex-col items-center justify-center p-8">
+        <h2 class="text-5xl font-bold mb-8 gradient-text text-center whitespace-nowrap">REAL Patients are using Navis in production</h2>
+        <!-- Full-slide patient testimonials image -->
+        <div class="flex-1 w-full flex items-center justify-center">
+            <img src="./pitchAssets/testimonialPatients.jpg" alt="Patient Testimonials" class="w-full h-full object-contain" onerror="this.style.display='none'">
+        </div>
+    </div>
+</section>
+
+<!-- Slide 7: Team -->
+<section class="slide bg-slate-50">
+    <div class="slide-number">7</div>
+    <img src="./pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <!-- DETAILED VERSION -->
+    <div class="detailed-content max-w-7xl mx-auto flex flex-col items-center justify-center h-full">
+        <h2 class="text-5xl font-bold mb-6 gradient-text text-center">We Know Patients, Scale, and the System</h2>
+        <p class="text-xl text-slate-600 text-center mb-8 italic">Cancer survivors × clinicians × product leaders from Meta, Stanford, and precision oncology</p>
+
+        <!-- Team Slide Image - Larger -->
+        <div class="w-full" style="max-width: 98%;">
+            <img src="./pitchAssets/teamslide.jpg" alt="Team" class="w-full h-auto rounded-2xl shadow-2xl" onerror="this.style.display='none'">
+        </div>
+    </div>
+
+    <!-- MINIMALIST VERSION (Jobs Style) -->
+    <div class="minimalist-content max-w-6xl mx-auto flex items-center justify-center h-full">
+        <div class="text-center">
+            <h2 class="mega-headline gradient-text mb-12">
+                Built by survivors<br>
+                <span class="text-yellow-400">who scaled systems.</span>
+            </h2>
+            <p class="text-3xl text-slate-600 font-light">
+                Meta × Genentech × Human Genome Project
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 8: Exit & Strategic Value -->
+<section class="slide bg-gradient-to-br from-purple-50 to-blue-50">
+    <div class="slide-number">8</div>
+    <img src="./pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="detailed-content max-w-7xl mx-auto">
+        <h2 class="text-5xl font-bold mb-6 gradient-text text-center">Building the Most Trusted Patient Intelligence Graph</h2>
+        <p class="text-2xl text-center text-slate-700 mb-12 italic">Three compounding strategic assets → 10-figure exit potential</p>
+
+        <div class="grid grid-cols-3 gap-8 mb-12">
+            <!-- Asset 1: Guideline Library -->
+            <div class="bg-white p-8 rounded-2xl shadow-xl border-2 border-blue-300">
+                <div class="text-5xl mb-4 text-center">📚</div>
+                <h3 class="text-2xl font-bold text-blue-900 mb-4 text-center">Auditable Guideline Library</h3>
+                <p class="text-base text-slate-700 leading-relaxed mb-4">
+                    Up-to-date, clinically validated knowledge base (NCCN, ASCO, NIH)
+                </p>
+                <div class="bg-blue-50 p-4 rounded-xl">
+                    <p class="text-sm font-semibold text-blue-900">Strategic Value:</p>
+                    <p class="text-sm text-slate-700 mt-2">Valuable standalone IP asset<br>= Our competitive moat</p>
+                </div>
+            </div>
+
+            <!-- Asset 2: Patient Data Graph -->
+            <div class="bg-white p-8 rounded-2xl shadow-xl border-2 border-emerald-300">
+                <div class="text-5xl mb-4 text-center">💾</div>
+                <h3 class="text-2xl font-bold text-emerald-900 mb-4 text-center">Patient-Side Data Graph</h3>
+                <p class="text-base text-slate-700 leading-relaxed mb-4">
+                    Structured, HIPAA-compliant repository of patient journeys and outcomes
+                </p>
+                <div class="bg-emerald-50 p-4 rounded-xl">
+                    <p class="text-sm font-semibold text-emerald-900">Strategic Value:</p>
+                    <p class="text-sm text-slate-700 mt-2">10-figure strategic asset<br>to any major AI lab</p>
+                </div>
+            </div>
+
+            <!-- Asset 3: Patient Relationship -->
+            <div class="bg-white p-8 rounded-2xl shadow-xl border-2 border-purple-300">
+                <div class="text-5xl mb-4 text-center">💊</div>
+                <h3 class="text-2xl font-bold text-purple-900 mb-4 text-center">Trusted Patient Relationship</h3>
+                <p class="text-base text-slate-700 leading-relaxed mb-4">
+                    Direct channel to high-intent patients at critical decision moments
+                </p>
+                <div class="bg-purple-50 p-4 rounded-xl">
+                    <p class="text-sm font-semibold text-purple-900">Strategic Value:</p>
+                    <p class="text-sm text-slate-700 mt-2">Essential to pharma, diagnostics,<br>provider networks</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Potential Acquirers -->
+        <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-10 rounded-2xl text-white shadow-2xl">
+            <h3 class="text-3xl font-bold mb-6 text-center text-blue-300">🎯 Potential Acquirers</h3>
+
+            <div class="grid grid-cols-2 gap-8">
+                <!-- Left: Acquirer Categories -->
+                <div class="space-y-4">
+                    <div class="bg-slate-700/50 p-4 rounded-xl">
+                        <p class="text-lg font-semibold text-white mb-2">Provider-Side Players</p>
+                        <p class="text-base text-slate-300">OpenEvidence (provider + patient = full stack)</p>
+                    </div>
+
+                    <div class="bg-slate-700/50 p-4 rounded-xl">
+                        <p class="text-lg font-semibold text-white mb-2">AI Infrastructure Giants</p>
+                        <p class="text-base text-slate-300">OpenAI, Google, Amazon (patient intelligence layer)</p>
+                    </div>
+
+                    <div class="bg-slate-700/50 p-4 rounded-xl">
+                        <p class="text-lg font-semibold text-white mb-2">Healthcare Platforms</p>
+                        <p class="text-base text-slate-300">Optum/CVS (patient engagement platform)</p>
+                    </div>
+
+                    <div class="bg-slate-700/50 p-4 rounded-xl">
+                        <p class="text-lg font-semibold text-white mb-2">Precision Medicine</p>
+                        <p class="text-base text-slate-300">Tempus, Flatiron (clinical + patient data)</p>
+                    </div>
+                </div>
+
+                <!-- Right: Valuation Comps -->
+                <div class="bg-white/10 p-6 rounded-xl">
+                    <h4 class="text-xl font-bold text-emerald-300 mb-4">Valuation Comps</h4>
+                    <div class="space-y-3">
+                        <div class="border-b border-slate-600 pb-3">
+                            <p class="text-lg font-semibold text-white">Flatiron</p>
+                            <p class="text-2xl font-bold text-blue-400">$1.9B</p>
+                            <p class="text-sm text-slate-400">Acquired by Roche (2018)</p>
+                        </div>
+
+                        <div class="border-b border-slate-600 pb-3">
+                            <p class="text-lg font-semibold text-white">Tempus</p>
+                            <p class="text-2xl font-bold text-emerald-400">$8.1B</p>
+                            <p class="text-sm text-slate-400">IPO (2024)</p>
+                        </div>
+
+                        <div class="pt-3">
+                            <p class="text-lg font-semibold text-amber-300">Navis Target</p>
+                            <p class="text-3xl font-bold text-amber-400">$200M-$500M</p>
+                            <p class="text-sm text-slate-400">5-7 years</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-center text-slate-300 mt-8 text-lg italic">
+                Any player racing to own the patient interface will need what we're building
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 9: Trusted communities drive low cost acquisition -->
+<section class="slide bg-white">
+    <div class="slide-number">9</div>
+    <img src="./pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <!-- DETAILED VERSION -->
+    <div class="detailed-content w-full px-8 mx-auto" style="max-width: 100%;">
+        <h2 class="text-4xl font-bold mb-4 gradient-text text-center whitespace-nowrap">Trusted communities drive low cost acquisition</h2>
+
+        <!-- Two Images Side-by-Side: Equal Height Layout -->
+        <div class="grid grid-cols-5 gap-4" style="height: 75vh;">
+            <div class="col-span-3 flex items-center">
+                <img src="./pitchAssets/CPLdistribution.jpg" alt="Distribution Strategy: CPL Network" class="w-full h-full object-contain rounded-xl shadow-2xl" style="max-height: none;" onerror="this.style.display='none'">
+            </div>
+            <div class="col-span-2 flex flex-col gap-4">
+                <div class="flex-1 flex items-center">
+                    <img src="./pitchAssets/invite.jpg" alt="Invite Flow" class="w-full h-full object-contain rounded-xl shadow-2xl" style="max-height: none;" onerror="this.style.display='none'">
+                </div>
+                <div class="flex-1 flex items-center">
+                    <img src="./pitchAssets/cpl-feed.jpg" alt="CPL Feed Example" class="w-full h-full object-contain rounded-xl shadow-lg" style="max-height: none;" onerror="this.style.display='none'">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MINIMALIST VERSION (Jobs Style) -->
+    <div class="minimalist-content max-w-6xl mx-auto flex items-center justify-center h-full">
+        <div class="text-center">
+            <h2 class="mega-headline gradient-text mb-12">
+                Advocacy groups<br>
+                <span class="text-blue-500">are our distribution engine.</span>
+            </h2>
+            <p class="big-tagline text-slate-700 mb-24">
+                ~$0 CAC
+            </p>
+            <div class="max-w-3xl mx-auto">
+                <div class="flex items-center justify-center gap-12">
+                    <div class="flex-1 text-center">
+                        <div class="bg-blue-100 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-6xl">🤝</span>
+                        </div>
+                        <p class="text-xl text-slate-700 font-bold">Partners</p>
+                    </div>
+                    <div class="text-5xl text-purple-500">→</div>
+                    <div class="flex-1 text-center">
+                        <div class="bg-emerald-100 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-6xl">👥</span>
+                        </div>
+                        <p class="text-xl text-slate-700 font-bold">Patients</p>
+                    </div>
+                    <div class="text-5xl text-emerald-500">→</div>
+                    <div class="flex-1 text-center">
+                        <div class="bg-violet-100 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-6xl">💰</span>
+                        </div>
+                        <p class="text-xl text-slate-700 font-bold">Revenue</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 10: Product Principles -->
+<section class="slide bg-white">
+    <div class="slide-number">10</div>
+    <img src="./pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <!-- DETAILED VERSION -->
+    <div class="detailed-content max-w-7xl mx-auto flex flex-col items-center justify-center h-full py-12 px-8">
+        <!-- Headline -->
+        <h2 class="text-5xl font-bold mb-8 gradient-text text-center whitespace-nowrap">Product Principles Driving Patient Trust & Outcomes</h2>
+
+        <!-- Three Principle Columns -->
+        <div class="grid grid-cols-3 gap-12 max-w-6xl mt-8 mb-10">
+
+            <!-- Trust -->
+            <div class="flex flex-col items-center bg-gradient-to-b from-blue-50 to-white rounded-2xl p-8 border border-blue-100 shadow-sm hover:shadow-lg transition-shadow">
+                <!-- Icon: Padlock -->
+                <div class="mb-6 w-20 h-20 flex items-center justify-center bg-blue-100 rounded-full">
+                    <svg class="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-900 mb-4">Trust</h3>
+                <div class="w-12 h-1 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full mb-4"></div>
+                <ul class="text-sm text-slate-700 space-y-2.5 leading-relaxed">
+                    <li class="flex items-start"><span class="text-blue-500 mr-2 font-bold">•</span><span>Verified by AI + Experts + Community</span></li>
+                    <li class="flex items-start"><span class="text-blue-500 mr-2 font-bold">•</span><span>Multi-layered clinical validation</span></li>
+                    <li class="flex items-start"><span class="text-blue-500 mr-2 font-bold">•</span><span>Human oversight and audit trail</span></li>
+                    <li class="flex items-start"><span class="text-blue-500 mr-2 font-bold">•</span><span class="font-semibold">We don't hallucinate — we verify</span></li>
+                </ul>
+            </div>
+
+            <!-- Personalization -->
+            <div class="flex flex-col items-center bg-gradient-to-b from-purple-50 to-white rounded-2xl p-8 border border-purple-100 shadow-sm hover:shadow-lg transition-shadow">
+                <!-- Icon: Tuning Dial -->
+                <div class="mb-6 w-20 h-20 flex items-center justify-center bg-purple-100 rounded-full">
+                    <svg class="w-12 h-12 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-900 mb-4">Personalization</h3>
+                <div class="w-12 h-1 bg-gradient-to-r from-purple-400 to-purple-600 rounded-full mb-4"></div>
+                <ul class="text-sm text-slate-700 space-y-2.5 leading-relaxed">
+                    <li class="flex items-start"><span class="text-purple-500 mr-2 font-bold">•</span><span>Tailored to patient's context, stage, and preferences</span></li>
+                    <li class="flex items-start"><span class="text-purple-500 mr-2 font-bold">•</span><span>Toggle between guideline, experimental, and emerging insights</span></li>
+                    <li class="flex items-start"><span class="text-purple-500 mr-2 font-bold">•</span><span class="font-semibold">Transparent reasoning: "Why we're showing this"</span></li>
+                    <li class="flex items-start"><span class="text-purple-500 mr-2 font-bold">•</span><span>Learns from every new data point</span></li>
+                </ul>
+            </div>
+
+            <!-- Ease of Use -->
+            <div class="flex flex-col items-center bg-gradient-to-b from-amber-50 to-white rounded-2xl p-8 border border-amber-100 shadow-sm hover:shadow-lg transition-shadow">
+                <!-- Icon: Sparkle/Magic -->
+                <div class="mb-6 w-20 h-20 flex items-center justify-center bg-amber-100 rounded-full">
+                    <svg class="w-12 h-12 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-900 mb-4">Ease of Use</h3>
+                <div class="w-12 h-1 bg-gradient-to-r from-amber-400 to-amber-600 rounded-full mb-4"></div>
+                <ul class="text-sm text-slate-700 space-y-2.5 leading-relaxed">
+                    <li class="flex items-start"><span class="text-amber-500 mr-2 font-bold">•</span><span class="font-semibold">Unified experience: Info → Action → Next Step</span></li>
+                    <li class="flex items-start"><span class="text-amber-500 mr-2 font-bold">•</span><span>Connects instantly to diagnostics, trials, and experts</span></li>
+                    <li class="flex items-start"><span class="text-amber-500 mr-2 font-bold">•</span><span class="font-semibold">Zero friction: no scattered portals or PDFs</span></li>
+                    <li class="flex items-start"><span class="text-amber-500 mr-2 font-bold">•</span><span>Designed for real patients, not admins</span></li>
+                </ul>
+            </div>
+
+        </div>
+
+        <!-- Tagline -->
+        <div class="mt-6 pt-6 border-t border-slate-200 w-full max-w-4xl">
+            <p class="text-xl text-slate-700 text-center font-light leading-relaxed">
+                Making complex cancer care <span class="font-semibold text-slate-900">simple</span>, <span class="font-semibold text-blue-600">transparent</span>, and <span class="font-semibold text-purple-600">personal</span>.
+            </p>
+        </div>
+    </div>
+
+    <!-- MINIMALIST VERSION (Jobs Style) -->
+    <div class="minimalist-content max-w-6xl mx-auto flex items-center justify-center h-full">
+        <div class="text-center">
+            <h2 class="mega-headline gradient-text mb-16">
+                Trust.<br>
+                Personalization.<br>
+                <span class="text-emerald-400">Simplicity.</span>
+            </h2>
+            <p class="big-tagline text-slate-700">
+                The foundation of patient navigation.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 11: $500K Experiment Plan -->
+<section class="slide bg-white">
+    <div class="slide-number">11</div>
+    <img src="./pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <!-- DETAILED VERSION -->
+    <div class="detailed-content max-w-7xl mx-auto">
+        <h2 class="text-4xl font-bold mb-4 gradient-text text-center">$500K Experiment Plan</h2>
+        <p class="text-xl text-center text-slate-600 mb-2 italic">Each experiment validates a specific GTM phase</p>
+
+        <!-- GTM Phase Legend -->
+        <div class="flex justify-center gap-4 mb-6">
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 bg-blue-500 rounded"></div>
+                <span class="text-sm text-slate-700">Phase 1: Establish Trust</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 bg-violet-500 rounded"></div>
+                <span class="text-sm text-slate-700">Phase 2: Monetize Testing</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 bg-amber-500 rounded"></div>
+                <span class="text-sm text-slate-700">Phase 3: Scale</span>
+            </div>
+        </div>
+
+        <!-- Experiment Table -->
+        <div class="bg-white rounded-xl border-2 border-slate-200 overflow-hidden shadow-xl">
+            <table class="w-full text-left table-fixed">
+                <colgroup>
+                    <col style="width: 35%;">
+                    <col style="width: 12%;">
+                    <col style="width: 20%;">
+                    <col style="width: 23%;">
+                    <col style="width: 10%;">
+                </colgroup>
+                <thead class="bg-gradient-to-r from-blue-50 to-indigo-100">
+                    <tr>
+                        <th class="px-3 py-3 text-sm font-bold text-slate-800 border-b border-slate-300">What It Proves<br><span class="text-xs font-normal text-slate-600">Experiment</span></th>
+                        <th class="px-3 py-3 text-sm font-bold text-slate-800 border-b border-slate-300">Investment</th>
+                        <th class="px-3 py-3 text-sm font-bold text-slate-800 border-b border-slate-300">Success Metric</th>
+                        <th class="px-3 py-3 text-sm font-bold text-slate-800 border-b border-slate-300">Outcome</th>
+                        <th class="px-3 py-3 text-sm font-bold text-slate-800 border-b border-slate-300">Validates</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm">
+                    <!-- Patient Sub -->
+                    <tr class="border-b border-slate-100 hover:bg-orange-50">
+                        <td class="px-3 py-4">
+                            <div class="font-bold text-slate-900 mb-1">💳 Consumer willingness validated</div>
+                            <div class="text-xs text-slate-600">Patient Sub. (Premium)</div>
+                        </td>
+                        <td class="px-3 py-4 text-slate-700 font-medium">$20K<br><span class="text-xs text-slate-500">(features)</span></td>
+                        <td class="px-3 py-4 text-slate-700">10% conversion to paid</td>
+                        <td class="px-3 py-4 text-slate-700">Patients will pay $29-49/mo for navigation</td>
+                        <td class="px-3 py-4 text-center">
+                            <span class="inline-block px-2 py-1 bg-blue-500 text-white text-xs font-bold rounded">Phase 1</span>
+                        </td>
+                    </tr>
+                    <!-- Retention Loop -->
+                    <tr class="border-b border-slate-100 hover:bg-purple-50">
+                        <td class="px-3 py-4">
+                            <div class="font-bold text-slate-900 mb-1">🔁 Engagement moat exists</div>
+                            <div class="text-xs text-slate-600">Retention Loop (Vault)</div>
+                        </td>
+                        <td class="px-3 py-4 text-slate-700 font-medium">$120K<br><span class="text-xs text-slate-500">(prod + AI)</span></td>
+                        <td class="px-3 py-4 text-slate-700">Retention &gt; 50% at 30d</td>
+                        <td class="px-3 py-4 text-slate-700">Patients return weekly for AI guidance</td>
+                        <td class="px-3 py-4 text-center">
+                            <span class="inline-block px-2 py-1 bg-blue-500 text-white text-xs font-bold rounded">Phase 1</span>
+                        </td>
+                    </tr>
+                    <!-- Referral Engine -->
+                    <tr class="border-b border-slate-100 hover:bg-emerald-50">
+                        <td class="px-3 py-4">
+                            <div class="font-bold text-slate-900 mb-1">🔬 B2B2C monetization proof</div>
+                            <div class="text-xs text-slate-600">Referral Engine (Protean + CPL)</div>
+                        </td>
+                        <td class="px-3 py-4 text-slate-700 font-medium">$80K<br><span class="text-xs text-slate-500">(BD + int.)</span></td>
+                        <td class="px-3 py-4 text-slate-700">2 partners paying by Q2 → 10K MRR</td>
+                        <td class="px-3 py-4 text-slate-700">Labs pay $150-400 per completed test</td>
+                        <td class="px-3 py-4 text-center">
+                            <span class="inline-block px-2 py-1 bg-violet-500 text-white text-xs font-bold rounded">Phase 2</span>
+                        </td>
+                    </tr>
+                    <!-- PRM Systems Integration -->
+                    <tr class="border-b-2 border-slate-200 hover:bg-blue-50">
+                        <td class="px-3 py-4">
+                            <div class="font-bold text-slate-900 mb-1">🔧 SaaS backend model validated</div>
+                            <div class="text-xs text-slate-600">PRM Systems Integration</div>
+                        </td>
+                        <td class="px-3 py-4 text-slate-700 font-medium">$80K<br><span class="text-xs text-slate-500">(eng + ops)</span></td>
+                        <td class="px-3 py-4 text-slate-700">3 provider orgs using PRM</td>
+                        <td class="px-3 py-4 text-slate-700">Providers pay $500-2K/mo for white-label navigation</td>
+                        <td class="px-3 py-4 text-center">
+                            <span class="inline-block px-2 py-1 bg-amber-500 text-white text-xs font-bold rounded">Phase 3</span>
+                        </td>
+                    </tr>
+                    <tr class="bg-slate-50">
+                        <td colspan="2" class="px-3 py-4 font-bold text-slate-900 text-base">Direct Investment</td>
+                        <td class="px-3 py-4 font-bold text-slate-900 text-base">$300K</td>
+                        <td colspan="3"></td>
+                    </tr>
+                    <tr class="bg-slate-50">
+                        <td colspan="2" class="px-3 py-4 font-bold text-slate-900 text-base">Overhead (Team, Infrastructure)</td>
+                        <td class="px-3 py-4 font-bold text-slate-900 text-base">$200K</td>
+                        <td colspan="3"></td>
+                    </tr>
+                    <tr class="bg-gradient-to-r from-blue-100 to-indigo-100">
+                        <td colspan="2" class="px-3 py-5 font-bold text-slate-900 text-lg">Total Pre-Seed</td>
+                        <td class="px-3 py-5 font-bold text-blue-900 text-xl">$500K</td>
+                        <td class="px-3 py-5 font-semibold text-slate-900">5K patients<br>$180K ARR</td>
+                        <td colspan="2" class="px-3 py-5 font-bold text-emerald-700 text-base">De-risks Seed at 3-5× valuation</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- MINIMALIST VERSION -->
+    <div class="minimalist-content max-w-6xl mx-auto flex items-center justify-center h-full">
+        <div class="text-center">
+            <h2 class="mega-headline gradient-text mb-12">
+                4 Experiments.<br>
+                <span class="text-emerald-500">1 Proven Model.</span>
+            </h2>
+            <p class="big-tagline text-slate-700 mb-24">
+                $500K buys systematic de-risking.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 23: Appendix - Vault Physics (Network Effects) -->
+<section class="slide bg-white">
+    <div class="slide-number">23</div>
+    <img src="./pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <!-- DETAILED VERSION -->
+    <div class="detailed-content max-w-7xl mx-auto">
+        <h2 class="text-4xl font-bold mb-6 gradient-text text-center whitespace-nowrap">Each patient makes Navis smarter.</h2>
+
+        <!-- Network Effects One-Liner -->
+        <div class="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-2xl border-l-4 border-purple-500 mb-10 max-w-5xl mx-auto">
+            <p class="text-xl text-slate-800 text-center leading-relaxed">
+                "Every record uploaded increases precision and engagement to build <strong>a compounding data network.</strong>"
+            </p>
+        </div>
+
+        <!-- Full-width Flywheel Image -->
+        <div class="flex items-center justify-center">
+            <img src="./pitchAssets/loop2.jpg" alt="Flywheel: Network effects cycle" class="w-full h-auto rounded-xl shadow-2xl" onerror="this.style.display='none'">
+        </div>
+    </div>
+
+    <!-- MINIMALIST VERSION (Jobs Style) -->
+    <div class="minimalist-content max-w-6xl mx-auto flex items-center justify-center h-full">
+        <div class="text-center">
+            <h2 class="mega-headline gradient-text mb-12">
+                Vault sharing<br>
+                <span class="text-purple-500">drives networked trust.</span>
+            </h2>
+            <p class="big-tagline text-slate-700 mb-24">
+                Every patient brings a care circle.
+            </p>
+
+            <!-- Simple network diagram -->
+            <div class="max-w-4xl mx-auto">
+                <div class="relative">
+                    <!-- Center vault -->
+                    <div class="inline-block bg-gradient-to-br from-blue-500 to-indigo-600 text-white p-12 rounded-full shadow-2xl">
+                        <div class="text-7xl mb-2">📁</div>
+                        <p class="text-2xl font-bold">Vault</p>
+                    </div>
+
+                    <!-- Surrounding collaborators -->
+                    <div class="mt-12 flex justify-center gap-8">
+                        <div class="text-center">
+                            <div class="text-5xl mb-2">👨‍👩‍👧</div>
+                            <p class="text-lg text-slate-600">Caregiver</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-5xl mb-2">👨‍⚕️</div>
+                            <p class="text-lg text-slate-600">Doctor</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-5xl mb-2">🧬</div>
+                            <p class="text-lg text-slate-600">Lab</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-5xl mb-2">🤝</div>
+                            <p class="text-lg text-slate-600">Advocate</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-12 bg-purple-50 p-8 rounded-2xl max-w-2xl mx-auto">
+                        <p class="text-2xl text-slate-700">
+                            1 vault → 5 collaborators<br>
+                            <span class="text-lg text-slate-600">30% convert • CAC ↓ • Retention ↑</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 12: The Ask -->
+<section class="slide bg-white">
+    <div class="slide-number">12</div>
+    <img src="./pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <!-- DETAILED VERSION -->
+    <div class="detailed-content max-w-5xl mx-auto">
+        <h2 class="text-6xl font-bold mb-2 text-center gradient-text whitespace-nowrap">$500K SAFE at $5M Cap</h2>
+        <p class="text-2xl text-center text-slate-600 mb-10">De-risks Seed at 3-5× valuation</p>
+
+        <!-- Validation Strategy Reference -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-100 p-5 rounded-xl mb-8 border-2 border-blue-200">
+            <p class="text-xl font-bold text-slate-900 text-center mb-2">Hypothesis → Outcome validation across 4 key areas</p>
+            <p class="text-base text-slate-600 text-center italic">See Slide 11 for detailed experiment plan with what each proves</p>
+        </div>
+
+        <!-- Outcome Trajectory with Unit Economics -->
+        <div class="grid grid-cols-3 gap-6">
+            <!-- 6 Months -->
+            <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-xl border-2 border-blue-300">
+                <p class="text-xs font-bold text-blue-900 uppercase mb-3 text-center">6 Months</p>
+                <p class="text-4xl font-bold text-blue-900 text-center mb-3">5K patients</p>
+                <p class="text-2xl font-bold text-blue-700 text-center mb-4">$30K MRR</p>
+                <div class="text-xs text-slate-600 space-y-1 pt-3 border-t border-blue-200">
+                    <p>• D2C (10% @ $39): $19.5K</p>
+                    <p>• B2B2C partners: $5K</p>
+                    <p>• PRM (5 orgs): $5K</p>
+                </div>
+            </div>
+
+            <!-- 12 Months -->
+            <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 p-5 rounded-xl border-2 border-emerald-300">
+                <p class="text-xs font-bold text-emerald-900 uppercase mb-3 text-center">12 Months</p>
+                <p class="text-4xl font-bold text-emerald-900 text-center mb-3">10K patients</p>
+                <p class="text-2xl font-bold text-emerald-700 text-center mb-4">$64K MRR</p>
+                <div class="text-xs text-slate-600 space-y-1 pt-3 border-t border-emerald-200">
+                    <p>• D2C (10% @ $39): $39K</p>
+                    <p>• B2B2C partners: $10K</p>
+                    <p>• PRM (15 orgs): $15K</p>
+                </div>
+            </div>
+
+            <!-- 18 Months -->
+            <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-5 rounded-xl border-2 border-purple-300">
+                <p class="text-xs font-bold text-purple-900 uppercase mb-3 text-center">18 Months</p>
+                <p class="text-4xl font-bold text-purple-900 text-center mb-3">25K patients</p>
+                <p class="text-2xl font-bold text-purple-700 text-center mb-4">$157K MRR</p>
+                <div class="text-xs text-slate-600 space-y-1 pt-3 border-t border-purple-200">
+                    <p>• D2C (10% @ $39): $97.5K</p>
+                    <p>• B2B2C partners: $30K</p>
+                    <p>• PRM (30 orgs): $30K</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact -->
+        <div class="mt-10 text-center">
+            <p class="text-xl text-slate-600">📧 support@navis.health</p>
+        </div>
+    </div>
+
+    <!-- MINIMALIST VERSION (Jobs Style) -->
+    <div class="minimalist-content max-w-6xl mx-auto flex items-center justify-center h-full">
+        <div class="text-center">
+            <h2 class="mega-headline text-white mb-12">
+                $500K SAFE<br>
+                <span class="text-yellow-300">at $5M cap</span>
+            </h2>
+            <p class="text-4xl text-white font-light mb-20">
+                Closing December 2025
+            </p>
+            <div class="bg-white bg-opacity-10 p-12 rounded-3xl border-2 border-white border-opacity-20 max-w-2xl mx-auto">
+                <p class="text-3xl text-yellow-300 font-bold mb-8">50% committed.</p>
+                <p class="text-2xl text-white">
+                    📧 support@navis.health
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 13: Appendix Divider -->
+<section class="slide bg-gradient-to-br from-slate-800 to-slate-900 text-white">
+    <div class="slide-number" style="color: #e2e8f0;">A</div>
+    <div class="max-w-4xl mx-auto flex items-center justify-center h-full">
+        <div class="text-center">
+            <h2 class="text-8xl font-bold text-white mb-8">Appendix</h2>
+            <p class="text-2xl text-slate-400 font-light">Additional context & technical details</p>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 14: Appendix - Monetizing both sides of the ecosystem -->
+<section class="slide bg-white">
+    <div class="slide-number">14</div>
+    <img src="./pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+    <div class="detailed-content max-w-7xl mx-auto py-6">
+        <h2 class="text-4xl font-bold mb-2 gradient-text text-center whitespace-nowrap">Monetizing both sides of the ecosystem.</h2>
+        <p class="text-xl text-center text-slate-600 mb-6">Patients will have free core access with premium functionality options</p>
+
+        <div class="grid grid-cols-2 gap-10 items-start">
+            <!-- Left: Revenue Streams -->
+            <div class="flex flex-col space-y-6">
+                <!-- Revenue Streams Table -->
+                <div class="bg-white rounded-lg border-2 border-slate-200 overflow-hidden shadow-lg">
+                    <table class="w-full text-left">
+                        <thead class="bg-gradient-to-r from-blue-50 to-indigo-50">
+                            <tr>
+                                <th class="px-4 py-3 text-sm font-bold text-slate-700 border-b border-slate-200">Revenue Stream</th>
+                                <th class="px-4 py-3 text-sm font-bold text-slate-700 border-b border-slate-200">Pricing</th>
+                                <th class="px-4 py-3 text-sm font-bold text-slate-700 border-b border-slate-200">Value</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm">
+                            <tr class="border-b border-slate-100">
+                                <td class="px-4 py-3 text-slate-800 font-medium">Labs</td>
+                                <td class="px-4 py-3 text-slate-700 font-semibold">$150-400</td>
+                                <td class="px-4 py-3 text-slate-700 text-xs">Improve test completion rates</td>
+                            </tr>
+                            <tr class="border-b border-slate-100">
+                                <td class="px-4 py-3 text-slate-800 font-medium">Trials</td>
+                                <td class="px-4 py-3 text-slate-700 font-semibold">$300-500</td>
+                                <td class="px-4 py-3 text-slate-700 text-xs">Qualified patient pipeline</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 text-slate-800 font-medium">White-label</td>
+                                <td class="px-4 py-3 text-slate-700 font-semibold">$2K+/mo</td>
+                                <td class="px-4 py-3 text-slate-700 text-xs">Navigation for communities</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Trust & Regulatory Combined Card -->
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl border-l-4 border-blue-500">
+                    <p class="text-sm text-slate-800 leading-relaxed">
+                        <strong>Navigation tool (not clinical).</strong> HIPAA-compliant. Partners pay for actions only—never selling patient data.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Right: Payment Image -->
+            <div class="flex flex-col justify-center">
+                <img src="./pitchAssets/paymentPage.jpg" alt="Payment Page" class="w-full h-auto rounded-xl shadow-2xl" onerror="this.style.display='none'">
+            </div>
+        </div>
+    </div>
+
+    <!-- MINIMALIST VERSION (Jobs Style) -->
+    <div class="minimalist-content max-w-6xl mx-auto flex items-center justify-center h-full">
+        <div class="text-center">
+            <h2 class="mega-headline gradient-text mb-16">
+                Patients pay $0.<br>
+                <span class="text-emerald-400">Everyone else pays us.</span>
+            </h2>
+            <p class="big-tagline text-slate-700 mb-24">
+                Patient engagement is the asset.
+            </p>
+            <div class="flex items-center justify-center gap-16 max-w-4xl mx-auto">
+                <div class="flex-1 text-center">
+                    <div class="text-8xl mb-4">👥</div>
+                    <p class="text-2xl text-slate-600">Patients</p>
+                    <p class="text-lg text-slate-500 mt-2">Free forever</p>
+                </div>
+                <div class="text-6xl text-purple-500">→</div>
+                <div class="flex-1 text-center">
+                    <div class="text-8xl mb-4">⚙️</div>
+                    <p class="text-2xl text-slate-600">Navis</p>
+                    <p class="text-lg text-slate-500 mt-2">AI/Trust Layer</p>
+                </div>
+                <div class="text-6xl text-emerald-500">→</div>
+                <div class="flex-1 text-center">
+                    <div class="text-8xl mb-4">💰</div>
+                    <p class="text-2xl text-slate-600">Partners</p>
+                    <p class="text-lg text-emerald-600 mt-2 font-bold">$150-400/referral</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- BONUS SLIDE: "One More Thing" (Jobs-style cinematic closer) -->
+<section class="slide minimalist-content bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 text-white">
+    <div class="slide-number" style="color: #e2e8f0;">14</div>
+    <div class="max-w-6xl mx-auto flex items-center justify-center h-full">
+        <div class="text-center">
+            <h2 class="text-7xl font-light text-white mb-20 leading-tight">
+                Imagine a world where<br>
+                <span class="font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
+                    every patient has a guide.
+                </span>
+            </h2>
+            <div class="relative max-w-4xl mx-auto">
+                <!-- Glowing Navis map visual placeholder -->
+                <div class="bg-gradient-to-br from-blue-500/20 to-emerald-500/20 p-16 rounded-3xl border border-white/20 backdrop-blur-sm">
+                    <div class="text-9xl mb-6">🗺️</div>
+                    <p class="text-3xl text-white/80 font-light">
+                        A living map that scales with every journey.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 22: Appendix - GTM Phases (0→1→10) -->
+<section class="slide bg-white">
+    <div class="slide-number">22</div>
+    <img src="./pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <!-- DETAILED VERSION -->
+    <div class="detailed-content max-w-7xl mx-auto px-8">
+        <h2 class="text-5xl font-bold mb-12 text-center text-slate-900 whitespace-nowrap">Build Trust → Monetize Testing → Scale</h2>
+
+        <!-- Horizontal Phase Flow -->
+        <div class="flex items-stretch gap-6">
+
+            <!-- Phase 1: Establish Trust -->
+            <div class="flex-1 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-8 border-2 border-blue-300 shadow-lg">
+                <div class="text-center mb-6">
+                    <h3 class="text-2xl font-bold text-slate-900">🧭 Establish Trust</h3>
+                </div>
+
+                <div class="space-y-4 text-center">
+                    <div>
+                        <p class="text-lg font-bold text-blue-900">D2C Patient OS</p>
+                        <p class="text-xl font-extrabold text-blue-600">$29–49/mo</p>
+                    </div>
+
+                    <div class="border-t-2 border-blue-300 my-4"></div>
+
+                    <div>
+                        <p class="text-lg font-bold text-blue-900">PRM SaaS</p>
+                        <p class="text-xl font-extrabold text-blue-600">$500–2K/mo</p>
+                    </div>
+                </div>
+
+                <div class="mt-8 pt-6 border-t-2 border-blue-300 text-center">
+                    <span class="inline-flex items-center px-3 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold">
+                        🚀 Pilot: Cancer Commons, CancerPatientLab
+                    </span>
+                </div>
+            </div>
+
+            <!-- Arrow Right -->
+            <div class="flex items-center justify-center">
+                <svg class="w-12 h-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                </svg>
+            </div>
+
+            <!-- Phase 2: Monetize Testing -->
+            <div class="flex-1 bg-gradient-to-br from-violet-50 to-violet-100 rounded-xl p-8 border-2 border-violet-300 shadow-lg">
+                <div class="text-center mb-6">
+                    <h3 class="text-2xl font-bold text-slate-900">⚙️ Monetize Testing</h3>
+                </div>
+
+                <div class="space-y-4 text-center">
+                    <div>
+                        <p class="text-lg font-bold text-violet-900">Biomarker Testing</p>
+                        <p class="text-xl font-extrabold text-violet-600">$150–400</p>
+                    </div>
+
+                    <div class="border-t-2 border-violet-300 my-4"></div>
+
+                    <div>
+                        <p class="text-lg font-bold text-violet-900">Second Opinions</p>
+                        <p class="text-xl font-extrabold text-violet-600">$200–500</p>
+                    </div>
+                </div>
+
+                <div class="mt-8 pt-6 border-t-2 border-violet-300 text-center">
+                    <span class="inline-flex items-center px-3 py-2 rounded-lg bg-violet-600 text-white text-sm font-semibold">
+                        🚀 Pilot: Protean
+                    </span>
+                </div>
+            </div>
+
+            <!-- Arrow Right -->
+            <div class="flex items-center justify-center">
+                <svg class="w-12 h-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                </svg>
+            </div>
+
+            <!-- Phase 3: Scale -->
+            <div class="flex-1 bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-8 border-2 border-amber-300 shadow-lg">
+                <div class="text-center mb-6">
+                    <h3 class="text-2xl font-bold text-slate-900">🔍 Scale</h3>
+                </div>
+
+                <div class="space-y-4 text-center">
+                    <div>
+                        <p class="text-lg font-bold text-amber-900">Trial Matching</p>
+                        <p class="text-xl font-extrabold text-amber-600">$500–2K</p>
+                    </div>
+
+                    <div class="border-t-2 border-amber-300 my-4"></div>
+
+                    <div>
+                        <p class="text-lg font-bold text-amber-900">Employers</p>
+                        <p class="text-xl font-extrabold text-amber-600">$10–20 PMPM</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Bottom Note -->
+        <div class="text-center mt-10">
+            <p class="text-xl italic text-slate-500">Vault = Engine of Multi-Sided Revenue</p>
+        </div>
+    </div>
+
+    <!-- MINIMALIST VERSION (Jobs Style) -->
+    <div class="minimalist-content max-w-6xl mx-auto flex items-center justify-center h-full">
+        <div class="text-center">
+            <h2 class="mega-headline gradient-text mb-12">
+                0 → 1 → 10
+            </h2>
+            <p class="big-tagline text-slate-700 mb-24">
+                From advocacy roots to platform scale.
+            </p>
+
+            <!-- Simple 3-phase runway visual -->
+            <div class="max-w-5xl mx-auto">
+                <div class="flex items-center justify-between gap-8">
+                    <div class="flex-1 text-center">
+                        <div class="bg-blue-100 p-8 rounded-2xl border-2 border-blue-300">
+                            <div class="text-5xl mb-4">🤝</div>
+                            <p class="text-2xl font-bold text-blue-900 mb-2">Advocacy</p>
+                            <p class="text-lg text-slate-600">1K patients</p>
+                            <p class="text-sm text-slate-500">CAC ≈ $0</p>
+                        </div>
+                    </div>
+                    <div class="text-5xl text-purple-500">→</div>
+                    <div class="flex-1 text-center">
+                        <div class="bg-emerald-100 p-8 rounded-2xl border-2 border-emerald-300">
+                            <div class="text-5xl mb-4">🧬</div>
+                            <p class="text-2xl font-bold text-emerald-900 mb-2">Labs</p>
+                            <p class="text-lg text-slate-600">5K patients</p>
+                            <p class="text-sm text-slate-500">5× volume</p>
+                        </div>
+                    </div>
+                    <div class="text-5xl text-emerald-500">→</div>
+                    <div class="flex-1 text-center">
+                        <div class="bg-purple-100 p-8 rounded-2xl border-2 border-purple-300">
+                            <div class="text-5xl mb-4">🏢</div>
+                            <p class="text-2xl font-bold text-purple-900 mb-2">Enterprise</p>
+                            <p class="text-lg text-slate-600">100K+ patients</p>
+                            <p class="text-sm text-slate-500">Platform</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 15: Appendix - Trust Infrastructure (Model Router) -->
+<section class="slide bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 text-white detailed-content">
+    <div class="slide-number" style="color: #e2e8f0;">15</div>
+    <div class="max-w-7xl mx-auto">
+        <h2 class="text-6xl font-bold mb-6 text-center bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-400">
+            The Trust Stack
+        </h2>
+
+        <!-- Why This Wins (4 columns) - MOVED TO TOP -->
+        <div class="grid grid-cols-4 gap-4 mb-6">
+            <div class="bg-gradient-to-br from-cyan-900/30 to-cyan-800/30 p-4 rounded-xl border border-cyan-500/40">
+                <div class="text-2xl mb-2">🎚️</div>
+                <h3 class="text-sm font-bold text-cyan-300 mb-2">Tunable</h3>
+                <p class="text-xs text-slate-400">Filter by source (NCCN, community), reading level, cancer type</p>
+            </div>
+
+            <div class="bg-gradient-to-br from-purple-900/30 to-purple-800/30 p-4 rounded-xl border border-purple-500/40">
+                <div class="text-2xl mb-2">🔐</div>
+                <h3 class="text-sm font-bold text-purple-300 mb-2">Trustable</h3>
+                <p class="text-xs text-slate-400">Every claim sourced. Guardrails catch hallucinations. 5 MDs review.</p>
+            </div>
+
+            <div class="bg-gradient-to-br from-emerald-900/30 to-emerald-800/30 p-4 rounded-xl border border-emerald-500/40">
+                <div class="text-2xl mb-2">📋</div>
+                <h3 class="text-sm font-bold text-emerald-300 mb-2">Auditable</h3>
+                <p class="text-xs text-slate-400">Audit every chunk, source, eval score. FDA-ready compliance trail.</p>
+            </div>
+
+            <div class="bg-gradient-to-br from-yellow-900/30 to-yellow-800/30 p-4 rounded-xl border border-yellow-500/40">
+                <div class="text-2xl mb-2">🔄</div>
+                <h3 class="text-sm font-bold text-yellow-300 mb-2">Self-Correcting</h3>
+                <p class="text-xs text-slate-400">47K evals. Retrains weekly. Human loop on failures. Always improving.</p>
+            </div>
+        </div>
+
+        <!-- BIGGER Flow -->
+        <div class="bg-black/60 p-6 rounded-2xl border border-purple-500/30 mb-6">
+            <div class="flex items-center justify-center gap-3 text-sm font-mono mb-6">
+                <div class="bg-blue-900/30 px-6 py-3 rounded-lg border border-blue-500/40">
+                    <span class="text-blue-400 font-bold text-base">Embed</span>
+                    <span class="text-slate-500 ml-3 text-xs">text-emb-3</span>
+                </div>
+                <span class="text-slate-500 text-xl">→</span>
+                <div class="bg-purple-900/30 px-6 py-3 rounded-lg border border-purple-500/40">
+                    <span class="text-purple-400 font-bold text-base">Retrieve</span>
+                    <span class="text-slate-500 ml-3 text-xs">cos>0.85</span>
+                </div>
+                <span class="text-slate-500 text-xl">→</span>
+                <div class="bg-cyan-900/30 px-6 py-3 rounded-lg border border-cyan-500/40">
+                    <span class="text-cyan-400 font-bold text-base">Generate</span>
+                    <span class="text-slate-500 ml-3 text-xs">5 LLMs</span>
+                </div>
+                <span class="text-slate-500 text-xl">→</span>
+                <div class="bg-emerald-900/30 px-6 py-3 rounded-lg border border-emerald-500/40">
+                    <span class="text-emerald-400 font-bold text-base">Eval</span>
+                    <span class="text-slate-500 ml-3 text-xs">judge-v2</span>
+                </div>
+                <span class="text-slate-500 text-xl">→</span>
+                <div class="bg-yellow-900/30 px-6 py-3 rounded-lg border border-yellow-500/40">
+                    <span class="text-yellow-400 font-bold text-base">Route</span>
+                    <span class="text-slate-500 ml-3 text-xs">best</span>
+                </div>
+            </div>
+
+            <!-- 3 Columns: Tech Details (kept for context) -->
+            <div class="grid grid-cols-3 gap-4 text-xs">
+                <div class="space-y-1 font-mono text-slate-400">
+                    <div class="flex justify-between"><span>Knowledge:</span><span class="text-cyan-400">12M docs</span></div>
+                    <div class="flex justify-between"><span>Vector DB:</span><span class="text-purple-400">Pinecone</span></div>
+                    <div class="flex justify-between"><span>Rerank:</span><span class="text-emerald-400">Cohere v3</span></div>
+                </div>
+                <div class="space-y-1 font-mono text-slate-400">
+                    <div class="flex justify-between"><span>Judge:</span><span class="text-cyan-400">47K evals</span></div>
+                    <div class="flex justify-between"><span>Dims:</span><span class="text-purple-400">A/C/S</span></div>
+                    <div class="flex justify-between"><span>Retrain:</span><span class="text-emerald-400">Weekly</span></div>
+                </div>
+                <div class="space-y-1 font-mono text-slate-400">
+                    <div class="flex justify-between"><span>Experts:</span><span class="text-cyan-400">5 MDs</span></div>
+                    <div class="flex justify-between"><span>Failures:</span><span class="text-emerald-400">Human loop</span></div>
+                    <div class="flex justify-between"><span>Cadence:</span><span class="text-yellow-400">1K queries</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Score Matrix Dashboard (Mock) -->
+        <div class="bg-black/40 p-8 rounded-2xl border border-cyan-500/30 mb-8 font-mono">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-cyan-400">Real-Time Eval Dashboard</h3>
+                <div class="flex gap-4 text-xs">
+                    <span class="text-emerald-400">● Live</span>
+                    <span class="text-slate-500">Queries: 2,847</span>
+                    <span class="text-slate-500">Avg Latency: 1.2s</span>
+                </div>
+            </div>
+
+            <!-- Model Score Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-cyan-500/30 text-cyan-300">
+                            <th class="text-left py-3 px-4">Model</th>
+                            <th class="text-center py-3 px-4">Accuracy</th>
+                            <th class="text-center py-3 px-4">Clinical</th>
+                            <th class="text-center py-3 px-4">Source</th>
+                            <th class="text-center py-3 px-4">Latency</th>
+                            <th class="text-center py-3 px-4">Score</th>
+                            <th class="text-center py-3 px-4">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-slate-300">
+                        <tr class="border-b border-slate-800 hover:bg-cyan-900/10">
+                            <td class="py-3 px-4 text-cyan-400">gpt-4o</td>
+                            <td class="text-center py-3 px-4">94</td>
+                            <td class="text-center py-3 px-4">96</td>
+                            <td class="text-center py-3 px-4">91</td>
+                            <td class="text-center py-3 px-4 text-emerald-400">0.8s</td>
+                            <td class="text-center py-3 px-4 font-bold text-emerald-400">93.7</td>
+                            <td class="text-center py-3 px-4"><span class="text-emerald-400">● Active</span></td>
+                        </tr>
+                        <tr class="border-b border-slate-800 hover:bg-purple-900/10">
+                            <td class="py-3 px-4 text-purple-400">claude-3.5-sonnet</td>
+                            <td class="text-center py-3 px-4">96</td>
+                            <td class="text-center py-3 px-4">94</td>
+                            <td class="text-center py-3 px-4">98</td>
+                            <td class="text-center py-3 px-4 text-yellow-400">1.4s</td>
+                            <td class="text-center py-3 px-4 font-bold text-purple-400">96.0</td>
+                            <td class="text-center py-3 px-4"><span class="text-purple-400">● Active</span></td>
+                        </tr>
+                        <tr class="border-b border-slate-800 hover:bg-blue-900/10">
+                            <td class="py-3 px-4 text-blue-400">gemini-1.5-pro</td>
+                            <td class="text-center py-3 px-4">92</td>
+                            <td class="text-center py-3 px-4">89</td>
+                            <td class="text-center py-3 px-4">95</td>
+                            <td class="text-center py-3 px-4 text-emerald-400">0.9s</td>
+                            <td class="text-center py-3 px-4 font-bold text-blue-400">92.0</td>
+                            <td class="text-center py-3 px-4"><span class="text-blue-400">● Active</span></td>
+                        </tr>
+                        <tr class="border-b border-slate-800 hover:bg-orange-900/10">
+                            <td class="py-3 px-4 text-orange-400">o1-preview</td>
+                            <td class="text-center py-3 px-4">98</td>
+                            <td class="text-center py-3 px-4">97</td>
+                            <td class="text-center py-3 px-4">96</td>
+                            <td class="text-center py-3 px-4 text-red-400">8.2s</td>
+                            <td class="text-center py-3 px-4 font-bold text-orange-400">97.0</td>
+                            <td class="text-center py-3 px-4"><span class="text-slate-500">○ Standby</span></td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/20">
+                            <td class="py-3 px-4 text-slate-500">llama-3.1-405b</td>
+                            <td class="text-center py-3 px-4">88</td>
+                            <td class="text-center py-3 px-4">85</td>
+                            <td class="text-center py-3 px-4">82</td>
+                            <td class="text-center py-3 px-4 text-emerald-400">0.6s</td>
+                            <td class="text-center py-3 px-4 font-bold text-slate-500">85.0</td>
+                            <td class="text-center py-3 px-4"><span class="text-slate-600">○ Fallback</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-6 flex items-center justify-between text-xs text-slate-500">
+                <p>Eval model: <span class="text-cyan-400">custom-judge-v2</span> | Guideline corpus: <span class="text-purple-400">NCCN 2.2024, ASCO, FDA</span></p>
+                <p>Router strategy: <span class="text-emerald-400">Score × (1/Latency)</span></p>
+            </div>
+        </div>
+
+        <!-- Bottom: Live Link -->
+        <div class="text-center">
+            <p class="text-sm text-slate-500">
+                View live dashboard: <span class="text-cyan-400 font-mono">navis.health/trust-transparency</span>
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 16: Appendix - Knowledge Library -->
+<section class="slide bg-white flex items-center justify-center">
+    <div class="slide-number">16</div>
+    <img src="./pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="max-w-7xl mx-auto px-8 w-full h-full flex flex-col items-center justify-center">
+        <h2 class="text-4xl font-bold mb-8 text-center gradient-text">Knowledge Library</h2>
+        <div class="w-full h-full flex items-center justify-center">
+            <img src="./pitchAssets/lib.jpg" alt="Knowledge Library" class="max-w-full max-h-[80vh] object-contain shadow-2xl rounded-xl" onerror="this.style.display='none'">
+        </div>
+    </div>
+</section>
+
+<!-- Slide 17: Appendix - Audit Trail -->
+<section class="slide bg-white flex items-center justify-center">
+    <div class="slide-number">17</div>
+    <img src="./pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="max-w-7xl mx-auto px-8 w-full h-full flex flex-col items-center justify-center">
+        <h2 class="text-4xl font-bold mb-8 text-center gradient-text">Audit Trail</h2>
+        <div class="w-full h-full flex items-center justify-center">
+            <img src="./pitchAssets/auditTrail.jpg" alt="Audit Trail" class="max-w-full max-h-[80vh] object-contain shadow-2xl rounded-xl" onerror="this.style.display='none'">
+        </div>
+    </div>
+</section>
+
+<!-- Slide 18: Appendix - Chat KPIs -->
+<section class="slide bg-white flex items-center justify-center">
+    <div class="slide-number">18</div>
+    <img src="./pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="max-w-7xl mx-auto px-8 w-full h-full flex flex-col items-center justify-center">
+        <h2 class="text-4xl font-bold mb-8 text-center gradient-text">Chat KPIs</h2>
+        <div class="w-full h-full flex items-center justify-center">
+            <img src="./pitchAssets/chatKPI.jpg" alt="Chat KPIs" class="max-w-full max-h-[80vh] object-contain shadow-2xl rounded-xl" onerror="this.style.display='none'">
+        </div>
+    </div>
+</section>
+
+<!-- Slide 19: Appendix - Trust & Transparency -->
+<section class="slide bg-white flex items-center justify-center">
+    <div class="slide-number">19</div>
+    <img src="./pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="max-w-7xl mx-auto px-8 w-full h-full flex flex-col items-center justify-center">
+        <h2 class="text-4xl font-bold mb-8 text-center gradient-text">Trust & Transparency</h2>
+        <div class="w-full h-full flex items-center justify-center">
+            <img src="./pitchAssets/tt.jpg" alt="Trust & Transparency" class="max-w-full max-h-[80vh] object-contain shadow-2xl rounded-xl" onerror="this.style.display='none'">
+        </div>
+    </div>
+</section>
+
+<!-- Slide 19.5: Appendix - Implementation Demo -->
+<section class="slide bg-slate-50">
+    <div class="slide-number">19.5</div>
+    <img src="./pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="flex flex-col items-center justify-center h-full py-8" style="max-width: 90%; margin: 0 auto;">
+        <h2 class="text-4xl font-bold mb-6 gradient-text text-center">Navis AI: Powering Cancer Communities</h2>
+
+        <!-- Demo Video - Centered and Large -->
+        <div class="bg-white p-3 rounded-2xl shadow-2xl" style="width: 85%; max-width: 1200px; margin: 0 auto;">
+            <div style="position: relative; padding-bottom: 56.25%; height: 0;">
+                <iframe src="https://www.loom.com/embed/979bbf317afe45058668f611fa86d5da" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>
+            </div>
+        </div>
+
+        <p class="text-center text-base text-slate-600 italic mt-6">Watch how organizations integrate Navis AI to support their cancer patient communities.</p>
+    </div>
+</section>
+
+<!-- Slide 20: Appendix - Solution Principles (Progressive Build) -->
+<section class="slide bg-white">
+    <div class="slide-number">20</div>
+    <img src="./pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <!-- DETAILED VERSION -->
+    <div class="detailed-content max-w-7xl mx-auto">
+        <h2 class="text-5xl font-bold mb-12 gradient-text text-center">Chaos → Clarity</h2>
+
+        <!-- Single Large Image Area - Progressive Build -->
+        <div class="flex flex-col items-center justify-center" style="min-height: 600px;">
+            <!-- Trust Principle (Click 1) -->
+            <div id="principle-trust" class="principle-card" style="display: block;">
+                <div class="bg-white rounded-2xl shadow-2xl border-2 border-slate-300 p-8 max-w-5xl mx-auto">
+                    <img src="./pitchAssets/chatAINavis.jpg" alt="Trust: Medical-grade AI verified by experts" class="w-full h-auto rounded-xl mb-6 shadow-lg" onerror="this.style.display='none'">
+                    <h3 class="text-3xl font-bold text-slate-900 mb-3 text-center">Trust</h3>
+                    <p class="text-xl text-slate-600 text-center">Medical-grade AI verified by experts</p>
+                </div>
+            </div>
+
+            <!-- Personalization Principle (Click 2) -->
+            <div id="principle-personalization" class="principle-card" style="display: none;">
+                <div class="bg-white rounded-2xl shadow-2xl border-2 border-slate-300 p-8 max-w-5xl mx-auto">
+                    <img src="./pitchAssets/p13nComms.jpg" alt="Personalization: Your unique journey, not generic advice" class="w-full h-auto rounded-xl mb-6 shadow-lg" onerror="this.style.display='none'">
+                    <h3 class="text-3xl font-bold text-slate-900 mb-3 text-center">Personalization</h3>
+                    <p class="text-xl text-slate-600 text-center">Your unique journey, not generic advice</p>
+                </div>
+            </div>
+
+            <!-- Personalization AI (Click 3) -->
+            <div id="principle-personalization-ai" class="principle-card" style="display: none;">
+                <div class="bg-white rounded-2xl shadow-2xl border-2 border-slate-300 p-8 max-w-5xl mx-auto">
+                    <img src="./pitchAssets/documentChatAI.jpg" alt="Personalization: AI-powered document analysis" class="w-full h-auto rounded-xl mb-6 shadow-lg" onerror="this.style.display='none'">
+                    <h3 class="text-3xl font-bold text-slate-900 mb-3 text-center">Personalization</h3>
+                    <p class="text-xl text-slate-600 text-center">AI-powered insights from your documents</p>
+                </div>
+            </div>
+
+            <!-- Easy Principle (Click 4) -->
+            <div id="principle-easy" class="principle-card" style="display: none;">
+                <div class="bg-white rounded-2xl shadow-2xl border-2 border-slate-300 p-8 max-w-5xl mx-auto">
+                    <img src="./pitchAssets/clinicalChecklist.jpg" alt="Easy: Complex care made simple" class="w-full h-auto rounded-xl mb-6 shadow-lg" onerror="this.style.display='none'">
+                    <h3 class="text-3xl font-bold text-slate-900 mb-3 text-center">Easy</h3>
+                    <p class="text-xl text-slate-600 text-center">Complex care made simple</p>
+                </div>
+            </div>
+
+            <!-- Easy 2 (Click 5) -->
+            <div id="principle-easy-2" class="principle-card" style="display: none;">
+                <div class="bg-white rounded-2xl shadow-2xl border-2 border-slate-300 p-8 max-w-5xl mx-auto">
+                    <img src="./pitchAssets/p13n2.jpg" alt="Easy: Personalized guidance at your fingertips" class="w-full h-auto rounded-xl mb-6 shadow-lg" onerror="this.style.display='none'">
+                    <h3 class="text-3xl font-bold text-slate-900 mb-3 text-center">Easy</h3>
+                    <p class="text-xl text-slate-600 text-center">Personalized guidance at your fingertips</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PDF Export Button -->
+        <div class="mt-12 text-center">
+            <button id="export-pdf-btn" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-8 py-4 rounded-xl shadow-lg transition-all duration-200 hover:shadow-xl transform hover:scale-105 flex items-center gap-3 mx-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                <span>Export Deck as PDF</span>
+            </button>
+            <p class="text-sm text-slate-500 mt-3 italic">Use Ctrl/Cmd + P or click button above to save as PDF</p>
+        </div>
+    </div>
+
+    <!-- MINIMALIST VERSION (Jobs Style) -->
+    <div class="minimalist-content max-w-6xl mx-auto flex items-center justify-center h-full">
+        <div class="text-center">
+            <h2 class="mega-headline gradient-text mb-20">
+                Chaos → Clarity
+            </h2>
+            <!-- 3 Principles - Minimalist -->
+            <div class="flex justify-center gap-20 text-4xl text-slate-700">
+                <div class="font-bold">Trust</div>
+                <div class="text-slate-400">•</div>
+                <div class="font-bold">Personalization</div>
+                <div class="text-slate-400">•</div>
+                <div class="font-bold">Easy</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Slide 21: Appendix - What Navis Does & Doesn't Do -->
+<section class="slide bg-slate-50">
+    <div class="slide-number">21</div>
+    <img src="./pitchAssets/navisLogo.jpg" alt="Navis" class="navis-logo" onerror="this.style.display='none'">
+
+    <div class="detailed-content max-w-6xl mx-auto flex flex-col items-center justify-center h-full">
+        <h2 class="text-4xl font-bold mb-8 gradient-text text-center whitespace-nowrap">What Navis Does & Doesn't Do</h2>
+
+        <!-- Trust Boundary Section -->
+        <div class="grid grid-cols-2 gap-8 max-w-5xl">
+            <!-- What Navis Does -->
+            <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 p-6 rounded-xl border-2 border-emerald-300">
+                <h3 class="text-2xl font-bold text-emerald-900 mb-4">✅ What Navis Does</h3>
+                <ul class="text-base text-slate-700 space-y-3">
+                    <li>• Synthesize 200-page reports → actionable insights</li>
+                    <li>• Identify care gaps (missed tests)</li>
+                    <li>• Prepare questions for your doctor</li>
+                    <li>• Surface alternatives when cost is a barrier</li>
+                </ul>
+            </div>
+
+            <!-- What Navis Doesn't Do -->
+            <div class="bg-gradient-to-br from-slate-50 to-slate-100 p-6 rounded-xl border-2 border-slate-300">
+                <h3 class="text-2xl font-bold text-slate-900 mb-4">🚫 What Navis Doesn't Do</h3>
+                <ul class="text-base text-slate-700 space-y-3">
+                    <li>• We don't diagnose or prescribe</li>
+                    <li>• We don't replace your oncologist</li>
+                    <li>• We inform—you and your doctor decide</li>
+                </ul>
+            </div>
+        </div>
+
+        <p class="text-center text-lg text-slate-600 italic mt-8">A guide to help you engage with your care team.</p>
+    </div>
+</section>
+
+
+<script>
+    // Add Lucide icons
+    lucide.createIcons();
+
+    // Keyboard navigation for presentations
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+
+    // Slide 20 progressive build state (Appendix - Solution Principles slide)
+    let slide3BuildStep = 0;
+    const principleCards = ['principle-trust', 'principle-personalization', 'principle-personalization-ai', 'principle-easy', 'principle-easy-2'];
+
+    function scrollToSlide(index) {
+        if (index >= 0 && index < slides.length) {
+            currentSlide = index;
+
+            slides[index].scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+
+            // Reset Slide 20 build when leaving or entering
+            if (currentSlide === 19) { // Slide 20 (0-indexed as 19)
+                slide3BuildStep = 0;
+                showSlide3Step(0);
+            }
+        }
+    }
+
+    function showSlide3Step(step) {
+        principleCards.forEach((id, index) => {
+            const card = document.getElementById(id);
+            if (card) {
+                card.style.display = index === step ? 'block' : 'none';
+            }
+        });
+    }
+
+    function advanceSlide3Build() {
+        if (slide3BuildStep < principleCards.length - 1) {
+            slide3BuildStep++;
+            showSlide3Step(slide3BuildStep);
+            return true; // Build step advanced
+        }
+        return false; // Build complete, proceed to next slide
+    }
+
+    // Handle keyboard events
+    document.addEventListener('keydown', (e) => {
+        switch(e.key) {
+            case 'ArrowDown':
+            case 'ArrowRight':
+            case 'PageDown':
+            case ' ': // Spacebar
+                e.preventDefault();
+
+                // Special handling for Slide 20 progressive build (Appendix)
+                if (currentSlide === 19) { // Slide 20 (0-indexed as 19)
+                    const buildAdvanced = advanceSlide3Build();
+                    if (buildAdvanced) {
+                        return; // Stay on Slide 20, just advance build
+                    }
+                }
+
+                scrollToSlide(currentSlide + 1);
+                break;
+            case 'ArrowUp':
+            case 'ArrowLeft':
+            case 'PageUp':
+                e.preventDefault();
+
+                // Special handling for Slide 20 - go back to previous build step
+                if (currentSlide === 19 && slide3BuildStep > 0) {
+                    slide3BuildStep--;
+                    showSlide3Step(slide3BuildStep);
+                    return;
+                }
+
+                scrollToSlide(currentSlide - 1);
+                break;
+            case 'Home':
+                e.preventDefault();
+                scrollToSlide(0);
+                break;
+            case 'End':
+                e.preventDefault();
+                scrollToSlide(slides.length - 1);
+                break;
+        }
+    });
+
+    // Track scroll position to update current slide
+    const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.5
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                currentSlide = Array.from(slides).indexOf(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    slides.forEach(slide => observer.observe(slide));
+
+    // Add slide counter display
+    const counter = document.createElement('div');
+    counter.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.7); color: white; padding: 8px 16px; border-radius: 8px; font-size: 14px; z-index: 1000;';
+    counter.id = 'slide-counter';
+    document.body.appendChild(counter);
+
+    function updateCounter() {
+        counter.textContent = `${currentSlide + 1} / ${slides.length}`;
+    }
+
+    // Update counter on slide change
+    const counterObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                updateCounter();
+            }
+        });
+    }, observerOptions);
+
+    slides.forEach(slide => counterObserver.observe(slide));
+    updateCounter();
+
+    // Hide counter when printing
+    window.addEventListener('beforeprint', () => {
+        counter.style.display = 'none';
+    });
+    window.addEventListener('afterprint', () => {
+        counter.style.display = 'block';
+    });
+
+    // PDF Export Button Handler
+    const exportPdfBtn = document.getElementById('export-pdf-btn');
+    if (exportPdfBtn) {
+        exportPdfBtn.addEventListener('click', () => {
+            window.print();
+        });
+    }
+</script>
+
+</body>
+</html>
