@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { CANCER_TYPES } from '@/lib/cancer-data'
 import { useAuth } from '@/lib/auth'
+import { Shield, Heart, CheckCircle, ExternalLink, Building2 } from 'lucide-react'
 
 interface DiagnosticTest {
   id: number
@@ -21,15 +22,93 @@ interface DiagnosticTest {
   guideline_source: string | null
 }
 
+interface ServiceProvider {
+  id: number
+  provider: string
+  logo_url: string | null
+  url: string | null
+  domain: string | null
+  featured: boolean
+  coverage_info: {
+    accepts_insurance?: boolean
+    in_network_carriers?: string[]
+    financial_assistance_available?: boolean
+  } | null
+  eligibility_criteria: {
+    cancer_types?: string[]
+  } | null
+}
+
 interface PatientProfile {
   cancerType: string
   stage?: string
+}
+
+// Trust-building WHY explanations by cancer type
+const WHY_TESTING_MATTERS: Record<string, { headline: string; reasons: string[] }> = {
+  lung: {
+    headline: "Molecular testing is essential for lung cancer treatment decisions",
+    reasons: [
+      "EGFR, ALK, and ROS1 testing can identify targetable mutations with effective therapies",
+      "PD-L1 testing determines eligibility for immunotherapy",
+      "Early testing helps avoid ineffective treatments and their side effects"
+    ]
+  },
+  breast: {
+    headline: "Biomarker testing shapes your entire treatment plan",
+    reasons: [
+      "HER2 status determines if you qualify for highly effective targeted therapies",
+      "Hormone receptor testing guides whether hormonal therapy will work",
+      "Genomic tests like Oncotype DX can help you avoid unnecessary chemotherapy"
+    ]
+  },
+  colorectal: {
+    headline: "Genomic profiling unlocks treatment options",
+    reasons: [
+      "MSI-H/dMMR testing identifies patients who respond well to immunotherapy",
+      "KRAS/NRAS/BRAF testing guides targeted therapy decisions",
+      "Lynch syndrome screening has important implications for your family"
+    ]
+  },
+  melanoma: {
+    headline: "Mutation testing opens doors to breakthrough therapies",
+    reasons: [
+      "BRAF V600 testing identifies candidates for highly effective targeted therapy",
+      "Combination immunotherapy has transformed melanoma outcomes",
+      "Knowing your mutation status helps sequence treatments optimally"
+    ]
+  },
+  prostate: {
+    headline: "Advanced testing helps personalize your approach",
+    reasons: [
+      "Germline testing can identify inherited mutations affecting treatment choices",
+      "BRCA1/2 and other HRR gene testing may qualify you for PARP inhibitors",
+      "Decipher and other genomic tests help guide active surveillance decisions"
+    ]
+  },
+  pancreatic: {
+    headline: "Every treatment option matters—testing finds them",
+    reasons: [
+      "Germline BRCA testing can qualify you for platinum chemotherapy and PARP inhibitors",
+      "MSI-H testing identifies rare candidates for immunotherapy",
+      "NTRK fusion testing opens doors to highly effective targeted therapies"
+    ]
+  },
+  default: {
+    headline: "Precision testing helps match you with the best treatments",
+    reasons: [
+      "Biomarker testing can reveal targeted therapy options",
+      "Understanding your cancer's genetics helps avoid ineffective treatments",
+      "NCCN guidelines recommend comprehensive testing for treatment decisions"
+    ]
+  }
 }
 
 export default function TestsPage() {
   const { user, profile: authProfile, loading: authLoading } = useAuth()
   const [tests, setTests] = useState<DiagnosticTest[]>([])
   const [filteredTests, setFilteredTests] = useState<DiagnosticTest[]>([])
+  const [providers, setProviders] = useState<ServiceProvider[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [profile, setProfile] = useState<PatientProfile | null>(null)
@@ -37,6 +116,7 @@ export default function TestsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [selectedStatus, setSelectedStatus] = useState<string>('all')
   const [searchTerm, setSearchTerm] = useState('')
+  const [showAllProviders, setShowAllProviders] = useState(false)
 
   // Load profile - prefer Supabase for authenticated users
   useEffect(() => {
@@ -64,45 +144,57 @@ export default function TestsPage() {
     }
   }, [user, authProfile, authLoading])
 
-  // Fetch tests from Supabase with timeout
+  // Fetch tests and providers from Supabase
   useEffect(() => {
     let timeoutId: NodeJS.Timeout
 
-    async function fetchTests() {
+    async function fetchData() {
       // Set a timeout to prevent infinite loading
       timeoutId = setTimeout(() => {
-        console.error('Tests fetch timed out')
+        console.error('Data fetch timed out')
         setLoading(false)
       }, 10000)
 
       try {
-        const { data, error: supabaseError } = await supabase
+        // Fetch tests
+        const { data: testsData, error: testsError } = await supabase
           .from('dx_test_master')
           .select('*')
           .order('test_name')
           .limit(100)
 
-        clearTimeout(timeoutId)
+        if (testsError) {
+          console.error('Tests error:', testsError)
+          setError(`Database error: ${testsError.message}`)
+        } else {
+          setTests(testsData || [])
+        }
 
-        if (supabaseError) {
-          console.error('Supabase error:', supabaseError)
-          setError(`Database error: ${supabaseError.message}`)
-          return
+        // Fetch diagnostic providers
+        const { data: providersData, error: providersError } = await supabase
+          .from('serviceProviders')
+          .select('id, provider, logo_url, url, domain, featured, coverage_info, eligibility_criteria')
+          .eq('domain', 'diagnostics')
+          .order('featured', { ascending: false })
+          .limit(20)
+
+        if (providersError) {
+          console.error('Providers error:', providersError)
+        } else {
+          setProviders(providersData || [])
         }
-        setTests(data || [])
-        if (!data || data.length === 0) {
-          setError('No tests found in database')
-        }
-      } catch (err) {
-        console.error('Error fetching tests:', err)
+
         clearTimeout(timeoutId)
-        setError(err instanceof Error ? err.message : 'Failed to load tests')
+      } catch (err) {
+        console.error('Error fetching data:', err)
+        clearTimeout(timeoutId)
+        setError(err instanceof Error ? err.message : 'Failed to load data')
       } finally {
         setLoading(false)
       }
     }
 
-    fetchTests()
+    fetchData()
 
     return () => clearTimeout(timeoutId)
   }, [])
@@ -233,20 +325,69 @@ export default function TestsPage() {
           </div>
         </div>
 
-        {/* Profile context */}
-        {profile && (
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-orange-800">
-                Showing tests relevant for <strong>{CANCER_TYPES[profile.cancerType] || profile.cancerType}</strong>
-                {profile.stage && <span> (Stage {profile.stage})</span>}
-              </p>
-              <button
-                onClick={() => setSelectedCancerType('all')}
-                className="text-xs text-orange-600 hover:text-orange-800"
-              >
-                Show all
-              </button>
+        {/* Personalized WHY Banner - Trust Building */}
+        {profile && profile.cancerType && (
+          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-5 mb-6">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                <Shield className="w-5 h-5 text-emerald-600" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-semibold text-slate-900">
+                    Personalized for your {CANCER_TYPES[profile.cancerType] || profile.cancerType}
+                    {profile.stage && <span className="font-normal text-slate-600"> • Stage {profile.stage}</span>}
+                  </h3>
+                </div>
+                <p className="text-sm text-slate-700 mb-3">
+                  {(WHY_TESTING_MATTERS[profile.cancerType] || WHY_TESTING_MATTERS.default).headline}
+                </p>
+                <ul className="space-y-1.5">
+                  {(WHY_TESTING_MATTERS[profile.cancerType] || WHY_TESTING_MATTERS.default).reasons.map((reason, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-sm text-slate-600">
+                      <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                      <span>{reason}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="flex items-center gap-4 mt-4 pt-3 border-t border-emerald-200">
+                  <Link
+                    href="/profile"
+                    className="text-xs text-emerald-700 hover:text-emerald-800 font-medium"
+                  >
+                    Update my profile →
+                  </Link>
+                  <button
+                    onClick={() => setSelectedCancerType('all')}
+                    className="text-xs text-slate-500 hover:text-slate-700"
+                  >
+                    Show all cancer types
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Trust Banner for non-logged-in users */}
+        {!profile && (
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 mb-6">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center">
+                <Heart className="w-5 h-5 text-slate-500" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-slate-900 mb-1">We've got your back</h3>
+                <p className="text-sm text-slate-600 mb-3">
+                  Add your diagnosis to see personalized test recommendations based on NCCN guidelines—the same guidelines your oncologist uses.
+                </p>
+                <Link
+                  href="/profile"
+                  className="inline-flex items-center gap-1 text-sm text-orange-600 hover:text-orange-700 font-medium"
+                >
+                  Add my diagnosis for personalized results →
+                </Link>
+              </div>
             </div>
           </div>
         )}
@@ -365,15 +506,123 @@ export default function TestsPage() {
           </div>
         )}
 
+        {/* Where to Get Tested - Provider Partners */}
+        {providers.length > 0 && (
+          <div className="mt-10 pt-8 border-t border-slate-200">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-slate-500" />
+                  Where to Get Tested
+                </h2>
+                <p className="text-sm text-slate-500 mt-1">
+                  Trusted diagnostic partners • Many accept insurance
+                </p>
+              </div>
+            </div>
+
+            {/* Trust message */}
+            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-5">
+              <div className="flex items-start gap-3">
+                <Shield className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm text-blue-800">
+                    <strong>You're not alone in this.</strong> These labs partner with opencancer.ai to help patients access precision testing.
+                    Many offer financial assistance programs and work with your insurance.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Provider Cards */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {(showAllProviders ? providers : providers.filter(p => p.featured).slice(0, 6)).map((provider) => (
+                <div
+                  key={provider.id}
+                  className="bg-white border border-slate-200 rounded-lg p-4 hover:border-slate-300 hover:shadow-sm transition-all"
+                >
+                  <div className="flex items-start gap-3">
+                    {provider.logo_url ? (
+                      <img
+                        src={provider.logo_url}
+                        alt={provider.provider}
+                        className="w-10 h-10 object-contain rounded"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none'
+                        }}
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-slate-100 rounded flex items-center justify-center">
+                        <Building2 className="w-5 h-5 text-slate-400" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-slate-900 text-sm truncate">{provider.provider}</h3>
+                      <div className="flex flex-wrap items-center gap-2 mt-1">
+                        {provider.coverage_info?.accepts_insurance && (
+                          <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded">
+                            Accepts Insurance
+                          </span>
+                        )}
+                        {provider.coverage_info?.financial_assistance_available && (
+                          <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">
+                            Financial Aid
+                          </span>
+                        )}
+                        {provider.featured && (
+                          <span className="text-[10px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded">
+                            Featured
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {provider.url && (
+                      <a
+                        href={provider.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-slate-400 hover:text-slate-600"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Show more/less */}
+            {providers.length > 6 && (
+              <button
+                onClick={() => setShowAllProviders(!showAllProviders)}
+                className="mt-4 text-sm text-slate-500 hover:text-slate-700"
+              >
+                {showAllProviders ? 'Show fewer' : `Show all ${providers.length} partners`}
+              </button>
+            )}
+
+            {/* Disclaimer */}
+            <p className="text-xs text-slate-400 mt-4">
+              opencancer.ai partners with diagnostic labs to improve access. We don't receive referral fees.
+              Always verify insurance coverage directly with the provider.
+            </p>
+          </div>
+        )}
+
         {/* CTA */}
-        <div className="mt-8 text-center">
-          <p className="text-slate-600 mb-4">Not sure which tests you need?</p>
-          <Link
-            href="/cancer-checklist"
-            className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-medium px-6 py-3 rounded-lg transition-colors"
-          >
-            Get Personalized Recommendations →
-          </Link>
+        <div className="mt-10 pt-8 border-t border-slate-200 text-center">
+          <div className="max-w-md mx-auto">
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">Not sure which tests you need?</h3>
+            <p className="text-slate-600 text-sm mb-4">
+              Get a personalized checklist based on your diagnosis, stage, and what you've already done.
+            </p>
+            <Link
+              href="/cancer-checklist"
+              className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-medium px-6 py-3 rounded-lg transition-colors"
+            >
+              Get My Personalized Checklist →
+            </Link>
+          </div>
         </div>
       </div>
     </main>
