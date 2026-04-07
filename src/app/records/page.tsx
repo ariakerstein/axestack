@@ -449,11 +449,15 @@ export default function RecordsVaultPage() {
       console.log('[Records] Starting cloud records fetch for user:', user.email)
       setCloudRecordsLoading(true)
 
-      // Safety timeout - 8 seconds max
+      // Track whether fetch completed to prevent race condition with timeout
+      let fetchCompleted = false
+
+      // Safety timeout - 8 seconds max (but only if fetch hasn't completed)
       const loadingTimeout = setTimeout(() => {
-        if (!cancelled) {
-          console.warn('[Records] Loading timeout reached after 8s')
-          setCloudRecordsLoading(false)
+        if (!cancelled && !fetchCompleted) {
+          console.warn('[Records] Loading timeout reached after 8s, fetch still pending')
+          // Don't set cloudRecordsLoading to false here - let the fetch finish
+          // This prevents the "no records" flash while fetch is still in progress
         }
       }, 8000)
 
@@ -529,6 +533,7 @@ export default function RecordsVaultPage() {
           console.error('[Records] Fetch error:', err)
         }
       } finally {
+        fetchCompleted = true
         clearTimeout(loadingTimeout)
         if (!cancelled) {
           setCloudRecordsLoading(false)

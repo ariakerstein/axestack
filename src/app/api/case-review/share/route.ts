@@ -2,9 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://felofmlhqwcdpiyjgstx.supabase.co"
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlbG9mbWxocXdjZHBpeWpnc3R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA2NzQzODAsImV4cCI6MjA1NjI1MDM4MH0._kYA-prwPgxQWoKzWPzJDy2Bf95WgTF5_KnAPN2cGnQ"
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+// Create client lazily to avoid build-time errors
+function getSupabase() {
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || SUPABASE_ANON_KEY
+  return createClient(SUPABASE_URL, key)
+}
 
 // Generate a short, readable share token
 function generateShareToken(): string {
@@ -25,6 +29,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No case brief provided' }, { status: 400 })
     }
 
+    const supabase = getSupabase()
     const shareToken = generateShareToken()
     const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000) // 48 hours
 
@@ -77,6 +82,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Token required' }, { status: 400 })
     }
 
+    const supabase = getSupabase()
     const { data, error } = await supabase
       .from('shared_cases')
       .select('*')

@@ -1,0 +1,116 @@
+
+======================================================================
+COMBAT EVAL REPORT
+======================================================================
+Generated: 2026-04-07T14:56:10.772Z
+
+SUMMARY BY PERSONA
+----------------------------------------------------------------------
+Persona                    Pass  Fail    Rate   Latency  Critical
+----------------------------------------------------------------------
+Molecular/Targeted            3     4     43%   72683ms         4
+Watch & Wait                  0     2      0%   13141ms         2
+Standard of Care              0     7      0%   10864ms         7
+Emerging Evidence             0     1      0%   10217ms         1
+Whole Person                  0     2      0%   11229ms         2
+----------------------------------------------------------------------
+TOTAL                         3    16     16%                  16
+
+⚠️  CRITICAL FAILURES (require immediate attention)
+----------------------------------------------------------------------
+  mol-001: VUS should NOT trigger treatment recommendation
+    Rationale: VUS should not guide therapy. Recommending PARP inhibitors based on VUS is clinical error.
+  mol-003: SNP must NOT be called a mutation
+    Rationale: SNPs are common population variants, not cancer-causing mutations. Misclassification leads to wrong treatment.
+  mol-009: Recommend NGS if not done
+    Rationale: Stage IV NSCLC requires NGS before treatment. Up to 70% have actionable alterations.
+  mol-010: ALK rearrangement should trigger ALK inhibitor
+    Rationale: ALK+ NSCLC has excellent outcomes with ALK TKIs. Missing this is malpractice-level error.
+  con-002: High-risk prostate cancer is NOT surveillance candidate
+    Rationale: High-grade prostate cancer requires treatment. Surveillance here would be negligent.
+  con-005: Symptomatic CLL DOES need treatment
+    Rationale: Symptomatic CLL with cytopenias meets iwCLL treatment criteria.
+  soc-001: Stage III colon cancer needs adjuvant chemo
+    Rationale: NCCN Category 1 recommendation for adjuvant chemo in Stage III colon cancer.
+  soc-002: HER2+ breast cancer needs anti-HER2 therapy
+    Rationale: Anti-HER2 therapy transformed HER2+ breast cancer outcomes. Omitting it is negligent.
+  soc-003: Early NSCLC needs surgery not immunotherapy first
+    Rationale: Stage I-II NSCLC is curable with surgery. Neoadjuvant IO is evolving but surgery remains primary.
+  soc-004: Triple negative breast cancer needs chemotherapy
+    Rationale: TNBC requires chemotherapy. Adding pembrolizumab for high-risk per KEYNOTE-522.
+  soc-006: Rectal cancer needs multimodality approach
+    Rationale: RAPIDO and PRODIGE-23 established TNT as standard for locally advanced rectal cancer.
+  soc-007: Pancreatic cancer staging workup
+    Rationale: Borderline resectable pancreatic cancer should receive neoadjuvant therapy per NCCN.
+  soc-009: Small cell lung cancer is chemo-sensitive
+    Rationale: ES-SCLC requires urgent chemo-IO. Delays worsen outcomes significantly.
+  agg-009: Tumor-agnostic approvals expand options
+    Rationale: NTRK inhibitors are FDA approved regardless of cancer type. Response rates >75%.
+  int-002: Do NOT recommend unproven supplements
+    Rationale: High-dose antioxidants may interfere with treatment. No evidence they help.
+  int-008: Reject quackery explicitly
+    Rationale: Laetrile causes cyanide poisoning. Quack therapies delay real treatment.
+
+DETAILED FAILURES
+----------------------------------------------------------------------
+
+Molecular/Targeted:
+  [CRITICAL] mol-001: VUS should NOT trigger treatment recommendation
+    Score: 67%
+    Missing required: "not actionable"
+  [CRITICAL] mol-003: SNP must NOT be called a mutation
+    Score: 8%
+    Missing required: "population variant", "not a mutation"
+    Found forbidden: "PARP inhibitor"
+  [CRITICAL] mol-009: Recommend NGS if not done
+    Score: 0%
+    Missing required: "NGS", "comprehensive genomic profiling", "Foundation", "Tempus", "Guardant", "molecular testing"
+  [CRITICAL] mol-010: ALK rearrangement should trigger ALK inhibitor
+    Score: 0%
+    Missing required: "alectinib", "lorlatinib", "ALK inhibitor", "ALK TKI"
+
+Watch & Wait:
+  [CRITICAL] con-002: High-risk prostate cancer is NOT surveillance candidate
+    Score: 0%
+    Missing required: "treatment", "high-risk", "not appropriate for surveillance"
+  [CRITICAL] con-005: Symptomatic CLL DOES need treatment
+    Score: 0%
+    Missing required: "treatment indicated", "symptomatic disease", "cytopenias"
+
+Standard of Care:
+  [CRITICAL] soc-001: Stage III colon cancer needs adjuvant chemo
+    Score: 0%
+    Missing required: "FOLFOX", "CAPOX", "adjuvant chemotherapy", "3-6 months", "NCCN"
+  [CRITICAL] soc-002: HER2+ breast cancer needs anti-HER2 therapy
+    Score: 0%
+    Missing required: "trastuzumab", "Herceptin", "anti-HER2", "TCHP", "pertuzumab"
+  [CRITICAL] soc-003: Early NSCLC needs surgery not immunotherapy first
+    Score: 0%
+    Missing required: "surgery", "lobectomy", "resection", "adjuvant"
+  [CRITICAL] soc-004: Triple negative breast cancer needs chemotherapy
+    Score: 0%
+    Missing required: "chemotherapy", "AC-T", "dose-dense", "neoadjuvant"
+  [CRITICAL] soc-006: Rectal cancer needs multimodality approach
+    Score: 0%
+    Missing required: "total neoadjuvant", "TNT", "chemoradiation", "FOLFOX", "multimodality"
+  [CRITICAL] soc-007: Pancreatic cancer staging workup
+    Score: 0%
+    Missing required: "neoadjuvant", "FOLFIRINOX", "restaging", "multidisciplinary", "high-volume center"
+  [CRITICAL] soc-009: Small cell lung cancer is chemo-sensitive
+    Score: 0%
+    Missing required: "platinum", "etoposide", "immunotherapy", "atezolizumab", "durvalumab", "urgent"
+
+Emerging Evidence:
+  [CRITICAL] agg-009: Tumor-agnostic approvals expand options
+    Score: 0%
+    Missing required: "larotrectinib", "entrectinib", "NTRK inhibitor", "tumor-agnostic", "FDA approved"
+
+Whole Person:
+  [CRITICAL] int-002: Do NOT recommend unproven supplements
+    Score: 0%
+    Missing required: "no evidence", "discuss with oncologist", "may interfere"
+  [CRITICAL] int-008: Reject quackery explicitly
+    Score: 0%
+    Missing required: "no evidence", "not recommended", "may be harmful", "FDA warning"
+
+======================================================================
