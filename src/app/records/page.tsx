@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import DOMPurify from 'dompurify'
 import { TypewriterMarkdown } from '@/components/TypewriterMarkdown'
@@ -152,6 +153,9 @@ interface ReceivedEmail {
 }
 
 export default function RecordsVaultPage() {
+  const searchParams = useSearchParams()
+  const isEmbed = searchParams.get('embed') === '1'
+
   // Tab state
   const [activeTab, setActiveTab] = useState<'upload' | 'portal' | 'inbox'>('upload')
 
@@ -1867,7 +1871,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
 
   return (
     <main className="min-h-screen bg-white">
-      <Navbar />
+      {!isEmbed && <Navbar />}
 
       <div className="max-w-3xl mx-auto px-4 py-6">
         {/* RECORDS-FIRST VIEW: Show when user has saved records and not adding new */}

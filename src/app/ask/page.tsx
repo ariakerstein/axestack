@@ -870,9 +870,12 @@ I can help you with:
   // Only show suggested questions after welcome message, before user asks anything
   const showSuggestions = messages.length === 1 && messages[0]?.role === 'assistant'
 
+  // Check if embedded (hide navbar)
+  const isEmbed = searchParams.get('embed') === '1'
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <Navbar />
+      {!isEmbed && <Navbar />}
 
       {/* Chat Area */}
       <div className="flex-1 overflow-y-auto pb-32">
