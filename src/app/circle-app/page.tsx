@@ -137,8 +137,11 @@ function AskTab({ messages, setMessages, isLoading, setIsLoading, onRecordUpload
     }
   }, [])
 
+  // Only scroll to bottom after user sends a message (not on initial welcome)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (messages.length > 1) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
   }, [messages])
 
   const handleSubmit = async (question: string) => {
