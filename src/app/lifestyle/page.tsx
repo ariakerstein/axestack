@@ -299,6 +299,52 @@ export default function LifestylePage() {
                 </div>
               </div>
             </div>
+
+            {/* Dr. Harold Brodsky */}
+            <div className="grid md:grid-cols-4 gap-6 items-start">
+              <div className="md:col-span-1">
+                <img
+                  src="/team/harold-brodsky.png"
+                  alt="Dr. Harold Brodsky"
+                  className="w-full rounded-xl shadow-lg"
+                />
+              </div>
+              <div className="md:col-span-3">
+                <h3 className="text-xl font-bold text-slate-900 mb-1">Dr. Harold Brodsky</h3>
+                <p className="text-rose-600 font-medium text-sm mb-3">Nutrition & Wellness</p>
+                <p className="text-slate-600 mb-4">
+                  Dr. Brodsky focuses on improving internal health by correcting nutritional deficiencies that increase disease risk. He shows patients how changes in nutrition can help overcome disease and create a better way of life. A graduate of NYU with 20+ years serving veterans through the VA Healthcare System.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <span className="bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1 rounded-full">NYU Graduate</span>
+                  <span className="bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1 rounded-full">VA Healthcare</span>
+                  <span className="bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1 rounded-full">Nutrition</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Bobbie Marchand */}
+            <div className="grid md:grid-cols-4 gap-6 items-start">
+              <div className="md:col-span-1">
+                <img
+                  src="/team/bobbie-marchand.png"
+                  alt="Bobbie Marchand"
+                  className="w-full rounded-xl shadow-lg"
+                />
+              </div>
+              <div className="md:col-span-3">
+                <h3 className="text-xl font-bold text-slate-900 mb-1">Bobbie Marchand</h3>
+                <p className="text-rose-600 font-medium text-sm mb-3">Yoga & Meditation</p>
+                <p className="text-slate-600 mb-4">
+                  A graduate of Canada's National Ballet School, Bobbie's own cancer diagnosis revealed the power of daily yoga practice. "As a Survivor, I know my experience would have been vastly different without these tools." Her sessions empower and calm, nurturing the body while settling the mind and nervous system.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <span className="bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1 rounded-full">Cancer Survivor</span>
+                  <span className="bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1 rounded-full">Yoga Teacher</span>
+                  <span className="bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1 rounded-full">National Ballet School</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
