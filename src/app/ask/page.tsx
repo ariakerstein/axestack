@@ -97,6 +97,8 @@ function AskPageContent() {
   const [showWikiPrompt, setShowWikiPrompt] = useState(false)
   const [showCareCirclePrompt, setShowCareCirclePrompt] = useState(false)
   const [promptsDismissed, setPromptsDismissed] = useState<Set<string>>(new Set())
+  // Wizard profile (for smart auth flow)
+  const [wizardProfileEmail, setWizardProfileEmail] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -276,6 +278,10 @@ function AskPageContent() {
           const profile = JSON.parse(saved)
           if (profile.cancerType && !cancerType) {
             setCancerType(profile.cancerType)
+          }
+          // Track wizard email for smart auth flow
+          if (profile.email) {
+            setWizardProfileEmail(profile.email)
           }
         } catch (e) {
           // Ignore parse errors
@@ -1998,6 +2004,8 @@ I can help you with:
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
+        prefillEmail={wizardProfileEmail || undefined}
+        wizardCompleted={!!wizardProfileEmail}
       />
     </div>
   )

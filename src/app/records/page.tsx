@@ -224,6 +224,9 @@ export default function RecordsVaultPage() {
   const [cloudSaveError, setCloudSaveError] = useState<string | null>(null)
   const [storageWarning, setStorageWarning] = useState<string | null>(null)
 
+  // Wizard profile (for smart auth flow)
+  const [wizardProfileEmail, setWizardProfileEmail] = useState<string | null>(null)
+
   // @opencancer.ai email state
   const [showEmailModal, setShowEmailModal] = useState(false)
   const [claimedEmail, setClaimedEmail] = useState<string | null>(null)
@@ -406,6 +409,20 @@ export default function RecordsVaultPage() {
     const privacyAck = localStorage.getItem('opencancer-privacy-acknowledged')
     if (privacyAck === 'true') {
       setPrivacyAcknowledged(true)
+    }
+
+    // Load wizard profile email (for smart auth flow)
+    const wizardProfile = localStorage.getItem('patient-profile')
+    if (wizardProfile) {
+      try {
+        const profile = JSON.parse(wizardProfile)
+        if (profile.email) {
+          setWizardProfileEmail(profile.email)
+          console.log('[Records] Found wizard profile email:', profile.email)
+        }
+      } catch (e) {
+        console.error('Failed to load wizard profile')
+      }
     }
   }, [authLoading, user])
 
@@ -3660,6 +3677,8 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
+        prefillEmail={wizardProfileEmail || undefined}
+        wizardCompleted={!!wizardProfileEmail}
       />
 
       {/* Claim @opencancer.ai Email Modal */}
