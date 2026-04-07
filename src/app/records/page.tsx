@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import DOMPurify from 'dompurify'
 import { TypewriterMarkdown } from '@/components/TypewriterMarkdown'
-import { FileText, Search, FlaskConical, Ribbon, MessageCircle, BookOpen, ArrowRight, Upload, Link2, Building2, Shield, ShieldCheck, CheckCircle2, Share2, Download, Cloud, User, Mail, Sparkles, Trash2, Eye, Inbox, Paperclip, RefreshCw, Pencil, Check, X } from 'lucide-react'
+import { FileText, Search, FlaskConical, Ribbon, MessageCircle, BookOpen, ArrowRight, Upload, Link2, Building2, Shield, ShieldCheck, CheckCircle2, Share2, Download, Cloud, User, Mail, Sparkles, Trash2, Eye, Inbox, Paperclip, RefreshCw, Pencil, Check, X, Heart, Users } from 'lucide-react'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { useAuth } from '@/lib/auth'
 import { AuthModal } from '@/components/AuthModal'
@@ -201,6 +201,8 @@ export default function RecordsVaultPage() {
   const [showFirstUploadPrompt, setShowFirstUploadPrompt] = useState(false)
   const [firstUploadEmail, setFirstUploadEmail] = useState('')
   const [firstUploadSubmitted, setFirstUploadSubmitted] = useState(false)
+  // CareCircle share prompt (selective friction - prompt after first upload)
+  const [showCareCirclePrompt, setShowCareCirclePrompt] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
@@ -719,6 +721,14 @@ export default function RecordsVaultPage() {
       if (hasBiomarkers && isFirstUpload && !user && notDismissed) {
         // Delay slightly so user sees the result first
         setTimeout(() => setShowFirstUploadPrompt(true), 3000)
+      }
+
+      // Show CareCircle prompt after successful upload (selective friction)
+      // This prompts users to share with their support network at the peak value moment
+      const careCircleNotDismissed = !localStorage.getItem('carecircle-prompt-dismissed')
+      if (careCircleNotDismissed && data.analysis?.document_type) {
+        // Delay so user sees the result first, show after email prompt if both trigger
+        setTimeout(() => setShowCareCirclePrompt(true), hasBiomarkers && isFirstUpload && !user && notDismissed ? 8000 : 4000)
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
@@ -3257,6 +3267,60 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
                 <p className="font-medium text-slate-900">You're all set!</p>
                 <p className="text-sm text-slate-600">We'll notify you when research matching your biomarkers is published.</p>
+              </div>
+            )}
+
+            {/* CareCircle Prompt - Selective Friction (after first upload) */}
+            {showCareCirclePrompt && (
+              <div className="bg-gradient-to-r from-rose-50 to-orange-50 border-2 border-rose-200 rounded-2xl p-5 relative">
+                <button
+                  onClick={() => {
+                    setShowCareCirclePrompt(false)
+                    localStorage.setItem('carecircle-prompt-dismissed', 'true')
+                    trackEvent('friction_prompt_dismissed', { type: 'carecircle_share' })
+                  }}
+                  className="absolute top-3 right-3 p-1 text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-rose-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Heart className="w-6 h-6 text-rose-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-slate-900 mb-1">Share this with your support network</p>
+                    <p className="text-sm text-slate-600 mb-3">
+                      Your family or caregiver probably has the same questions. Send them this translation so everyone understands together.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Link
+                        href="/hub"
+                        onClick={() => {
+                          trackEvent('friction_prompt_accepted', { type: 'carecircle_share', action: 'create_circle' })
+                          localStorage.setItem('carecircle-prompt-dismissed', 'true')
+                        }}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-medium rounded-xl transition-colors text-sm"
+                      >
+                        <Users className="w-4 h-4" />
+                        Create CareCircle
+                      </Link>
+                      <button
+                        onClick={() => {
+                          setShowShareModal(true)
+                          setShowCareCirclePrompt(false)
+                          localStorage.setItem('carecircle-prompt-dismissed', 'true')
+                          trackEvent('friction_prompt_accepted', { type: 'carecircle_share', action: 'share_record' })
+                        }}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium rounded-xl transition-colors text-sm"
+                      >
+                        <Share2 className="w-4 h-4" />
+                        Share This Record
+                      </button>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-3">CareCircle keeps everyone updated without repeating yourself</p>
+                  </div>
+                </div>
               </div>
             )}
 

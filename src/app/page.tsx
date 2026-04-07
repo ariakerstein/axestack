@@ -661,7 +661,12 @@ function HomeContent() {
                   </div>
 
                   <h3 className="text-xl font-bold text-slate-900 mb-2">What type of cancer?</h3>
-                  <p className="text-slate-500 text-sm mb-6">We'll customize your NCCN guidelines & resources</p>
+                  <p className="text-slate-500 text-sm mb-4">This unlocks personalized guidance for YOUR diagnosis:</p>
+                  <ul className="text-xs text-slate-600 space-y-1 mb-4 pl-4">
+                    <li>• NCCN guidelines specific to your cancer type</li>
+                    <li>• Clinical trials recruiting patients like you</li>
+                    <li>• Treatment options that match your profile</li>
+                  </ul>
                   <div className="space-y-4">
                     <select
                       value={wizardCancerType}
