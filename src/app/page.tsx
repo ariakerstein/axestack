@@ -199,6 +199,9 @@ function HomeContent() {
   // Dynamic social proof count (null = hide, number = show)
   const [socialProofCount, setSocialProofCount] = useState<number | null>(null)
 
+  // Track if user has uploaded records (to show Expert Review vs Ask Navis)
+  const [hasRecords, setHasRecords] = useState(false)
+
   // Handler for tool clicks - gates through wizard for guests
   const handleToolClick = (e: React.MouseEvent, destination: string) => {
     // If user has profile, allow normal navigation
@@ -227,6 +230,40 @@ function HomeContent() {
     }
     fetchStats()
   }, [])
+
+  // Check if user has uploaded records
+  useEffect(() => {
+    // Check localStorage for records
+    const localRecords = localStorage.getItem('axestack-translations')
+    if (localRecords) {
+      try {
+        const parsed = JSON.parse(localRecords)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setHasRecords(true)
+          return
+        }
+      } catch {
+        // Invalid JSON, ignore
+      }
+    }
+
+    // For authenticated users, check cloud records
+    if (user) {
+      fetch('/api/records/view', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.records && data.records.length > 0) {
+            setHasRecords(true)
+          }
+        })
+        .catch(() => {
+          // Ignore errors
+        })
+    }
+  }, [user])
 
   // Load profile - prefer Supabase for authenticated users
   useEffect(() => {
@@ -959,35 +996,53 @@ function HomeContent() {
               <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">Free</span>
             </Link>
 
-            {/* Expert Pathology Review */}
-            <Link
-              href="/combat?expert=tony-magliocco"
-              onClick={(e) => handleToolClick(e, '/combat?expert=tony-magliocco')}
-              className="group bg-gradient-to-r from-white to-emerald-50/50 border-2 border-emerald-200 hover:border-emerald-400 rounded-xl p-5 hover:shadow-lg transition-all relative"
-            >
-              <span className="absolute -top-2.5 left-4 bg-emerald-600 text-white text-[10px] font-medium px-2.5 py-1 rounded">
-                Expert review
-              </span>
-              <div className="mb-3 mt-1 flex items-center gap-2">
-                <img
-                  src="/team/tony-magliocco.png"
-                  alt="Dr. Tony Magliocco"
-                  className="w-8 h-8 rounded-full object-cover"
-                />
-                <img
-                  src="https://images.squarespace-cdn.com/content/v1/5a4c3e3ebff200d1651f0273/1612204851498-UYVYCYQRCXVHMA08T0TS/protean_logo.png"
-                  alt="Protean BioDiagnostics"
-                  className="h-5 w-auto"
-                  onError={(e) => { e.currentTarget.style.display = 'none' }}
-                />
-              </div>
-              <h3 className="font-bold text-slate-900 mb-1">Expert Pathology Review</h3>
-              <p className="text-slate-600 text-sm mb-2">Dr. Magliocco · 25+ yrs · 200+ publications</p>
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">$650</span>
-                <span className="text-[10px] text-slate-400">2-3 business days</span>
-              </div>
-            </Link>
+            {/* Third card: Expert Pathology Review (if records) or Ask Navis (if no records) */}
+            {hasRecords ? (
+              <Link
+                href="/combat?expert=tony-magliocco"
+                onClick={(e) => handleToolClick(e, '/combat?expert=tony-magliocco')}
+                className="group bg-gradient-to-r from-white to-emerald-50/50 border-2 border-emerald-200 hover:border-emerald-400 rounded-xl p-5 hover:shadow-lg transition-all relative"
+              >
+                <span className="absolute -top-2.5 left-4 bg-emerald-600 text-white text-[10px] font-medium px-2.5 py-1 rounded">
+                  Expert review
+                </span>
+                <div className="mb-3 mt-1 flex items-center gap-2">
+                  <img
+                    src="/team/tony-magliocco.png"
+                    alt="Dr. Tony Magliocco"
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                  <img
+                    src="https://images.squarespace-cdn.com/content/v1/5a4c3e3ebff200d1651f0273/1612204851498-UYVYCYQRCXVHMA08T0TS/protean_logo.png"
+                    alt="Protean BioDiagnostics"
+                    className="h-5 w-auto"
+                    onError={(e) => { e.currentTarget.style.display = 'none' }}
+                  />
+                </div>
+                <h3 className="font-bold text-slate-900 mb-1">Expert Pathology Review</h3>
+                <p className="text-slate-600 text-sm mb-2">Dr. Magliocco · 25+ yrs · 200+ publications</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">$650</span>
+                  <span className="text-[10px] text-slate-400">2-3 business days</span>
+                </div>
+              </Link>
+            ) : (
+              <Link
+                href="/ask"
+                onClick={(e) => handleToolClick(e, '/ask')}
+                className="group bg-white border-2 border-slate-900 rounded-xl p-5 hover:shadow-lg transition-all relative"
+              >
+                <span className="absolute -top-2.5 left-4 bg-slate-900 text-white text-[10px] font-medium px-2.5 py-1 rounded">
+                  AI research
+                </span>
+                <div className="mb-3 mt-1">
+                  <ThinkingIndicator size={24} variant="dark" />
+                </div>
+                <h3 className="font-bold text-slate-900 mb-1">Ask Navis</h3>
+                <p className="text-slate-600 text-sm mb-2">Research with Claude, GPT-4o, and Gemini.</p>
+                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">Free</span>
+              </Link>
+            )}
 
           </div>
 

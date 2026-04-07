@@ -17,27 +17,41 @@ interface PatientProfile {
 }
 
 // Filter options
-const DISTANCE_OPTIONS = [
-  { value: '', label: 'Any distance' },
-  { value: '25', label: 'Within 25 miles' },
-  { value: '50', label: 'Within 50 miles' },
-  { value: '100', label: 'Within 100 miles' },
-  { value: '250', label: 'Within 250 miles' },
-]
-
 const PHASE_OPTIONS = [
-  { value: '', label: 'All phases' },
-  { value: 'Phase 1', label: 'Phase 1' },
-  { value: 'Phase 2', label: 'Phase 2' },
-  { value: 'Phase 3', label: 'Phase 3' },
-  { value: 'Phase 4', label: 'Phase 4' },
+  { value: '', label: 'All Phases' },
+  { value: 'Phase 1', label: 'Phase 1 (Safety)' },
+  { value: 'Phase 2', label: 'Phase 2 (Efficacy)' },
+  { value: 'Phase 3', label: 'Phase 3 (Comparison)' },
+  { value: 'Phase 4', label: 'Phase 4 (Post-market)' },
 ]
 
 const STATUS_OPTIONS = [
-  { value: 'recruiting', label: 'Recruiting' },
-  { value: 'not_yet_recruiting', label: 'Not yet recruiting' },
-  { value: 'active', label: 'Active, not recruiting' },
-  { value: '', label: 'All statuses' },
+  { value: 'recruiting', label: 'Recruiting Now' },
+  { value: 'not_yet_recruiting', label: 'Opening Soon' },
+  { value: 'active', label: 'Active (Closed)' },
+  { value: '', label: 'Any Status' },
+]
+
+// US States for location filter
+const US_STATES = [
+  { value: '', label: 'Any Location' },
+  { value: 'AL', label: 'Alabama' }, { value: 'AK', label: 'Alaska' }, { value: 'AZ', label: 'Arizona' },
+  { value: 'AR', label: 'Arkansas' }, { value: 'CA', label: 'California' }, { value: 'CO', label: 'Colorado' },
+  { value: 'CT', label: 'Connecticut' }, { value: 'DE', label: 'Delaware' }, { value: 'FL', label: 'Florida' },
+  { value: 'GA', label: 'Georgia' }, { value: 'HI', label: 'Hawaii' }, { value: 'ID', label: 'Idaho' },
+  { value: 'IL', label: 'Illinois' }, { value: 'IN', label: 'Indiana' }, { value: 'IA', label: 'Iowa' },
+  { value: 'KS', label: 'Kansas' }, { value: 'KY', label: 'Kentucky' }, { value: 'LA', label: 'Louisiana' },
+  { value: 'ME', label: 'Maine' }, { value: 'MD', label: 'Maryland' }, { value: 'MA', label: 'Massachusetts' },
+  { value: 'MI', label: 'Michigan' }, { value: 'MN', label: 'Minnesota' }, { value: 'MS', label: 'Mississippi' },
+  { value: 'MO', label: 'Missouri' }, { value: 'MT', label: 'Montana' }, { value: 'NE', label: 'Nebraska' },
+  { value: 'NV', label: 'Nevada' }, { value: 'NH', label: 'New Hampshire' }, { value: 'NJ', label: 'New Jersey' },
+  { value: 'NM', label: 'New Mexico' }, { value: 'NY', label: 'New York' }, { value: 'NC', label: 'North Carolina' },
+  { value: 'ND', label: 'North Dakota' }, { value: 'OH', label: 'Ohio' }, { value: 'OK', label: 'Oklahoma' },
+  { value: 'OR', label: 'Oregon' }, { value: 'PA', label: 'Pennsylvania' }, { value: 'RI', label: 'Rhode Island' },
+  { value: 'SC', label: 'South Carolina' }, { value: 'SD', label: 'South Dakota' }, { value: 'TN', label: 'Tennessee' },
+  { value: 'TX', label: 'Texas' }, { value: 'UT', label: 'Utah' }, { value: 'VT', label: 'Vermont' },
+  { value: 'VA', label: 'Virginia' }, { value: 'WA', label: 'Washington' }, { value: 'WV', label: 'West Virginia' },
+  { value: 'WI', label: 'Wisconsin' }, { value: 'WY', label: 'Wyoming' }, { value: 'DC', label: 'Washington DC' },
 ]
 
 interface Trial {
@@ -68,7 +82,7 @@ export default function TrialsPage() {
   // Filter state
   const [filters, setFilters] = useState({
     biomarker: '',
-    distance: '',
+    locationState: '',
     phase: '',
     status: 'recruiting',
   })
@@ -106,16 +120,18 @@ export default function TrialsPage() {
     setError(null)
 
     try {
+      // Use filter location if set, otherwise fall back to profile location
+      const searchLocation = filters.locationState || profile.location
+
       const response = await fetch('/api/trials', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           cancerType: CANCER_TYPES[profile.cancerType] || profile.cancerType,
           stage: profile.stage,
-          location: profile.location,
+          location: searchLocation,
           status: filters.status || undefined,
           biomarker: filters.biomarker || undefined,
-          distance: filters.distance || undefined,
           phase: filters.phase || undefined,
         }),
       })
@@ -141,10 +157,9 @@ export default function TrialsPage() {
       trackEvent('trial_search', {
         cancer_type: profile.cancerType,
         stage: profile.stage || null,
-        location: profile.location || null,
+        location: searchLocation || null,
         biomarker: filters.biomarker || null,
         phase: filters.phase || null,
-        distance: filters.distance || null,
         results_count: filteredTrials.length,
       })
 
@@ -153,10 +168,9 @@ export default function TrialsPage() {
         query: profile.cancerType,
         filters: {
           stage: profile.stage,
-          location: profile.location,
+          location: searchLocation,
           biomarker: filters.biomarker,
           phase: filters.phase,
-          distance: filters.distance,
         },
         resultsCount: filteredTrials.length,
       })
@@ -227,9 +241,9 @@ export default function TrialsPage() {
                 <Filter className="w-4 h-4" />
                 <span>Filters</span>
                 <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
-                {(filters.biomarker || filters.phase || filters.distance || filters.status !== 'recruiting') && (
+                {(filters.biomarker || filters.phase || filters.locationState || filters.status !== 'recruiting') && (
                   <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">
-                    {[filters.biomarker, filters.phase, filters.distance, filters.status !== 'recruiting' ? filters.status : ''].filter(Boolean).length} active
+                    {[filters.biomarker, filters.phase, filters.locationState, filters.status !== 'recruiting' ? filters.status : ''].filter(Boolean).length} active
                   </span>
                 )}
               </button>
@@ -240,13 +254,13 @@ export default function TrialsPage() {
                     {/* Biomarker Filter */}
                     {availableBiomarkers.length > 0 && (
                       <div>
-                        <label className="block text-xs font-medium text-slate-700 mb-1">Biomarker</label>
+                        <label className="block text-xs font-semibold text-slate-900 mb-1.5">Biomarker</label>
                         <select
                           value={filters.biomarker}
                           onChange={(e) => setFilters({ ...filters, biomarker: e.target.value })}
-                          className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         >
-                          <option value="">Any biomarker</option>
+                          <option value="">Any Biomarker</option>
                           {availableBiomarkers.map((b) => (
                             <option key={b.marker} value={b.marker}>{b.marker}</option>
                           ))}
@@ -254,15 +268,15 @@ export default function TrialsPage() {
                       </div>
                     )}
 
-                    {/* Distance Filter */}
+                    {/* Location (State) Filter */}
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">Distance</label>
+                      <label className="block text-xs font-semibold text-slate-900 mb-1.5">State</label>
                       <select
-                        value={filters.distance}
-                        onChange={(e) => setFilters({ ...filters, distance: e.target.value })}
-                        className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        value={filters.locationState}
+                        onChange={(e) => setFilters({ ...filters, locationState: e.target.value })}
+                        className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
-                        {DISTANCE_OPTIONS.map((opt) => (
+                        {US_STATES.map((opt) => (
                           <option key={opt.value} value={opt.value}>{opt.label}</option>
                         ))}
                       </select>
@@ -270,11 +284,11 @@ export default function TrialsPage() {
 
                     {/* Phase Filter */}
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">Phase</label>
+                      <label className="block text-xs font-semibold text-slate-900 mb-1.5">Trial Phase</label>
                       <select
                         value={filters.phase}
                         onChange={(e) => setFilters({ ...filters, phase: e.target.value })}
-                        className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
                         {PHASE_OPTIONS.map((opt) => (
                           <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -284,11 +298,11 @@ export default function TrialsPage() {
 
                     {/* Status Filter */}
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">Status</label>
+                      <label className="block text-xs font-semibold text-slate-900 mb-1.5">Enrollment</label>
                       <select
                         value={filters.status}
                         onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                        className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2.5 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
                         {STATUS_OPTIONS.map((opt) => (
                           <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -297,10 +311,10 @@ export default function TrialsPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-200">
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-200">
                     <button
-                      onClick={() => setFilters({ biomarker: '', distance: '', phase: '', status: 'recruiting' })}
-                      className="text-xs text-slate-500 hover:text-slate-700"
+                      onClick={() => setFilters({ biomarker: '', locationState: '', phase: '', status: 'recruiting' })}
+                      className="text-sm text-slate-600 hover:text-slate-900 font-medium"
                     >
                       Reset filters
                     </button>

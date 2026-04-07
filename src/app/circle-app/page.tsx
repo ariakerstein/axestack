@@ -975,7 +975,7 @@ function RecordsTab({ records, setRecords, onOpenAuthModal, isAuthenticated, aut
 
 // Main Component
 export default function CircleAppPage() {
-  const { user, loading: authLoading } = useAuth()
+  const { user, loading: authLoading, signOut } = useAuth()
   const [activeTab, setActiveTab] = useState<TabType>('ask')
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -1026,18 +1026,7 @@ export default function CircleAppPage() {
             <div className="w-20" />
           ) : isAuthenticated ? (
             <button
-              onClick={async () => {
-                try {
-                  const { supabase } = await import('@/lib/supabase')
-                  await supabase.auth.signOut()
-                  // Clear any local storage
-                  localStorage.removeItem('circle-app-session-id')
-                  window.location.reload()
-                } catch (e) {
-                  console.error('Sign out error:', e)
-                  window.location.reload()
-                }
-              }}
+              onClick={() => signOut()}
               className="flex items-center gap-1.5 px-2 py-1.5 text-gray-500 hover:text-red-600 text-sm font-medium transition-colors flex-shrink-0"
               title="Click to sign out"
             >
