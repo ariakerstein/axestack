@@ -248,40 +248,55 @@ export default function LifestylePage() {
         </div>
       </section>
 
-      {/* About Dr. Ness */}
+      {/* Meet the Team */}
       <section className="py-16 px-8">
         <div className="max-w-4xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-8 items-start">
-            <div className="md:col-span-1">
-              <img
-                src="/team/cindy-ness.jpg"
-                alt="Dr. Cindy Ness"
-                className="w-full rounded-xl shadow-lg"
-              />
-            </div>
-            <div className="md:col-span-2">
-              <h2 className="text-2xl font-bold text-slate-900 mb-4">About Dr. Cindy Ness</h2>
-              <div className="space-y-4 text-slate-600">
-                <p>
-                  Dr. Ness brings an impassioned and informed determination to improving the care and experience of individuals diagnosed with cancer. Her training as a psychologist and an anthropologist—doctorates from Harvard University and the University of Pennsylvania, respectively—affords her a unique lens with which to understand the emotional world of individuals living with a physical illness.
-                </p>
-                <p>
-                  Dr. Ness' introduction to the world of cancer was an outgrowth of her own cancer diagnosis. After surgery and radiation, she did what she could to cobble together a regimen with the goal of lessening the likelihood of recurrence.
-                </p>
-                <p>
-                  Immersed in a sea of competing and conflicting health claims and with no unified guidance, she began to envision a program that she wished she could have found for herself—bringing together the care that she wanted all under one roof. This was to become The Center for Cancer Lifestyle Management.
-                </p>
+          <h2 className="text-2xl font-bold text-slate-900 mb-8 text-center">Meet the Team</h2>
+
+          <div className="space-y-12">
+            {/* Dr. Cindy Ness */}
+            <div className="grid md:grid-cols-4 gap-6 items-start">
+              <div className="md:col-span-1">
+                <img
+                  src="/team/cindy-ness.jpg"
+                  alt="Dr. Cindy Ness"
+                  className="w-full rounded-xl shadow-lg"
+                />
               </div>
-              <div className="flex flex-wrap gap-3 mt-6">
-                <span className="bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1 rounded-full">
-                  PhD, Harvard University
-                </span>
-                <span className="bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1 rounded-full">
-                  EdD, University of Pennsylvania
-                </span>
-                <span className="bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1 rounded-full">
-                  Cancer Survivor
-                </span>
+              <div className="md:col-span-3">
+                <h3 className="text-xl font-bold text-slate-900 mb-1">Dr. Cindy Ness, PhD, EdD</h3>
+                <p className="text-rose-600 font-medium text-sm mb-3">Founder & Executive Director</p>
+                <p className="text-slate-600 mb-4">
+                  Dr. Ness brings doctorates from Harvard and Penn to her mission of improving cancer care. Her own cancer diagnosis led her to envision a program bringing together emotional wellbeing, nutrition, exercise, and community—all under one roof. This became The Center for Cancer Lifestyle Management.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <span className="bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1 rounded-full">Harvard</span>
+                  <span className="bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1 rounded-full">Penn</span>
+                  <span className="bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1 rounded-full">Cancer Survivor</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Sonia Satra */}
+            <div className="grid md:grid-cols-4 gap-6 items-start">
+              <div className="md:col-span-1">
+                <img
+                  src="/team/sonia-satra.png"
+                  alt="Sonia Satra"
+                  className="w-full rounded-xl shadow-lg"
+                />
+              </div>
+              <div className="md:col-span-3">
+                <h3 className="text-xl font-bold text-slate-900 mb-1">Sonia Satra</h3>
+                <p className="text-rose-600 font-medium text-sm mb-3">Mindset & Movement Coach</p>
+                <p className="text-slate-600 mb-4">
+                  Sonia is a mindset and fitness thought leader who integrates mind, body, and emotion to create lasting change. Founder of Moticise, she's a certified Life Coach, NLP Practitioner, and holistic health coach. She leads the program's movement classes and mindset workshops.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <span className="bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1 rounded-full">Life Coach</span>
+                  <span className="bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1 rounded-full">NLP Practitioner</span>
+                  <span className="bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1 rounded-full">Moticise Founder</span>
+                </div>
               </div>
             </div>
           </div>
