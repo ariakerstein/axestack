@@ -19,6 +19,7 @@ interface AttachedFile {
   preview?: string
   extractedText?: string
   extractedEntities?: Array<{ type: string; value: string }>
+  fullAnalysis?: Record<string, unknown>
   status: 'pending' | 'processing' | 'ready' | 'error'
   error?: string
 }
@@ -84,6 +85,9 @@ function AskPageContent() {
   const [hasPatientContext, setHasPatientContext] = useState(false)
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([])
   const [isProcessingFile, setIsProcessingFile] = useState(false)
+  const [hasUsedAttachment, setHasUsedAttachment] = useState(false) // Track if user has attached a file
+  const [showSaveRecordsPrompt, setShowSaveRecordsPrompt] = useState(false)
+  const [isDraggingFile, setIsDraggingFile] = useState(false)
   // Selective friction state
   const [showProfilePrompt, setShowProfilePrompt] = useState(false)
   const [showWikiPrompt, setShowWikiPrompt] = useState(false)
@@ -117,8 +121,14 @@ function AskPageContent() {
       return
     }
 
+    // After first question with attachment - prompt to save records
+    if (hasUsedAttachment && questionCount >= 1 && !user && !promptsDismissed.has('save_records')) {
+      const timer = setTimeout(() => setShowSaveRecordsPrompt(true), 3000)
+      return () => clearTimeout(timer)
+    }
+
     // After first question - prompt for cancer type if not set
-    if (questionCount === 1 && !cancerType && !promptsDismissed.has('profile')) {
+    if (questionCount === 1 && !cancerType && !promptsDismissed.has('profile') && !hasUsedAttachment) {
       // Delay slightly so response comes first
       const timer = setTimeout(() => setShowProfilePrompt(true), 2000)
       return () => clearTimeout(timer)
@@ -135,7 +145,7 @@ function AskPageContent() {
       const timer = setTimeout(() => setShowCareCirclePrompt(true), 2000)
       return () => clearTimeout(timer)
     }
-  }, [questionCount, cancerType, user, authProfile, promptsDismissed])
+  }, [questionCount, cancerType, user, authProfile, promptsDismissed, hasUsedAttachment])
 
   // Dismiss a prompt and remember it
   const dismissPrompt = (promptType: string) => {
@@ -147,6 +157,7 @@ function AskPageContent() {
     if (promptType === 'profile') setShowProfilePrompt(false)
     if (promptType === 'wiki') setShowWikiPrompt(false)
     if (promptType === 'carecircle') setShowCareCirclePrompt(false)
+    if (promptType === 'save_records') setShowSaveRecordsPrompt(false)
   }
 
   // Load concise mode preference
@@ -308,27 +319,92 @@ I can help you with:
       }
 
       const data = await response.json()
+      console.log('Translate API response:', {
+        hasAnalysis: !!data.analysis,
+        hasDocumentText: !!data.documentText,
+        documentType: data.analysis?.document_type,
+        cancerType: data.analysis?.cancer_specific?.cancer_type
+      })
 
-      // Extract entities from the translation
+      // Extract entities from the translation (matches API response structure)
       const entities: Array<{ type: string; value: string }> = []
-      if (data.cancerType) entities.push({ type: 'Cancer Type', value: data.cancerType })
-      if (data.stage) entities.push({ type: 'Stage', value: data.stage })
-      if (data.biomarkers && data.biomarkers.length > 0) {
-        data.biomarkers.forEach((b: string) => entities.push({ type: 'Biomarker', value: b }))
+      const analysis = data.analysis
+
+      if (analysis?.cancer_specific?.cancer_type && analysis.cancer_specific.cancer_type !== 'unknown') {
+        entities.push({ type: 'Cancer Type', value: analysis.cancer_specific.cancer_type })
       }
+      if (analysis?.cancer_specific?.stage && analysis.cancer_specific.stage !== 'unknown') {
+        entities.push({ type: 'Stage', value: analysis.cancer_specific.stage })
+      }
+      if (analysis?.cancer_specific?.biomarkers && analysis.cancer_specific.biomarkers.length > 0) {
+        analysis.cancer_specific.biomarkers.forEach((b: string) => {
+          if (b && b !== 'unknown') entities.push({ type: 'Biomarker', value: b })
+        })
+      }
+      // Also extract diagnosis if available
+      if (analysis?.diagnosis && analysis.diagnosis.length > 0) {
+        analysis.diagnosis.forEach((d: string) => {
+          if (d && d !== 'unknown') entities.push({ type: 'Diagnosis', value: d })
+        })
+      }
+
+      // Build a comprehensive summary for the chat context
+      const summaryParts: string[] = []
+      if (analysis?.document_type) summaryParts.push(`Document Type: ${analysis.document_type}`)
+      if (analysis?.test_summary) summaryParts.push(`Summary: ${analysis.test_summary}`)
+      if (analysis?.questions_to_ask_doctor) summaryParts.push(`Questions to ask: ${analysis.questions_to_ask_doctor}`)
+
+      const extractedSummary = summaryParts.length > 0
+        ? summaryParts.join('\n\n')
+        : data.documentText?.slice(0, 1000) || 'Document processed successfully'
 
       setAttachedFiles([{
         ...newFile,
         status: 'ready',
-        extractedText: data.summary || data.translation || 'Document processed',
+        extractedText: data.documentText || extractedSummary, // Store the full document text
         extractedEntities: entities,
+        // Store the full analysis for later use
+        fullAnalysis: analysis,
       }])
+
+      // Save to patient's records in Supabase (async, non-blocking)
+      // This ensures chat uploads are saved just like records page uploads
+      const currentSessionId = sessionId || getSessionId()
+      fetch('/api/records/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileName: file.name,
+          analysis: data.analysis,
+          documentText: data.documentText,
+          storagePath: data.storagePath,
+          sessionId: currentSessionId,
+          userId: user?.id || null,
+          source: 'chat_attachment', // Track that this came from chat
+        }),
+      }).catch(err => console.warn('Failed to save record:', err))
+
+      // Extract entities to knowledge graph (async, non-blocking)
+      if (entities.length > 0) {
+        fetch('/api/entities/extract', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            documentText: data.documentText,
+            analysis: data.analysis,
+            sessionId: currentSessionId,
+            userId: user?.id || null,
+            source: 'chat_attachment',
+          }),
+        }).catch(err => console.warn('Failed to extract entities:', err))
+      }
 
       // Track the attachment
       trackEvent('chat_file_attached', {
         file_type: file.type,
         file_size: file.size,
         entities_found: entities.length,
+        saved_to_records: true,
       })
     } catch (err) {
       console.error('File processing error:', err)
@@ -351,6 +427,49 @@ I can help you with:
     setAttachedFiles([])
   }
 
+  // Process a file (used by both file input and drag-drop)
+  const processFile = async (file: File) => {
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/heic']
+
+    if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|jpg|jpeg|png|webp|heic)$/i)) {
+      alert('Please upload a PDF or image file (JPG, PNG, WebP, HEIC)')
+      return
+    }
+
+    // Trigger the same processing as handleFileSelect
+    const fakeEvent = {
+      target: { files: [file] }
+    } as unknown as React.ChangeEvent<HTMLInputElement>
+    handleFileSelect(fakeEvent)
+  }
+
+  // Drag and drop handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!isDraggingFile) setIsDraggingFile(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    // Only set to false if leaving the drop zone entirely
+    if (e.currentTarget === e.target) {
+      setIsDraggingFile(false)
+    }
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDraggingFile(false)
+
+    const files = e.dataTransfer.files
+    if (files && files.length > 0) {
+      processFile(files[0])
+    }
+  }
+
   const handleSubmit = async (messageText?: string) => {
     const text = messageText || input
     if (!text.trim() || isLoading) return
@@ -358,12 +477,51 @@ I can help you with:
     // Build context from attached files
     const readyAttachment = attachedFiles.find(f => f.status === 'ready')
     let fileContext = ''
-    if (readyAttachment?.extractedText) {
-      fileContext = `\n\n[ATTACHED DOCUMENT CONTEXT]\n${readyAttachment.extractedText}`
+    if (readyAttachment?.extractedText || readyAttachment?.fullAnalysis) {
+      const analysis = readyAttachment.fullAnalysis as Record<string, unknown> | undefined
+      fileContext = '\n\n[ATTACHED DOCUMENT CONTEXT]'
+
+      // Add document type
+      if (analysis?.document_type) {
+        fileContext += `\nDocument Type: ${analysis.document_type}`
+      }
+
+      // Add extracted findings (summary)
       if (readyAttachment.extractedEntities && readyAttachment.extractedEntities.length > 0) {
-        fileContext += '\n\nExtracted findings:\n' +
+        fileContext += '\n\nKey Findings:\n' +
           readyAttachment.extractedEntities.map(e => `- ${e.type}: ${e.value}`).join('\n')
       }
+
+      // Add cancer-specific info
+      const cancerSpecific = analysis?.cancer_specific as Record<string, unknown> | undefined
+      if (cancerSpecific) {
+        if (cancerSpecific.cancer_type && cancerSpecific.cancer_type !== 'unknown') {
+          fileContext += `\n\nCancer Type: ${cancerSpecific.cancer_type}`
+        }
+        if (cancerSpecific.stage && cancerSpecific.stage !== 'unknown') {
+          fileContext += `\nStage: ${cancerSpecific.stage}`
+        }
+        if (cancerSpecific.grade && cancerSpecific.grade !== 'unknown') {
+          fileContext += `\nGrade: ${cancerSpecific.grade}`
+        }
+      }
+
+      // Add analysis summary
+      if (analysis?.test_summary) {
+        fileContext += `\n\nAnalysis Summary: ${analysis.test_summary}`
+      }
+
+      // Add the FULL document text so the AI can answer specific questions
+      if (readyAttachment.extractedText) {
+        // Truncate if too long (keep under 15k chars to avoid token limits)
+        const docText = readyAttachment.extractedText.slice(0, 15000)
+        fileContext += `\n\n--- FULL DOCUMENT TEXT ---\n${docText}`
+        if (readyAttachment.extractedText.length > 15000) {
+          fileContext += '\n[Document truncated - too long]'
+        }
+        fileContext += '\n--- END DOCUMENT TEXT ---'
+      }
+
       fileContext += '\n[END DOCUMENT CONTEXT]'
     }
 
@@ -405,6 +563,7 @@ I can help you with:
     // Clear attachments after sending (they're now in context)
     if (readyAttachment) {
       setAttachedFiles([])
+      setHasUsedAttachment(true) // Track that they've used the attachment feature
     }
 
     try {
@@ -957,9 +1116,49 @@ I can help you with:
         </div>
       )}
 
+      {/* Save Records Prompt - after first question with attachment, for guests */}
+      {showSaveRecordsPrompt && (
+        <div className="fixed bottom-24 left-0 right-0 z-40 px-4">
+          <div className="max-w-lg mx-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl p-4 shadow-2xl animate-in slide-in-from-bottom">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="font-medium mb-1">Your records are saved!</p>
+                <p className="text-sm text-blue-100 mb-3">Create a free account to access your records anytime, get personalized answers, and build your cancer knowledge base.</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setShowAuthModal(true)
+                      dismissPrompt('save_records')
+                      trackEvent('friction_prompt_accepted', { type: 'save_records', question_count: questionCount })
+                    }}
+                    className="px-4 py-2 bg-white text-blue-700 font-medium rounded-lg hover:bg-blue-50 transition-colors text-sm"
+                  >
+                    Create Free Account
+                  </button>
+                  <button
+                    onClick={() => {
+                      dismissPrompt('save_records')
+                      trackEvent('friction_prompt_dismissed', { type: 'save_records', question_count: questionCount })
+                    }}
+                    className="px-3 py-2 text-blue-200 hover:text-white transition-colors text-sm"
+                  >
+                    Continue as guest
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Floating Input Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe">
-        <div className="max-w-4xl mx-auto px-4 py-4">
+        <div className="max-w-4xl mx-auto px-4 py-4 relative">
           {/* File Attachment Preview */}
           {attachedFiles.length > 0 && (
             <div className="mb-2">
@@ -1029,7 +1228,28 @@ I can help you with:
             </div>
           )}
 
-          <div className="flex items-end gap-2 bg-gray-50 border border-gray-300 rounded-2xl p-2 focus-within:border-slate-400 focus-within:ring-2 focus-within:ring-slate-100">
+          <div
+            className={`flex items-end gap-2 bg-gray-50 border rounded-2xl p-2 transition-all duration-200 focus-within:ring-2 focus-within:ring-slate-100 ${
+              isDraggingFile
+                ? 'border-amber-400 bg-amber-50 ring-2 ring-amber-200'
+                : 'border-gray-300 focus-within:border-slate-400'
+            }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            {/* Drop zone overlay */}
+            {isDraggingFile && (
+              <div className="absolute inset-0 flex items-center justify-center bg-amber-50/90 rounded-2xl border-2 border-dashed border-amber-400 z-10 pointer-events-none">
+                <div className="text-center">
+                  <svg className="w-8 h-8 text-amber-500 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <p className="text-sm font-medium text-amber-700">Drop your medical record here</p>
+                  <p className="text-xs text-amber-600">PDF, JPG, PNG supported</p>
+                </div>
+              </div>
+            )}
             {/* Hidden file input */}
             <input
               ref={fileInputRef}
@@ -1039,24 +1259,45 @@ I can help you with:
               className="hidden"
             />
 
-            {/* Attachment Button - with pulse for new users */}
+            {/* Attachment Button - with subtle glow for new users */}
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isProcessingFile || isLoading}
-              className={`flex-shrink-0 p-2 rounded-xl transition-colors disabled:opacity-50 relative ${
+              className={`flex-shrink-0 p-2 rounded-xl transition-all duration-300 disabled:opacity-50 relative group ${
                 !hasPatientContext && messages.length <= 2 && !attachedFiles.length
-                  ? 'text-amber-600 hover:text-amber-700 hover:bg-amber-50 ring-2 ring-amber-200 ring-offset-1'
+                  ? 'text-amber-600 hover:text-amber-700 hover:bg-amber-50'
                   : 'text-gray-400 hover:text-slate-600 hover:bg-stone-100'
               }`}
               title="Attach a medical record (PDF, image)"
             >
-              {/* Pulse animation for new users */}
+              {/* Subtle glow animation for new users - breathing effect */}
               {!hasPatientContext && messages.length <= 2 && !attachedFiles.length && (
-                <span className="absolute inset-0 rounded-xl bg-amber-400 animate-ping opacity-20" />
+                <span
+                  className="absolute inset-0 rounded-xl bg-gradient-to-r from-amber-200 to-orange-200 opacity-0"
+                  style={{
+                    animation: 'breathe 2.5s ease-in-out infinite',
+                  }}
+                />
               )}
-              <svg className="w-5 h-5 relative" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg
+                className={`w-5 h-5 relative transition-transform duration-300 ${
+                  !hasPatientContext && messages.length <= 2 && !attachedFiles.length
+                    ? 'group-hover:scale-110'
+                    : ''
+                }`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
               </svg>
+              <style jsx>{`
+                @keyframes breathe {
+                  0%, 100% { opacity: 0; transform: scale(0.95); }
+                  50% { opacity: 0.4; transform: scale(1.05); }
+                }
+              `}</style>
             </button>
 
             <textarea
@@ -1064,8 +1305,15 @@ I can help you with:
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={attachedFiles.length > 0 ? "Ask about this document..." : "Ask anything, or 📎 attach your records..."}
-              className="flex-1 bg-transparent border-none resize-none focus:outline-none focus:ring-0 min-h-[40px] max-h-[120px] py-2 text-gray-900 placeholder-gray-400"
+              placeholder={
+                isProcessingFile
+                  ? "Analyzing your document..."
+                  : attachedFiles.some(f => f.status === 'ready')
+                    ? "Ask about this document..."
+                    : "Ask anything, or drag & drop your records..."
+              }
+              disabled={isProcessingFile}
+              className="flex-1 bg-transparent border-none resize-none focus:outline-none focus:ring-0 min-h-[40px] max-h-[120px] py-2 text-gray-900 placeholder-gray-400 disabled:cursor-wait"
               rows={1}
             />
 
@@ -1081,15 +1329,20 @@ I can help you with:
               </svg>
             </button>
 
-            {/* Send Button - no spinner here, "Thinking..." in chat provides feedback */}
+            {/* Send Button - disabled while processing file */}
             <button
               onClick={() => handleSubmit()}
-              disabled={!input.trim() || isLoading}
-              className="flex-shrink-0 p-2 bg-[#C66B4A] hover:bg-[#B35E40] disabled:bg-gray-300 text-white rounded-xl transition-all shadow-md"
+              disabled={!input.trim() || isLoading || isProcessingFile}
+              title={isProcessingFile ? "Wait for document to finish processing" : "Send message"}
+              className="flex-shrink-0 p-2 bg-[#C66B4A] hover:bg-[#B35E40] disabled:bg-gray-300 disabled:cursor-wait text-white rounded-xl transition-all shadow-md"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
+              {isProcessingFile ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+              )}
             </button>
           </div>
 
@@ -1127,17 +1380,6 @@ I can help you with:
                 </svg>
                 Personalized
               </span>
-            )}
-            {/* Prominent attachment tip for new users */}
-            {!attachedFiles.length && !hasPatientContext && messages.length <= 2 && (
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-full text-xs text-amber-800 hover:border-amber-300 hover:shadow-sm transition-all group"
-              >
-                <span className="text-base">📎</span>
-                <span className="font-medium">Drop your medical records here for personalized answers</span>
-                <span className="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
-              </button>
             )}
           </div>
 
