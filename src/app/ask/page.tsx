@@ -88,6 +88,10 @@ function AskPageContent() {
   const [hasUsedAttachment, setHasUsedAttachment] = useState(false) // Track if user has attached a file
   const [showSaveRecordsPrompt, setShowSaveRecordsPrompt] = useState(false)
   const [isDraggingFile, setIsDraggingFile] = useState(false)
+  // Smart Profile Sync state
+  const [showProfileSyncPrompt, setShowProfileSyncPrompt] = useState(false)
+  const [detectedCancerType, setDetectedCancerType] = useState<string | null>(null)
+  const [detectedStage, setDetectedStage] = useState<string | null>(null)
   // Selective friction state
   const [showProfilePrompt, setShowProfilePrompt] = useState(false)
   const [showWikiPrompt, setShowWikiPrompt] = useState(false)
@@ -158,6 +162,93 @@ function AskPageContent() {
     if (promptType === 'wiki') setShowWikiPrompt(false)
     if (promptType === 'carecircle') setShowCareCirclePrompt(false)
     if (promptType === 'save_records') setShowSaveRecordsPrompt(false)
+    if (promptType === 'profile_sync') setShowProfileSyncPrompt(false)
+  }
+
+  // Handle profile sync - update cancer type from detected value
+  const handleProfileSync = async () => {
+    if (!detectedCancerType) return
+
+    // Find the matching cancer type key from CANCER_TYPES
+    const normalizedDetected = detectedCancerType.toLowerCase()
+    let cancerTypeKey = 'other'
+
+    // Try to match the detected type to our CANCER_TYPES keys
+    for (const [key, value] of Object.entries(CANCER_TYPES)) {
+      const normalizedValue = value.toLowerCase()
+      const normalizedKey = key.toLowerCase()
+      if (normalizedDetected.includes(normalizedKey) ||
+          normalizedValue.includes(normalizedDetected) ||
+          normalizedDetected.includes(normalizedValue.split(' ')[0])) {
+        cancerTypeKey = key
+        break
+      }
+    }
+
+    // Update local state
+    setCancerType(cancerTypeKey)
+
+    // Update localStorage profile
+    const savedProfile = localStorage.getItem('patient-profile')
+    if (savedProfile) {
+      try {
+        const profile = JSON.parse(savedProfile)
+        profile.cancerType = cancerTypeKey
+        if (detectedStage) profile.stage = detectedStage
+        localStorage.setItem('patient-profile', JSON.stringify(profile))
+      } catch (e) {
+        console.error('Failed to update local profile:', e)
+      }
+    }
+
+    // Update Supabase profile if user is logged in
+    if (user && authProfile?.email) {
+      try {
+        await fetch('/api/profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: authProfile.email,
+            name: authProfile.name,
+            role: authProfile.role,
+            cancerType: cancerTypeKey,
+            stage: detectedStage || authProfile.stage,
+            sessionId: sessionId,
+          }),
+        })
+      } catch (err) {
+        console.warn('Failed to update Supabase profile:', err)
+      }
+    }
+
+    // Update knowledge graph with the new cancer type
+    const currentSessionId = sessionId || getSessionId()
+    fetch('/api/entities/extract', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        entities: [
+          { type: 'cancer_type', value: cancerTypeKey, status: 'confirmed', confidence: 1.0 },
+          ...(detectedStage ? [{ type: 'stage', value: detectedStage, status: 'confirmed', confidence: 1.0 }] : [])
+        ],
+        sessionId: currentSessionId,
+        userId: user?.id || null,
+        source: 'profile_sync',
+      }),
+    }).catch(err => console.warn('Failed to update knowledge graph:', err))
+
+    // Track the sync
+    trackEvent('profile_sync_accepted', {
+      detected_type: detectedCancerType,
+      mapped_type: cancerTypeKey,
+      detected_stage: detectedStage,
+      was_logged_in: !!user,
+    })
+
+    // Close prompt
+    setShowProfileSyncPrompt(false)
+    setDetectedCancerType(null)
+    setDetectedStage(null)
   }
 
   // Load concise mode preference
@@ -244,9 +335,9 @@ function AskPageContent() {
       const welcomeMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: `Hi, I'm your **opencancer.ai assistant**. I can help you find information about cancer treatments, clinical trials, and caregiver strategies, grounded in NCCN guidelines and expert-led resources.
+        content: `Hi, I'm **Navis**, your OpenCancer AI assistant. I can help you find information about cancer treatments, clinical trials, and caregiver strategies, grounded in NCCN guidelines and expert-led resources.
 
-📎 **NEW: Drop your medical records right here!** Click the paperclip to attach a pathology report, lab result, or scan — I'll read it and answer questions about YOUR specific case.
+📎 **Drop your medical records right here!** Click the paperclip or drag & drop a pathology report, lab result, or scan — I'll read it and answer questions about YOUR specific case.
 
 I can help you with:
 - **Analyzing your records** — attach any PDF or image and ask "what does this mean?"
@@ -397,6 +488,40 @@ I can help you with:
             source: 'chat_attachment',
           }),
         }).catch(err => console.warn('Failed to extract entities:', err))
+      }
+
+      // Smart Profile Sync: Check if detected cancer type differs from profile
+      const detectedType = analysis?.cancer_specific?.cancer_type
+      const detectedStageValue = analysis?.cancer_specific?.stage
+      if (detectedType && detectedType !== 'unknown') {
+        // Get current profile cancer type
+        const savedProfile = localStorage.getItem('patient-profile')
+        const profileCancerType = savedProfile ? JSON.parse(savedProfile)?.cancerType : null
+        const authCancerType = authProfile?.cancer_type
+        const currentCancerType = authCancerType || profileCancerType
+
+        // Normalize for comparison (lowercase, handle variations)
+        const normalizeType = (type: string | null | undefined) => {
+          if (!type) return null
+          return type.toLowerCase().replace(/[^a-z]/g, '')
+        }
+
+        const normalizedDetected = normalizeType(detectedType)
+        const normalizedCurrent = normalizeType(currentCancerType)
+
+        // Show prompt if:
+        // 1. No cancer type set (other or empty)
+        // 2. Different cancer type detected
+        const shouldPrompt = !normalizedCurrent ||
+          normalizedCurrent === 'other' ||
+          (normalizedDetected && normalizedCurrent && normalizedDetected !== normalizedCurrent)
+
+        if (shouldPrompt && !promptsDismissed.has('profile_sync')) {
+          setDetectedCancerType(detectedType)
+          setDetectedStage(detectedStageValue && detectedStageValue !== 'unknown' ? detectedStageValue : null)
+          // Small delay to let file attachment UI settle
+          setTimeout(() => setShowProfileSyncPrompt(true), 1000)
+        }
       }
 
       // Track the attachment
@@ -752,6 +877,7 @@ I can help you with:
                 <div className={`${message.role === 'user' ? 'max-w-[85%]' : 'w-full'}`}>
                   {message.role === 'assistant' && (
                     <div className="flex items-center gap-2 mb-2">
+                      <ThinkingIndicator size={18} variant="light" />
                       <span className="text-sm font-medium text-gray-700">Navis</span>
                     </div>
                   )}
@@ -1149,6 +1275,48 @@ I can help you with:
                     className="px-3 py-2 text-blue-200 hover:text-white transition-colors text-sm"
                   >
                     Continue as guest
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Smart Profile Sync Prompt - when detected cancer type differs from profile */}
+      {showProfileSyncPrompt && detectedCancerType && (
+        <div className="fixed bottom-24 left-0 right-0 z-40 px-4">
+          <div className="max-w-lg mx-auto bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl p-4 shadow-2xl animate-in slide-in-from-bottom">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="font-medium mb-1">We detected your cancer type</p>
+                <p className="text-sm text-emerald-100 mb-3">
+                  Your record shows <span className="font-semibold text-white">{detectedCancerType}</span>
+                  {detectedStage && <> (Stage {detectedStage})</>}. Update your profile for personalized guidance?
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      handleProfileSync()
+                      trackEvent('friction_prompt_accepted', { type: 'profile_sync', detected: detectedCancerType })
+                    }}
+                    className="px-4 py-2 bg-white text-emerald-700 font-medium rounded-lg hover:bg-emerald-50 transition-colors text-sm"
+                  >
+                    Yes, update profile
+                  </button>
+                  <button
+                    onClick={() => {
+                      dismissPrompt('profile_sync')
+                      trackEvent('friction_prompt_dismissed', { type: 'profile_sync', detected: detectedCancerType })
+                    }}
+                    className="px-3 py-2 text-emerald-200 hover:text-white transition-colors text-sm"
+                  >
+                    Not now
                   </button>
                 </div>
               </div>
