@@ -437,11 +437,11 @@ function HomeContent() {
               <div className="border-t border-slate-200 p-5 bg-gradient-to-r from-slate-50 to-orange-50/30">
                 {/* Mobile: Stack vertically, CTA first. Desktop: Side by side */}
                 <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-4">
-                  {/* Built by a survivor */}
+                  {/* Built by survivors */}
                   <Link href="/about" className="flex items-center gap-3 hover:opacity-80 transition-opacity group">
                     <img src="/ari.png" alt="Ari" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover ring-2 ring-slate-300 group-hover:ring-[#C66B4A] transition-all" />
                     <div>
-                      <p className="text-sm font-medium text-slate-700">Built by a survivor</p>
+                      <p className="text-sm font-medium text-slate-700">Built by survivors</p>
                       <p className="text-xs text-slate-400">Read my story →</p>
                     </div>
                   </Link>
