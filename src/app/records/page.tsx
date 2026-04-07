@@ -3013,12 +3013,19 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                     <Mail className="w-3.5 h-3.5" />
                     Send Report
                   </button>
-                  <button
-                    onClick={() => setShowSaveModal(true)}
-                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium text-sm transition-colors"
-                  >
-                    Save
-                  </button>
+                  {user ? (
+                    <span className="px-3 py-2 bg-green-100 text-green-700 rounded-lg font-medium text-sm flex items-center gap-1.5">
+                      <Check className="w-3.5 h-3.5" />
+                      Saved
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => setShowSaveModal(true)}
+                      className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium text-sm transition-colors"
+                    >
+                      Save
+                    </button>
+                  )}
                   <button
                     onClick={resetUpload}
                     className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-medium text-sm transition-colors"

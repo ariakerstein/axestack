@@ -123,8 +123,10 @@ export default function TrialsPage() {
   // Eligibility profile from records
   const [eligibilityProfile, setEligibilityProfile] = useState<{
     hasRecords: boolean
+    recordCount: number
     biomarkers: string[]
     priorTreatments: string[]
+    autoFilterApplied: boolean
   } | null>(null)
 
   // Share records modal state
@@ -194,14 +196,18 @@ export default function TrialsPage() {
             })
 
             const uniqueBiomarkers = [...new Set(allBiomarkers)]
+            const willAutoFilter = uniqueBiomarkers.length > 0
+
             setEligibilityProfile({
               hasRecords: true,
+              recordCount: recordValues.length,
               biomarkers: uniqueBiomarkers,
               priorTreatments: [...new Set(allTreatments)],
+              autoFilterApplied: willAutoFilter,
             })
 
             // AUTO-POPULATE FILTERS from extracted profile
-            if (uniqueBiomarkers.length > 0) {
+            if (willAutoFilter) {
               setFilters(prev => ({ ...prev, biomarker: uniqueBiomarkers[0] }))
             }
             return
@@ -244,14 +250,18 @@ export default function TrialsPage() {
             })
 
             const uniqueBiomarkers = [...new Set(allBiomarkers)]
+            const willAutoFilter = uniqueBiomarkers.length > 0
+
             setEligibilityProfile({
               hasRecords: true,
+              recordCount: records.length,
               biomarkers: uniqueBiomarkers,
               priorTreatments: [...new Set(allTreatments)],
+              autoFilterApplied: willAutoFilter,
             })
 
             // AUTO-POPULATE FILTERS from extracted profile
-            if (uniqueBiomarkers.length > 0) {
+            if (willAutoFilter) {
               setFilters(prev => ({ ...prev, biomarker: uniqueBiomarkers[0] }))
             }
             return
@@ -261,7 +271,7 @@ export default function TrialsPage() {
         }
       }
 
-      setEligibilityProfile({ hasRecords: false, biomarkers: [], priorTreatments: [] })
+      setEligibilityProfile({ hasRecords: false, recordCount: 0, biomarkers: [], priorTreatments: [], autoFilterApplied: false })
     }
 
     checkRecords()
@@ -385,68 +395,80 @@ export default function TrialsPage() {
         ) : (
           /* Has profile - show trial search */
           <div>
-            {/* Your Eligibility Profile */}
-            {eligibilityProfile && (
-              <div className={`rounded-xl p-4 mb-4 ${eligibilityProfile.hasRecords ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'}`}>
-                {eligibilityProfile.hasRecords ? (
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <CheckCircle2 className="w-5 h-5 text-green-600" />
-                      <span className="font-semibold text-green-800">Your Eligibility Profile</span>
+            {/* Auto-Filter Banner - show when records have been processed */}
+            {eligibilityProfile?.autoFilterApplied && (
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-300 rounded-xl p-4 mb-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <CheckCircle2 className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-bold text-green-900">Auto-filtered based on your records</span>
+                      <span className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full">
+                        {eligibilityProfile.recordCount} record{eligibilityProfile.recordCount !== 1 ? 's' : ''}
+                      </span>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="text-green-700 font-medium">Cancer:</span>{' '}
-                        <span className="text-green-900">{CANCER_TYPES[profile.cancerType] || profile.cancerType}</span>
-                        {profile.stage && <span className="text-green-900"> (Stage {profile.stage})</span>}
-                      </div>
-                      {eligibilityProfile.biomarkers.length > 0 && (
-                        <div>
-                          <span className="text-green-700 font-medium">Biomarkers:</span>{' '}
-                          <span className="text-green-900">{eligibilityProfile.biomarkers.slice(0, 3).join(', ')}</span>
-                          {eligibilityProfile.biomarkers.length > 3 && <span className="text-green-600"> +{eligibilityProfile.biomarkers.length - 3} more</span>}
-                        </div>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {eligibilityProfile.biomarkers.slice(0, 4).map((marker, i) => (
+                        <span key={i} className="inline-flex items-center gap-1 text-sm bg-white border border-green-300 text-green-800 px-2 py-1 rounded-lg">
+                          <FlaskConical className="w-3 h-3" />
+                          {marker}
+                        </span>
+                      ))}
+                      {eligibilityProfile.biomarkers.length > 4 && (
+                        <span className="text-sm text-green-600">+{eligibilityProfile.biomarkers.length - 4} more</span>
                       )}
                     </div>
                     {eligibilityProfile.priorTreatments.length > 0 && (
-                      <div className="text-sm mt-2">
-                        <span className="text-green-700 font-medium">Prior treatments:</span>{' '}
-                        <span className="text-green-900">{eligibilityProfile.priorTreatments.slice(0, 3).join(', ')}</span>
-                        {eligibilityProfile.priorTreatments.length > 3 && <span className="text-green-600"> +{eligibilityProfile.priorTreatments.length - 3} more</span>}
-                      </div>
+                      <p className="text-sm text-green-700 mt-2">
+                        Prior treatments: {eligibilityProfile.priorTreatments.slice(0, 3).join(', ')}
+                        {eligibilityProfile.priorTreatments.length > 3 && ` +${eligibilityProfile.priorTreatments.length - 3} more`}
+                      </p>
                     )}
-                    <p className="text-xs text-green-600 mt-2">Extracted from your uploaded records • Used to match eligibility criteria</p>
                   </div>
-                ) : (
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="font-semibold text-amber-800">Upload records to check eligibility</span>
-                      <p className="text-sm text-amber-700 mt-1">We'll extract biomarkers & treatments to match you with trials</p>
-                    </div>
-                    <Link href="/records" className="bg-amber-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-amber-700 transition-colors">
-                      Upload Records
-                    </Link>
-                  </div>
-                )}
+                </div>
               </div>
             )}
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-blue-800">
-                    {eligibilityProfile?.hasRecords ? (
-                      <>Finding trials that match your <strong>{CANCER_TYPES[profile.cancerType] || profile.cancerType}</strong> profile</>
-                    ) : (
-                      <>Searching trials for <strong>{CANCER_TYPES[profile.cancerType] || profile.cancerType}</strong></>
-                    )}
-                    {profile.stage && <span> (Stage {profile.stage})</span>}
-                    {filters.location && <span> in {filters.location}</span>}
-                  </p>
+            {/* No Records Banner - prompt to upload */}
+            {eligibilityProfile && !eligibilityProfile.hasRecords && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="font-semibold text-amber-800">Upload records for personalized matching</span>
+                    <p className="text-sm text-amber-700 mt-1">We'll extract biomarkers & auto-filter trials for you</p>
+                  </div>
+                  <Link href="/records" className="bg-amber-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-amber-700 transition-colors">
+                    Upload Records
+                  </Link>
                 </div>
+              </div>
+            )}
+
+            {/* Records but no biomarkers extracted */}
+            {eligibilityProfile?.hasRecords && !eligibilityProfile.autoFilterApplied && (
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+                <div className="flex items-center gap-3">
+                  <FileText className="w-5 h-5 text-blue-600" />
+                  <div>
+                    <span className="font-semibold text-blue-800">{eligibilityProfile.recordCount} record{eligibilityProfile.recordCount !== 1 ? 's' : ''} uploaded</span>
+                    <p className="text-sm text-blue-700">No biomarkers extracted yet. Use filters below to narrow results.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Cancer type header - only show if not auto-filtered */}
+            {!eligibilityProfile?.autoFilterApplied && (
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-sm text-slate-600">
+                  Searching trials for <strong className="text-slate-900">{CANCER_TYPES[profile.cancerType] || profile.cancerType}</strong>
+                  {profile.stage && <span> (Stage {profile.stage})</span>}
+                </p>
                 <Link href="/profile" className="text-xs text-blue-600 hover:text-blue-800">Edit Profile</Link>
               </div>
-            </div>
+            )}
 
             {/* Filters - Always visible */}
             <div className="bg-white border border-gray-200 rounded-xl p-4 mb-6 shadow-sm">
