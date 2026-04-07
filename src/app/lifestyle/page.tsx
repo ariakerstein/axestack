@@ -64,6 +64,7 @@ export default function LifestylePage() {
     phone: '',
     cancerType: '',
     message: '',
+    shareRecords: false,
   })
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -174,9 +175,9 @@ export default function LifestylePage() {
                 </div>
               </div>
               {/* Price badge */}
-              <div className="absolute -bottom-4 -right-4 bg-rose-600 text-white px-4 py-2 rounded-lg shadow-lg">
-                <p className="text-xs">Investment</p>
+              <div className="absolute -bottom-4 -right-4 bg-slate-900 text-white px-4 py-2 rounded-lg shadow-lg">
                 <p className="text-xl font-bold">$8,000</p>
+                <p className="text-xs text-slate-300">8-week program</p>
               </div>
             </div>
           </div>
@@ -454,6 +455,24 @@ export default function LifestylePage() {
                       className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none"
                       placeholder="What are you hoping to get from the program?"
                     />
+                  </div>
+
+                  {/* Records sharing consent */}
+                  <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.shareRecords}
+                        onChange={(e) => setFormData({ ...formData, shareRecords: e.target.checked })}
+                        className="mt-1 w-4 h-4 text-rose-600 border-slate-300 rounded focus:ring-rose-500"
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-slate-700">Share my opencancer.ai records with CCLM</p>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          This helps Dr. Ness understand your situation before your consultation. Your records remain private and encrypted.
+                        </p>
+                      </div>
+                    </label>
                   </div>
 
                   <button
