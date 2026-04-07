@@ -199,7 +199,11 @@ export default function TrialsPage() {
       if (localRecords) {
         try {
           const records = JSON.parse(localRecords)
-          const recordValues = Object.values(records) as Array<{ result?: { cancer_specific?: { biomarkers?: string[] }, treatments_mentioned?: string[] } }>
+          // Data structure: { [id]: { cancer_specific: { biomarkers: [] }, treatments_mentioned: [] } }
+          const recordValues = Object.values(records) as Array<{
+            cancer_specific?: { biomarkers?: string[], cancer_type?: string, stage?: string }
+            treatments_mentioned?: string[]
+          }>
 
           if (recordValues.length > 0) {
             // Extract biomarkers and treatments from all records
@@ -207,11 +211,12 @@ export default function TrialsPage() {
             const allTreatments: string[] = []
 
             recordValues.forEach(r => {
-              if (r.result?.cancer_specific?.biomarkers) {
-                allBiomarkers.push(...r.result.cancer_specific.biomarkers)
+              // Biomarkers are directly on cancer_specific, not nested under result
+              if (r.cancer_specific?.biomarkers) {
+                allBiomarkers.push(...r.cancer_specific.biomarkers)
               }
-              if (r.result?.treatments_mentioned) {
-                allTreatments.push(...r.result.treatments_mentioned)
+              if (r.treatments_mentioned) {
+                allTreatments.push(...r.treatments_mentioned)
               }
             })
 
