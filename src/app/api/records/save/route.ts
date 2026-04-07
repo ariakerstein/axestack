@@ -59,16 +59,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify auth and get user ID from token (NOT from request body)
-    const userId = await getAuthenticatedUserId(request)
+    // Parse request body first to check for session-based auth
+    const body = await request.json()
+    const { fileName, documentType, result, analysis, documentText, chatMessages, sessionId, source } = body
 
-    if (!userId) {
-      console.log('[Records/Save] No authenticated user - returning 401')
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    // Try to get authenticated user ID from token
+    let userId = await getAuthenticatedUserId(request)
+
+    // If no authenticated user, allow guest saves with sessionId
+    if (!userId && !sessionId) {
+      console.log('[Records/Save] No authenticated user and no sessionId - returning 401')
+      return NextResponse.json({ error: 'Authentication or sessionId required' }, { status: 401 })
     }
 
-    const { fileName, documentType, result, documentText, chatMessages } = await request.json()
-    console.log('[Records/Save] Saving record:', fileName, 'for user:', userId)
+    console.log('[Records/Save] Saving record:', fileName, 'for user:', userId || `guest:${sessionId}`)
 
     // Check if we have service role key (required for bypassing RLS)
     const hasServiceKey = SUPABASE_SERVICE_KEY && SUPABASE_SERVICE_KEY.startsWith('eyJ')
@@ -82,26 +86,33 @@ export async function POST(request: NextRequest) {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
-    console.log('Saving record for user:', userId, 'file:', fileName)
+    // Support both 'result' and 'analysis' field names for backwards compatibility
+    const analysisData = result || analysis
 
-    // Save to medical_records table (existing table in insight-guide-query/navis)
+    // For guests, use a special user_id format or store session_id
+    // Since medical_records requires user_id, we'll use a session-prefixed id for guests
+    const effectiveUserId = userId || `session:${sessionId}`
+    const identifier = userId || sessionId
+
+    // Save to medical_records table
     const { data, error } = await supabase
       .from('medical_records')
       .insert({
-        user_id: userId,
+        user_id: effectiveUserId,
         original_name: fileName,
-        file_path: `opencancer/${userId}/${Date.now()}_${fileName}`, // Virtual path
+        file_path: `opencancer/${identifier}/${Date.now()}_${fileName}`, // Virtual path
         file_type: fileName.split('.').pop() || 'unknown',
         file_size: 0, // Not storing actual file, just analysis
         content_type: 'application/json',
-        record_type: documentType || 'document',
-        source: 'opencancer',
+        record_type: documentType || analysisData?.document_type || 'document',
+        source: source || 'opencancer',
         extracted_text: documentText?.substring(0, 100000) || null,
         ai_analysis: {
-          ...result,
+          ...analysisData,
           chat_history: chatMessages || [],
           analyzed_at: new Date().toISOString(),
-          analyzed_by: 'opencancer.ai'
+          analyzed_by: 'opencancer.ai',
+          session_id: sessionId || null, // Store session for later claiming
         },
       })
       .select()
@@ -109,7 +120,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Supabase insert error:', JSON.stringify(error, null, 2))
-      console.error('Insert was:', { user_id: userId, original_name: fileName, record_type: documentType })
+      console.error('Insert was:', { user_id: effectiveUserId, original_name: fileName, record_type: documentType })
       return NextResponse.json({
         error: 'Failed to save record',
         details: error.message,
@@ -117,6 +128,7 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
 
+    console.log('[Records/Save] Record saved successfully:', data?.id)
     return NextResponse.json({ success: true, id: data?.id })
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)

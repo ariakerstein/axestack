@@ -1151,7 +1151,7 @@ function HomeContent() {
               onClick={() => {
                 trackEvent('caregiver_cta_click', { source: 'homepage_caregiver_section' })
                 setShowWizardModal(true)
-                setWizardStep(1)
+                setWizardStep(2) // Skip step 1 - we already know they're a caregiver
                 setWizardRole('caregiver')
               }}
               className="inline-flex items-center gap-2 bg-[#C66B4A] hover:bg-[#B35E40] text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-[#C66B4A]/25 hover:shadow-xl transition-all min-h-[44px]"

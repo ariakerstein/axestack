@@ -453,8 +453,9 @@ I can help you with:
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    // Only set to false if leaving the drop zone entirely
-    if (e.currentTarget === e.target) {
+    // Only set to false if leaving the drop zone entirely (not entering a child element)
+    const relatedTarget = e.relatedTarget as Node | null
+    if (!relatedTarget || !e.currentTarget.contains(relatedTarget)) {
       setIsDraggingFile(false)
     }
   }
