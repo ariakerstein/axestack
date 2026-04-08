@@ -120,7 +120,7 @@ function AskTab({ messages, setMessages, isLoading, setIsLoading, onRecordUpload
   setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>
   isLoading: boolean
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>
-  onRecordUploaded?: (file: File) => void
+  onRecordUploaded?: (file: File, parsedResult?: UploadedRecord['result']) => void
   cancerType?: string
   onOpenCancerTypeModal?: () => void
   uploadedRecords?: UploadedRecord[]
@@ -193,6 +193,47 @@ function AskTab({ messages, setMessages, isLoading, setIsLoading, onRecordUpload
     }
   }, [messages, hasUploadedRecord, promptDismissed])
 
+  // Helper to build document context string from parsed analysis (matches main /ask page)
+  const buildDocumentContext = (analysis: UploadedRecord['result']): string => {
+    if (!analysis) return ''
+
+    let context = '\n\n[ATTACHED DOCUMENT CONTEXT]'
+
+    if (analysis.document_type) {
+      context += `\nDocument Type: ${analysis.document_type}`
+    }
+
+    // Add cancer-specific info
+    if (analysis.cancer_specific) {
+      const cs = analysis.cancer_specific
+      if (cs.cancer_type && cs.cancer_type !== 'unknown') {
+        context += `\n\nCancer Type: ${cs.cancer_type}`
+      }
+      if (cs.stage && cs.stage !== 'unknown') {
+        context += `\nStage: ${cs.stage}`
+      }
+      if (cs.grade && cs.grade !== 'unknown') {
+        context += `\nGrade: ${cs.grade}`
+      }
+      if (cs.biomarkers && cs.biomarkers.length > 0) {
+        context += `\nBiomarkers: ${cs.biomarkers.join(', ')}`
+      }
+    }
+
+    // Add diagnosis findings
+    if (analysis.diagnosis && analysis.diagnosis.length > 0 && analysis.diagnosis[0] !== 'unknown') {
+      context += '\n\nKey Findings:\n' + analysis.diagnosis.map(d => `- ${d}`).join('\n')
+    }
+
+    // Add analysis summary
+    if (analysis.test_summary) {
+      context += `\n\nAnalysis Summary: ${analysis.test_summary}`
+    }
+
+    context += '\n[END DOCUMENT CONTEXT]'
+    return context
+  }
+
   const handleSubmit = async (question: string) => {
     if (!question.trim() || isLoading) return
 
@@ -208,35 +249,19 @@ function AskTab({ messages, setMessages, isLoading, setIsLoading, onRecordUpload
     setInput('')
     setIsLoading(true)
 
+    // Track if we have any document context
+    const completedRecords = uploadedRecords?.filter(r => r.status === 'completed' && r.result) || []
+    const hasDocumentContext = !!attachedFile || completedRecords.length > 0
+
     // Log to patient_activity for admin dashboard metrics
     logQuestion({
       question: question.trim(),
-      hasPatientContext: !!attachedFile || (uploadedRecords?.some(r => r.status === 'completed') || false),
+      hasPatientContext: hasDocumentContext,
     })
 
-    // Build request body
-    const requestBody: Record<string, unknown> = {
-      message: question.trim(),
-      sessionId: getSessionId(),
-      userId: userId || null,
-      source: 'circle-app',
-      cancer_type: cancerType || null,
-    }
-
-    // Include context from any completed records in the Records tab
-    const completedRecords = uploadedRecords?.filter(r => r.status === 'completed' && r.result) || []
-    if (completedRecords.length > 0 && !attachedFile) {
-      // Build patient context from all uploaded records
-      const recordsContext = completedRecords.map(r => ({
-        document_type: r.result?.document_type,
-        cancer_type: r.result?.cancer_specific?.cancer_type,
-        stage: r.result?.cancer_specific?.stage,
-        biomarkers: r.result?.cancer_specific?.biomarkers,
-        diagnosis: r.result?.diagnosis,
-        summary: r.result?.test_summary,
-      }))
-      requestBody.patientContext = JSON.stringify({ records: recordsContext })
-    }
+    // Build the message with document context appended (matches main /ask behavior)
+    let messageWithContext = question.trim()
+    let currentParsedResult: UploadedRecord['result'] = undefined
 
     // If file attached, process it first
     if (attachedFile) {
@@ -247,11 +272,13 @@ function AskTab({ messages, setMessages, isLoading, setIsLoading, onRecordUpload
 
         const translateRes = await fetch('/api/translate', { method: 'POST', body: formData })
         const translateData = await translateRes.json()
-        if (translateData.result) {
-          requestBody.patientContext = JSON.stringify(translateData.result)
+        // API returns 'analysis' not 'result' - extract the parsed document data
+        currentParsedResult = translateData.analysis || translateData.result
+        if (currentParsedResult) {
+          messageWithContext += buildDocumentContext(currentParsedResult)
         }
-        // Also notify Records tab and track for save prompt
-        onRecordUploaded?.(attachedFile)
+        // Also notify Records tab with the parsed result for follow-up context
+        onRecordUploaded?.(attachedFile, currentParsedResult)
         setHasUploadedRecord(true)
         // Log to patient_activity for admin dashboard metrics
         logRecordUpload({
@@ -262,6 +289,23 @@ function AskTab({ messages, setMessages, isLoading, setIsLoading, onRecordUpload
         console.error('Failed to process attachment:', e)
       }
       setAttachedFile(null)
+    } else if (completedRecords.length > 0) {
+      // Include context from previously uploaded records for follow-up questions
+      for (const record of completedRecords) {
+        if (record.result) {
+          messageWithContext += buildDocumentContext(record.result)
+        }
+      }
+    }
+
+    // Build request body
+    const requestBody: Record<string, unknown> = {
+      message: messageWithContext, // Include document context in the message
+      sessionId: getSessionId(),
+      userId: userId || null,
+      source: 'circle-app',
+      cancer_type: cancerType || null,
+      hasFileAttachment: hasDocumentContext,
     }
 
     const loadingMessage: ChatMessage = {
@@ -988,10 +1032,10 @@ export default function CircleAppPage() {
 
   const completedRecordsCount = records.filter(r => r.status === 'completed').length
 
-  // Handler when a file is uploaded in Ask tab
-  const handleRecordFromAsk = (file: File) => {
+  // Handler when a file is uploaded in Ask tab - store both file and parsed result
+  const handleRecordFromAsk = (file: File, parsedResult?: UploadedRecord['result']) => {
     const recordId = crypto.randomUUID()
-    setRecords(prev => [...prev, { id: recordId, file, status: 'completed' }])
+    setRecords(prev => [...prev, { id: recordId, file, status: 'completed', result: parsedResult }])
   }
 
   return (
