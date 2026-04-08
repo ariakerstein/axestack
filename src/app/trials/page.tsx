@@ -653,7 +653,7 @@ export default function TrialsPage() {
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-green-900">Auto-filtered based on your records</span>
+                        <span className="font-bold text-green-900">Scanning for {CANCER_TYPES[profile?.cancerType || ''] || profile?.cancerType} trials</span>
                         <span className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full">
                           {eligibilityProfile.recordCount} record{eligibilityProfile.recordCount !== 1 ? 's' : ''}
                         </span>
@@ -666,7 +666,10 @@ export default function TrialsPage() {
                         Add Record
                       </button>
                     </div>
-                    <div className="flex flex-wrap gap-2 mt-2">
+                    {eligibilityProfile.biomarkers.length > 0 && (
+                      <p className="text-sm text-green-700 mt-1">Biomarkers from your records:</p>
+                    )}
+                    <div className="flex flex-wrap gap-2 mt-1">
                       {eligibilityProfile.biomarkers.slice(0, 4).map((marker, i) => (
                         <span key={i} className="inline-flex items-center gap-1 text-sm bg-white border border-green-300 text-green-800 px-2 py-1 rounded-lg">
                           <FlaskConical className="w-3 h-3" />
