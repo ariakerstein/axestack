@@ -41,6 +41,7 @@ export function Footer() {
             <ul className="space-y-0 text-sm">
               <li><Link href="/records" className="text-slate-600 hover:text-slate-600 transition-colors py-2 min-h-[44px] flex items-center">Records Vault</Link></li>
               <li><Link href="/ask" className="text-slate-600 hover:text-slate-600 transition-colors py-2 min-h-[44px] flex items-center">Ask Navis</Link></li>
+              <li><Link href="/services" className="text-slate-600 hover:text-slate-600 transition-colors py-2 min-h-[44px] flex items-center">Services Directory</Link></li>
               <li><Link href="/cancer-checklist" className="text-slate-600 hover:text-slate-600 transition-colors py-2 min-h-[44px] flex items-center">Cancer Checklist</Link></li>
             </ul>
           </div>

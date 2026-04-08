@@ -9,7 +9,7 @@ import { saveProfile, supabase } from '@/lib/supabase'
 import {
   Check, Dna, CheckCircle, Stethoscope,
   Microscope, BookOpen, FlaskConical, FolderClosed, FolderOpen, UserRound,
-  Heart, Users, Ribbon, DollarSign, Code, Share2, Copy, ShieldCheck, UserCheck, Radar
+  Heart, Users, Ribbon, DollarSign, Code, Share2, Copy, ShieldCheck, UserCheck, Radar, Building2
 } from 'lucide-react'
 import { Navbar } from '@/components/Navbar'
 import { ThinkingIndicator } from '@/components/ThinkingIndicator'
@@ -1100,6 +1100,12 @@ function HomeContent() {
                 <FlaskConical className="w-5 h-5 text-violet-500" />
                 <h3 className="font-semibold text-slate-900 text-sm mt-2">Testing</h3>
                 <p className="text-slate-500 text-xs">Partnered with OpenOnco</p>
+              </Link>
+
+              <Link href="/services" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
+                <Building2 className="w-5 h-5 text-[#C66B4A]" />
+                <h3 className="font-semibold text-slate-900 text-sm mt-2">Services</h3>
+                <p className="text-slate-500 text-xs">356 cancer services</p>
               </Link>
 
               <Link href="/research" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
