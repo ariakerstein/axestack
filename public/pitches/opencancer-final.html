@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>opencancer.ai — Investor Deck 2026</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --dk:#0a0a0a;--d2:#141210;--d3:#1c1a18;--d4:#181614;
+  --wm:#f5f3ee;--wh:#ffffff;
+  --tc:#a85c3e;--tcl:#f5ede8;--tcd:#6b3420;
+  --gy:#7a7570;--st:#e8e4dc;--ch:#3d3a36;--dm:#c8c4be;
+  --bl:#378add;--gr:#1d9e75;--pu:#7f77dd;--am:#ba7517;--rd:#cc4444;
+}
+html,body{height:100%;background:#0d0d0d;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;}
+body{display:flex;flex-direction:column;align-items:center;padding:16px;min-height:100vh;}
+.deck{width:100%;max-width:1120px;}
+.slide{display:none;width:100%;aspect-ratio:16/9;position:relative;overflow:hidden;border-radius:10px;flex-direction:column;}
+.slide.active{display:flex;}
+.dk{background:var(--dk);}
+.wm{background:var(--wm);}
+
+.bar-l{position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--tc);}
+.bar-b{position:absolute;bottom:0;left:0;right:0;height:4px;background:var(--tc);}
+.wmark{position:absolute;right:-6%;top:-15%;width:58%;height:130%;border-radius:50%;border:38px solid rgba(255,255,255,.022);pointer-events:none;}
+.wmarkl{position:absolute;right:-6%;top:-15%;width:58%;height:130%;border-radius:50%;border:38px solid rgba(10,10,10,.04);pointer-events:none;}
+
+.nav{position:absolute;top:0;left:0;right:0;padding:12px 36px;display:flex;align-items:center;gap:6px;z-index:5;}
+.nw{font-size:12px;display:flex;}
+.nw .l{font-weight:200;}.nw .b{font-weight:700;}.nw .f{font-weight:200;opacity:.22;}
+
+.c{padding:46px 56px 32px;flex:1;display:flex;flex-direction:column;}
+.ct{padding-top:48px;}
+
+.ey{font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--tc);margin-bottom:8px;}
+.h1{font-size:clamp(22px,4vw,48px);font-weight:700;line-height:1.1;letter-spacing:-.8px;}
+.h2{font-size:clamp(16px,2.6vw,32px);font-weight:700;line-height:1.15;letter-spacing:-.5px;}
+.h3{font-size:clamp(12px,1.5vw,17px);font-weight:600;}
+.body{font-size:clamp(10px,1.25vw,13px);line-height:1.65;}
+.xs{font-size:clamp(9px,.98vw,11px);line-height:1.55;}
+
+.wt{color:#fff;}.dt{color:var(--dk);}.gt{color:var(--gy);}.tc{color:var(--tc);}.dm{color:var(--dm);}.bt{color:var(--bl);}.grt{color:var(--gr);}.pt{color:var(--pu);}
+
+.cd{background:var(--d4);border-radius:9px;padding:13px 15px;}
+.cl{background:#fff;border:.5px solid var(--st);border-radius:9px;padding:13px 15px;}
+.ctc{background:#1a1008;border-radius:9px;padding:13px 15px;border-top:2px solid var(--tc);}
+.cbl{background:#0a1018;border-radius:9px;padding:13px 15px;border-top:2px solid var(--bl);}
+.cgr{background:#0a1810;border-radius:9px;padding:13px 15px;border-top:2px solid var(--gr);}
+.cpu{background:#110e18;border-radius:9px;padding:13px 15px;border-top:2px solid var(--pu);}
+
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:9px;}
+.row{display:flex;gap:9px;}.col{flex:1;}
+
+.bb{background:var(--d4);border-radius:7px;padding:8px 13px;margin-top:auto;}
+.btc{background:var(--tcl);border-radius:7px;padding:8px 13px;margin-top:auto;border-left:3px solid var(--tc);}
+
+.tag{display:inline-block;font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;letter-spacing:.06em;text-transform:uppercase;}
+.ttc{background:#2a1208;color:var(--tc);}
+.tbl{background:#0a1428;color:var(--bl);}
+.tgr{background:#0a2018;color:var(--gr);}
+.tpu{background:#14123a;color:var(--pu);}
+.twm{background:var(--tcl);color:var(--tcd);}
+
+.sn{position:absolute;bottom:12px;right:20px;font-size:10px;color:#252220;}
+.snl{position:absolute;bottom:12px;right:20px;font-size:10px;color:#3a3835;}
+
+.stat{font-size:clamp(26px,4.6vw,52px);font-weight:700;line-height:1;color:var(--tc);}
+.check{color:var(--gr);font-weight:700;font-size:13px;}
+.cross{color:#2a2825;font-weight:700;font-size:13px;}
+.uniq{font-size:9px;font-weight:600;color:var(--tc);background:#2a1208;padding:1px 5px;border-radius:3px;}
+
+.ctrl{display:flex;align-items:center;gap:12px;padding:12px 0;width:100%;max-width:1120px;}
+.btn{background:#1e1c1a;color:#c8c4be;border:none;border-radius:6px;padding:8px 20px;font-size:12px;cursor:pointer;font-family:inherit;transition:background .15s;}
+.btn:hover{background:#2a2825;}
+.btnt{background:var(--tc);color:#fff;}.btnt:hover{background:#8f4e34;}
+.prog{flex:1;text-align:center;color:#444;font-size:11px;}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- NAV MACRO (inline svg mark) -->
+<!-- dark nav -->
+<!-- <nav-d> = color:#555, white mark -->
+<!-- <nav-l> = color:#0a0a0a, dark mark -->
+
+<!-- ═══ S1: COVER ═══ -->
+<div class="slide dk active" id="s1">
+  <div class="wmark"></div><div class="bar-l"></div><div class="bar-b"></div>
+  <div class="c" style="justify-content:center;">
+    <svg style="margin-bottom:20px;" width="230" height="38" viewBox="0 0 330 56">
+      <path d="M 28.1,25 A 14,14 0 1 0 28.1,39" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round"/>
+      <circle cx="16" cy="32" r="3.5" fill="#fff"/><circle cx="16" cy="32" r="1.4" fill="#0a0a0a"/>
+      <text y="46" font-family="-apple-system,Helvetica Neue,Arial,sans-serif" font-size="40" letter-spacing="-1.5" fill="#fff">
+        <tspan x="33" font-weight="200">open</tspan><tspan font-weight="700">cancer</tspan><tspan font-weight="200" opacity=".18">.ai</tspan>
+      </text>
+    </svg>
+    <div class="h1 wt" style="margin-bottom:10px;">See what no single doctor<br>can see.</div>
+    <div class="body gt" style="max-width:520px;margin-bottom:24px;line-height:1.75;">Free for patients. Partners pay for precision.</div>
+    <div style="height:2px;width:100px;background:var(--tc);margin-bottom:12px;"></div>
+    <div class="body" style="color:#2a2825;">Pre-Seed · $500K · $5M cap · April 2026</div>
+  </div>
+  <div class="snl">1</div>
+</div>
+
+<!-- ═══ S2: PROBLEM ═══ -->
+<div class="slide dk" id="s2">
+  <div class="nav" style="color:#555;">
+    <svg width="12" height="12" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#fff"/><circle cx="24" cy="24" r="2" fill="#0a0a0a"/></svg>
+    <div class="nw" style="color:#555;"><span class="l">open</span><span class="b">cancer</span><span class="f">.ai</span></div>
+  </div>
+  <div class="c ct">
+    <div class="ey">The problem</div>
+    <div class="h2 wt" style="margin-bottom:4px;">15 minutes with your oncologist.<br>24/7 with your fear.</div>
+    <div class="body gt" style="margin-bottom:14px;">Every oncology tool is built for providers. The patient sits outside the system — navigating alone.</div>
+    <div class="g4" style="margin-bottom:10px;">
+      <div class="cd" style="border-top:2px solid var(--tc);">
+        <div class="stat" style="font-size:clamp(22px,3.8vw,40px);">84%</div>
+        <div class="body wt" style="font-weight:600;margin-top:3px;font-size:clamp(9px,1.2vw,12px);">never get a second opinion</div>
+        <div class="xs gt">1 in 3 who do change treatment</div>
+      </div>
+      <div class="cd" style="border-top:2px solid var(--tc);">
+        <div class="stat" style="font-size:clamp(22px,3.8vw,40px);">31 days</div>
+        <div class="body wt" style="font-weight:600;margin-top:3px;font-size:clamp(9px,1.2vw,12px);">avg specialist wait</div>
+        <div class="xs gt">Up from 17 days in 2009</div>
+      </div>
+      <div class="cd" style="border-top:2px solid var(--tc);">
+        <div class="stat" style="font-size:clamp(22px,3.8vw,40px);">77%</div>
+        <div class="body wt" style="font-weight:600;margin-top:3px;font-size:clamp(9px,1.2vw,12px);">turn to Dr. Google</div>
+        <div class="xs gt">Generic. Scary. Often wrong.</div>
+      </div>
+      <div class="cd" style="border-top:2px solid var(--gr);">
+        <div class="stat" style="font-size:clamp(22px,3.8vw,40px);color:var(--gr);">$740B</div>
+        <div class="body wt" style="font-weight:600;margin-top:3px;font-size:clamp(9px,1.2vw,12px);">healthcare labor spend</div>
+        <div class="xs gt">vs $63B IT. <span style="color:var(--gr);font-weight:600;">We target labor.</span></div>
+      </div>
+    </div>
+    <div class="bb" style="border-left:3px solid var(--tc);">
+      <span class="xs dm">2M new diagnoses/yr · </span>
+      <span class="xs tc" style="font-weight:600;">2 years ago, personalized AI analysis cost $400 + an oncologist. Today: $0.03 compute. The economics flipped.</span>
+      <span class="xs dm"> OpenEvidence hit 40% of US doctors in 12 months → $6B valuation. Patient side is next.</span>
+    </div>
+  </div>
+  <div class="snl">2</div>
+</div>
+
+<!-- ═══ S3: WHY US ═══ -->
+<div class="slide wm" id="s3">
+  <div class="nav dt">
+    <svg width="12" height="12" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#0a0a0a" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#0a0a0a"/><circle cx="24" cy="24" r="2" fill="#f5f3ee"/></svg>
+    <div class="nw dt"><span class="l">open</span><span class="b">cancer</span><span class="f">.ai</span></div>
+  </div>
+  <div class="c ct">
+    <div class="ey">Why us</div>
+    <div class="h2 dt" style="margin-bottom:14px;">We lived this problem.</div>
+    <div class="row" style="flex:1;gap:12px;">
+      <div style="width:40%;display:flex;flex-direction:column;gap:9px;">
+        <div style="flex:1;border-radius:8px;overflow:hidden;border-top:2px solid var(--rd);position:relative;">
+          <img src="https://opencancer.ai/lovable-uploads/ari-chemo.png" alt="Ari in chemo" style="width:100%;height:100%;object-fit:cover;object-position:top;"/>
+          <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.7));padding:8px 10px;">
+            <div class="xs" style="color:#cc8888;font-weight:600;">Aggressive blood cancer · 2018</div>
+            <div class="xs" style="color:rgba(255,255,255,.7);">Best doctors. Still completely lost.</div>
+          </div>
+        </div>
+        <div style="background:#fff;border:.5px solid var(--st);border-radius:8px;border-top:2px solid var(--gr);overflow:hidden;position:relative;flex:0.4;">
+          <img src="https://opencancer.ai/pitchAssets/family.png" alt="Family" style="width:100%;height:100%;object-fit:cover;"/>
+          <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.65));padding:6px 10px;">
+            <div class="xs" style="color:#6dddbb;font-weight:600;">Complete remission · today</div>
+            <div class="xs" style="color:rgba(255,255,255,.65);">Engaged fully. Did the homework.</div>
+          </div>
+        </div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:9px;">
+        <div style="background:#1a1008;border-radius:8px;padding:13px 15px;border-left:3px solid var(--tc);flex:1;">
+          <div class="ey" style="margin-bottom:6px;">The insight</div>
+          <div class="h3 dt" style="font-size:clamp(13px,1.9vw,20px);color:#fff;margin-bottom:7px;">Informed patients navigate better.<br>Engaged patients get 15–20% better outcomes.</div>
+          <div class="xs gt">The expertise exists — it was locked behind expensive appointments, employer benefits, and geography. <span style="color:var(--tc);font-weight:600;">We unlocked it. Free. For everyone.</span></div>
+        </div>
+        <div class="cl" style="border-top:2px solid var(--tc);">
+          <div class="xs tc" style="font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;">Founder-market fit</div>
+          <div class="xs dt" style="margin-bottom:3px;"><span style="color:var(--tc);font-weight:600;">2× cancer survivor</span> built this for himself first. Everyone sells to providers. We sell to patients — because we are patients.</div>
+          <div class="xs gt" style="margin-top:4px;"><span style="color:var(--bl);font-weight:600;">UCSF CMO with 500+ publications.</span> <span style="color:var(--gr);font-weight:600;">Ex-Genentech CSO.</span> Meta/Stanford operators. Survivors leading every function.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="sn">3</div>
+</div>
+
+<!-- ═══ S4: SOLUTION ═══ -->
+<div class="slide dk" id="s4">
+  <div class="nav" style="color:#555;">
+    <svg width="12" height="12" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#fff"/><circle cx="24" cy="24" r="2" fill="#0a0a0a"/></svg>
+    <div class="nw" style="color:#555;"><span class="l">open</span><span class="b">cancer</span><span class="f">.ai</span></div>
+  </div>
+  <div class="c ct">
+    <div class="ey">The solution</div>
+    <div class="h2 wt" style="margin-bottom:5px;">Your case. Your gaps. Your next step.</div>
+    <div class="body gt" style="margin-bottom:14px;">We don't practice medicine. We help patients become informed partners in their care.</div>
+    <div class="row" style="flex:1;gap:10px;">
+      <!-- Left: product steps -->
+      <div class="col" style="display:flex;flex-direction:column;gap:8px;">
+        <div class="cd" style="border-left:2px solid var(--tc);flex:1;">
+          <div class="xs tc" style="font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;">Cancer Combat</div>
+          <div class="xs wt" style="margin-bottom:4px;font-weight:600;">5 AI perspectives debate your case simultaneously.</div>
+          <div class="xs gt">NCCN guidelines · Your biomarkers · Clinical literature. Surfaces gaps before your next appointment.</div>
+        </div>
+        <div class="cd" style="border-left:2px solid var(--bl);flex:1;">
+          <div class="xs bt" style="font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;">Trial Radar</div>
+          <div class="xs wt" style="margin-bottom:4px;font-weight:600;">Records-based trial matching. Automated.</div>
+          <div class="xs gt">Extracts your biomarkers. Scans ClinicalTrials.gov. Surfaces trials you actually qualify for — not generic keyword results.</div>
+        </div>
+        <div class="cd" style="border-left:2px solid var(--gr);flex:1;">
+          <div class="xs grt" style="font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;">Records Vault + Navis</div>
+          <div class="xs wt" style="margin-bottom:4px;font-weight:600;">Medical jargon → plain English. 24/7.</div>
+          <div class="xs gt">Upload any record. Get a plain-English summary and questions to ask your doctor. Navis remembers your full history.</div>
+        </div>
+      </div>
+      <!-- Right: real clinical example -->
+      <div class="col" style="background:#0f0d0b;border-radius:9px;padding:14px 16px;border:.5px solid #2a2825;display:flex;flex-direction:column;gap:9px;">
+        <div class="xs tc" style="font-weight:700;text-transform:uppercase;letter-spacing:.08em;">Real example — prostate cancer</div>
+        <div style="background:#1a1816;border-radius:6px;padding:9px 11px;">
+          <div class="xs" style="color:#555;margin-bottom:3px;">Patient records uploaded</div>
+          <div class="xs wt" style="font-weight:600;">Gleason 7 (3+4) · PSA 8.2 · Intermediate risk</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;"><div style="flex:1;height:.5px;background:#2a2825;"></div><div class="xs" style="color:#555;">Combat output</div><div style="flex:1;height:.5px;background:#2a2825;"></div></div>
+        <div style="background:#1a1210;border-radius:6px;padding:9px 11px;border-left:2px solid var(--tc);">
+          <div class="xs tc" style="font-weight:700;margin-bottom:3px;">2 gaps identified</div>
+          <div class="xs wt" style="margin-bottom:2px;">PSMA PET scan — not yet ordered</div>
+          <div class="xs wt">Genomic testing — not yet ordered</div>
+        </div>
+        <div style="background:#0a1210;border-radius:6px;padding:9px 11px;border-left:2px solid var(--gr);">
+          <div class="xs grt" style="font-weight:700;margin-bottom:3px;">Personalized insight</div>
+          <div class="xs dm" style="font-style:italic;">"Your Gleason 7 (3+4) with PSA 8.2 → intermediate risk. Consider PSMA PET before treatment decision per NCCN 2025."</div>
+        </div>
+        <div class="xs tc" style="font-style:italic;font-size:9px;">"Absolutely fantastic — spot-on even for non-SOC aspects. Surpasses every tool I've tried." — Paul Van Camp MD</div>
+      </div>
+    </div>
+  </div>
+  <div class="snl">4</div>
+</div>
+
+<!-- ═══ S5: THE GRAPH ═══ -->
+<div class="slide dk" id="s5">
+  <div class="nav" style="color:#555;">
+    <svg width="12" height="12" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#fff"/><circle cx="24" cy="24" r="2" fill="#0a0a0a"/></svg>
+    <div class="nw" style="color:#555;"><span class="l">open</span><span class="b">cancer</span><span class="f">.ai</span></div>
+  </div>
+  <div class="c ct">
+    <div class="ey">The moat</div>
+    <div class="h2 wt" style="margin-bottom:4px;">The Record ≠ The Relationship.</div>
+    <div class="body gt" style="margin-bottom:10px;">Epic has 250M records. Portals have records. None have a relationship — they don't know what you searched at 2am, what trial you looked at and didn't click. <span style="color:var(--tc);font-weight:600;">The graph is the relationship. That's the moat.</span></div>
+    <div class="row" style="flex:1;gap:10px;">
+      <div style="flex:1.6;display:flex;flex-direction:column;gap:6px;">
+        <canvas id="gc" style="width:100%;flex:1;border-radius:8px;background:#0a0806;border:.5px solid #1e1c1a;min-height:0;"></canvas>
+        <div style="display:flex;justify-content:space-between;">
+          <div class="xs" style="color:#2a2825;">Consent-first · HIPAA · Partners see signal, never raw data</div>
+          <div class="xs tc" style="font-weight:600;">289 entities · 106 relationships · 2 patients · day 5</div>
+        </div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+        <div class="cd" style="border-left:3px solid var(--pu);">
+          <div class="xs pt" style="font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">PARP discovery — day 3</div>
+          <div class="xs wt" style="margin-bottom:3px;">Graph detected <strong>BRCA1/2 + ATM co-mutation</strong> → HRR deficiency → <strong>PARP inhibitor trial eligibility.</strong></div>
+          <div class="xs gt">Oncologist hadn't raised it. The graph did — on 2 patients, in 3 days.</div>
+        </div>
+        <div class="cd" style="border-left:2px solid #333;">
+          <div class="xs" style="color:#444;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">The clone test</div>
+          <div class="xs gt">Copy our code today — you still lack 117 patients who trusted us with their most sensitive data, the CPL community, and the early graph signal. That gap widens every week.</div>
+        </div>
+        <div class="cd" style="flex:1;">
+          <div class="xs tc" style="font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">What the graph knows</div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div style="display:flex;gap:5px;"><div style="width:4px;height:4px;border-radius:50%;background:var(--tc);margin-top:4px;flex-shrink:0;"></div><span class="xs gt">Diagnosis · staging · biomarkers (BRCA, ATM, HER2, EGFR...)</span></div>
+            <div style="display:flex;gap:5px;"><div style="width:4px;height:4px;border-radius:50%;background:var(--tc);margin-top:4px;flex-shrink:0;"></div><span class="xs gt">Treatment history + current protocol</span></div>
+            <div style="display:flex;gap:5px;"><div style="width:4px;height:4px;border-radius:50%;background:var(--tc);margin-top:4px;flex-shrink:0;"></div><span class="xs gt">Trial searches + enrollment intent</span></div>
+            <div style="display:flex;gap:5px;"><div style="width:4px;height:4px;border-radius:50%;background:var(--tc);margin-top:4px;flex-shrink:0;"></div><span class="xs gt">Journey stage · caregiver connections</span></div>
+            <div style="display:flex;gap:5px;"><div style="width:4px;height:4px;border-radius:50%;background:var(--tc);margin-top:4px;flex-shrink:0;"></div><span class="xs gt">Outcomes reported · treatment responses (RWE)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="snl">5</div>
+</div>
+
+<!-- ═══ S6: BUSINESS MODEL ═══ -->
+<div class="slide wm" id="s6">
+  <div class="nav dt">
+    <svg width="12" height="12" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#0a0a0a" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#0a0a0a"/><circle cx="24" cy="24" r="2" fill="#f5f3ee"/></svg>
+    <div class="nw dt"><span class="l">open</span><span class="b">cancer</span><span class="f">.ai</span></div>
+  </div>
+  <div class="c ct">
+    <div class="ey">Business model</div>
+    <div class="h2 dt" style="margin-bottom:5px;">Free for patients.<br>Partners pay for precision.</div>
+    <div class="body gt" style="margin-bottom:12px;">The graph surfaces the right verified patient at the exact clinical moment a partner is relevant. That precision is what they pay for — not access, not advertising.</div>
+    <div class="row" style="flex:1;gap:9px;">
+      <div class="cl col" style="border-top:2px solid #ccc;opacity:.65;">
+        <div class="xs" style="color:#aaa;font-weight:600;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">Layer 1 — Free</div>
+        <div class="h3 dt" style="margin-bottom:4px;">Patients</div>
+        <div class="xs gt" style="margin-bottom:8px;">Combat · Records Vault · Trial Radar · Ask Navis · Community. Always free. Patient acquisition cost is zero.</div>
+        <div class="tag" style="background:#f0ede8;color:#bbb;">$0 · viral engine</div>
+      </div>
+      <div class="cl col" style="border-top:2px solid var(--tc);">
+        <div class="xs tc" style="font-weight:600;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">Layer 2 — Premium</div>
+        <div class="h3 dt" style="margin-bottom:4px;">Power patients</div>
+        <div class="xs gt" style="margin-bottom:8px;">PDF Combat Report ($29). Pro ($29/mo). Expert Review — oncologist reviews your Combat output async ($199) or live ($399–650).</div>
+        <div class="tag twm">Secondary · near-term</div>
+      </div>
+      <div class="col" style="background:#f0f7f4;border:.5px solid #b8ddd0;border-top:2px solid var(--gr);border-radius:9px;padding:13px 15px;">
+        <div class="xs grt" style="font-weight:600;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">Layer 3 — Intelligence</div>
+        <div class="h3 dt" style="margin-bottom:4px;">Partners</div>
+        <div class="xs" style="color:#2a5a42;margin-bottom:8px;">Precision testing labs, advocacy orgs, MRD companies, academic centers pay to reach the right patient at the right moment. Graph does the matching.</div>
+        <div class="xs grt" style="font-weight:700;margin-bottom:2px;">$500–2K per qualified referral</div>
+        <div class="xs grt" style="font-weight:700;">$25–75K annual contracts</div>
+      </div>
+    </div>
+    <div style="background:var(--dk);border-radius:7px;padding:8px 13px;margin-top:9px;border-left:3px solid var(--tc);">
+      <span class="xs wt">Partners pay $15–45K to recruit one clinical trial patient. </span>
+      <span class="xs tc" style="font-weight:600;">Our graph finds eligible patients automatically — and the patient already consented. "Navis captures routing economics above every transaction." — p13nAI thesis</span>
+    </div>
+  </div>
+  <div class="sn">6</div>
+</div>
+
+<!-- ═══ S7: CANCER IS MULTIPLAYER ═══ -->
+<div class="slide dk" id="s7">
+  <div class="nav" style="color:#555;">
+    <svg width="12" height="12" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#fff"/><circle cx="24" cy="24" r="2" fill="#0a0a0a"/></svg>
+    <div class="nw" style="color:#555;"><span class="l">open</span><span class="b">cancer</span><span class="f">.ai</span></div>
+  </div>
+  <div class="c ct">
+    <div class="ey">Go-to-market</div>
+    <div class="h2 wt" style="margin-bottom:5px;">Cancer is multiplayer.<br>That's the distribution engine.</div>
+    <div class="body gt" style="margin-bottom:14px;">We don't need paid acquisition. The disease does our distribution.</div>
+    <div class="g3" style="flex:1;gap:10px;">
+      <div class="cd" style="border-top:2px solid var(--tc);display:flex;flex-direction:column;">
+        <div class="xs tc" style="font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Cancer is multiplayer</div>
+        <div style="font-size:clamp(28px,4.5vw,48px);font-weight:700;color:var(--tc);line-height:1;margin-bottom:6px;">6.1M</div>
+        <div class="xs wt" style="font-weight:600;margin-bottom:5px;">cancer caregivers in the US</div>
+        <div class="xs gt" style="flex:1;">~3 per patient in active treatment. Each caregiver is a distribution node — they invite each other, share updates, loop in family. Built-in viral loop that doesn't need a marketing budget.</div>
+      </div>
+      <div class="cd" style="border-top:2px solid var(--bl);display:flex;flex-direction:column;">
+        <div class="xs bt" style="font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Trust spreads through advocacy</div>
+        <div style="font-size:clamp(28px,4.5vw,48px);font-weight:700;color:var(--bl);line-height:1;margin-bottom:6px;">570+</div>
+        <div class="xs wt" style="font-weight:600;margin-bottom:5px;">CPL members — day 1</div>
+        <div class="xs gt" style="flex:1;">Cancer Patient Lab is the initial cohort. White-label for cancer advocacy orgs gives us access to their patient communities. 160 webinars. 5 LOIs. 2 pilots live. Trust earned = distribution unlocked.</div>
+      </div>
+      <div class="cd" style="border-top:2px solid var(--gr);display:flex;flex-direction:column;">
+        <div class="xs grt" style="font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Coverage = discovery</div>
+        <div style="font-size:clamp(28px,4.5vw,48px);font-weight:700;color:var(--gr);line-height:1;margin-bottom:6px;">50%</div>
+        <div class="xs wt" style="font-weight:600;margin-bottom:5px;">of cancer patients are Medicare-eligible</div>
+        <div class="xs gt" style="flex:1;">37% have FSA/HSA. Where coverage goes, patients follow. Employer benefit partnerships and FSA eligibility open a reimbursement channel that makes "free" feel even more accessible.</div>
+      </div>
+    </div>
+    <div class="bb" style="margin-top:10px;border-left:3px solid var(--tc);">
+      <span class="xs dm">Menlo Ventures, Apr 2026: </span><span class="xs" style="color:var(--tc);font-style:italic;">"Vertical AI that wins goes after labor budgets, not IT budgets."</span><span class="xs dm"> Our partners' labor cost is $15–45K per clinical trial recruit. We find them automatically.</span>
+    </div>
+  </div>
+  <div class="snl">7</div>
+</div>
+
+<!-- ═══ S8: WHY FREE ═══ -->
+<div class="slide wm" id="s8">
+  <div class="nav dt">
+    <svg width="12" height="12" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#0a0a0a" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#0a0a0a"/><circle cx="24" cy="24" r="2" fill="#f5f3ee"/></svg>
+    <div class="nw dt"><span class="l">open</span><span class="b">cancer</span><span class="f">.ai</span></div>
+  </div>
+  <div class="c ct">
+    <div class="ey">Why free is the strategy</div>
+    <div class="h2 dt" style="margin-bottom:5px;">Free isn't a compromise.<br>It's the moat.</div>
+    <div class="body gt" style="margin-bottom:12px;">Every paid tool in oncology competes for IT budgets. We compete for patient trust. Different market, different dynamics.</div>
+    <div class="row" style="flex:1;gap:10px;">
+      <div class="col" style="display:flex;flex-direction:column;gap:8px;">
+        <div class="cl" style="border-top:2px solid var(--bl);flex:1;">
+          <div class="xs bt" style="font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;">What free unlocks</div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;gap:7px;"><div style="width:5px;height:5px;border-radius:50%;background:var(--bl);margin-top:3px;flex-shrink:0;"></div><span class="xs gt">Cancer spreads through word-of-mouth. Free = zero CAC + viral distribution via caregivers.</span></div>
+            <div style="display:flex;gap:7px;"><div style="width:5px;height:5px;border-radius:50%;background:var(--bl);margin-top:3px;flex-shrink:0;"></div><span class="xs gt">Trust is earned in the crisis moment — 2am, diagnosis week. You can't buy it with a marketing budget.</span></div>
+            <div style="display:flex;gap:7px;"><div style="width:5px;height:5px;border-radius:50%;background:var(--bl);margin-top:3px;flex-shrink:0;"></div><span class="xs gt">10K patients makes the graph commercially valuable to partners. No shortcut to that number.</span></div>
+            <div style="display:flex;gap:7px;"><div style="width:5px;height:5px;border-radius:50%;background:var(--bl);margin-top:3px;flex-shrink:0;"></div><span class="xs gt">Partners need verified patients at the right moment. The only way to get them: serve them first.</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="col" style="display:flex;flex-direction:column;gap:7px;">
+        <div class="xs dt" style="font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px;">The flywheel</div>
+        <div style="display:flex;flex-direction:column;gap:5px;flex:1;">
+          <div style="background:#f0ede8;border-radius:5px;padding:7px 10px;border-left:2px solid #ccc;"><span class="xs dt" style="font-weight:600;">Free tools →</span><span class="xs gt"> patients trust us with records</span></div>
+          <div style="text-align:center;font-size:10px;color:#ccc;">↓</div>
+          <div style="background:#f0ede8;border-radius:5px;padding:7px 10px;border-left:2px solid #ccc;"><span class="xs dt" style="font-weight:600;">Records →</span><span class="xs gt"> graph gets richer, tools get smarter</span></div>
+          <div style="text-align:center;font-size:10px;color:#ccc;">↓</div>
+          <div style="background:#f0ede8;border-radius:5px;padding:7px 10px;border-left:2px solid #ccc;"><span class="xs dt" style="font-weight:600;">Smarter tools →</span><span class="xs gt"> more patients, more trust</span></div>
+          <div style="text-align:center;font-size:10px;color:#ccc;">↓</div>
+          <div style="background:#f0ede8;border-radius:5px;padding:7px 10px;border-left:2px solid #ccc;"><span class="xs dt" style="font-weight:600;">More patients →</span><span class="xs gt"> partners pay for precise access</span></div>
+          <div style="text-align:center;font-size:10px;color:#ccc;">↓</div>
+          <div style="background:var(--tcl);border-radius:5px;padding:7px 10px;border-left:2px solid var(--tc);"><span class="xs tc" style="font-weight:700;">Partner revenue →</span><span class="xs" style="color:var(--tcd);"> better free tools → more patients →</span> <span class="xs tc" style="font-weight:600;">repeat</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="sn">8</div>
+</div>
+
+<!-- ═══ S9: COMPETITION ═══ -->
+<div class="slide dk" id="s9">
+  <div class="nav" style="color:#555;">
+    <svg width="12" height="12" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#fff"/><circle cx="24" cy="24" r="2" fill="#0a0a0a"/></svg>
+    <div class="nw" style="color:#555;"><span class="l">open</span><span class="b">cancer</span><span class="f">.ai</span></div>
+  </div>
+  <div class="c ct">
+    <div class="ey">Competition</div>
+    <div class="h2 wt" style="margin-bottom:5px;">Different market.<br>Different relationship.</div>
+    <div class="body gt" style="margin-bottom:12px;">OpenEvidence proved doctors want AI. We're proving patients do too — and nobody has built this for them yet.</div>
+    <div class="cd" style="flex:1;padding:0;overflow:hidden;">
+      <table style="width:100%;height:100%;border-collapse:collapse;">
+        <thead>
+          <tr style="background:#1c1a18;">
+            <th class="xs gt" style="padding:8px 12px;text-align:left;border-bottom:.5px solid #2a2825;width:17%;">Dimension</th>
+            <th class="xs tc" style="padding:8px 12px;text-align:left;border-bottom:.5px solid #2a2825;font-weight:700;width:21%;">opencancer.ai</th>
+            <th class="xs gt" style="padding:8px 12px;text-align:left;border-bottom:.5px solid #2a2825;width:20%;font-weight:400;">General AI<br><span style="opacity:.6;">ChatGPT · Claude raw</span></th>
+            <th class="xs gt" style="padding:8px 12px;text-align:left;border-bottom:.5px solid #2a2825;width:20%;font-weight:400;">Provider AI<br><span style="opacity:.6;">OpenEvidence · Flatiron</span></th>
+            <th class="xs gt" style="padding:8px 12px;text-align:left;border-bottom:.5px solid #2a2825;width:22%;font-weight:400;">EHR Portals<br><span style="opacity:.6;">Epic MyChart · Health systems</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="xs gt" style="padding:7px 12px;border-bottom:.5px solid #1a1816;">Built for</td><td class="xs tc" style="padding:7px 12px;border-bottom:.5px solid #1a1816;font-weight:600;">Patient</td><td class="xs gt" style="padding:7px 12px;border-bottom:.5px solid #1a1816;">Everyone</td><td class="xs gt" style="padding:7px 12px;border-bottom:.5px solid #1a1816;">Provider</td><td class="xs gt" style="padding:7px 12px;border-bottom:.5px solid #1a1816;">Provider</td></tr>
+          <tr><td class="xs gt" style="padding:7px 12px;border-bottom:.5px solid #1a1816;">Uses your records</td><td style="padding:7px 12px;border-bottom:.5px solid #1a1816;"><span class="check">✓</span></td><td style="padding:7px 12px;border-bottom:.5px solid #1a1816;"><span class="cross">✗</span></td><td style="padding:7px 12px;border-bottom:.5px solid #1a1816;"><span class="cross">✗</span></td><td style="padding:7px 12px;border-bottom:.5px solid #1a1816;"><span class="cross">✗ siloed</span></td></tr>
+          <tr><td class="xs gt" style="padding:7px 12px;border-bottom:.5px solid #1a1816;">NCCN guidelines</td><td style="padding:7px 12px;border-bottom:.5px solid #1a1816;"><span class="check">✓</span></td><td style="padding:7px 12px;border-bottom:.5px solid #1a1816;"><span class="cross">✗</span></td><td style="padding:7px 12px;border-bottom:.5px solid #1a1816;"><span class="check">✓</span></td><td style="padding:7px 12px;border-bottom:.5px solid #1a1816;"><span class="cross">✗</span></td></tr>
+          <tr><td class="xs gt" style="padding:7px 12px;border-bottom:.5px solid #1a1816;">Free for patients</td><td style="padding:7px 12px;border-bottom:.5px solid #1a1816;"><span class="check">✓</span></td><td style="padding:7px 12px;border-bottom:.5px solid #1a1816;"><span class="check">✓</span></td><td style="padding:7px 12px;border-bottom:.5px solid #1a1816;"><span class="cross">✗ provider</span></td><td style="padding:7px 12px;border-bottom:.5px solid #1a1816;"><span class="cross">✗ locked</span></td></tr>
+          <tr style="background:#0f0d0b;"><td class="xs gt" style="padding:7px 12px;border-bottom:.5px solid #1a1816;">Compounds over time</td><td style="padding:7px 12px;border-bottom:.5px solid #1a1816;"><span class="check">✓</span> <span class="uniq">Only us</span></td><td style="padding:7px 12px;border-bottom:.5px solid #1a1816;"><span class="cross">✗</span></td><td style="padding:7px 12px;border-bottom:.5px solid #1a1816;"><span class="cross">✗</span></td><td style="padding:7px 12px;border-bottom:.5px solid #1a1816;"><span class="cross">✗</span></td></tr>
+          <tr style="background:#0f0d0b;"><td class="xs gt" style="padding:7px 12px;border-bottom:.5px solid #1a1816;">Knows the clinical moment</td><td style="padding:7px 12px;border-bottom:.5px solid #1a1816;"><span class="check">✓</span> <span class="uniq">Only us</span></td><td style="padding:7px 12px;border-bottom:.5px solid #1a1816;"><span class="cross">✗</span></td><td style="padding:7px 12px;border-bottom:.5px solid #1a1816;"><span class="cross">✗</span></td><td style="padding:7px 12px;border-bottom:.5px solid #1a1816;"><span class="cross">✗</span></td></tr>
+          <tr><td class="xs gt" style="padding:7px 12px;">Patient owns data</td><td style="padding:7px 12px;"><span class="check">✓</span></td><td style="padding:7px 12px;"><span class="xs gt">Unclear</span></td><td style="padding:7px 12px;"><span class="xs gt">Provider owns</span></td><td style="padding:7px 12px;"><span class="xs gt">Provider owns</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="snl">9</div>
+</div>
+
+<!-- ═══ S10: TRACTION ═══ -->
+<div class="slide wm" id="s10">
+  <div class="nav dt">
+    <svg width="12" height="12" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#0a0a0a" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#0a0a0a"/><circle cx="24" cy="24" r="2" fill="#f5f3ee"/></svg>
+    <div class="nw dt"><span class="l">open</span><span class="b">cancer</span><span class="f">.ai</span></div>
+  </div>
+  <div class="c ct">
+    <div class="ey">Traction</div>
+    <div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:11px;">
+      <div class="h2 dt" style="flex:1;">Five days post-launch.</div>
+      <div class="xs gt" style="text-align:right;padding-bottom:2px;">5 LOIs · 2 pilots live · survivor founders</div>
+    </div>
+    <div class="g4" style="margin-bottom:9px;">
+      <div class="cl" style="border-top:2px solid var(--tc);">
+        <div class="stat" style="font-size:clamp(22px,3.8vw,42px);">117</div>
+        <div class="xs dt" style="font-weight:600;margin-top:3px;">unique users</div>
+        <div class="xs gt">first 5 days</div>
+      </div>
+      <div class="cl" style="border-top:2px solid var(--tc);">
+        <div class="stat" style="font-size:clamp(22px,3.8vw,42px);">439</div>
+        <div class="xs dt" style="font-weight:600;margin-top:3px;">records uploaded</div>
+        <div class="xs gt">4.9 avg per uploader</div>
+      </div>
+      <div class="cl" style="border-top:2px solid var(--tc);">
+        <div class="stat" style="font-size:clamp(22px,3.8vw,42px);">27.9%</div>
+        <div class="xs dt" style="font-weight:600;margin-top:3px;">email open rate</div>
+        <div class="xs gt">industry avg 22%</div>
+      </div>
+      <div class="cl" style="border-top:2px solid var(--pu);">
+        <div class="stat" style="font-size:clamp(22px,3.8vw,42px);color:var(--pu);">PARP</div>
+        <div class="xs dt" style="font-weight:600;margin-top:3px;">trial surfaced</div>
+        <div class="xs gt">before oncologist raised it · day 3</div>
+      </div>
+    </div>
+    <div class="g2" style="gap:8px;flex:1;">
+      <div style="display:flex;flex-direction:column;gap:7px;">
+        <div class="cl" style="border-left:3px solid var(--tc);">
+          <div class="xs tc" style="font-weight:700;margin-bottom:3px;">"Absolutely fantastic — spot-on even for non-SOC, non-NCCN aspects. Surpasses every tool I've tried."</div>
+          <div class="xs gt">— Paul Van Camp MD, prostate cancer patient</div>
+        </div>
+        <div class="cl" style="border-left:3px solid var(--tc);">
+          <div class="xs dt" style="font-style:italic;margin-bottom:3px;">"What you have built here is critical for patients."</div>
+          <div class="xs gt">— Cam, MZL stage 4</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:7px;">
+        <div class="cl" style="border-left:3px solid var(--tc);">
+          <div class="xs dt" style="font-style:italic;margin-bottom:3px;">"This is brilliant. I'm sharing with my sister right now."</div>
+          <div class="xs gt">— David Y., prostate cancer</div>
+        </div>
+        <div class="cl" style="border-left:2px solid var(--gr);">
+          <div class="xs grt" style="font-weight:700;margin-bottom:3px;">Velocity</div>
+          <div class="xs gt">Day 1→5: 117 users, 439 records. <span style="color:var(--gr);font-weight:600;">Projecting 500+ users by end of month.</span> Caregiver multiplier confirmed at 2.8× — disease does the distribution.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="sn">10</div>
+</div>
+
+<!-- ═══ S11: TEAM ═══ -->
+<div class="slide dk" id="s11">
+  <div class="nav" style="color:#555;">
+    <svg width="12" height="12" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#fff"/><circle cx="24" cy="24" r="2" fill="#0a0a0a"/></svg>
+    <div class="nw" style="color:#555;"><span class="l">open</span><span class="b">cancer</span><span class="f">.ai</span></div>
+  </div>
+  <div class="c ct">
+    <div class="ey">Team</div>
+    <div class="h2 wt" style="margin-bottom:12px;">Founder-market fit.</div>
+    <div class="row" style="margin-bottom:9px;gap:7px;">
+      <div class="col cd" style="text-align:center;border-top:2px solid var(--tc);">
+        <img src="https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/64694c7d-e3e3-414f-af72-288d201bb060/Screenshot+2024-10-02+at+10.59.02%E2%80%AFAM.jpg" style="width:48px;height:48px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 6px;display:block;" alt="Ari"/>
+        <div class="xs wt" style="font-weight:700;font-size:10px;">Ari Akerstein</div>
+        <div class="xs gt" style="font-size:9px;">CEO · Co-Founder<br>Ex-Meta PM</div>
+        <div class="tag ttc" style="margin-top:4px;font-size:8px;">2× Survivor</div>
+      </div>
+      <div class="col cd" style="text-align:center;border-top:2px solid var(--tc);">
+        <img src="https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/48fdd96b-71a0-41f9-bc5f-f1ae27636b95/Screenshot+2024-09-11+at+7.36.59%E2%80%AFPM.png" style="width:48px;height:48px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 6px;display:block;" alt="Brad"/>
+        <div class="xs wt" style="font-weight:700;font-size:10px;">Brad Power</div>
+        <div class="xs gt" style="font-size:9px;">Chief Trust<br>Stanford · CPL CEO</div>
+        <div class="tag ttc" style="margin-top:4px;font-size:8px;">Survivor</div>
+      </div>
+      <div class="col cd" style="text-align:center;border-top:2px solid var(--bl);">
+        <img src="https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/5761840d-8d31-4c56-a09e-c6f27510bc5a/Chris-Apfel-Nature-removebg-preview.png" style="width:48px;height:48px;border-radius:50%;object-fit:cover;margin:0 auto 6px;display:block;" alt="Chris"/>
+        <div class="xs wt" style="font-weight:700;font-size:10px;">Chris Apfel MD/PhD</div>
+        <div class="xs gt" style="font-size:9px;">Chief Medical Officer<br>UCSF · SageMedic CEO</div>
+        <div class="tag tbl" style="margin-top:4px;font-size:8px;">500+ publications</div>
+      </div>
+      <div class="col cd" style="text-align:center;border-top:2px solid var(--pu);">
+        <img src="https://opencancer.ai/pitchAssets/kaumudi.jpg" style="width:48px;height:48px;border-radius:50%;object-fit:cover;margin:0 auto 6px;display:block;" alt="Kaumudi"/>
+        <div class="xs wt" style="font-weight:700;font-size:10px;">Kaumudi Bhawe PhD</div>
+        <div class="xs gt" style="font-size:9px;">Chief Scientific Officer<br>Ex-Genentech</div>
+        <div class="tag tpu" style="margin-top:4px;font-size:8px;">Cancer Commons</div>
+      </div>
+      <div class="col cd" style="text-align:center;border-top:2px solid var(--gr);">
+        <img src="https://opencancer.ai/pitchAssets/viktor.jpg" style="width:48px;height:48px;border-radius:50%;object-fit:cover;margin:0 auto 6px;display:block;" alt="Viktor"/>
+        <div class="xs wt" style="font-weight:700;font-size:10px;">Viktor Tabori</div>
+        <div class="xs gt" style="font-size:9px;">Head of Growth<br>Stanford · Deloitte</div>
+        <div class="tag tgr" style="margin-top:4px;font-size:8px;">GTM Expert</div>
+      </div>
+    </div>
+    <div class="cd" style="display:flex;flex-direction:column;gap:5px;">
+      <div class="xs dm"><span style="color:var(--tc);font-weight:600;">Cancer survivors</span> who lived this problem + <span style="color:var(--bl);font-weight:600;">UCSF/Genentech clinical leadership</span> + <span style="color:var(--gr);font-weight:600;">Meta/Stanford operators</span></div>
+      <div class="xs gt">Advisory: Anthony Magliocco MD (Moffitt Cancer Center) · Jane Wilkinson PhD (Human Genome Project, MIT Koch) · Marty Tenenbaum PhD (Cancer Commons, AI pioneer) · Roger Royse (Haynes &amp; Boone)</div>
+      <div class="xs" style="color:#444;"><span style="color:var(--tc);font-weight:600;">Why us?</span> A well-funded team builds for providers — the check-writers. We build for patients because we ARE patients. That's founder-market fit no VC portfolio company can replicate.</div>
+    </div>
+  </div>
+  <div class="snl">11</div>
+</div>
+
+<!-- ═══ S12: THE ASK ═══ -->
+<div class="slide dk" id="s12">
+  <div class="wmark"></div><div class="bar-b"></div>
+  <div class="nav" style="color:#555;">
+    <svg width="12" height="12" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#fff"/><circle cx="24" cy="24" r="2" fill="#0a0a0a"/></svg>
+    <div class="nw" style="color:#555;"><span class="l">open</span><span class="b">cancer</span><span class="f">.ai</span></div>
+  </div>
+  <div class="c ct">
+    <div class="ey">The ask</div>
+    <div class="h2 wt" style="margin-bottom:14px;">$500K to prove the model.</div>
+    <div class="row" style="flex:1;gap:12px;">
+      <div class="col cd" style="display:flex;flex-direction:column;gap:9px;">
+        <div><div class="xs gt" style="font-size:9px;margin-bottom:2px;">Raising</div><div style="font-size:clamp(18px,3vw,36px);font-weight:700;color:var(--tc);line-height:1;">$500,000</div></div>
+        <div style="height:.5px;background:#1e1c1a;"></div>
+        <div><div class="xs gt" style="font-size:9px;margin-bottom:2px;">Structure</div><div class="xs wt" style="font-weight:600;">Post-money SAFE</div></div>
+        <div style="height:.5px;background:#1e1c1a;"></div>
+        <div><div class="xs gt" style="font-size:9px;margin-bottom:2px;">Valuation cap</div><div class="xs wt" style="font-weight:600;">$5M</div></div>
+        <div style="height:.5px;background:#1e1c1a;"></div>
+        <div><div class="xs gt" style="font-size:9px;margin-bottom:2px;">Use of funds</div><div class="xs wt" style="font-weight:600;">Product · GTM · Partner pipeline</div></div>
+        <div style="height:.5px;background:#1e1c1a;"></div>
+        <div><div class="xs gt" style="font-size:9px;margin-bottom:2px;">Why $500K — not more</div><div class="xs gt" style="line-height:1.5;">Deliberately minimal. Prove 3 milestones, then raise $3–5M at meaningfully higher cap. <span style="color:var(--tc);font-weight:600;">Capital efficiency is the point.</span></div></div>
+      </div>
+      <div class="col" style="display:flex;flex-direction:column;gap:7px;">
+        <div class="xs wt" style="font-weight:600;font-size:10px;margin-bottom:2px;">What $500K proves</div>
+        <div style="background:#1a1210;border-radius:6px;padding:8px 11px;border-left:2px solid var(--tc);flex:1;">
+          <div class="xs tc" style="font-weight:700;margin-bottom:2px;">10,000 patients</div>
+          <div class="xs gt">Viral + organic growth proven. Caregiver multiplier confirmed. Graph becomes commercially valuable.</div>
+        </div>
+        <div style="background:#0a1018;border-radius:6px;padding:8px 11px;border-left:2px solid var(--bl);flex:1;">
+          <div class="xs bt" style="font-weight:700;margin-bottom:2px;">First partner contract</div>
+          <div class="xs gt">Precision testing or advocacy org — graph intelligence has real commercial value at $25–50K.</div>
+        </div>
+        <div style="background:#0a1810;border-radius:6px;padding:8px 11px;border-left:2px solid var(--gr);flex:1;">
+          <div class="xs grt" style="font-weight:700;margin-bottom:2px;">Expert Review launched</div>
+          <div class="xs gt">5+ oncologists · 72hr turnaround · $199–650 price point validated in market.</div>
+        </div>
+        <div style="background:#110e18;border-radius:6px;padding:8px 11px;border-left:2px solid var(--pu);flex:1;">
+          <div class="xs pt" style="font-weight:700;margin-bottom:2px;">Seed at higher valuation</div>
+          <div class="xs gt">"Early traction" becomes "proven model." $3–5M seed at meaningfully higher cap.</div>
+        </div>
+      </div>
+    </div>
+    <div class="bb" style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;">
+      <div><span class="xs dm">Flatiron (oncology data) → $1.9B to Roche. Veeva (vertical pharma) → $6.9B. </span><span class="xs tc" style="font-weight:700;">Every major acquirer needs what we're building.</span></div>
+      <div class="xs" style="color:#2a2825;">ariakerstein@gmail.com · opencancer.ai</div>
+    </div>
+  </div>
+  <div class="snl">12</div>
+</div>
+
+</div><!-- /deck -->
+
+<div class="ctrl">
+  <button class="btn" onclick="prev()">← Prev</button>
+  <div class="prog" id="prog">1 / 12</div>
+  <button class="btn btnt" onclick="next()">Next →</button>
+  <button class="btn" onclick="document.documentElement.requestFullscreen?.()" style="margin-left:4px;">⛶</button>
+</div>
+<div style="color:#2a2825;font-size:11px;margin-top:3px;">Arrow keys to navigate · F for fullscreen</div>
+
+<script>
+let cur=1,tot=12;
+function show(n){
+  document.querySelectorAll('.slide').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s'+n).classList.add('active');
+  document.getElementById('prog').textContent=n+' / '+tot;
+  cur=n;
+  if(n===5&&!graphStarted)startGraph();
+}
+function next(){if(cur<tot)show(cur+1);}
+function prev(){if(cur>1)show(cur-1);}
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='ArrowDown')next();
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp')prev();
+  if(e.key==='f'||e.key==='F')document.documentElement.requestFullscreen?.();
+});
+
+// Graph animation
+let graphStarted=false,gt=0,gAF;
+function startGraph(){
+  graphStarted=true;
+  animG();
+}
+function animG(){
+  gt++;
+  const cv=document.getElementById('gc');
+  if(!cv){gAF=null;return;}
+  const W=cv.offsetWidth,H=cv.offsetHeight;
+  if(W<10){gAF=requestAnimationFrame(animG);return;}
+  cv.width=W*devicePixelRatio;cv.height=H*devicePixelRatio;
+  const ctx=cv.getContext('2d');
+  ctx.scale(devicePixelRatio,devicePixelRatio);
+  ctx.clearRect(0,0,W,H);
+
+  const N=[
+    {x:.5,y:.46,r:20,c:'#a85c3e',l:'Patient',s:'MZL IV',bright:true,glow:true},
+    {x:.24,y:.18,r:13,c:'#378add',l:'BRCA1',s:'+pathogenic',glow:true},
+    {x:.7,y:.17,r:13,c:'#7f77dd',l:'ATM',s:'co-mut',glow:true},
+    {x:.48,y:.06,r:15,c:'#1d9e75',l:'HRR',s:'deficiency',glow:true},
+    {x:.83,y:.28,r:14,c:'#1d9e75',l:'PARP',s:'trial',glow:true},
+    {x:.82,y:.58,r:9,c:'#444',l:'R-CHOP',s:''},
+    {x:.14,y:.6,r:9,c:'#444',l:'Oncol.',s:''},
+    {x:.24,y:.76,r:9,c:'#ba7517',l:'Trials',s:'search'},
+    {x:.5,y:.85,r:9,c:'#444',l:'Caregiver',s:''},
+    {x:.74,y:.8,r:9,c:'#ba7517',l:'MRD',s:'intent'},
+    {x:.83,y:.52,r:11,c:'#7f77dd',l:'Guardant',s:'$800',glow:true},
+  ];
+  const E=[[0,1,'#378add'],[0,2,'#7f77dd'],[1,3,'#1d9e75'],[2,3,'#1d9e75'],[3,4,'#1d9e75'],[0,5,'#333'],[0,6,'#333'],[0,7,'#ba7517'],[0,8,'#333'],[0,9,'#ba7517'],[0,10,'#7f77dd']];
+
+  E.forEach(([a,b,ec])=>{
+    const na=N[a],nb=N[b];
+    ctx.beginPath();ctx.moveTo(na.x*W,na.y*H);ctx.lineTo(nb.x*W,nb.y*H);
+    ctx.strokeStyle=ec;ctx.lineWidth=0.75;ctx.globalAlpha=0.3;ctx.stroke();ctx.globalAlpha=1;
+  });
+
+  N.forEach((n,i)=>{
+    const nx=n.x*W,ny=n.y*H,p=n.glow?Math.sin(gt*.04+i*1.1)*.25+.75:1;
+    if(n.glow){
+      ctx.beginPath();ctx.arc(nx,ny,n.r*2.2*p,0,Math.PI*2);ctx.fillStyle=n.c;ctx.globalAlpha=.055*p;ctx.fill();ctx.globalAlpha=1;
+      ctx.beginPath();ctx.arc(nx,ny,n.r*1.5,0,Math.PI*2);ctx.fillStyle=n.c;ctx.globalAlpha=.1;ctx.fill();ctx.globalAlpha=1;
+    }
+    ctx.beginPath();ctx.arc(nx,ny,n.r,0,Math.PI*2);ctx.fillStyle=n.c;ctx.globalAlpha=n.bright?.9:.5;ctx.fill();
+    ctx.beginPath();ctx.arc(nx,ny,n.r,0,Math.PI*2);ctx.strokeStyle=n.c;ctx.lineWidth=n.bright?1.5:.75;ctx.globalAlpha=n.bright?.85:.35;ctx.stroke();ctx.globalAlpha=1;
+    ctx.fillStyle='#fff';ctx.font=`500 ${Math.max(8,Math.min(10,n.r*.52))}px -apple-system,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.globalAlpha=n.bright?1:.65;
+    ctx.fillText(n.l,nx,ny-(n.s?3:0));
+    if(n.s){ctx.font=`400 ${Math.max(7,Math.min(8,n.r*.42))}px -apple-system,sans-serif`;ctx.fillStyle='rgba(255,255,255,.5)';ctx.fillText(n.s,nx,ny+n.r*.58);}
+    ctx.globalAlpha=1;
+  });
+  gAF=requestAnimationFrame(animG);
+}
+</script>
+</body>
+</html>
