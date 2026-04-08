@@ -2504,8 +2504,12 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                           setBulkEmailCapture('')
                           setError(null)
                           if (fileInputRef.current) fileInputRef.current.value = ''
-                          // Trigger file picker immediately
-                          setTimeout(() => fileInputRef.current?.click(), 100)
+                          // Trigger file picker - use requestAnimationFrame for mobile compatibility
+                          requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                              fileInputRef.current?.click()
+                            })
+                          })
                         }}
                         className="bg-[#C66B4A] hover:bg-[#B35E40] text-white font-semibold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
                       >
