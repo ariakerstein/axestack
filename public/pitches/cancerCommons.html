@@ -362,7 +362,7 @@ function s5draw(s){
 }
 window.s5fwd=function(){if(s5cur<s5steps.length-1){s5cur++;s5render(s5steps[s5cur]);}};
 window.s5back=function(){if(s5cur>0){s5cur--;s5render(s5steps[s5cur]);}};
-setTimeout(()=>s5render(s5steps[0]),100);
+window.s5redraw=function(){s5render(s5steps[s5cur]);};
 window.addEventListener('resize',()=>s5render(s5steps[s5cur]));
 })();
 </script>
@@ -487,8 +487,8 @@ function s5bUI(idx){
 }
 window.s5bFwd=function(){if(s5bc<S5B.length-1){s5bc++;s5bUI(s5bc);}};
 window.s5bBack=function(){if(s5bc>0){s5bc--;s5bUI(s5bc);}};
+window.s5bredraw=function(){s5bBg();s5bUI(s5bc);s5bDraw(S5B[s5bc]);};
 function s5bInit(){s5bBg();s5bUI(0);s5bAnim();}
-setTimeout(s5bInit,200);
 window.addEventListener('resize',()=>{s5bBg();s5bDraw(S5B[s5bc]);});
 })();
 </script>
@@ -661,43 +661,44 @@ window.addEventListener('resize',()=>{s5bBg();s5bDraw(S5B[s5bc]);});
     <div class="nw dt"><span class="l">open</span><span class="b">cancer</span><span class="f">.ai</span></div>
   </div>
   <div class="c ct" style="justify-content:center;">
-    <div class="ey">Team</div>
-    <div class="h2 dt" style="margin-bottom:20px;">Founder-market fit.</div>
-    <!-- Team Grid - 5 columns, compact -->
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px;">
-      <div class="cl" style="text-align:center;padding:20px 14px;">
-        <img src="https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/64694c7d-e3e3-414f-af72-288d201bb060/Screenshot+2024-10-02+at+10.59.02%E2%80%AFAM.jpg" alt="Ari" style="width:80px;height:80px;border-radius:50%;object-fit:cover;margin-bottom:12px;border:3px solid var(--tc);">
-        <div class="body dt" style="font-weight:700;">Ari Akerstein</div>
-        <div class="xs gt">CEO · Meta PM</div>
-        <div style="background:rgba(168,92,62,.15);border-radius:4px;padding:4px 10px;margin-top:10px;display:inline-block;"><span class="xs tc" style="font-weight:600;">2× Survivor</span></div>
+    <div class="h2 dt" style="margin-bottom:6px;">Founder-Market Fit</div>
+    <div class="body gt" style="margin-bottom:32px;">We lived this problem. Now we're solving it.</div>
+    <!-- Team Grid - clean, no cards -->
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:28px;margin-bottom:28px;">
+      <div style="text-align:center;">
+        <img src="https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/64694c7d-e3e3-414f-af72-288d201bb060/Screenshot+2024-10-02+at+10.59.02%E2%80%AFAM.jpg" alt="Ari" style="width:120px;height:120px;border-radius:50%;object-fit:cover;margin:0 auto 14px;display:block;border:4px solid #fecaca;box-shadow:0 8px 24px rgba(0,0,0,.12);">
+        <div class="body dt" style="font-weight:700;">Ari Akerstein, MS</div>
+        <div class="xs gt">Co-Founder/CEO</div>
+        <div class="xs" style="margin-top:4px;"><span style="color:var(--bl);font-weight:600;">Meta</span> · <span style="color:#dc2626;font-weight:500;">2x Survivor</span></div>
       </div>
-      <div class="cl" style="text-align:center;padding:20px 14px;">
-        <img src="https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/48fdd96b-71a0-41f9-bc5f-f1ae27636b95/Screenshot+2024-09-11+at+7.36.59%E2%80%AFPM.png" alt="Brad" style="width:80px;height:80px;border-radius:50%;object-fit:cover;margin-bottom:12px;border:3px solid var(--tc);">
+      <div style="text-align:center;">
+        <img src="https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/48fdd96b-71a0-41f9-bc5f-f1ae27636b95/Screenshot+2024-09-11+at+7.36.59%E2%80%AFPM.png" alt="Brad" style="width:120px;height:120px;border-radius:50%;object-fit:cover;margin:0 auto 14px;display:block;border:4px solid #fecaca;box-shadow:0 8px 24px rgba(0,0,0,.12);">
         <div class="body dt" style="font-weight:700;">Brad Power</div>
-        <div class="xs gt">Trust · Stanford · CPL</div>
-        <div style="background:rgba(168,92,62,.15);border-radius:4px;padding:4px 10px;margin-top:10px;display:inline-block;"><span class="xs tc" style="font-weight:600;">Survivor</span></div>
+        <div class="xs gt">Co-Founder/Chief Trust</div>
+        <div class="xs" style="margin-top:4px;"><span style="color:var(--bl);font-weight:600;">Stanford</span> · <span style="color:#dc2626;font-weight:500;">Survivor</span></div>
       </div>
-      <div class="cl" style="text-align:center;padding:20px 14px;">
-        <img src="https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/5761840d-8d31-4c56-a09e-c6f27510bc5a/Chris-Apfel-Nature-removebg-preview.png" alt="Chris" style="width:80px;height:80px;border-radius:50%;object-fit:cover;margin-bottom:12px;border:3px solid var(--bl);background:var(--st);">
-        <div class="body dt" style="font-weight:700;">Chris Apfel MD/PhD</div>
-        <div class="xs gt">CMO · UCSF</div>
-        <div style="background:rgba(55,138,221,.15);border-radius:4px;padding:4px 10px;margin-top:10px;display:inline-block;"><span class="xs bt" style="font-weight:600;">500+ pubs</span></div>
+      <div style="text-align:center;">
+        <img src="https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/5761840d-8d31-4c56-a09e-c6f27510bc5a/Chris-Apfel-Nature-removebg-preview.png" alt="Chris" style="width:120px;height:120px;border-radius:50%;object-fit:cover;margin:0 auto 14px;display:block;background:var(--st);box-shadow:0 8px 24px rgba(0,0,0,.12);">
+        <div class="body dt" style="font-weight:700;">Chris Apfel, MD/PhD</div>
+        <div class="xs gt">Chief Medical Officer</div>
+        <div class="xs" style="margin-top:4px;"><span style="color:var(--bl);font-weight:600;">UCSF</span> · 500+ publications</div>
       </div>
-      <div class="cl" style="text-align:center;padding:20px 14px;">
-        <img src="../pitchAssets/kaumudi.jpg" alt="Kaumudi" style="width:80px;height:80px;border-radius:50%;object-fit:cover;margin-bottom:12px;border:3px solid var(--pu);">
-        <div class="body dt" style="font-weight:700;">Kaumudi Bhawe PhD</div>
-        <div class="xs gt">CSO · Genentech</div>
-        <div style="background:rgba(127,119,221,.15);border-radius:4px;padding:4px 10px;margin-top:10px;display:inline-block;"><span class="xs pt" style="font-weight:600;">Cancer Commons</span></div>
+      <div style="text-align:center;">
+        <img src="../pitchAssets/kaumudi.jpg" alt="Kaumudi" style="width:120px;height:120px;border-radius:50%;object-fit:cover;margin:0 auto 14px;display:block;box-shadow:0 8px 24px rgba(0,0,0,.12);">
+        <div class="body dt" style="font-weight:700;">Kaumudi Bhawe, PhD</div>
+        <div class="xs gt">Chief Scientific Officer</div>
+        <div class="xs" style="margin-top:4px;"><span style="color:var(--bl);font-weight:600;">Genentech</span> · Cancer Commons</div>
       </div>
-      <div class="cl" style="text-align:center;padding:20px 14px;">
-        <img src="../pitchAssets/viktor.jpg" alt="Viktor" style="width:80px;height:80px;border-radius:50%;object-fit:cover;margin-bottom:12px;border:3px solid var(--gr);">
+      <div style="text-align:center;">
+        <img src="../pitchAssets/viktor.jpg" alt="Viktor" style="width:120px;height:120px;border-radius:50%;object-fit:cover;margin:0 auto 14px;display:block;box-shadow:0 8px 24px rgba(0,0,0,.12);">
         <div class="body dt" style="font-weight:700;">Viktor Tabori</div>
-        <div class="xs gt">Growth · Stanford</div>
-        <div style="background:rgba(29,158,117,.15);border-radius:4px;padding:4px 10px;margin-top:10px;display:inline-block;"><span class="xs grt" style="font-weight:600;">GTM Expert</span></div>
+        <div class="xs gt">Head of Growth</div>
+        <div class="xs" style="margin-top:4px;"><span style="color:var(--bl);font-weight:600;">Stanford</span> · Deloitte</div>
       </div>
     </div>
-    <div class="btc">
-      <span class="body" style="color:var(--ch);"><span style="color:var(--tc);font-weight:600;">Survivors</span> + <span style="color:var(--bl);font-weight:600;">UCSF/Genentech</span> + <span style="color:var(--gr);font-weight:600;">Meta/Stanford</span></span>
+    <!-- Dark summary bar -->
+    <div style="background:var(--dk);border-radius:10px;padding:16px 28px;text-align:center;">
+      <div class="body wt"><span style="color:#f87171;font-weight:700;">Co-founders are cancer survivors</span> · <span style="color:var(--bl);font-weight:700;">UCSF MD/PhD</span> clinical leadership · Operators from <span style="color:var(--gr);font-weight:700;">Meta, Genentech, Included Health, Stanford</span></div>
     </div>
   </div>
   <div class="sn">9</div>
@@ -772,6 +773,9 @@ function show(n){
   sl.style.display='flex';sl.classList.add('active');
   document.getElementById('prog').textContent=(n+1)+' / '+slides.length;
   cur=n;
+  // Trigger canvas redraws for graph slides
+  if(slides[n]==='s5')setTimeout(()=>{if(typeof s5redraw==='function')s5redraw();},50);
+  if(slides[n]==='s5b')setTimeout(()=>{if(typeof s5bredraw==='function')s5bredraw();},50);
 }
 function next(){if(cur<slides.length-1)show(cur+1);}
 function prev(){if(cur>0)show(cur-1);}
