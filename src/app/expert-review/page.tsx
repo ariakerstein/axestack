@@ -162,20 +162,34 @@ function ExpertReviewContent() {
   }, [combatResultId])
 
   useEffect(() => {
+    fetchUserRecords()
     if (user) {
-      fetchUserRecords()
       setEmail(user.email || '')
     }
   }, [user])
 
   const fetchUserRecords = async () => {
-    if (!user) return
-    const { data } = await supabase
-      .from('medical_records')
-      .select('id, original_filename, translated_text, created_at')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-    if (data) setUserRecords(data)
+    // For logged-in users, fetch by user_id
+    if (user) {
+      const { data } = await supabase
+        .from('medical_records')
+        .select('id, original_filename, translated_text, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+      if (data) setUserRecords(data)
+      return
+    }
+
+    // For anonymous users, fetch by session_id
+    const sessionId = localStorage.getItem('opencancer-session-id')
+    if (sessionId) {
+      const { data } = await supabase
+        .from('medical_records')
+        .select('id, original_filename, translated_text, created_at')
+        .eq('session_id', sessionId)
+        .order('created_at', { ascending: false })
+      if (data) setUserRecords(data)
+    }
   }
 
   // Fetch patient entities for Cancer Commons prefill
