@@ -144,30 +144,37 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#0d0
         <div class="xs gt" style="margin-top:6px;font-style:italic;">The window is open.</div>
       </div>
     </div>
-    <div class="row" style="flex:1;gap:12px;">
-      <div class="cl col">
-        <div style="height:2px;background:var(--tc);border-radius:1px;margin-bottom:10px;"></div>
-        <div class="stat" style="font-size:clamp(28px,4.5vw,48px);">31 days</div>
-        <div class="body dt" style="font-weight:600;margin-top:4px;">avg wait for a specialist</div>
-        <div class="xs gt">Up from 17 days in 2009</div>
+    <div class="row" style="flex:1;gap:14px;">
+      <div class="cl col" style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
+        <img src="pitchAssets/waits.png" alt="Wait times chart" style="width:100%;max-height:140px;object-fit:contain;border-radius:6px;margin-bottom:6px;">
+        <div class="xs tc" style="font-weight:700;">17 days (2009) → 31 days (2025)</div>
+        <div class="xs gt">Wait times keep climbing</div>
       </div>
-      <div class="cl col">
-        <div style="height:2px;background:var(--tc);border-radius:1px;margin-bottom:10px;"></div>
-        <div class="stat" style="font-size:clamp(28px,4.5vw,48px);">84%</div>
-        <div class="body dt" style="font-weight:600;margin-top:4px;">never get a second opinion</div>
-        <div class="xs gt">1 in 3 who do change treatment</div>
+      <div class="col" style="display:flex;flex-direction:column;gap:8px;">
+        <div class="cl" style="flex:1;border-top:2px solid var(--tc);">
+          <div class="stat" style="font-size:clamp(22px,3.5vw,36px);">84%</div>
+          <div class="xs dt" style="font-weight:600;">never get a second opinion</div>
+          <div class="xs gt">1 in 3 who do change treatment</div>
+        </div>
+        <div class="cl" style="flex:1;border-top:2px solid var(--tc);">
+          <div class="stat" style="font-size:clamp(22px,3.5vw,36px);">77%</div>
+          <div class="xs dt" style="font-weight:600;">turn to Dr. Google</div>
+          <div class="xs gt">Scary. Often wrong.</div>
+        </div>
       </div>
-      <div class="cl col">
-        <div style="height:2px;background:var(--tc);border-radius:1px;margin-bottom:10px;"></div>
-        <div class="stat" style="font-size:clamp(28px,4.5vw,48px);">$0</div>
-        <div class="body dt" style="font-weight:600;margin-top:4px;">tools built for patients</div>
-        <div class="xs gt">Everything flows to providers</div>
-      </div>
-      <div class="cl col">
-        <div style="height:2px;background:var(--tc);border-radius:1px;margin-bottom:10px;"></div>
-        <div class="stat" style="font-size:clamp(28px,4.5vw,48px);">77%</div>
-        <div class="body dt" style="font-weight:600;margin-top:4px;">turn to Dr. Google</div>
-        <div class="xs gt">Scary. Often wrong.</div>
+      <div class="col" style="display:flex;flex-direction:column;gap:8px;">
+        <div class="cl" style="flex:1;text-align:center;border-left:3px solid #cc4444;">
+          <div class="xs" style="color:#cc4444;font-weight:700;margin-bottom:4px;">🔍 DR. GOOGLE</div>
+          <div class="xs gt">Generic, scary, often wrong</div>
+        </div>
+        <div class="cl" style="flex:1;text-align:center;border-left:3px solid var(--am);">
+          <div class="xs" style="color:var(--am);font-weight:700;margin-bottom:4px;">🏥 PORTALS</div>
+          <div class="xs gt">Raw data, no guidance</div>
+        </div>
+        <div class="cl" style="flex:1;text-align:center;border-left:3px solid var(--bl);">
+          <div class="xs bt" style="font-weight:700;margin-bottom:4px;">🤖 CHATGPT</div>
+          <div class="xs gt">No records, no context</div>
+        </div>
       </div>
     </div>
     <div style="background:var(--tcl);border-radius:7px;padding:10px 16px;margin-top:10px;border-left:3px solid var(--tc);">
@@ -336,61 +343,68 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#0d0
   </div>
   <div class="c ct">
     <div class="ey">Competition</div>
-    <div class="h2 dt" style="margin-bottom:6px;">Different market.<br>Different relationship.</div>
-    <div class="body gt" style="margin-bottom:14px;">Every incumbent is built for providers. We're built for patients. Different markets.</div>
-    <div class="row" style="flex:1;gap:12px;">
-      <div class="cl col" style="border-top:3px solid var(--tc);">
-        <div class="xs tc" style="font-weight:700;margin-bottom:8px;">OPENCANCER.AI</div>
-        <div class="h3 dt" style="margin-bottom:6px;">Patient-first</div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <div class="xs gt">• Free tools → earn trust → build graph</div>
-          <div class="xs gt">• Patient owns the relationship + data</div>
-          <div class="xs gt">• Revenue from partners, not patients</div>
-          <div class="xs gt">• Viral: patients share with patients</div>
-        </div>
-        <div style="background:var(--tcl);border-radius:5px;padding:6px 10px;margin-top:10px;">
-          <span class="xs" style="color:var(--tcd);font-weight:600;">Moat: trust + consent + graph</span>
-        </div>
-      </div>
-      <div class="cl col" style="border-top:3px solid var(--bl);">
-        <div class="xs bt" style="font-weight:700;margin-bottom:8px;">OPENEVIDENCE</div>
-        <div class="h3 dt" style="margin-bottom:6px;">Doctor tools</div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <div class="xs gt">• Built for physicians, not patients</div>
-          <div class="xs gt">• SaaS pricing → IT budget</div>
-          <div class="xs gt">• No patient relationship</div>
-          <div class="xs gt">• Proved doctors want AI ✓</div>
-        </div>
-        <div style="background:#f0f6fc;border-radius:5px;padding:6px 10px;margin-top:10px;">
-          <span class="xs bt" style="font-weight:600;">We're the patient side of this</span>
-        </div>
-      </div>
-      <div class="cl col" style="border-top:3px solid var(--gy);">
-        <div class="xs" style="color:var(--gy);font-weight:700;margin-bottom:8px;">FLATIRON / EPIC</div>
-        <div class="h3 dt" style="margin-bottom:6px;">Provider systems</div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <div class="xs gt">• Enterprise sales → hospitals</div>
-          <div class="xs gt">• Data locked in provider silos</div>
-          <div class="xs gt">• Patient is the subject, not user</div>
-          <div class="xs gt">• Can't pivot to patient-first</div>
-        </div>
-        <div style="background:var(--st);border-radius:5px;padding:6px 10px;margin-top:10px;">
-          <span class="xs" style="color:var(--gy);font-weight:600;">Built for a different buyer</span>
-        </div>
-      </div>
-      <div class="cl col" style="border-top:3px solid #cc4444;">
-        <div class="xs" style="color:#cc4444;font-weight:700;margin-bottom:8px;">DR. GOOGLE</div>
-        <div class="h3 dt" style="margin-bottom:6px;">The real enemy</div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <div class="xs gt">• 77% of patients start here</div>
-          <div class="xs gt">• Generic, scary, often wrong</div>
-          <div class="xs gt">• No clinical context</div>
-          <div class="xs gt">• No personalization</div>
-        </div>
-        <div style="background:#fdf0f0;border-radius:5px;padding:6px 10px;margin-top:10px;">
-          <span class="xs" style="color:#cc4444;font-weight:600;">We replace this</span>
-        </div>
-      </div>
+    <div class="h2 dt" style="margin-bottom:14px;">Different market. Different relationship.</div>
+    <!-- Competition Matrix Table -->
+    <div style="background:var(--wh);border-radius:8px;border:.5px solid var(--st);overflow:hidden;flex:1;">
+      <table style="width:100%;border-collapse:collapse;font-size:clamp(10px,1.2vw,12px);">
+        <thead>
+          <tr style="border-bottom:1px solid var(--st);">
+            <th style="padding:10px 12px;text-align:left;color:var(--gy);font-weight:500;width:15%;"></th>
+            <th style="padding:10px 12px;text-align:center;background:var(--tcl);border-left:2px solid var(--tc);"><span class="tc" style="font-weight:700;">opencancer.ai</span></th>
+            <th style="padding:10px 12px;text-align:center;color:var(--ch);font-weight:600;">Legacy 2nd Opinion<br><span style="font-weight:400;color:var(--gy);font-size:9px;">2nd.MD · Included</span></th>
+            <th style="padding:10px 12px;text-align:center;color:var(--ch);font-weight:600;">Academic Centers<br><span style="font-weight:400;color:var(--gy);font-size:9px;">MSK · MD Anderson</span></th>
+            <th style="padding:10px 12px;text-align:center;color:var(--ch);font-weight:600;">Dr. Google<br><span style="font-weight:400;color:var(--gy);font-size:9px;">ChatGPT · Search</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:.5px solid var(--st);">
+            <td style="padding:10px 12px;color:var(--gy);font-weight:500;">Price</td>
+            <td style="padding:10px 12px;text-align:center;background:rgba(168,92,62,.05);border-left:2px solid var(--tc);"><span style="color:var(--gr);font-weight:700;">FREE</span></td>
+            <td style="padding:10px 12px;text-align:center;color:var(--ch);">$3,000+</td>
+            <td style="padding:10px 12px;text-align:center;color:var(--ch);">Travel + time</td>
+            <td style="padding:10px 12px;text-align:center;"><span style="color:var(--gr);">Free</span></td>
+          </tr>
+          <tr style="border-bottom:.5px solid var(--st);">
+            <td style="padding:10px 12px;color:var(--gy);font-weight:500;">Speed</td>
+            <td style="padding:10px 12px;text-align:center;background:rgba(168,92,62,.05);border-left:2px solid var(--tc);"><span style="color:var(--gr);font-weight:700;">Instant</span></td>
+            <td style="padding:10px 12px;text-align:center;color:var(--ch);">7–14 days</td>
+            <td style="padding:10px 12px;text-align:center;color:var(--ch);">2–3 weeks</td>
+            <td style="padding:10px 12px;text-align:center;"><span style="color:var(--gr);">Instant</span></td>
+          </tr>
+          <tr style="border-bottom:.5px solid var(--st);">
+            <td style="padding:10px 12px;color:var(--gy);font-weight:500;">Access</td>
+            <td style="padding:10px 12px;text-align:center;background:rgba(168,92,62,.05);border-left:2px solid var(--tc);"><span style="color:var(--gr);font-weight:700;">Anyone</span></td>
+            <td style="padding:10px 12px;text-align:center;color:var(--ch);">Employer-only</td>
+            <td style="padding:10px 12px;text-align:center;color:var(--ch);">Travel required</td>
+            <td style="padding:10px 12px;text-align:center;"><span style="color:var(--gr);">Anyone</span></td>
+          </tr>
+          <tr style="border-bottom:.5px solid var(--st);">
+            <td style="padding:10px 12px;color:var(--gy);font-weight:500;">Records</td>
+            <td style="padding:10px 12px;text-align:center;background:rgba(168,92,62,.05);border-left:2px solid var(--tc);"><span style="color:var(--gr);font-weight:700;">✓</span></td>
+            <td style="padding:10px 12px;text-align:center;"><span style="color:var(--gr);">✓</span></td>
+            <td style="padding:10px 12px;text-align:center;"><span style="color:var(--gr);">✓</span></td>
+            <td style="padding:10px 12px;text-align:center;"><span style="color:#cc4444;">✗</span></td>
+          </tr>
+          <tr style="border-bottom:.5px solid var(--st);">
+            <td style="padding:10px 12px;color:var(--gy);font-weight:500;">Guidelines</td>
+            <td style="padding:10px 12px;text-align:center;background:rgba(168,92,62,.05);border-left:2px solid var(--tc);"><span style="color:var(--gr);font-weight:700;">NCCN/ASCO</span></td>
+            <td style="padding:10px 12px;text-align:center;"><span style="color:var(--gr);">✓</span></td>
+            <td style="padding:10px 12px;text-align:center;"><span style="color:var(--gr);">✓</span></td>
+            <td style="padding:10px 12px;text-align:center;"><span style="color:#cc4444;">✗</span></td>
+          </tr>
+          <tr>
+            <td style="padding:10px 12px;color:var(--gy);font-weight:500;">Relationship</td>
+            <td style="padding:10px 12px;text-align:center;background:rgba(168,92,62,.05);border-left:2px solid var(--tc);"><span style="color:var(--tc);font-weight:700;">Patient owns</span></td>
+            <td style="padding:10px 12px;text-align:center;color:var(--gy);">Employer owns</td>
+            <td style="padding:10px 12px;text-align:center;color:var(--gy);">Provider owns</td>
+            <td style="padding:10px 12px;text-align:center;color:var(--gy);">None</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="btc" style="margin-top:10px;display:flex;gap:16px;">
+      <div style="flex:1;"><span class="xs" style="color:var(--ch);"><span class="tc" style="font-weight:600;">OpenEvidence proved doctors want AI.</span> We're proving patients do too.</span></div>
+      <div style="border-left:1px solid var(--st);padding-left:16px;"><span class="xs gt">They compete for IT budgets.<br><span class="tc" style="font-weight:600;">We compete for patient trust.</span></span></div>
     </div>
   </div>
   <div class="sn">6</div>
@@ -509,50 +523,63 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#0d0
   </div>
   <div class="c ct">
     <div class="ey">Team</div>
-    <div class="h2 dt" style="margin-bottom:14px;">Founder-market fit.</div>
-    <div class="row" style="margin-bottom:12px;">
-      <div class="col cl" style="text-align:center;">
-        <img src="/pitchAssets/kaumudi.jpg" alt="Kaumudi" style="width:56px;height:56px;border-radius:50%;object-fit:cover;margin:0 auto 8px;border:2px solid var(--pu);">
-        <div class="xs dt" style="font-weight:700;">Kaumudi Bhawe PhD</div>
-        <div class="xs gt">Chief Scientific Officer</div>
-        <div class="xs gt">Ex-Genentech · 15 yrs oncology</div>
-        <div style="background:rgba(127,119,221,.15);border-radius:3px;padding:2px 6px;margin-top:5px;display:inline-block;"><span class="xs pt" style="font-weight:600;">Cancer Commons</span></div>
+    <div class="h2 dt" style="margin-bottom:10px;">We lived this problem.</div>
+    <!-- Founder Story -->
+    <div class="row" style="gap:16px;margin-bottom:12px;">
+      <div class="cl col" style="display:flex;align-items:center;gap:16px;padding:12px 18px;">
+        <img src="lovable-uploads/ari-chemo.png" alt="In chemo" style="height:80px;border-radius:8px;border:2px solid #cc4444;">
+        <div>
+          <div class="xs" style="color:#cc4444;font-weight:700;">Aggressive blood cancer</div>
+          <div class="xs gt">Best doctors. Still lost.</div>
+        </div>
       </div>
-      <div class="col cl" style="text-align:center;">
-        <img src="https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/64694c7d-e3e3-414f-af72-288d201bb060/Screenshot+2024-10-02+at+10.59.02%E2%80%AFAM.jpg" alt="Ari" style="width:56px;height:56px;border-radius:50%;object-fit:cover;margin:0 auto 8px;border:2px solid var(--tc);">
-        <div class="xs dt" style="font-weight:700;">Ari Akerstein</div>
-        <div class="xs gt">CEO · Co-Founder</div>
-        <div class="xs gt">Ex-Meta PM</div>
-        <div style="background:rgba(168,92,62,.15);border-radius:3px;padding:2px 6px;margin-top:5px;display:inline-block;"><span class="xs tc" style="font-weight:600;">2× Survivor</span></div>
+      <div style="display:flex;align-items:center;font-size:24px;color:var(--gr);font-weight:700;">→</div>
+      <div class="cl col" style="display:flex;align-items:center;gap:16px;padding:12px 18px;">
+        <img src="pitchAssets/family.png" alt="Family" style="height:80px;border-radius:8px;border:2px solid var(--gr);">
+        <div>
+          <div class="xs grt" style="font-weight:700;">Complete remission</div>
+          <div class="xs gt">Engaged fully. Did the work.</div>
+        </div>
       </div>
-      <div class="col cl" style="text-align:center;">
-        <img src="https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/5761840d-8d31-4c56-a09e-c6f27510bc5a/Chris-Apfel-Nature-removebg-preview.png" alt="Chris" style="width:56px;height:56px;border-radius:50%;object-fit:cover;margin:0 auto 8px;border:2px solid var(--bl);background:var(--st);">
-        <div class="xs dt" style="font-weight:700;">Chris Apfel MD/PhD</div>
-        <div class="xs gt">Chief Medical Officer</div>
-        <div class="xs gt">UCSF · SageMedic</div>
-        <div style="background:rgba(55,138,221,.15);border-radius:3px;padding:2px 6px;margin-top:5px;display:inline-block;"><span class="xs bt" style="font-weight:600;">500+ pubs</span></div>
-      </div>
-      <div class="col cl" style="text-align:center;">
-        <img src="https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/48fdd96b-71a0-41f9-bc5f-f1ae27636b95/Screenshot+2024-09-11+at+7.36.59%E2%80%AFPM.png" alt="Brad" style="width:56px;height:56px;border-radius:50%;object-fit:cover;margin:0 auto 8px;border:2px solid var(--tc);">
-        <div class="xs dt" style="font-weight:700;">Brad Power</div>
-        <div class="xs gt">Chief Trust</div>
-        <div class="xs gt">Stanford · CPL CEO</div>
-        <div style="background:rgba(168,92,62,.15);border-radius:3px;padding:2px 6px;margin-top:5px;display:inline-block;"><span class="xs tc" style="font-weight:600;">Survivor</span></div>
-      </div>
-      <div class="col cl" style="text-align:center;">
-        <img src="/pitchAssets/viktor.jpg" alt="Viktor" style="width:56px;height:56px;border-radius:50%;object-fit:cover;margin:0 auto 8px;border:2px solid var(--gr);">
-        <div class="xs dt" style="font-weight:700;">Viktor Tabori</div>
-        <div class="xs gt">Head of Growth</div>
-        <div class="xs gt">Stanford · Deloitte</div>
-        <div style="background:rgba(29,158,117,.15);border-radius:3px;padding:2px 6px;margin-top:5px;display:inline-block;"><span class="xs grt" style="font-weight:600;">GTM Expert</span></div>
+      <div class="cl col" style="border-left:3px solid var(--tc);display:flex;align-items:center;padding:12px 18px;">
+        <div class="xs" style="color:var(--ch);"><span class="tc" style="font-weight:700;">Everyone sells to providers.</span><br>We sell to patients — because we <em>are</em> patients.</div>
       </div>
     </div>
-    <div class="btc" style="display:flex;flex-direction:column;gap:6px;">
-      <span class="xs" style="color:var(--ch);"><span style="color:var(--tc);font-weight:600;">Survivors</span> + <span style="color:var(--bl);font-weight:600;">UCSF/Genentech</span> + <span style="color:var(--gr);font-weight:600;">Meta/Stanford</span> · Advisory: Magliocco (Moffitt) · Wilkinson (HGP) · Tenenbaum</span>
-      <div style="border-top:1px solid var(--st);padding-top:6px;">
-        <span class="xs tc" style="font-weight:600;">Why can't Epic replicate?</span>
-        <span class="xs gt"> They're built for providers. We own the patient relationship. Trust can't be bought.</span>
+    <!-- Team Grid -->
+    <div class="row" style="gap:8px;">
+      <div class="col cl" style="text-align:center;padding:10px;">
+        <img src="/pitchAssets/kaumudi.jpg" alt="Kaumudi" style="width:44px;height:44px;border-radius:50%;object-fit:cover;margin:0 auto 6px;border:2px solid var(--pu);">
+        <div class="xs dt" style="font-weight:700;">Kaumudi Bhawe PhD</div>
+        <div class="xs gt">CSO · Genentech · 15 yrs oncology</div>
+        <div style="background:rgba(127,119,221,.15);border-radius:3px;padding:1px 5px;margin-top:4px;display:inline-block;"><span class="xs pt" style="font-weight:600;font-size:9px;">Cancer Commons</span></div>
       </div>
+      <div class="col cl" style="text-align:center;padding:10px;">
+        <img src="https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/64694c7d-e3e3-414f-af72-288d201bb060/Screenshot+2024-10-02+at+10.59.02%E2%80%AFAM.jpg" alt="Ari" style="width:44px;height:44px;border-radius:50%;object-fit:cover;margin:0 auto 6px;border:2px solid var(--tc);">
+        <div class="xs dt" style="font-weight:700;">Ari Akerstein</div>
+        <div class="xs gt">CEO · Meta PM</div>
+        <div style="background:rgba(168,92,62,.15);border-radius:3px;padding:1px 5px;margin-top:4px;display:inline-block;"><span class="xs tc" style="font-weight:600;font-size:9px;">2× Survivor</span></div>
+      </div>
+      <div class="col cl" style="text-align:center;padding:10px;">
+        <img src="https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/5761840d-8d31-4c56-a09e-c6f27510bc5a/Chris-Apfel-Nature-removebg-preview.png" alt="Chris" style="width:44px;height:44px;border-radius:50%;object-fit:cover;margin:0 auto 6px;border:2px solid var(--bl);background:var(--st);">
+        <div class="xs dt" style="font-weight:700;">Chris Apfel MD/PhD</div>
+        <div class="xs gt">CMO · UCSF</div>
+        <div style="background:rgba(55,138,221,.15);border-radius:3px;padding:1px 5px;margin-top:4px;display:inline-block;"><span class="xs bt" style="font-weight:600;font-size:9px;">500+ pubs</span></div>
+      </div>
+      <div class="col cl" style="text-align:center;padding:10px;">
+        <img src="https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/48fdd96b-71a0-41f9-bc5f-f1ae27636b95/Screenshot+2024-09-11+at+7.36.59%E2%80%AFPM.png" alt="Brad" style="width:44px;height:44px;border-radius:50%;object-fit:cover;margin:0 auto 6px;border:2px solid var(--tc);">
+        <div class="xs dt" style="font-weight:700;">Brad Power</div>
+        <div class="xs gt">Trust · Stanford · CPL</div>
+        <div style="background:rgba(168,92,62,.15);border-radius:3px;padding:1px 5px;margin-top:4px;display:inline-block;"><span class="xs tc" style="font-weight:600;font-size:9px;">Survivor</span></div>
+      </div>
+      <div class="col cl" style="text-align:center;padding:10px;">
+        <img src="/pitchAssets/viktor.jpg" alt="Viktor" style="width:44px;height:44px;border-radius:50%;object-fit:cover;margin:0 auto 6px;border:2px solid var(--gr);">
+        <div class="xs dt" style="font-weight:700;">Viktor Tabori</div>
+        <div class="xs gt">Growth · Stanford</div>
+        <div style="background:rgba(29,158,117,.15);border-radius:3px;padding:1px 5px;margin-top:4px;display:inline-block;"><span class="xs grt" style="font-weight:600;font-size:9px;">GTM</span></div>
+      </div>
+    </div>
+    <div class="btc" style="margin-top:8px;">
+      <span class="xs" style="color:var(--ch);"><span style="color:var(--tc);font-weight:600;">Survivors</span> + <span style="color:var(--bl);font-weight:600;">UCSF/Genentech</span> + <span style="color:var(--gr);font-weight:600;">Meta/Stanford</span> · Advisory: Magliocco (Moffitt) · Wilkinson (HGP) · Tenenbaum</span>
     </div>
   </div>
   <div class="sn">9</div>
