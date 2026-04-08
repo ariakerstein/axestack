@@ -246,92 +246,118 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#0d0
     <div class="ey" style="color:var(--tc);">The Moat</div>
     <div class="h2 wt" style="margin-bottom:6px;">A compounding patient graph<br>nobody else can build.</div>
     <div class="row" style="flex:1;gap:20px;">
-      <!-- Graph Visualization - organic, B&W -->
+      <!-- Graph Visualization - animated, straight lines -->
       <div class="col" style="display:flex;align-items:center;justify-content:center;">
+        <style>
+          @keyframes float1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(2px,-3px)} }
+          @keyframes float2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-2px,2px)} }
+          @keyframes float3 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(3px,2px)} }
+          @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.7} }
+          .n1{animation:float1 4s ease-in-out infinite}
+          .n2{animation:float2 5s ease-in-out infinite}
+          .n3{animation:float3 3.5s ease-in-out infinite}
+          .glow{animation:pulse 3s ease-in-out infinite}
+        </style>
         <svg viewBox="0 0 440 300" style="width:100%;max-width:480px;height:auto;">
-          <!-- Edges - organic, varied weights -->
-          <g stroke="#444" stroke-width="1" fill="none" opacity="0.5">
+          <!-- Edges - straight lines -->
+          <g stroke="#444" stroke-width="1" fill="none" opacity="0.4">
             <!-- Patient connections -->
-            <path d="M220,150 Q180,100 130,85" stroke-width="2"/>
-            <path d="M220,150 Q260,90 310,70"/>
-            <path d="M220,150 Q150,160 85,175"/>
-            <path d="M220,150 Q280,180 355,165"/>
-            <path d="M220,150 Q200,200 160,245"/>
-            <path d="M220,150 Q250,210 305,235"/>
+            <line x1="220" y1="150" x2="130" y2="85" stroke-width="1.5"/>
+            <line x1="220" y1="150" x2="310" y2="70" stroke-width="1.5"/>
+            <line x1="220" y1="150" x2="85" y2="175"/>
+            <line x1="220" y1="150" x2="355" y2="165"/>
+            <line x1="220" y1="150" x2="160" y2="245"/>
+            <line x1="220" y1="150" x2="305" y2="235"/>
             <!-- Biomarker cluster -->
-            <path d="M310,70 L350,45"/>
-            <path d="M310,70 L370,80"/>
-            <path d="M310,70 L340,110"/>
-            <path d="M350,45 L370,80"/>
-            <path d="M370,80 L340,110"/>
+            <line x1="310" y1="70" x2="350" y2="45"/>
+            <line x1="310" y1="70" x2="370" y2="80"/>
+            <line x1="310" y1="70" x2="340" y2="110"/>
             <!-- Treatment cluster -->
-            <path d="M85,175 L50,140"/>
-            <path d="M85,175 L40,195"/>
-            <path d="M85,175 L70,220"/>
+            <line x1="85" y1="175" x2="50" y2="140"/>
+            <line x1="85" y1="175" x2="40" y2="195"/>
             <!-- Trial connections -->
-            <path d="M355,165 L390,140"/>
-            <path d="M355,165 L400,185"/>
-            <path d="M310,70 Q340,120 355,165" stroke-dasharray="3,3"/>
+            <line x1="355" y1="165" x2="390" y2="140"/>
+            <line x1="355" y1="165" x2="400" y2="185"/>
+            <line x1="310" y1="70" x2="355" y2="165" stroke-dasharray="4,4" class="glow"/>
             <!-- Dx connections -->
-            <path d="M130,85 L100,50"/>
-            <path d="M130,85 L160,45"/>
-            <path d="M130,85 Q100,130 85,175"/>
+            <line x1="130" y1="85" x2="100" y2="50"/>
+            <line x1="130" y1="85" x2="160" y2="45"/>
+            <line x1="130" y1="85" x2="85" y2="175"/>
             <!-- Outcomes -->
-            <path d="M160,245 L120,270"/>
-            <path d="M305,235 L340,260"/>
-            <path d="M160,245 Q230,260 305,235"/>
+            <line x1="160" y1="245" x2="120" y2="270"/>
+            <line x1="305" y1="235" x2="340" y2="260"/>
           </g>
           <!-- Patient Node (Center) -->
-          <circle cx="220" cy="150" r="32" fill="#fff"/>
-          <text x="220" y="155" text-anchor="middle" fill="#0a0a0a" font-size="12" font-weight="700">Patient</text>
+          <g class="n1">
+            <circle cx="220" cy="150" r="34" fill="#fff"/>
+            <text x="220" y="155" text-anchor="middle" fill="#0a0a0a" font-size="13" font-weight="700">Patient</text>
+          </g>
           <!-- Diagnosis -->
-          <circle cx="130" cy="85" r="22" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
-          <text x="130" y="82" text-anchor="middle" fill="#fff" font-size="8" font-weight="600">DIAGNOSIS</text>
-          <text x="130" y="93" text-anchor="middle" fill="#888" font-size="7">MZL Stage IV</text>
+          <g class="n2">
+            <circle cx="130" cy="85" r="24" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
+            <text x="130" y="82" text-anchor="middle" fill="#fff" font-size="9" font-weight="600">DIAGNOSIS</text>
+            <text x="130" y="94" text-anchor="middle" fill="#888" font-size="7">MZL Stage IV</text>
+          </g>
           <!-- Biomarkers cluster -->
-          <circle cx="310" cy="70" r="20" fill="#a85c3e"/>
-          <text x="310" y="74" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">Biomarkers</text>
-          <circle cx="350" cy="45" r="14" fill="#333" stroke="#a85c3e" stroke-width="1.5"/>
-          <text x="350" y="49" text-anchor="middle" fill="#fff" font-size="7" font-weight="600">BRCA1</text>
-          <circle cx="370" cy="80" r="14" fill="#333" stroke="#a85c3e" stroke-width="1.5"/>
-          <text x="370" y="84" text-anchor="middle" fill="#fff" font-size="7" font-weight="600">ATM</text>
-          <circle cx="340" cy="110" r="12" fill="#333" stroke="#666" stroke-width="1"/>
-          <text x="340" y="114" text-anchor="middle" fill="#999" font-size="6">TP53</text>
+          <g class="n3">
+            <circle cx="310" cy="70" r="22" fill="#a85c3e" class="glow"/>
+            <text x="310" y="75" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">Biomarkers</text>
+          </g>
+          <g class="n1">
+            <circle cx="350" cy="45" r="16" fill="#333" stroke="#a85c3e" stroke-width="2"/>
+            <text x="350" y="49" text-anchor="middle" fill="#fff" font-size="8" font-weight="600">BRCA1</text>
+          </g>
+          <g class="n2">
+            <circle cx="370" cy="80" r="16" fill="#333" stroke="#a85c3e" stroke-width="2"/>
+            <text x="370" y="84" text-anchor="middle" fill="#fff" font-size="8" font-weight="600">ATM</text>
+          </g>
+          <g class="n3">
+            <circle cx="340" cy="110" r="13" fill="#333" stroke="#666" stroke-width="1"/>
+            <text x="340" y="114" text-anchor="middle" fill="#999" font-size="7">TP53</text>
+          </g>
           <!-- Treatment -->
-          <circle cx="85" cy="175" r="18" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
-          <text x="85" y="172" text-anchor="middle" fill="#fff" font-size="7" font-weight="600">TREATMENT</text>
-          <text x="85" y="182" text-anchor="middle" fill="#888" font-size="6">R-CHOP</text>
-          <circle cx="50" cy="140" r="10" fill="#222" stroke="#444" stroke-width="1"/>
-          <text x="50" y="143" text-anchor="middle" fill="#888" font-size="5">Ritux</text>
-          <circle cx="40" cy="195" r="10" fill="#222" stroke="#444" stroke-width="1"/>
-          <text x="40" y="198" text-anchor="middle" fill="#888" font-size="5">Chemo</text>
+          <g class="n2">
+            <circle cx="85" cy="175" r="20" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
+            <text x="85" y="172" text-anchor="middle" fill="#fff" font-size="8" font-weight="600">TREATMENT</text>
+            <text x="85" y="183" text-anchor="middle" fill="#888" font-size="7">R-CHOP</text>
+          </g>
+          <circle cx="50" cy="140" r="11" fill="#222" stroke="#444" stroke-width="1"/>
+          <text x="50" y="144" text-anchor="middle" fill="#888" font-size="6">Ritux</text>
+          <circle cx="40" cy="195" r="11" fill="#222" stroke="#444" stroke-width="1"/>
+          <text x="40" y="199" text-anchor="middle" fill="#888" font-size="6">Chemo</text>
           <!-- Trials -->
-          <circle cx="355" cy="165" r="18" fill="#2a2a2a" stroke="#a85c3e" stroke-width="2"/>
-          <text x="355" y="162" text-anchor="middle" fill="#fff" font-size="7" font-weight="600">TRIALS</text>
-          <text x="355" y="172" text-anchor="middle" fill="#a85c3e" font-size="6">3 matches</text>
-          <circle cx="390" cy="140" r="9" fill="#222"/>
-          <text x="390" y="143" text-anchor="middle" fill="#666" font-size="5">PARP</text>
-          <circle cx="400" cy="185" r="9" fill="#222"/>
-          <text x="400" y="188" text-anchor="middle" fill="#666" font-size="5">CAR-T</text>
+          <g class="n1">
+            <circle cx="355" cy="165" r="20" fill="#2a2a2a" stroke="#a85c3e" stroke-width="2"/>
+            <text x="355" y="162" text-anchor="middle" fill="#fff" font-size="8" font-weight="600">TRIALS</text>
+            <text x="355" y="173" text-anchor="middle" fill="#a85c3e" font-size="7">3 matches</text>
+          </g>
+          <circle cx="390" cy="140" r="10" fill="#222"/>
+          <text x="390" y="144" text-anchor="middle" fill="#666" font-size="6">PARP</text>
+          <circle cx="400" cy="185" r="10" fill="#222"/>
+          <text x="400" y="189" text-anchor="middle" fill="#666" font-size="6">CAR-T</text>
           <!-- Staging -->
-          <circle cx="100" cy="50" r="11" fill="#222" stroke="#444" stroke-width="1"/>
-          <text x="100" y="53" text-anchor="middle" fill="#888" font-size="6">Stage</text>
-          <circle cx="160" cy="45" r="11" fill="#222" stroke="#444" stroke-width="1"/>
-          <text x="160" y="48" text-anchor="middle" fill="#888" font-size="6">Grade</text>
+          <circle cx="100" cy="50" r="12" fill="#222" stroke="#444" stroke-width="1"/>
+          <text x="100" y="54" text-anchor="middle" fill="#888" font-size="7">Stage</text>
+          <circle cx="160" cy="45" r="12" fill="#222" stroke="#444" stroke-width="1"/>
+          <text x="160" y="49" text-anchor="middle" fill="#888" font-size="7">Grade</text>
           <!-- Outcomes -->
-          <circle cx="160" cy="245" r="16" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
-          <text x="160" y="248" text-anchor="middle" fill="#fff" font-size="7" font-weight="600">Response</text>
-          <circle cx="305" cy="235" r="14" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
-          <text x="305" y="238" text-anchor="middle" fill="#fff" font-size="7" font-weight="600">Intent</text>
-          <circle cx="120" cy="270" r="9" fill="#222"/>
-          <text x="120" y="273" text-anchor="middle" fill="#666" font-size="5">PR</text>
-          <circle cx="340" cy="260" r="9" fill="#222"/>
-          <text x="340" y="263" text-anchor="middle" fill="#666" font-size="5">2nd Op</text>
+          <g class="n3">
+            <circle cx="160" cy="245" r="18" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
+            <text x="160" y="249" text-anchor="middle" fill="#fff" font-size="8" font-weight="600">Response</text>
+          </g>
+          <g class="n2">
+            <circle cx="305" cy="235" r="16" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
+            <text x="305" y="239" text-anchor="middle" fill="#fff" font-size="8" font-weight="600">Intent</text>
+          </g>
+          <circle cx="120" cy="270" r="10" fill="#222"/>
+          <text x="120" y="274" text-anchor="middle" fill="#666" font-size="6">PR</text>
+          <circle cx="340" cy="260" r="10" fill="#222"/>
+          <text x="340" y="264" text-anchor="middle" fill="#666" font-size="6">2nd Op</text>
           <!-- Stats -->
-          <rect x="10" y="10" width="95" height="40" rx="4" fill="rgba(255,255,255,.1)" stroke="rgba(255,255,255,.2)"/>
-          <text x="20" y="30" fill="#fff" font-size="16" font-weight="700">289</text>
-          <text x="58" y="30" fill="#888" font-size="9">entities</text>
-          <text x="20" y="44" fill="#666" font-size="8">106 relationships</text>
+          <rect x="10" y="10" width="100" height="44" rx="5" fill="rgba(255,255,255,.1)" stroke="rgba(255,255,255,.2)"/>
+          <text x="22" y="32" fill="#fff" font-size="18" font-weight="700">289</text>
+          <text x="62" y="32" fill="#888" font-size="10">entities</text>
+          <text x="22" y="48" fill="#666" font-size="9">106 relationships</text>
         </svg>
       </div>
       <!-- Right side content -->
