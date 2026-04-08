@@ -657,7 +657,7 @@ function ExpertReviewContent() {
                 value={signature}
                 onChange={(e) => setSignature(e.target.value)}
                 placeholder="Type your full name to sign"
-                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
+                className="w-full px-4 py-3 border border-slate-300 rounded-lg text-slate-900 bg-white placeholder-slate-400 focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
               />
               <p className="text-xs text-slate-500 mt-1">
                 By typing your name, you electronically sign this authorization
