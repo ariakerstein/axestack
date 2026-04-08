@@ -125,7 +125,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#0d0
   </div>
 </div>
 
-<!-- S2 PROBLEM -->
+<!-- S2 PROBLEM + WHY NOW -->
 <div class="slide wm" id="s2">
   <div class="wmarkl"></div>
   <div class="nav dt">
@@ -133,9 +133,18 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#0d0
     <div class="nw dt"><span class="l">pen</span><span class="b">cancer</span><span class="f">.ai</span></div>
   </div>
   <div class="c ct">
-    <div class="ey">The problem</div>
-    <div class="h2 dt" style="margin-bottom:8px;">Cancer patients navigate<br>alone — with the wrong tools.</div>
-    <div class="row" style="flex:1;gap:12px;margin-top:12px;">
+    <div style="display:flex;align-items:flex-start;gap:20px;margin-bottom:10px;">
+      <div style="flex:1;">
+        <div class="ey">The problem</div>
+        <div class="h2 dt">Cancer patients navigate<br>alone — with the wrong tools.</div>
+      </div>
+      <div style="background:var(--dk);border-radius:8px;padding:12px 16px;max-width:280px;">
+        <div class="xs" style="color:var(--tc);font-weight:700;letter-spacing:.1em;margin-bottom:4px;">WHY NOW</div>
+        <div class="xs wt" style="line-height:1.5;"><span style="color:var(--tc);font-weight:600;">2M</span> new diagnoses/yr<br><span style="color:var(--tc);font-weight:600;">31-day</span> specialist waits<br><span style="color:var(--tc);font-weight:600;">LLMs</span> finally work</div>
+        <div class="xs gt" style="margin-top:6px;font-style:italic;">The window is open.</div>
+      </div>
+    </div>
+    <div class="row" style="flex:1;gap:12px;">
       <div class="cl col">
         <div style="height:2px;background:var(--tc);border-radius:1px;margin-bottom:10px;"></div>
         <div class="stat" style="font-size:clamp(28px,4.5vw,48px);">31 days</div>
@@ -161,14 +170,8 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#0d0
         <div class="xs gt">Scary. Often wrong.</div>
       </div>
     </div>
-    <div style="background:var(--dk);border-radius:7px;padding:10px 16px;margin-top:12px;display:flex;gap:16px;align-items:center;">
-      <div style="flex:1;">
-        <span class="xs wt">Healthcare spends <span style="color:var(--tc);font-weight:700;">$740B on labor</span> vs $63B on IT. Every oncology tool targets the IT budget. We target the labor budget — <span style="color:var(--tc);font-weight:600;">that's 12× larger.</span></span>
-      </div>
-      <div style="border-left:1px solid #333;padding-left:16px;">
-        <div class="xs" style="color:var(--tc);font-weight:700;margin-bottom:2px;">WHY NOW</div>
-        <span class="xs gt">2M new diagnoses/yr. 31-day specialist waits. LLMs finally work. The window is open.</span>
-      </div>
+    <div style="background:var(--tcl);border-radius:7px;padding:10px 16px;margin-top:10px;border-left:3px solid var(--tc);">
+      <span class="xs" style="color:var(--ch);">Healthcare spends <span style="color:var(--tc);font-weight:700;">$740B on labor</span> vs $63B on IT. Every oncology tool targets the IT budget. We target the labor budget — <span style="color:var(--tc);font-weight:600;">that's 12× larger.</span></span>
     </div>
   </div>
   <div class="sn">2</div>
@@ -235,39 +238,27 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#0d0
           <div class="xs gt">If someone copied our codebase today, what couldn't they replicate? The 89 patients who trusted us with their records. The CPL community. The early graph signal. That gap widens every week.</div>
         </div>
       </div>
-      <div class="col cl" style="display:flex;flex-direction:column;gap:8px;border-left:3px solid var(--tc);border-radius:0 9px 9px 0;">
+      <div class="col cl" style="display:flex;flex-direction:column;gap:10px;border-left:3px solid var(--tc);border-radius:0 9px 9px 0;">
         <div class="xs tc" style="font-weight:700;letter-spacing:.1em;text-transform:uppercase;">What the graph knows</div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <div style="display:flex;gap:7px;align-items:flex-start;">
-            <div style="width:5px;height:5px;border-radius:50%;background:var(--tc);margin-top:4px;flex-shrink:0;"></div>
-            <span class="xs gt">Diagnosis + staging + biomarkers (BRCA, ATM, HER2, EGFR...)</span>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div style="background:var(--wm);border-radius:6px;padding:8px 10px;">
+            <div class="xs dt" style="font-weight:700;margin-bottom:3px;">Clinical Profile</div>
+            <span class="xs gt">Diagnosis, staging, biomarkers, treatment history, current protocol</span>
           </div>
-          <div style="display:flex;gap:7px;align-items:flex-start;">
-            <div style="width:5px;height:5px;border-radius:50%;background:var(--tc);margin-top:4px;flex-shrink:0;"></div>
-            <span class="xs gt">Treatment history + current protocol</span>
+          <div style="background:var(--wm);border-radius:6px;padding:8px 10px;">
+            <div class="xs dt" style="font-weight:700;margin-bottom:3px;">Behavior Signals</div>
+            <span class="xs gt">Trial searches, questions asked, gaps identified, enrollment intent</span>
           </div>
-          <div style="display:flex;gap:7px;align-items:flex-start;">
-            <div style="width:5px;height:5px;border-radius:50%;background:var(--tc);margin-top:4px;flex-shrink:0;"></div>
-            <span class="xs gt">Trial searches + trial views + enrollment intent</span>
+          <div style="background:var(--wm);border-radius:6px;padding:8px 10px;">
+            <div class="xs dt" style="font-weight:700;margin-bottom:3px;">Journey Context</div>
+            <span class="xs gt">Stage (diagnosis → treatment → post → recurrence), caregivers, support</span>
           </div>
-          <div style="display:flex;gap:7px;align-items:flex-start;">
-            <div style="width:5px;height:5px;border-radius:50%;background:var(--tc);margin-top:4px;flex-shrink:0;"></div>
-            <span class="xs gt">Questions asked + gaps identified</span>
-          </div>
-          <div style="display:flex;gap:7px;align-items:flex-start;">
-            <div style="width:5px;height:5px;border-radius:50%;background:var(--tc);margin-top:4px;flex-shrink:0;"></div>
-            <span class="xs gt">Journey stage (newly diagnosed → in treatment → post-treatment → recurrence)</span>
-          </div>
-          <div style="display:flex;gap:7px;align-items:flex-start;">
-            <div style="width:5px;height:5px;border-radius:50%;background:var(--tc);margin-top:4px;flex-shrink:0;"></div>
-            <span class="xs gt">Caregiver connections + support network</span>
-          </div>
-          <div style="display:flex;gap:7px;align-items:flex-start;">
-            <div style="width:5px;height:5px;border-radius:50%;background:var(--tc);margin-top:4px;flex-shrink:0;"></div>
-            <span class="xs gt">Outcomes reported + treatment responses</span>
+          <div style="background:var(--wm);border-radius:6px;padding:8px 10px;">
+            <div class="xs dt" style="font-weight:700;margin-bottom:3px;">Outcomes</div>
+            <span class="xs gt">Treatment responses, reported results, real-world evidence</span>
           </div>
         </div>
-        <div style="background:var(--tcl);border-radius:5px;padding:8px 10px;margin-top:4px;">
+        <div style="background:var(--tcl);border-radius:5px;padding:8px 10px;margin-top:auto;">
           <span class="xs" style="color:var(--tcd);">Consent-first. Patient-owned. HIPAA-compliant. Partners access anonymized signal — never raw records.</span>
         </div>
       </div>
@@ -276,7 +267,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#0d0
   <div class="sn">4</div>
 </div>
 
-<!-- S5 BUSINESS MODEL -->
+<!-- S5 BUSINESS MODEL + PARTNERS -->
 <div class="slide wm" id="s5">
   <div class="nav dt">
     <svg width="13" height="13" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#0a0a0a" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#0a0a0a"/><circle cx="24" cy="24" r="2" fill="#f5f3ee"/></svg>
@@ -285,90 +276,64 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#0d0
   <div class="c ct">
     <div class="ey">Business model</div>
     <div class="h2 dt" style="margin-bottom:6px;">Free for patients.<br>Partners pay for intelligence.</div>
-    <div class="body gt" style="margin-bottom:16px;">The graph surfaces the right verified patient at the exact clinical moment a partner is relevant. That precision is what they pay for.</div>
-    <div class="row" style="flex:1;gap:10px;">
+    <div class="body gt" style="margin-bottom:12px;">The graph surfaces the right verified patient at the exact clinical moment. That precision is what partners pay for.</div>
+    <div class="row" style="gap:10px;margin-bottom:10px;">
       <div class="col cl" style="border-left:3px solid var(--st);">
-        <div class="xs gt" style="font-weight:600;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;">Layer 1 — Free</div>
-        <div class="h3 dt" style="margin-bottom:6px;">Patients</div>
-        <div class="xs gt" style="margin-bottom:8px;">Combat · Records Vault · Trial Radar · Ask Navis · Community. Always free. This is distribution.</div>
-        <div class="tag" style="background:var(--st);color:var(--gy);">$0 · viral engine</div>
+        <div class="xs gt" style="font-weight:600;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">Layer 1 — Free</div>
+        <div class="h3 dt" style="margin-bottom:4px;">Patients</div>
+        <div class="xs gt">Combat · Records · Trials · Navis. Always free. This is distribution.</div>
+        <div class="tag" style="background:var(--st);color:var(--gy);margin-top:6px;">$0 · viral engine</div>
       </div>
       <div class="col cl" style="border-top:3px solid var(--tc);">
-        <div class="xs tc" style="font-weight:600;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;">Layer 2 — Premium</div>
-        <div class="h3 dt" style="margin-bottom:6px;">Power patients</div>
-        <div class="xs gt" style="margin-bottom:8px;">PDF Combat Report ($29). Pro subscription ($29/mo). Expert Review — oncologist reviews your case ($199–650).</div>
-        <div class="tag twm">Secondary · growing</div>
+        <div class="xs tc" style="font-weight:600;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">Layer 2 — Premium</div>
+        <div class="h3 dt" style="margin-bottom:4px;">Power patients</div>
+        <div class="xs gt">PDF Report ($29). Pro ($29/mo). Expert Review ($199–650).</div>
+        <div class="tag twm" style="margin-top:6px;">Secondary · growing</div>
       </div>
       <div class="col cl" style="border-top:3px solid var(--gr);">
-        <div class="xs grt" style="font-weight:600;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;">Layer 3 — Intelligence</div>
-        <div class="h3 dt" style="margin-bottom:6px;">Partners</div>
-        <div class="xs gt" style="margin-bottom:8px;">MRD companies pay <span style="color:var(--gr);font-weight:600;">$500–2K per qualified referral</span>. We expect 3–5 partner contracts in year 1 at <span style="color:var(--gr);font-weight:600;">$25–75K each</span>.</div>
-        <div class="tag tgr">Primary revenue · scales with graph</div>
+        <div class="xs grt" style="font-weight:600;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">Layer 3 — Intelligence</div>
+        <div class="h3 dt" style="margin-bottom:4px;">Partners</div>
+        <div class="xs gt"><span style="color:var(--gr);font-weight:600;">$500–2K/referral</span>. 3–5 contracts at <span style="color:var(--gr);font-weight:600;">$25–75K</span> in year 1.</div>
+        <div class="tag tgr" style="margin-top:6px;">Primary · scales with graph</div>
       </div>
     </div>
-    <div class="btc" style="margin-top:10px;display:flex;gap:16px;">
+    <div class="g2" style="flex:1;gap:8px;">
+      <div style="background:#fff;border:.5px solid var(--st);border-radius:7px;padding:10px 14px;border-left:3px solid var(--pu);">
+        <div class="xs" style="color:var(--pu);font-weight:700;margin-bottom:2px;">PRECISION TESTING</div>
+        <div class="xs dt" style="font-weight:600;">MRD · Genomic Labs</div>
+        <div class="xs gt">Post-treatment patients asking "did it work?" → Guardant, Tempus, Foundation</div>
+      </div>
+      <div style="background:#fff;border:.5px solid var(--st);border-radius:7px;padding:10px 14px;border-left:3px solid var(--tc);">
+        <div class="xs tc" style="font-weight:700;margin-bottom:2px;">ADVOCACY ORGS</div>
+        <div class="xs dt" style="font-weight:600;">PCF · LLS · Foundations</div>
+        <div class="xs gt">Newly diagnosed patients → disease-specific communities, white-label tools</div>
+      </div>
+      <div style="background:#fff;border:.5px solid var(--st);border-radius:7px;padding:10px 14px;border-left:3px solid var(--gr);">
+        <div class="xs grt" style="font-weight:700;margin-bottom:2px;">ACADEMIC / RESEARCH</div>
+        <div class="xs dt" style="font-weight:600;">NCI · Research Hospitals</div>
+        <div class="xs gt">Real-world evidence on patient navigation. Data sharing + co-authorship.</div>
+      </div>
+      <div style="background:#fff;border:.5px solid var(--st);border-radius:7px;padding:10px 14px;border-left:3px solid var(--am);">
+        <div class="xs" style="color:var(--am);font-weight:700;margin-bottom:2px;">LIFESTYLE + WELLNESS</div>
+        <div class="xs dt" style="font-weight:600;">Exercise · Nutrition · Mental Health</div>
+        <div class="xs gt">Patients in treatment asking about QoL. Vetted clinical matching, not ads.</div>
+      </div>
+    </div>
+    <div class="btc" style="margin-top:8px;display:flex;gap:16px;">
       <div style="flex:1;">
-        <span class="xs" style="color:var(--ch);"><span style="color:var(--tc);font-weight:600;">The insight:</span> Partners don't pay for access to patients. They pay because the graph knows <em>which</em> patient, <em>when</em>. That precision is worth 100× an impression.</span>
+        <span class="xs" style="color:var(--ch);"><span style="color:var(--tc);font-weight:600;">The insight:</span> Partners pay because the graph knows <em>which</em> patient, <em>when</em>. That precision is worth 100× an impression.</span>
       </div>
       <div style="border-left:1px solid var(--st);padding-left:16px;">
-        <span class="xs grt" style="font-weight:600;">ROI Math</span>
-        <span class="xs gt"> — Trial site: $15–45K/recruit. 10 recruits = $150–450K value.</span>
+        <span class="xs grt" style="font-weight:600;">ROI:</span>
+        <span class="xs gt"> $15–45K/recruit. 10 recruits = $150–450K value.</span>
       </div>
     </div>
   </div>
   <div class="sn">5</div>
 </div>
 
-<!-- S6 PARTNERS -->
+<!-- S6 COMPETITION -->
 <div class="slide wm" id="s6">
-  <div class="nav dt">
-    <svg width="13" height="13" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#0a0a0a" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#0a0a0a"/><circle cx="24" cy="24" r="2" fill="#f5f3ee"/></svg>
-    <div class="nw dt"><span class="l">pen</span><span class="b">cancer</span><span class="f">.ai</span></div>
-  </div>
-  <div class="c ct">
-    <div class="ey">Partners</div>
-    <div class="h2 dt" style="margin-bottom:6px;">Who pays — and what they're buying.</div>
-    <div class="body gt" style="margin-bottom:14px;">Each partner type has a specific clinical moment where the graph surfaces them. That moment is what they pay for.</div>
-    <div style="display:flex;flex-direction:column;gap:8px;flex:1;">
-      <div class="pr" style="background:#fff;border:.5px solid var(--st);">
-        <div>
-          <div class="xs" style="color:var(--pu);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">Precision Testing</div>
-          <div class="body dt" style="font-weight:600;font-size:clamp(12px,1.6vw,16px);">MRD · Genomic Labs · Biomarker Testing</div>
-        </div>
-        <div class="xs gt">Graph detects post-treatment patients asking "how do I know if it worked?" — surfaces Guardant, Tempus, Foundation Medicine at the exact moment. Patient already has their biomarkers in the graph.</div>
-        <div style="text-align:right;"><span class="xs" style="color:var(--pu);font-weight:600;">Per-referral + data licensing</span></div>
-      </div>
-      <div class="pr" style="background:#fff;border:.5px solid var(--st);">
-        <div>
-          <div class="xs" style="color:var(--tc);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">Advocacy Orgs</div>
-          <div class="body dt" style="font-weight:600;font-size:clamp(12px,1.6vw,16px);">PCF · LLS · Disease-specific foundations</div>
-        </div>
-        <div class="xs gt">Graph surfaces newly diagnosed patients to relevant advocacy orgs within days of diagnosis — when community matters most. Orgs pay for white-label access or verified member referrals.</div>
-        <div style="text-align:right;"><span class="xs tc" style="font-weight:600;">White-label + referral fees</span></div>
-      </div>
-      <div class="pr" style="background:#fff;border:.5px solid var(--st);">
-        <div>
-          <div class="xs" style="color:var(--gr);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">Academic Centers</div>
-          <div class="body dt" style="font-weight:600;font-size:clamp(12px,1.6vw,16px);">NCI · Research hospitals · Clinical programs</div>
-        </div>
-        <div class="xs gt">Real-world evidence — how patients actually navigate care vs. guidelines. The graph produces research signal that generates grants and publications. Data sharing + co-authorship model.</div>
-        <div style="text-align:right;"><span class="xs grt" style="font-weight:600;">Research partnerships · grants</span></div>
-      </div>
-      <div class="pr" style="background:#fff;border:.5px solid var(--st);">
-        <div>
-          <div class="xs" style="color:var(--am);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">Lifestyle + Wellness</div>
-          <div class="body dt" style="font-weight:600;font-size:clamp(12px,1.6vw,16px);">Exercise oncology · Nutrition · Mental health</div>
-        </div>
-        <div class="xs gt">Graph identifies patients in active treatment or post-treatment recovery asking about quality-of-life. Vetted, relevant, consent-based surfacing only. Not advertising — clinical matching.</div>
-        <div style="text-align:right;"><span class="xs" style="color:var(--am);font-weight:600;">Vetted channel access</span></div>
-      </div>
-    </div>
-  </div>
-  <div class="sn">6</div>
-</div>
-
-<!-- S7 COMPETITION -->
-<div class="slide wm" id="s7">
   <div class="nav dt">
     <svg width="13" height="13" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#0a0a0a" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#0a0a0a"/><circle cx="24" cy="24" r="2" fill="#f5f3ee"/></svg>
     <div class="nw dt"><span class="l">pen</span><span class="b">cancer</span><span class="f">.ai</span></div>
@@ -432,78 +397,58 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#0d0
       </div>
     </div>
   </div>
-  <div class="sn">7</div>
+  <div class="sn">6</div>
 </div>
 
-<!-- S8 WHY FREE WORKS -->
-<div class="slide wm" id="s8">
+<!-- S7 THE FLYWHEEL -->
+<div class="slide wm" id="s7">
   <div class="nav dt">
     <svg width="13" height="13" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#0a0a0a" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#0a0a0a"/><circle cx="24" cy="24" r="2" fill="#f5f3ee"/></svg>
     <div class="nw dt"><span class="l">pen</span><span class="b">cancer</span><span class="f">.ai</span></div>
   </div>
   <div class="c ct">
-    <div class="ey">Why free is the strategy</div>
+    <div class="ey">The flywheel</div>
     <div class="h2 dt" style="margin-bottom:6px;">Free isn't a compromise.<br>It's the moat.</div>
-    <div class="body gt" style="margin-bottom:16px;">Every paid tool in oncology competes for IT budgets. We compete for patient trust. These are different markets with different dynamics.</div>
-    <div class="g2" style="flex:1;">
-      <div class="cl" style="display:flex;flex-direction:column;gap:8px;border-top:3px solid var(--bl);">
-        <div class="xs bt" style="font-weight:700;text-transform:uppercase;letter-spacing:.1em;">What free unlocks</div>
-        <div style="display:flex;flex-direction:column;gap:7px;">
-          <div style="display:flex;gap:8px;">
-            <div style="width:5px;height:5px;border-radius:50%;background:var(--bl);margin-top:4px;flex-shrink:0;"></div>
-            <span class="xs gt">Patients share with each other. Cancer is word-of-mouth. Free = viral distribution.</span>
-          </div>
-          <div style="display:flex;gap:8px;">
-            <div style="width:5px;height:5px;border-radius:50%;background:var(--bl);margin-top:4px;flex-shrink:0;"></div>
-            <span class="xs gt">Trust is earned in the crisis moment — not through marketing. You can't buy what we're building.</span>
-          </div>
-          <div style="display:flex;gap:8px;">
-            <div style="width:5px;height:5px;border-radius:50%;background:var(--bl);margin-top:4px;flex-shrink:0;"></div>
-            <span class="xs gt">Volume makes the graph valuable. 10K patients > any paid product launch.</span>
-          </div>
-          <div style="display:flex;gap:8px;">
-            <div style="width:5px;height:5px;border-radius:50%;background:var(--bl);margin-top:4px;flex-shrink:0;"></div>
-            <span class="xs gt">Partners need verified patients. The only way to get them is to serve them first.</span>
-          </div>
+    <div class="body gt" style="margin-bottom:20px;">Every paid tool competes for IT budgets. We compete for patient trust. That's a different market.</div>
+    <div style="display:flex;align-items:center;justify-content:center;flex:1;gap:24px;">
+      <div style="display:flex;flex-direction:column;gap:10px;max-width:420px;">
+        <div style="background:var(--wh);border:.5px solid var(--st);border-radius:8px;padding:12px 16px;border-left:3px solid var(--tc);display:flex;align-items:center;gap:12px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--tcl);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--tc);font-size:13px;">1</div>
+          <div><span class="body dt" style="font-weight:600;">Free tools</span><span class="body gt"> → patients trust us with records</span></div>
+        </div>
+        <div style="background:var(--wh);border:.5px solid var(--st);border-radius:8px;padding:12px 16px;border-left:3px solid var(--tc);display:flex;align-items:center;gap:12px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--tcl);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--tc);font-size:13px;">2</div>
+          <div><span class="body dt" style="font-weight:600;">Records</span><span class="body gt"> → graph gets richer</span></div>
+        </div>
+        <div style="background:var(--wh);border:.5px solid var(--st);border-radius:8px;padding:12px 16px;border-left:3px solid var(--tc);display:flex;align-items:center;gap:12px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--tcl);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--tc);font-size:13px;">3</div>
+          <div><span class="body dt" style="font-weight:600;">Richer graph</span><span class="body gt"> → better answers → more patients</span></div>
+        </div>
+        <div style="background:var(--wh);border:.5px solid var(--st);border-radius:8px;padding:12px 16px;border-left:3px solid var(--gr);display:flex;align-items:center;gap:12px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:#e8f5f0;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--gr);font-size:13px;">4</div>
+          <div><span class="body dt" style="font-weight:600;">More patients</span><span class="body gt"> → partners pay for precise access</span></div>
+        </div>
+        <div style="background:var(--tcl);border-radius:8px;padding:12px 16px;border-left:3px solid var(--tc);display:flex;align-items:center;gap:12px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--tc);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:13px;">↻</div>
+          <div><span class="body tc" style="font-weight:700;">Partner revenue</span><span class="body" style="color:var(--tcd);"> → better free tools → repeat</span></div>
         </div>
       </div>
-      <div class="cl" style="display:flex;flex-direction:column;gap:8px;border-top:3px solid var(--tc);">
-        <div class="xs tc" style="font-weight:700;text-transform:uppercase;letter-spacing:.1em;">The flywheel</div>
+      <div class="cl" style="max-width:280px;border-top:3px solid var(--bl);">
+        <div class="xs bt" style="font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;">Why free wins</div>
         <div style="display:flex;flex-direction:column;gap:6px;">
-          <div style="background:var(--wm);border-radius:6px;padding:8px 10px;border-left:2px solid var(--tc);">
-            <span class="xs dt" style="font-weight:600;">Free tools →</span>
-            <span class="xs gt"> patients trust us with records</span>
-          </div>
-          <div style="background:var(--wm);border-radius:6px;padding:8px 10px;border-left:2px solid var(--tc);">
-            <span class="xs dt" style="font-weight:600;">Records →</span>
-            <span class="xs gt"> graph gets richer</span>
-          </div>
-          <div style="background:var(--wm);border-radius:6px;padding:8px 10px;border-left:2px solid var(--tc);">
-            <span class="xs dt" style="font-weight:600;">Richer graph →</span>
-            <span class="xs gt"> better answers → more patients</span>
-          </div>
-          <div style="background:var(--wm);border-radius:6px;padding:8px 10px;border-left:2px solid var(--tc);">
-            <span class="xs dt" style="font-weight:600;">More patients →</span>
-            <span class="xs gt"> partners pay for precise access</span>
-          </div>
-          <div style="background:var(--tcl);border-radius:6px;padding:8px 10px;border-left:2px solid var(--tc);">
-            <span class="xs tc" style="font-weight:700;">Partner revenue →</span>
-            <span class="xs" style="color:var(--tcd);"> better free tools → more patients</span>
-          </div>
+          <span class="xs gt">• Cancer spreads by word-of-mouth. Free = viral.</span>
+          <span class="xs gt">• Trust is earned in crisis, not bought.</span>
+          <span class="xs gt">• Volume makes the graph valuable.</span>
+          <span class="xs gt">• Partners need verified patients — serve first.</span>
         </div>
       </div>
-    </div>
-    <div class="btc" style="margin-top:10px;">
-      <div class="xs tc" style="font-weight:700;margin-bottom:4px;">MENLO VENTURES · APRIL 2026</div>
-      <span class="xs" style="color:var(--ch);font-style:italic;">"Vertical AI companies that win go after labor budgets, not IT budgets. The Clone Test: if you replicated the team and codebase today, why wouldn't the clone win?"</span>
-      <div class="xs gt" style="margin-top:6px;"><span style="color:var(--tc);font-weight:600;">Our answer:</span> The clone lacks 117 patients who trusted us with records. The CPL community. The graph signal. That gap widens every week.</div>
     </div>
   </div>
-  <div class="sn">8</div>
+  <div class="sn">7</div>
 </div>
 
-<!-- S9 TRACTION -->
-<div class="slide wm" id="s9">
+<!-- S8 TRACTION -->
+<div class="slide wm" id="s8">
   <div class="nav dt">
     <svg width="13" height="13" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#0a0a0a" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#0a0a0a"/><circle cx="24" cy="24" r="2" fill="#f5f3ee"/></svg>
     <div class="nw dt"><span class="l">pen</span><span class="b">cancer</span><span class="f">.ai</span></div>
@@ -557,11 +502,11 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#0d0
       </div>
     </div>
   </div>
-  <div class="sn">9</div>
+  <div class="sn">8</div>
 </div>
 
-<!-- S10 TEAM -->
-<div class="slide wm" id="s10">
+<!-- S9 TEAM -->
+<div class="slide wm" id="s9">
   <div class="nav dt">
     <svg width="13" height="13" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#0a0a0a" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#0a0a0a"/><circle cx="24" cy="24" r="2" fill="#f5f3ee"/></svg>
     <div class="nw dt"><span class="l">pen</span><span class="b">cancer</span><span class="f">.ai</span></div>
@@ -614,11 +559,11 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#0d0
       </div>
     </div>
   </div>
-  <div class="sn">10</div>
+  <div class="sn">9</div>
 </div>
 
-<!-- S11 THE ASK -->
-<div class="slide wm" id="s11">
+<!-- S10 THE ASK -->
+<div class="slide wm" id="s10">
   <div class="wmarkl"></div>
   <div class="bar-b"></div>
   <div class="nav dt">
@@ -672,7 +617,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#0d0
       <div class="xs" style="color:var(--gy);margin-top:8px;text-align:right;">ariakerstein@gmail.com · opencancer.ai</div>
     </div>
   </div>
-  <div class="sn">11</div>
+  <div class="sn">10</div>
 </div>
 
 </div>
@@ -680,13 +625,13 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#0d0
 <!-- CONTROLS -->
 <div class="ctrl">
   <button class="btn" onclick="prev()">← Prev</button>
-  <div class="prog" id="prog">1 / 11</div>
+  <div class="prog" id="prog">1 / 10</div>
   <button class="btn btnt" onclick="next()">Next →</button>
 </div>
 <div style="color:#333;font-size:11px;margin-top:4px;">Arrow keys to navigate · F for fullscreen</div>
 
 <script>
-let cur=1,tot=11;
+let cur=1,tot=10;
 function show(n){
   document.querySelectorAll('.slide').forEach(s=>s.classList.remove('active'));
   document.getElementById('s'+n).classList.add('active');
