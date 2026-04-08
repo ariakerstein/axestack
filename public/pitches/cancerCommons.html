@@ -161,8 +161,14 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#0d0
         <div class="xs gt">Scary. Often wrong.</div>
       </div>
     </div>
-    <div style="background:var(--dk);border-radius:7px;padding:10px 16px;margin-top:12px;">
-      <span class="xs wt">Every oncology tool — Epic, OpenEvidence, clinical decision support — is built for the physician. The patient sits outside the system. <span style="color:var(--tc);font-weight:600;">That's the gap we fill.</span></span>
+    <div style="background:var(--dk);border-radius:7px;padding:10px 16px;margin-top:12px;display:flex;gap:16px;align-items:center;">
+      <div style="flex:1;">
+        <span class="xs wt">Every oncology tool — Epic, OpenEvidence, clinical decision support — is built for the physician. The patient sits outside the system. <span style="color:var(--tc);font-weight:600;">That's the gap we fill.</span></span>
+      </div>
+      <div style="border-left:1px solid #333;padding-left:16px;">
+        <div class="xs" style="color:var(--tc);font-weight:700;margin-bottom:2px;">WHY NOW</div>
+        <span class="xs gt">LLMs crossed the threshold. Patients trust AI more than "Dr. Google." The timing is now.</span>
+      </div>
     </div>
   </div>
   <div class="sn">2</div>
@@ -291,7 +297,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#0d0
       <div class="col" style="background:#0a1810;border-radius:9px;padding:16px 18px;border-top:2px solid var(--gr);">
         <div class="xs grt" style="font-weight:600;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;">Layer 3 — Intelligence</div>
         <div class="h3 wt" style="margin-bottom:6px;">Partners</div>
-        <div class="xs gt" style="margin-bottom:8px;">Precision testing labs, advocacy orgs, MRD companies, academic centers pay to reach the right patient at the right moment. Graph does the matching.</div>
+        <div class="xs gt" style="margin-bottom:8px;">MRD companies pay <span style="color:var(--gr);font-weight:600;">$500–2K per qualified referral</span>. We expect 3–5 partner contracts in year 1 at <span style="color:var(--gr);font-weight:600;">$25–75K each</span>.</div>
         <div class="tag tgr">Primary revenue · scales with graph</div>
       </div>
     </div>
@@ -423,11 +429,15 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#0d0
   </div>
   <div class="c ct">
     <div class="ey">Traction</div>
-    <div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:12px;">
-      <div class="h2 dt" style="flex:1;">Five days post-launch.</div>
+    <div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:10px;">
+      <div class="h2 dt" style="flex:1;">The graph already works.</div>
       <div class="xs gt" style="text-align:right;padding-bottom:4px;">5 LOIs · 3 pilots live · survivor founders</div>
     </div>
-    <div class="g3" style="margin-bottom:10px;">
+    <div style="background:var(--wh);border:.5px solid var(--st);border-radius:9px;padding:12px 16px;border-left:3px solid var(--tc);margin-bottom:10px;">
+      <div class="xs tc" style="font-weight:700;margin-bottom:4px;">PARP inhibitor story — Day 3</div>
+      <div class="xs gt">Patient uploaded records. Graph detected BRCA1/2 + ATM co-mutations → DNA repair deficiency pattern → flagged PARP inhibitor trial eligibility. <span style="color:var(--tcd);font-weight:600;">His oncologist hadn't mentioned it yet.</span> This is what we sell to partners — precision matching based on clinical context, not demographics.</div>
+    </div>
+    <div class="g3" style="margin-bottom:8px;">
       <div class="cl" style="border-top:2px solid var(--tc);">
         <div class="stat">117</div>
         <div class="body dt" style="font-weight:600;font-size:clamp(11px,1.5vw,14px);margin-top:4px;">unique users</div>
@@ -439,14 +449,10 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#0d0
         <div class="xs gt">4.9 avg per uploader</div>
       </div>
       <div class="cl" style="border-top:2px solid var(--tc);">
-        <div class="stat">27.9%</div>
-        <div class="body dt" style="font-weight:600;font-size:clamp(11px,1.5vw,14px);margin-top:4px;">email open rate</div>
-        <div class="xs gt">industry avg 22%</div>
+        <div class="stat">289</div>
+        <div class="body dt" style="font-weight:600;font-size:clamp(11px,1.5vw,14px);margin-top:4px;">graph entities</div>
+        <div class="xs gt">106 relationships</div>
       </div>
-    </div>
-    <div style="background:var(--wh);border:.5px solid var(--st);border-radius:9px;padding:12px 16px;border-left:3px solid var(--tc);">
-      <div class="xs tc" style="font-weight:700;margin-bottom:4px;">Graph signal — day 5</div>
-      <div class="xs gt">289 entities · 106 relationships. Already detecting DNA repair deficiency from BRCA1/2 + ATM co-mutations. Surfaced PARP inhibitor trial eligibility before the patient's oncologist raised it. This is the B2B value on 2 patients.</div>
     </div>
     <div style="background:var(--wh);border:.5px solid var(--st);border-radius:9px;padding:10px 14px;margin-top:8px;border-left:3px solid var(--dk);">
       <span class="xs gt;font-style:italic;">"Absolutely fantastic — spot-on even for non-SOC, non-NCCN aspects. Surpasses every tool I've tried."</span>
@@ -502,8 +508,12 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#0d0
         <div style="background:rgba(29,158,117,.15);border-radius:3px;padding:2px 6px;margin-top:5px;display:inline-block;"><span class="xs grt" style="font-weight:600;">GTM Expert</span></div>
       </div>
     </div>
-    <div class="bb">
-      <span class="xs dm"><span style="color:var(--tc);font-weight:600;">Cancer survivors</span> who lived this problem + <span style="color:var(--bl);font-weight:600;">UCSF/Genentech clinical leadership</span> + <span style="color:var(--gr);font-weight:600;">Meta/Stanford operators</span> · Advisory: Magliocco MD (Moffitt) · Wilkinson PhD (Human Genome Project) · Tenenbaum PhD (Cancer Commons)</span>
+    <div class="bb" style="display:flex;flex-direction:column;gap:6px;">
+      <span class="xs dm"><span style="color:var(--tc);font-weight:600;">Cancer survivors</span> who lived this problem + <span style="color:var(--bl);font-weight:600;">UCSF/Genentech clinical leadership</span> + <span style="color:var(--gr);font-weight:600;">Meta/Stanford operators</span> · Advisory: Magliocco MD (Moffitt) · Wilkinson PhD (Human Genome Project) · Tenenbaum PhD</span>
+      <div style="border-top:1px solid #2a2825;padding-top:6px;">
+        <span class="xs tc" style="font-weight:600;">Why can't Flatiron or Epic replicate this?</span>
+        <span class="xs gt"> They're built for providers. We own the patient relationship. The trust, the records, the consent. That can't be bought — only earned one patient at a time.</span>
+      </div>
     </div>
   </div>
   <div class="snl">9</div>
