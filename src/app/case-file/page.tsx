@@ -454,7 +454,14 @@ export default function CaseFilePage() {
                 {expandedSections.has('labs') && (
                   <div className="px-4 pb-4 border-t border-slate-100">
                     <div className="mt-4 space-y-2">
-                      {data.labResults.slice(0, 20).map((lab, i) => (
+                      {/* Sort by status: Critical → Abnormal → Normal → unknown */}
+                      {[...data.labResults]
+                        .sort((a, b) => {
+                          const priority: Record<string, number> = { Critical: 0, Abnormal: 1, Normal: 2 }
+                          return (priority[a.status] ?? 3) - (priority[b.status] ?? 3)
+                        })
+                        .slice(0, 20)
+                        .map((lab, i) => (
                         <div key={i} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
                           <div>
                             <p className="text-sm font-medium text-slate-900">{lab.test}</p>

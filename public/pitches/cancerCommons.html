@@ -105,7 +105,7 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#0d0
 <div class="deck">
 
 <!-- S1 COVER -->
-<div class="slide wm active" id="s1">
+<div class="slide wm" id="s1">
   <div class="wmarkl"></div>
   <div class="bar-l"></div>
   <div class="bar-b"></div>
@@ -235,169 +235,263 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#0d0
   <div class="sn">4</div>
 </div>
 
-<!-- S5 THE GRAPH -->
+<!-- S5 THE GRAPH - Interactive -->
 <div class="slide dk" id="s5">
   <div class="wmark"></div>
   <div class="nav wt">
     <svg width="13" height="13" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#ffffff"/><circle cx="24" cy="24" r="2" fill="#0a0a0a"/></svg>
     <div class="nw wt"><span class="l">open</span><span class="b">cancer</span><span class="f">.ai</span></div>
   </div>
-  <div class="c ct">
+  <style>
+    .s5-input{background:#181614;border-radius:6px;padding:8px 10px;border-left:2px solid var(--tc);opacity:.4;transition:opacity .3s,background .15s;}
+    .s5-input.active{opacity:1;background:#1a1008;}
+    .s5-output{background:#181614;border-radius:6px;padding:8px 10px;border-right:2px solid var(--gr);opacity:.35;transition:opacity .3s,background .15s;}
+    .s5-output.lit{opacity:1;background:#0a1810;}
+    .s5-output.purple{border-color:var(--pu);}
+    .s5-output.purple.lit{background:#110e18;}
+    .s5-canvas{width:100%;height:100%;border-radius:8px;background:#0f0d0c;border:.5px solid #2a2825;}
+    .s5-prog{height:3px;background:#1e1c1a;border-radius:2px;overflow:hidden;margin-bottom:10px;}
+    .s5-fill{height:100%;background:var(--tc);border-radius:2px;transition:width .4s;}
+    .s5-btn{background:#2a2825;color:#c8c4be;border:none;border-radius:5px;padding:5px 12px;font-size:10px;cursor:pointer;font-family:inherit;}
+    .s5-btn:hover{background:#3a3835;}
+    .s5-btn-tc{background:var(--tc);color:#fff;}
+  </style>
+  <div class="c ct" style="padding-bottom:20px;">
     <div class="ey" style="color:var(--tc);">The Moat</div>
-    <div class="h2 wt" style="margin-bottom:6px;">A compounding patient graph<br>nobody else can build.</div>
-    <div class="row" style="flex:1;gap:20px;">
-      <!-- Graph Visualization - animated, straight lines -->
-      <div class="col" style="display:flex;align-items:center;justify-content:center;">
-        <style>
-          @keyframes float1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(2px,-3px)} }
-          @keyframes float2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-2px,2px)} }
-          @keyframes float3 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(3px,2px)} }
-          @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.7} }
-          .n1{animation:float1 4s ease-in-out infinite}
-          .n2{animation:float2 5s ease-in-out infinite}
-          .n3{animation:float3 3.5s ease-in-out infinite}
-          .glow{animation:pulse 3s ease-in-out infinite}
-        </style>
-        <svg viewBox="0 0 440 300" style="width:100%;max-width:480px;height:auto;">
-          <!-- Edges - straight lines -->
-          <g stroke="#444" stroke-width="1" fill="none" opacity="0.4">
-            <!-- Patient connections -->
-            <line x1="220" y1="150" x2="130" y2="85" stroke-width="1.5"/>
-            <line x1="220" y1="150" x2="310" y2="70" stroke-width="1.5"/>
-            <line x1="220" y1="150" x2="85" y2="175"/>
-            <line x1="220" y1="150" x2="355" y2="165"/>
-            <line x1="220" y1="150" x2="160" y2="245"/>
-            <line x1="220" y1="150" x2="305" y2="235"/>
-            <!-- Biomarker cluster -->
-            <line x1="310" y1="70" x2="350" y2="45"/>
-            <line x1="310" y1="70" x2="370" y2="80"/>
-            <line x1="310" y1="70" x2="340" y2="110"/>
-            <!-- Treatment cluster -->
-            <line x1="85" y1="175" x2="50" y2="140"/>
-            <line x1="85" y1="175" x2="40" y2="195"/>
-            <!-- Trial connections -->
-            <line x1="355" y1="165" x2="390" y2="140"/>
-            <line x1="355" y1="165" x2="400" y2="185"/>
-            <line x1="310" y1="70" x2="355" y2="165" stroke-dasharray="4,4" class="glow"/>
-            <!-- Dx connections -->
-            <line x1="130" y1="85" x2="100" y2="50"/>
-            <line x1="130" y1="85" x2="160" y2="45"/>
-            <line x1="130" y1="85" x2="85" y2="175"/>
-            <!-- Outcomes -->
-            <line x1="160" y1="245" x2="120" y2="270"/>
-            <line x1="305" y1="235" x2="340" y2="260"/>
-          </g>
-          <!-- Patient Node (Center) -->
-          <g class="n1">
-            <circle cx="220" cy="150" r="34" fill="#fff"/>
-            <text x="220" y="155" text-anchor="middle" fill="#0a0a0a" font-size="13" font-weight="700">Patient</text>
-          </g>
-          <!-- Diagnosis -->
-          <g class="n2">
-            <circle cx="130" cy="85" r="24" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
-            <text x="130" y="82" text-anchor="middle" fill="#fff" font-size="9" font-weight="600">DIAGNOSIS</text>
-            <text x="130" y="94" text-anchor="middle" fill="#888" font-size="7">MZL Stage IV</text>
-          </g>
-          <!-- Biomarkers cluster -->
-          <g class="n3">
-            <circle cx="310" cy="70" r="22" fill="#a85c3e" class="glow"/>
-            <text x="310" y="75" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">Biomarkers</text>
-          </g>
-          <g class="n1">
-            <circle cx="350" cy="45" r="16" fill="#333" stroke="#a85c3e" stroke-width="2"/>
-            <text x="350" y="49" text-anchor="middle" fill="#fff" font-size="8" font-weight="600">BRCA1</text>
-          </g>
-          <g class="n2">
-            <circle cx="370" cy="80" r="16" fill="#333" stroke="#a85c3e" stroke-width="2"/>
-            <text x="370" y="84" text-anchor="middle" fill="#fff" font-size="8" font-weight="600">ATM</text>
-          </g>
-          <g class="n3">
-            <circle cx="340" cy="110" r="13" fill="#333" stroke="#666" stroke-width="1"/>
-            <text x="340" y="114" text-anchor="middle" fill="#999" font-size="7">TP53</text>
-          </g>
-          <!-- Treatment -->
-          <g class="n2">
-            <circle cx="85" cy="175" r="20" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
-            <text x="85" y="172" text-anchor="middle" fill="#fff" font-size="8" font-weight="600">TREATMENT</text>
-            <text x="85" y="183" text-anchor="middle" fill="#888" font-size="7">R-CHOP</text>
-          </g>
-          <circle cx="50" cy="140" r="11" fill="#222" stroke="#444" stroke-width="1"/>
-          <text x="50" y="144" text-anchor="middle" fill="#888" font-size="6">Ritux</text>
-          <circle cx="40" cy="195" r="11" fill="#222" stroke="#444" stroke-width="1"/>
-          <text x="40" y="199" text-anchor="middle" fill="#888" font-size="6">Chemo</text>
-          <!-- Trials -->
-          <g class="n1">
-            <circle cx="355" cy="165" r="20" fill="#2a2a2a" stroke="#a85c3e" stroke-width="2"/>
-            <text x="355" y="162" text-anchor="middle" fill="#fff" font-size="8" font-weight="600">TRIALS</text>
-            <text x="355" y="173" text-anchor="middle" fill="#a85c3e" font-size="7">3 matches</text>
-          </g>
-          <circle cx="390" cy="140" r="10" fill="#222"/>
-          <text x="390" y="144" text-anchor="middle" fill="#666" font-size="6">PARP</text>
-          <circle cx="400" cy="185" r="10" fill="#222"/>
-          <text x="400" y="189" text-anchor="middle" fill="#666" font-size="6">CAR-T</text>
-          <!-- Staging -->
-          <circle cx="100" cy="50" r="12" fill="#222" stroke="#444" stroke-width="1"/>
-          <text x="100" y="54" text-anchor="middle" fill="#888" font-size="7">Stage</text>
-          <circle cx="160" cy="45" r="12" fill="#222" stroke="#444" stroke-width="1"/>
-          <text x="160" y="49" text-anchor="middle" fill="#888" font-size="7">Grade</text>
-          <!-- Outcomes -->
-          <g class="n3">
-            <circle cx="160" cy="245" r="18" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
-            <text x="160" y="249" text-anchor="middle" fill="#fff" font-size="8" font-weight="600">Response</text>
-          </g>
-          <g class="n2">
-            <circle cx="305" cy="235" r="16" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
-            <text x="305" y="239" text-anchor="middle" fill="#fff" font-size="8" font-weight="600">Intent</text>
-          </g>
-          <circle cx="120" cy="270" r="10" fill="#222"/>
-          <text x="120" y="274" text-anchor="middle" fill="#666" font-size="6">PR</text>
-          <circle cx="340" cy="260" r="10" fill="#222"/>
-          <text x="340" y="264" text-anchor="middle" fill="#666" font-size="6">2nd Op</text>
-          <!-- Stats -->
-          <rect x="10" y="10" width="100" height="44" rx="5" fill="rgba(255,255,255,.1)" stroke="rgba(255,255,255,.2)"/>
-          <text x="22" y="32" fill="#fff" font-size="18" font-weight="700">289</text>
-          <text x="62" y="32" fill="#888" font-size="10">entities</text>
-          <text x="22" y="48" fill="#666" font-size="9">106 relationships</text>
-        </svg>
+    <div class="h2 wt" style="margin-bottom:4px;font-size:clamp(16px,2.5vw,26px);">A compounding patient graph nobody else can build.</div>
+    <div class="xs gt" style="margin-bottom:10px;">Every interaction becomes a node. Partners pay for the signal — never the raw data.</div>
+
+    <!-- Progress -->
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:#555;margin-bottom:4px;">
+      <span id="s5-step">Step 1 of 5 — Patient uploads first record</span>
+      <span id="s5-day">Day 1</span>
+    </div>
+    <div class="s5-prog"><div class="s5-fill" id="s5-fill" style="width:20%"></div></div>
+
+    <!-- 3-column layout -->
+    <div style="display:grid;grid-template-columns:1fr 2fr 1fr;gap:12px;flex:1;min-height:0;">
+      <!-- LEFT: Patient inputs -->
+      <div style="display:flex;flex-direction:column;gap:6px;overflow:hidden;">
+        <div style="font-size:9px;color:#555;text-transform:uppercase;letter-spacing:.1em;">Patient actions</div>
+        <div class="s5-input active" id="s5i1"><div class="xs tc" style="font-weight:600;">Records</div><div style="font-size:10px;color:#888;line-height:1.3;">Pathology — MZL IV, BRCA1</div></div>
+        <div class="s5-input" id="s5i2"><div class="xs tc" style="font-weight:600;">Biomarkers</div><div style="font-size:10px;color:#888;line-height:1.3;">ATM co-mutation extracted</div></div>
+        <div class="s5-input" id="s5i3"><div class="xs tc" style="font-weight:600;">Treatment</div><div style="font-size:10px;color:#888;line-height:1.3;">R-CHOP confirmed</div></div>
+        <div class="s5-input" id="s5i4"><div class="xs tc" style="font-weight:600;">Trial search</div><div style="font-size:10px;color:#888;line-height:1.3;">"relapsed lymphoma"</div></div>
+        <div class="s5-input" id="s5i5"><div class="xs tc" style="font-weight:600;">Question</div><div style="font-size:10px;color:#888;line-height:1.3;">"Is treatment working?"</div></div>
       </div>
-      <!-- Right side content -->
-      <div class="col" style="display:flex;flex-direction:column;gap:12px;max-width:320px;">
-        <div style="background:rgba(168,92,62,.15);border-radius:8px;padding:14px 18px;border-left:3px solid var(--tc);">
-          <div class="xs tc" style="font-weight:700;margin-bottom:6px;">DAY 5: PARP DISCOVERY</div>
-          <div class="body" style="color:var(--dm);">Graph detected <span style="color:#fff;font-weight:600;">BRCA1/2 + ATM</span> → flagged PARP inhibitor trial eligibility.</div>
-          <div class="body tc" style="font-weight:600;margin-top:6px;">Oncologist hadn't raised it.</div>
+
+      <!-- CENTER: Graph canvas -->
+      <div style="display:flex;flex-direction:column;min-height:0;">
+        <div style="font-size:9px;color:#555;text-transform:uppercase;letter-spacing:.1em;text-align:center;margin-bottom:4px;">Patient knowledge graph</div>
+        <canvas class="s5-canvas" id="s5gc"></canvas>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:#555;margin-top:4px;">
+          <span>Consent-first · HIPAA</span>
+          <span id="s5-ent" style="color:var(--tc);font-weight:600;">12 entities</span>
         </div>
-        <div style="background:rgba(255,255,255,.05);border-radius:8px;padding:14px 18px;border-left:3px solid #555;">
-          <div class="xs" style="color:#888;font-weight:700;margin-bottom:6px;">THE CLONE TEST</div>
-          <div class="body" style="color:var(--dm);">Copy our code — you lack: <span style="color:#fff;">117 patients</span>, <span style="color:#fff;">CPL community</span>, <span style="color:#fff;">graph signal</span>.</div>
-          <div class="xs" style="color:#666;margin-top:6px;">Gap widens weekly.</div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:auto;">
-          <div style="background:rgba(168,92,62,.1);border-radius:6px;padding:10px 12px;">
-            <div class="xs tc" style="font-weight:700;">Clinical</div>
-            <div class="xs" style="color:#666;">Dx · staging · markers</div>
-          </div>
-          <div style="background:rgba(255,255,255,.05);border-radius:6px;padding:10px 12px;">
-            <div class="xs wt" style="font-weight:700;">Behavior</div>
-            <div class="xs" style="color:#666;">Searches · intent</div>
-          </div>
-          <div style="background:rgba(255,255,255,.05);border-radius:6px;padding:10px 12px;">
-            <div class="xs wt" style="font-weight:700;">Journey</div>
-            <div class="xs" style="color:#666;">Timeline · caregivers</div>
-          </div>
-          <div style="background:rgba(255,255,255,.05);border-radius:6px;padding:10px 12px;">
-            <div class="xs wt" style="font-weight:700;">Outcomes</div>
-            <div class="xs" style="color:#666;">Response · RWE</div>
-          </div>
-        </div>
+      </div>
+
+      <!-- RIGHT: Intelligence outputs -->
+      <div style="display:flex;flex-direction:column;gap:6px;overflow:hidden;">
+        <div style="font-size:9px;color:#555;text-transform:uppercase;letter-spacing:.1em;">Clinical intelligence</div>
+        <div class="s5-output" id="s5o1"><div class="xs grt" style="font-weight:600;">Dx confirmed</div><div style="font-size:10px;color:#888;line-height:1.3;">MZL IV · BRCA1+</div></div>
+        <div class="s5-output" id="s5o2"><div class="xs grt" style="font-weight:600;">HRR pattern</div><div style="font-size:10px;color:#888;line-height:1.3;">BRCA1 + ATM → HRR deficiency</div></div>
+        <div class="s5-output" id="s5o3"><div class="xs grt" style="font-weight:600;">Trial match</div><div style="font-size:10px;color:#888;line-height:1.3;">PARP trial flagged first</div></div>
+        <div class="s5-output purple" id="s5o4"><div class="xs pt" style="font-weight:600;">Partner signal</div><div style="font-size:10px;color:#888;line-height:1.3;">Guardant MRD detected</div></div>
+        <div class="s5-output purple" id="s5o5"><div class="xs pt" style="font-weight:600;">Revenue</div><div style="font-size:10px;color:#888;line-height:1.3;">$800 per qualified referral</div></div>
       </div>
     </div>
-    <div style="background:rgba(255,255,255,.05);border-radius:7px;padding:10px 16px;margin-top:8px;">
-      <span class="body" style="color:#888;">Consent-first · patient-owned · HIPAA · <span class="tc" style="font-weight:600;">partners get signal, never raw records</span></span>
+
+    <!-- Bottom bar -->
+    <div style="background:#181614;border-radius:6px;padding:8px 14px;margin-top:8px;display:flex;align-items:center;gap:14px;">
+      <div style="text-align:center;"><div id="s5bn1" style="font-size:18px;font-weight:700;color:var(--tc);">2</div><div style="font-size:9px;color:#666;">patients</div></div>
+      <div style="text-align:center;"><div id="s5bn2" style="font-size:18px;font-weight:700;color:var(--tc);">12</div><div style="font-size:9px;color:#666;">entities</div></div>
+      <div style="text-align:center;"><div id="s5bn3" style="font-size:18px;font-weight:700;color:var(--tc);">4</div><div style="font-size:9px;color:#666;">relationships</div></div>
+      <div style="flex:1;border-left:2px solid var(--tc);padding-left:12px;">
+        <div id="s5bi-t" style="font-size:11px;font-weight:600;color:var(--tc);margin-bottom:2px;">Day 1 — First record uploaded</div>
+        <div id="s5bi-b" style="font-size:10px;color:#888;line-height:1.4;">Pathology processed. 12 entities extracted. Graph starts building.</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button class="s5-btn" onclick="s5back()">←</button>
+        <button class="s5-btn s5-btn-tc" onclick="s5fwd()">Next →</button>
+        <span id="s5sl" style="font-size:10px;color:#555;">1/5</span>
+      </div>
     </div>
   </div>
   <div class="snl">5</div>
 </div>
+<script>
+(function(){
+const s5steps=[
+  {label:'Step 1 of 5 — Patient uploads first record',day:'Day 1',progress:20,inputs:[1],outputs:[1],entities:'12 entities',bn1:'2',bn2:'12',bn3:'4',title:'Day 1 — First record uploaded',body:'Pathology processed. 12 entities extracted. Graph starts building.',
+   nodes:[{x:.5,y:.45,r:18,c:'#a85c3e',label:'Patient',sub:'MZL IV'},{x:.3,y:.28,r:11,c:'#378add',label:'BRCA1',sub:'detected'},{x:.7,y:.3,r:11,c:'#555',label:'R-CHOP',sub:'treatment'},{x:.2,y:.62,r:9,c:'#555',label:'Oncol.',sub:''}],edges:[[0,1],[0,2],[0,3]]},
+  {label:'Step 2 of 5 — ATM co-mutation extracted',day:'Day 2',progress:40,inputs:[1,2],outputs:[1,2],entities:'28 entities',bn1:'2',bn2:'28',bn3:'18',title:'Day 2 — Genomic test processed',body:'ATM co-mutation detected. Graph infers HRR deficiency pattern.',
+   nodes:[{x:.5,y:.45,r:18,c:'#a85c3e',label:'Patient',sub:'MZL IV'},{x:.28,y:.22,r:11,c:'#378add',label:'BRCA1',sub:'+'},{x:.68,y:.22,r:11,c:'#7f77dd',label:'ATM',sub:'co-mut'},{x:.72,y:.55,r:10,c:'#555',label:'R-CHOP',sub:''},{x:.18,y:.62,r:9,c:'#555',label:'Oncol.',sub:''},{x:.48,y:.15,r:13,c:'#378add',label:'HRR',sub:'deficiency',glow:true}],edges:[[0,1],[0,2],[0,3],[0,4],[1,5],[2,5]]},
+  {label:'Step 3 of 5 — PARP trial eligibility surfaced',day:'Day 3',progress:60,inputs:[1,2,3],outputs:[1,2,3],entities:'67 entities',bn1:'2',bn2:'67',bn3:'48',title:'Day 3 — PARP inhibitor trial flagged',body:'BRCA1 + ATM → HRR → PARP eligibility. Before oncologist mentioned it.',
+   nodes:[{x:.5,y:.48,r:18,c:'#a85c3e',label:'Patient',sub:'MZL IV'},{x:.25,y:.22,r:11,c:'#378add',label:'BRCA1',sub:'+'},{x:.72,y:.22,r:11,c:'#7f77dd',label:'ATM',sub:'co-mut'},{x:.75,y:.58,r:9,c:'#555',label:'R-CHOP',sub:''},{x:.15,y:.65,r:9,c:'#555',label:'Oncol.',sub:''},{x:.48,y:.12,r:14,c:'#1d9e75',label:'HRR',sub:'deficiency',glow:true},{x:.82,y:.38,r:13,c:'#1d9e75',label:'PARP',sub:'trial',glow:true}],edges:[[0,1],[0,2],[0,3],[0,4],[1,5],[2,5],[5,6]]},
+  {label:'Step 4 of 5 — Trial search + question logged',day:'Day 5',progress:80,inputs:[1,2,3,4,5],outputs:[1,2,3,4],entities:'106 entities',bn1:'2',bn2:'106',bn3:'89',title:'Day 5 — Intent signals compound',body:'Trial search + monitoring question = post-treatment intent detected.',
+   nodes:[{x:.5,y:.48,r:18,c:'#a85c3e',label:'Patient',sub:'MZL IV'},{x:.22,y:.18,r:10,c:'#378add',label:'BRCA1',sub:''},{x:.72,y:.18,r:10,c:'#7f77dd',label:'ATM',sub:''},{x:.78,y:.6,r:9,c:'#555',label:'R-CHOP',sub:''},{x:.12,y:.62,r:9,c:'#555',label:'Oncol.',sub:''},{x:.48,y:.1,r:13,c:'#1d9e75',label:'HRR',sub:'def',glow:true},{x:.82,y:.38,r:12,c:'#1d9e75',label:'PARP',sub:'trial',glow:true},{x:.25,y:.72,r:10,c:'#ba7517',label:'Trial',sub:'search'},{x:.72,y:.82,r:10,c:'#ba7517',label:'MRD',sub:'intent'},{x:.48,y:.82,r:9,c:'#555',label:'Caregiver',sub:''}],edges:[[0,1],[0,2],[0,3],[0,4],[1,5],[2,5],[5,6],[0,7],[0,8],[0,9]]},
+  {label:'Step 5 of 5 — Partner revenue generated',day:'Day 5',progress:100,inputs:[1,2,3,4,5],outputs:[1,2,3,4,5],entities:'289 entities',bn1:'2',bn2:'289',bn3:'106',title:'Day 5 — Partner revenue. Patient never knew the graph ran.',body:'Guardant surfaced at exact monitoring moment. $800 referral. This is the business.',
+   nodes:[{x:.5,y:.45,r:20,c:'#a85c3e',label:'Patient',sub:'MZL IV'},{x:.22,y:.15,r:9,c:'#378add',label:'BRCA1',sub:''},{x:.72,y:.15,r:9,c:'#7f77dd',label:'ATM',sub:''},{x:.82,y:.55,r:9,c:'#555',label:'R-CHOP',sub:''},{x:.1,y:.6,r:9,c:'#555',label:'Oncol.',sub:''},{x:.45,y:.08,r:13,c:'#1d9e75',label:'HRR',sub:'def',glow:true},{x:.82,y:.35,r:12,c:'#1d9e75',label:'PARP',sub:'trial',glow:true},{x:.22,y:.72,r:9,c:'#ba7517',label:'Trial',sub:''},{x:.65,y:.82,r:9,c:'#ba7517',label:'MRD',sub:'intent'},{x:.48,y:.82,r:9,c:'#555',label:'Caregiver',sub:''}],edges:[[0,1],[0,2],[0,3],[0,4],[1,5],[2,5],[5,6],[0,7],[0,8],[0,9]],partner:{x:.18,y:.38,label:'Guardant $800',glow:true}}
+];
+let s5cur=0;
+function s5render(s){
+  document.getElementById('s5-fill').style.width=s.progress+'%';
+  document.getElementById('s5-step').textContent=s.label;
+  document.getElementById('s5-day').textContent=s.day;
+  document.getElementById('s5sl').textContent=(s5cur+1)+'/'+s5steps.length;
+  document.getElementById('s5-ent').textContent=s.entities;
+  document.getElementById('s5bn1').textContent=s.bn1;
+  document.getElementById('s5bn2').textContent=s.bn2;
+  document.getElementById('s5bn3').textContent=s.bn3;
+  document.getElementById('s5bi-t').textContent=s.title;
+  document.getElementById('s5bi-b').textContent=s.body;
+  for(let i=1;i<=5;i++){const el=document.getElementById('s5i'+i);if(el)el.classList.toggle('active',s.inputs.includes(i));}
+  for(let i=1;i<=5;i++){const el=document.getElementById('s5o'+i);if(el)el.classList.toggle('lit',s.outputs.includes(i));}
+  s5draw(s);
+}
+function s5draw(s){
+  const cv=document.getElementById('s5gc'),ctx=cv.getContext('2d');
+  const W=cv.offsetWidth,H=cv.offsetHeight;
+  cv.width=W*devicePixelRatio;cv.height=H*devicePixelRatio;
+  ctx.scale(devicePixelRatio,devicePixelRatio);
+  ctx.clearRect(0,0,W,H);
+  const nodes=s.nodes,edges=s.edges||[];
+  edges.forEach(([a,b])=>{const na=nodes[a],nb=nodes[b];if(!na||!nb||na.r===0||nb.r===0)return;ctx.beginPath();ctx.moveTo(na.x*W,na.y*H);ctx.lineTo(nb.x*W,nb.y*H);ctx.strokeStyle='rgba(168,92,62,0.25)';ctx.lineWidth=1;ctx.stroke();});
+  if(s.partner){const p=s.partner;ctx.beginPath();ctx.arc(p.x*W,p.y*H,44,0,Math.PI*2);ctx.fillStyle='rgba(127,119,221,0.08)';ctx.fill();const pat=nodes[0];ctx.beginPath();ctx.moveTo(pat.x*W-14,pat.y*H-14);ctx.lineTo(p.x*W+10,p.y*H+10);ctx.strokeStyle='rgba(127,119,221,0.5)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#7f77dd';ctx.font='500 11px -apple-system,sans-serif';ctx.fillText(p.label,p.x*W-28,p.y*H-10);}
+  nodes.forEach(n=>{if(n.r===0)return;if(n.glow){ctx.beginPath();ctx.arc(n.x*W,n.y*H,n.r+8,0,Math.PI*2);ctx.fillStyle=n.c+'22';ctx.fill();}ctx.beginPath();ctx.arc(n.x*W,n.y*H,n.r,0,Math.PI*2);ctx.fillStyle=n.c;ctx.fill();ctx.strokeStyle=n.c+'88';ctx.lineWidth=1.5;ctx.stroke();ctx.fillStyle='#ffffff';ctx.font='500 10px -apple-system,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(n.label,n.x*W,n.y*H-(n.sub?3:0));if(n.sub){ctx.fillStyle='rgba(255,255,255,0.55)';ctx.font='400 9px -apple-system,sans-serif';ctx.fillText(n.sub,n.x*W,n.y*H+8);}});
+}
+window.s5fwd=function(){if(s5cur<s5steps.length-1){s5cur++;s5render(s5steps[s5cur]);}};
+window.s5back=function(){if(s5cur>0){s5cur--;s5render(s5steps[s5cur]);}};
+setTimeout(()=>s5render(s5steps[0]),100);
+window.addEventListener('resize',()=>s5render(s5steps[s5cur]));
+})();
+</script>
+
+<!-- S5b THE GRAPH - Palantir Style -->
+<div class="slide dk" id="s5b" style="display:none;">
+  <div class="nav wt" style="z-index:20;">
+    <svg width="13" height="13" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#ffffff"/><circle cx="24" cy="24" r="2" fill="#0a0a0a"/></svg>
+    <div class="nw wt"><span class="l">open</span><span class="b">cancer</span><span class="f">.ai</span></div>
+  </div>
+  <style>
+    #s5b canvas.s5b-bg{position:absolute;inset:0;width:100%;height:100%;}
+    #s5b .s5b-left{position:absolute;left:0;top:0;bottom:0;width:38%;padding:52px 5% 4% 5%;display:flex;flex-direction:column;justify-content:center;z-index:10;}
+    #s5b .s5b-stats{display:flex;gap:clamp(8px,1.2vw,18px);margin-bottom:clamp(10px,1.5vw,22px);}
+    #s5b .s5b-stat .sn{font-size:clamp(16px,2.6vw,30px);font-weight:700;color:var(--tc);line-height:1;}
+    #s5b .s5b-stat .sl{font-size:clamp(8px,.9vw,10px);color:#555;margin-top:2px;line-height:1.3;}
+    #s5b .s5b-disc{background:rgba(127,119,221,0.08);border:0.5px solid rgba(127,119,221,0.25);border-left:2px solid #7f77dd;border-radius:0 8px 8px 0;padding:clamp(6px,.9vw,12px) clamp(8px,1.1vw,14px);margin-bottom:clamp(8px,1.2vw,16px);opacity:0;transition:opacity .6s;}
+    #s5b .s5b-disc.show{opacity:1;}
+    #s5b .s5b-graph{position:absolute;right:0;top:0;bottom:0;width:65%;z-index:5;}
+    #s5b .s5b-prog{position:absolute;bottom:3%;left:5%;width:28%;z-index:20;}
+    #s5b .s5b-dots{display:flex;gap:4px;margin-bottom:4px;}
+    #s5b .s5b-dot{flex:1;height:2px;border-radius:1px;background:#1a1816;transition:background .4s;}
+    #s5b .s5b-dot.done{background:var(--tc);}
+    #s5b .s5b-btn{background:#2a2825;color:#c8c4be;border:none;border-radius:5px;padding:5px 12px;font-size:10px;cursor:pointer;font-family:inherit;}
+    #s5b .s5b-btn:hover{background:#3a3835;}
+    #s5b .s5b-btn-tc{background:var(--tc);color:#fff;}
+  </style>
+  <canvas class="s5b-bg" id="s5b-bg"></canvas>
+
+  <div class="s5b-left">
+    <div class="ey" style="color:var(--tc);">The moat</div>
+    <div class="h2 wt" id="s5b-hl" style="margin-bottom:clamp(6px,.8vw,14px);line-height:1.18;">See what no single doctor<br><span style="color:var(--tc);">can see.</span></div>
+    <div class="body gt" id="s5b-sub" style="margin-bottom:clamp(10px,1.5vw,22px);line-height:1.6;">Every record. Every biomarker. Every question asked at 2am. Connected into one picture.</div>
+
+    <div class="s5b-stats">
+      <div class="s5b-stat"><div class="sn" id="s5b-s1">2</div><div class="sl">patients<br>day 5</div></div>
+      <div class="s5b-stat"><div class="sn" id="s5b-s2">289</div><div class="sl">graph<br>entities</div></div>
+      <div class="s5b-stat"><div class="sn" id="s5b-s3">106</div><div class="sl">relationships<br>detected</div></div>
+    </div>
+
+    <div class="s5b-disc" id="s5b-disc">
+      <div class="xs pt" style="font-weight:600;letter-spacing:.1em;margin-bottom:3px;" id="s5b-dl">Pattern detected</div>
+      <div class="xs" style="color:#c8c4be;line-height:1.5;" id="s5b-db"><strong style="color:#fff;">BRCA1 + ATM</strong> co-mutation → HRR deficiency → <strong style="color:#fff;">PARP inhibitor trial eligibility.</strong></div>
+    </div>
+
+    <div class="xs" style="color:#3d3a36;border-top:.5px solid #1a1816;padding-top:clamp(6px,.8vw,10px);line-height:1.5;"><span style="color:var(--tc);font-weight:600;">Partners never see the graph.</span> They see the patient, surfaced at the exact clinical moment.</div>
+  </div>
+
+  <div class="s5b-graph"><canvas id="s5b-gc"></canvas></div>
+
+  <div class="s5b-prog">
+    <div class="s5b-dots" id="s5b-dots"></div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="xs" style="color:#444;" id="s5b-pl">Building the graph...</span>
+      <button class="s5b-btn" onclick="s5bBack()" style="margin-left:auto;">←</button>
+      <button class="s5b-btn s5b-btn-tc" onclick="s5bFwd()">Next →</button>
+      <span class="xs" style="color:#555;" id="s5b-sn">1/5</span>
+    </div>
+  </div>
+  <div class="snl">5b</div>
+</div>
+<script>
+(function(){
+const S5B=[
+  {label:'First record uploaded',hl:'See what no single doctor<br><span style="color:var(--tc);">can see.</span>',sub:'Every record. Every biomarker. Every question asked at 2am. Connected into one picture.',disc:false,s1:'2',s2:'12',s3:'4',
+   nodes:[{x:.5,y:.5,r:22,c:'#a85c3e',glow:1,label:'Patient',sub:'MZL IV',b:1},{x:.72,y:.28,r:13,c:'#378add',label:'Pathology',sub:'report'},{x:.28,y:.3,r:11,c:'#555',label:'Diagnosis',sub:'Stage IV'},{x:.2,y:.68,r:10,c:'#555',label:'Oncologist'}],edges:[[0,1,'#378add'],[0,2,'#555'],[0,3,'#555']]},
+  {label:'Genomic test processed',hl:'Biomarkers extracted.<br><span style="color:var(--tc);">Automatically.</span>',sub:'BRCA1 mutation detected. ATM co-mutation found. The graph doesn\'t wait for a doctor to read the report.',disc:false,s1:'2',s2:'34',s3:'21',
+   nodes:[{x:.5,y:.5,r:22,c:'#a85c3e',glow:1,label:'Patient',sub:'MZL IV',b:1},{x:.72,y:.22,r:14,c:'#378add',glow:1,label:'BRCA1',sub:'+pathogenic'},{x:.3,y:.22,r:14,c:'#7f77dd',glow:1,label:'ATM',sub:'co-mutation'},{x:.78,y:.52,r:10,c:'#555',label:'Pathology'},{x:.22,y:.52,r:10,c:'#555',label:'Diagnosis'},{x:.5,y:.82,r:10,c:'#555',label:'Oncologist'}],edges:[[0,1,'#378add'],[0,2,'#7f77dd'],[0,3,'#555'],[0,4,'#555'],[0,5,'#555']]},
+  {label:'Pattern inferred',hl:'Two data points. One signal<br><span style="color:var(--tc);">no one had connected.</span>',sub:'BRCA1 + ATM together signal HRR deficiency. The graph infers this. No oncologist had time to.',disc:false,s1:'2',s2:'67',s3:'48',
+   nodes:[{x:.5,y:.5,r:22,c:'#a85c3e',glow:1,label:'Patient',sub:'MZL IV',b:1},{x:.62,y:.18,r:13,c:'#378add',label:'BRCA1',sub:'+'},{x:.38,y:.18,r:13,c:'#7f77dd',label:'ATM',sub:'+'},{x:.5,y:.08,r:16,c:'#1d9e75',glow:1,label:'HRR',sub:'deficiency',b:1},{x:.8,y:.5,r:9,c:'#555',label:'Treatment',sub:'R-CHOP'},{x:.2,y:.5,r:9,c:'#555',label:'Stage',sub:'IV'},{x:.5,y:.82,r:9,c:'#555',label:'Caregiver'}],edges:[[0,1,'#378add'],[0,2,'#7f77dd'],[1,3,'#1d9e75'],[2,3,'#1d9e75'],[0,4,'#555'],[0,5,'#555'],[0,6,'#555']]},
+  {label:'PARP trial surfaced',hl:'The PARP discovery.<br><span style="color:var(--tc);">Day 3.</span>',sub:'HRR deficiency → PARP inhibitor trial eligibility. Surfaced before the oncologist mentioned it.',disc:true,dl:'Graph discovery — day 3',db:'<strong style="color:#fff;">BRCA1 + ATM</strong> co-mutation → HRR deficiency → <strong style="color:#fff;">PARP inhibitor trial eligibility.</strong>',s1:'2',s2:'106',s3:'89',
+   nodes:[{x:.5,y:.52,r:22,c:'#a85c3e',glow:1,label:'Patient',sub:'MZL IV',b:1},{x:.6,y:.18,r:12,c:'#378add',label:'BRCA1'},{x:.4,y:.18,r:12,c:'#7f77dd',label:'ATM'},{x:.5,y:.08,r:15,c:'#1d9e75',glow:1,label:'HRR',sub:'def',b:1},{x:.82,y:.25,r:17,c:'#1d9e75',glow:1,label:'PARP',sub:'trial',b:1},{x:.8,y:.6,r:9,c:'#555',label:'R-CHOP'},{x:.18,y:.4,r:9,c:'#555',label:'Stage IV'},{x:.5,y:.88,r:9,c:'#555',label:'Caregiver'},{x:.2,y:.72,r:9,c:'#ba7517',label:'Trial',sub:'search'}],edges:[[0,1,'#378add'],[0,2,'#7f77dd'],[1,3,'#1d9e75'],[2,3,'#1d9e75'],[3,4,'#1d9e75'],[0,5,'#555'],[0,6,'#555'],[0,7,'#555'],[0,8,'#ba7517']]},
+  {label:'Partner value created',hl:'Partners pay for the moment.<br><span style="color:var(--tc);">Not the data.</span>',sub:'Post-treatment. BRCA2 positive. Asking about monitoring. Guardant Health is surfaced. Patient consented.',disc:true,dl:'Revenue event',db:'<strong style="color:#fff;">Guardant Health</strong> pays $800 per qualified referral. Patient never knew the graph ran.',s1:'2',s2:'289',s3:'106',
+   nodes:[{x:.5,y:.5,r:22,c:'#a85c3e',glow:1,label:'Patient',sub:'MZL IV',b:1},{x:.6,y:.15,r:11,c:'#378add',label:'BRCA1'},{x:.4,y:.15,r:11,c:'#7f77dd',label:'ATM'},{x:.5,y:.06,r:13,c:'#1d9e75',glow:1,label:'HRR',b:1},{x:.82,y:.22,r:14,c:'#1d9e75',glow:1,label:'PARP',sub:'trial',b:1},{x:.82,y:.5,r:15,c:'#7f77dd',glow:1,label:'MRD',sub:'$800',b:1},{x:.78,y:.74,r:8,c:'#555',label:'R-CHOP'},{x:.22,y:.72,r:9,c:'#ba7517',label:'Trial',sub:'intent'},{x:.18,y:.45,r:9,c:'#555',label:'Caregiver'},{x:.22,y:.25,r:9,c:'#555',label:'Stage IV'}],edges:[[0,1,'#378add'],[0,2,'#7f77dd'],[1,3,'#1d9e75'],[2,3,'#1d9e75'],[3,4,'#1d9e75'],[0,5,'#7f77dd'],[0,6,'#555'],[0,7,'#ba7517'],[0,8,'#555'],[0,9,'#555']],partner:{x:.82,y:.5}}
+];
+let s5bc=0,s5bt=0,s5baf;
+function s5bBg(){
+  const cv=document.getElementById('s5b-bg'),sl=document.getElementById('s5b');if(!sl)return;
+  cv.width=sl.offsetWidth*devicePixelRatio;cv.height=sl.offsetHeight*devicePixelRatio;
+  cv.style.width=sl.offsetWidth+'px';cv.style.height=sl.offsetHeight+'px';
+  const ctx=cv.getContext('2d');ctx.scale(devicePixelRatio,devicePixelRatio);
+  const W=sl.offsetWidth,H=sl.offsetHeight;
+  ctx.fillStyle='rgba(168,92,62,0.06)';
+  for(let x=20;x<W;x+=32)for(let y=20;y<H;y+=32){ctx.beginPath();ctx.arc(x,y,1,0,Math.PI*2);ctx.fill();}
+  const g=ctx.createRadialGradient(W*.85,H*.3,0,W*.85,H*.3,W*.45);
+  g.addColorStop(0,'rgba(29,158,117,0.04)');g.addColorStop(1,'transparent');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+}
+function s5bDraw(s){
+  const ga=document.querySelector('#s5b .s5b-graph');if(!ga)return;
+  const cv=document.getElementById('s5b-gc'),ctx=cv.getContext('2d');
+  cv.width=ga.offsetWidth*devicePixelRatio;cv.height=ga.offsetHeight*devicePixelRatio;
+  cv.style.width=ga.offsetWidth+'px';cv.style.height=ga.offsetHeight+'px';
+  ctx.scale(devicePixelRatio,devicePixelRatio);
+  const W=ga.offsetWidth,H=ga.offsetHeight;
+  ctx.clearRect(0,0,W,H);
+  const nodes=s.nodes,edges=s.edges||[];
+  edges.forEach(([a,b,ec])=>{const na=nodes[a],nb=nodes[b];if(!na||!nb)return;ctx.beginPath();ctx.moveTo(na.x*W,na.y*H);ctx.lineTo(nb.x*W,nb.y*H);ctx.strokeStyle=ec||'#333';ctx.lineWidth=2;ctx.globalAlpha=0.12;ctx.stroke();ctx.beginPath();ctx.moveTo(na.x*W,na.y*H);ctx.lineTo(nb.x*W,nb.y*H);ctx.strokeStyle=ec||'#333';ctx.lineWidth=0.75;ctx.globalAlpha=0.4;ctx.stroke();ctx.globalAlpha=1;});
+  if(s.partner){const pat=nodes[0],px=s.partner.x*W,py=s.partner.y*H;ctx.save();ctx.beginPath();ctx.moveTo(pat.x*W,pat.y*H);ctx.lineTo(px,py);ctx.strokeStyle='#7f77dd';ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.globalAlpha=0.4;ctx.stroke();ctx.restore();}
+  nodes.forEach((n,i)=>{const nx=n.x*W,ny=n.y*H,pulse=n.glow?Math.sin(s5bt*0.04+i*1.2)*0.3+0.7:1;
+    if(n.glow){ctx.beginPath();ctx.arc(nx,ny,n.r*2.2*pulse,0,Math.PI*2);ctx.fillStyle=n.c;ctx.globalAlpha=0.06*pulse;ctx.fill();ctx.globalAlpha=1;ctx.beginPath();ctx.arc(nx,ny,n.r*1.5,0,Math.PI*2);ctx.fillStyle=n.c;ctx.globalAlpha=0.1;ctx.fill();ctx.globalAlpha=1;}
+    ctx.beginPath();ctx.arc(nx,ny,n.r,0,Math.PI*2);ctx.fillStyle=n.c;ctx.globalAlpha=n.b?0.95:0.5;ctx.fill();ctx.beginPath();ctx.arc(nx,ny,n.r,0,Math.PI*2);ctx.strokeStyle=n.c;ctx.lineWidth=n.b?1.5:0.75;ctx.globalAlpha=n.b?0.9:0.4;ctx.stroke();ctx.globalAlpha=1;
+    ctx.fillStyle='#ffffff';ctx.font=`500 ${Math.max(8,Math.min(11,n.r*.55))}px -apple-system,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.globalAlpha=n.b?1:0.6;ctx.fillText(n.label,nx,ny-(n.sub?3:0));if(n.sub){ctx.font=`400 ${Math.max(7,Math.min(9,n.r*.45))}px -apple-system,sans-serif`;ctx.fillStyle='rgba(255,255,255,0.55)';ctx.fillText(n.sub,nx,ny+n.r*.55);}ctx.globalAlpha=1;
+  });
+  if(s.partner){const n5=nodes[5],px=s.partner.x*W,py=s.partner.y*H,pulse2=Math.sin(s5bt*0.05)*0.2+0.8;ctx.beginPath();ctx.arc(px,py-n5.r-18,16,0,Math.PI*2);ctx.fillStyle='#7f77dd';ctx.globalAlpha=0.15*pulse2;ctx.fill();ctx.globalAlpha=1;ctx.fillStyle='#7f77dd';ctx.font='600 11px -apple-system,sans-serif';ctx.textAlign='center';ctx.fillText('$800',px,py-n5.r-32);ctx.font='400 9px -apple-system,sans-serif';ctx.fillStyle='rgba(127,119,221,0.7)';ctx.fillText('qualified referral',px,py-n5.r-20);}
+}
+function s5bAnim(){s5bt++;s5bDraw(S5B[s5bc]);s5baf=requestAnimationFrame(s5bAnim);}
+function s5bUI(idx){
+  const s=S5B[idx];
+  document.getElementById('s5b-hl').innerHTML=s.hl;
+  document.getElementById('s5b-sub').textContent=s.sub;
+  document.getElementById('s5b-s1').textContent=s.s1;
+  document.getElementById('s5b-s2').textContent=s.s2;
+  document.getElementById('s5b-s3').textContent=s.s3;
+  document.getElementById('s5b-sn').textContent=(idx+1)+'/'+S5B.length;
+  document.getElementById('s5b-pl').textContent=s.label;
+  const disc=document.getElementById('s5b-disc');
+  disc.classList.toggle('show',s.disc);
+  if(s.disc){document.getElementById('s5b-dl').textContent=s.dl||'Pattern detected';document.getElementById('s5b-db').innerHTML=s.db||'';}
+  const dotsEl=document.getElementById('s5b-dots');dotsEl.innerHTML='';
+  S5B.forEach((_,i)=>{const d=document.createElement('div');d.className='s5b-dot'+(i<=idx?' done':'');dotsEl.appendChild(d);});
+}
+window.s5bFwd=function(){if(s5bc<S5B.length-1){s5bc++;s5bUI(s5bc);}};
+window.s5bBack=function(){if(s5bc>0){s5bc--;s5bUI(s5bc);}};
+function s5bInit(){s5bBg();s5bUI(0);s5bAnim();}
+setTimeout(s5bInit,200);
+window.addEventListener('resize',()=>{s5bBg();s5bDraw(S5B[s5bc]);});
+})();
+</script>
 
 <!-- S6 BUSINESS MODEL -->
 <div class="slide wm" id="s6">
@@ -670,20 +764,23 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#0d0
 <div style="color:#333;font-size:11px;margin-top:4px;">Arrow keys to navigate · F for fullscreen</div>
 
 <script>
-let cur=1,tot=10;
+const slides=['s1','s2','s3','s4','s5','s5b','s6','s7','s8','s9','s10'];
+let cur=0;
 function show(n){
-  document.querySelectorAll('.slide').forEach(s=>s.classList.remove('active'));
-  document.getElementById('s'+n).classList.add('active');
-  document.getElementById('prog').textContent=n+' / '+tot;
+  document.querySelectorAll('.slide').forEach(s=>{s.classList.remove('active');s.style.display='none';});
+  const sl=document.getElementById(slides[n]);
+  sl.style.display='flex';sl.classList.add('active');
+  document.getElementById('prog').textContent=(n+1)+' / '+slides.length;
   cur=n;
 }
-function next(){if(cur<tot)show(cur+1);}
-function prev(){if(cur>1)show(cur-1);}
+function next(){if(cur<slides.length-1)show(cur+1);}
+function prev(){if(cur>0)show(cur-1);}
 document.addEventListener('keydown',e=>{
   if(e.key==='ArrowRight'||e.key==='ArrowDown')next();
   if(e.key==='ArrowLeft'||e.key==='ArrowUp')prev();
   if(e.key==='f'||e.key==='F')document.documentElement.requestFullscreen?.();
 });
+show(0);
 </script>
 </body>
 </html>
