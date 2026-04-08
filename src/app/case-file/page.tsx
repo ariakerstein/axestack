@@ -453,7 +453,16 @@ export default function CaseFilePage() {
 
                 {expandedSections.has('labs') && (
                   <div className="px-4 pb-4 border-t border-slate-100">
-                    <div className="mt-4 space-y-2">
+                    {/* Explainer for patients */}
+                    <div className="mt-4 mb-4 p-3 bg-slate-50 rounded-lg text-sm text-slate-600">
+                      <p className="mb-2">
+                        <span className="font-medium text-slate-700">We've sorted these by what may need attention.</span> Values outside normal range appear first—not to alarm you, but so you know what to discuss with your care team.
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        Many "abnormal" values are expected during treatment. Your doctor can explain what's significant for your situation.
+                      </p>
+                    </div>
+                    <div className="space-y-2">
                       {/* Sort by status: Critical → Abnormal → Normal → unknown */}
                       {[...data.labResults]
                         .sort((a, b) => {
