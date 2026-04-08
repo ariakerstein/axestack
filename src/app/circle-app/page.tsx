@@ -130,6 +130,7 @@ function AskTab({ messages, setMessages, isLoading, setIsLoading, onRecordUpload
   const [input, setInput] = useState('')
   const [attachedFile, setAttachedFile] = useState<File | null>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [isProcessingDocument, setIsProcessingDocument] = useState(false) // Track document analysis state
   const [feedbackMessageId, setFeedbackMessageId] = useState<string | null>(null)
   const [feedbackComment, setFeedbackComment] = useState('')
   const [pendingFeedbackType, setPendingFeedbackType] = useState<'positive' | 'negative' | null>(null)
@@ -265,6 +266,7 @@ function AskTab({ messages, setMessages, isLoading, setIsLoading, onRecordUpload
 
     // If file attached, process it first
     if (attachedFile) {
+      setIsProcessingDocument(true) // Show "Analyzing document" state
       try {
         const formData = new FormData()
         formData.append('file', attachedFile)
@@ -287,6 +289,8 @@ function AskTab({ messages, setMessages, isLoading, setIsLoading, onRecordUpload
         })
       } catch (e) {
         console.error('Failed to process attachment:', e)
+      } finally {
+        setIsProcessingDocument(false) // Clear document processing state
       }
       setAttachedFile(null)
     } else if (completedRecords.length > 0) {
@@ -470,10 +474,19 @@ function AskTab({ messages, setMessages, isLoading, setIsLoading, onRecordUpload
                   </div>
                 )}
                 {msg.isLoading ? (
-                  <div className="flex gap-1 py-1">
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  <div className="flex items-center gap-2 py-1">
+                    {isProcessingDocument ? (
+                      <>
+                        <Loader2 className="w-4 h-4 text-[#C66B4A] animate-spin" />
+                        <span className="text-sm text-gray-600">Analyzing your document...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </>
+                    )}
                   </div>
                 ) : msg.role === 'user' ? (
                   <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
