@@ -42,12 +42,48 @@ export default function PrivacyPage() {
             <p>When you create an account and use opencancer.ai, we store:</p>
             <ul className="list-disc list-inside space-y-2 ml-4">
               <li><strong>Account info:</strong> Email address, name, cancer type (if provided)</li>
-              <li><strong>Uploaded records:</strong> Medical documents you upload for translation</li>
+              <li><strong>Uploaded records:</strong> Medical documents you upload for translation (see Privacy Mode below)</li>
               <li><strong>Chat history:</strong> Questions you ask and AI responses</li>
               <li><strong>Usage analytics:</strong> Page views, feature usage (anonymized)</li>
             </ul>
             <p className="mt-4">
               All data is stored in <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:underline">Supabase</a> with encryption at rest. Your data is associated with your account and accessible only to you.
+            </p>
+          </div>
+        </section>
+
+        {/* Privacy Mode */}
+        <section className="mb-10 p-6 bg-blue-50 border border-blue-200 rounded-xl">
+          <div className="flex items-center gap-2 mb-4">
+            <Shield className="w-5 h-5 text-blue-600" />
+            <h2 className="text-xl font-bold text-blue-900">Privacy Mode</h2>
+          </div>
+          <div className="space-y-4 text-blue-800">
+            <p>
+              When uploading records, you can enable <strong>Privacy Mode</strong> in the upload dialog.
+            </p>
+            <div className="grid md:grid-cols-2 gap-4 mt-4">
+              <div className="bg-white/50 p-4 rounded-lg">
+                <p className="font-semibold text-blue-900 mb-2">Privacy Mode OFF (default)</p>
+                <ul className="text-sm space-y-1">
+                  <li>✓ Original files stored securely</li>
+                  <li>✓ View originals anytime</li>
+                  <li>✓ Full analysis extracted</li>
+                  <li>✓ Sync across devices</li>
+                </ul>
+              </div>
+              <div className="bg-white/50 p-4 rounded-lg">
+                <p className="font-semibold text-blue-900 mb-2">Privacy Mode ON</p>
+                <ul className="text-sm space-y-1">
+                  <li>✓ Original files NOT stored</li>
+                  <li>✓ Only extracted data kept</li>
+                  <li>✓ Diagnosis, biomarkers, etc.</li>
+                  <li>✗ Cannot view original later</li>
+                </ul>
+              </div>
+            </div>
+            <p className="text-sm mt-4">
+              Privacy Mode is ideal if you want AI analysis without storing the original document. Your structured data (diagnosis, biomarkers, treatment info) is still extracted and saved to personalize your experience.
             </p>
           </div>
         </section>
@@ -129,6 +165,17 @@ export default function PrivacyPage() {
             opencancer.ai is open source. You can review our code, data handling practices, and contribute improvements on{' '}
             <a href="https://github.com/ariakerstein/opencancer-skills" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:underline">GitHub</a>.
           </p>
+        </section>
+
+        {/* Data Retention */}
+        <section className="mb-10">
+          <h2 className="text-xl font-bold mb-4">Data Retention</h2>
+          <div className="space-y-3 text-slate-600">
+            <p><strong>Account data:</strong> Kept until you delete your account</p>
+            <p><strong>Uploaded records:</strong> Kept until you delete them (or not stored if Privacy Mode is ON)</p>
+            <p><strong>Chat history:</strong> Kept until you delete your account</p>
+            <p><strong>Analytics:</strong> Aggregated and anonymized after 90 days</p>
+          </div>
         </section>
 
         {/* Data Deletion */}

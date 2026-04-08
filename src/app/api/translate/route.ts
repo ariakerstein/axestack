@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
     const sessionId = formData.get('sessionId') as string | null
     const userId = formData.get('userId') as string | null
     const storagePathParam = formData.get('storagePath') as string | null
+    const privacyMode = formData.get('privacyMode') === 'true' // Skip file storage when true
 
     let fileName: string
     let fileType: string
@@ -327,29 +328,34 @@ export async function POST(request: NextRequest) {
     const docTypeLabel = isPDF ? 'PDF' : isWord ? 'Word document' : isImage ? 'Image' : 'Document'
 
     // Upload original file to Supabase Storage (non-blocking, best effort)
+    // Skip in privacy mode - only extract entities, don't store original
     let storagePath: string | null = null
-    try {
-      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
-      const sessionId = formData.get('sessionId') as string || 'anonymous'
-      const timestamp = Date.now()
-      const safeName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_')
-      const filePath = `opencancer/${sessionId}/${timestamp}_${safeName}`
+    if (!privacyMode) {
+      try {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+        const sessionId = formData.get('sessionId') as string || 'anonymous'
+        const timestamp = Date.now()
+        const safeName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_')
+        const filePath = `opencancer/${sessionId}/${timestamp}_${safeName}`
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('medical-documents')
-        .upload(filePath, buffer, {
-          contentType: fileType || 'application/octet-stream',
-          upsert: false,
-        })
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('medical-documents')
+          .upload(filePath, buffer, {
+            contentType: fileType || 'application/octet-stream',
+            upsert: false,
+          })
 
-      if (uploadError) {
-        console.error('Storage upload error (non-fatal):', uploadError.message)
-      } else {
-        storagePath = filePath
-        console.log(`File stored at: ${filePath}`)
+        if (uploadError) {
+          console.error('Storage upload error (non-fatal):', uploadError.message)
+        } else {
+          storagePath = filePath
+          console.log(`File stored at: ${filePath}`)
+        }
+      } catch (storageErr) {
+        console.error('Storage upload failed (non-fatal):', storageErr)
       }
-    } catch (storageErr) {
-      console.error('Storage upload failed (non-fatal):', storageErr)
+    } else {
+      console.log(`Privacy mode: skipping file storage for ${fileName}`)
     }
 
     // Trigger entity extraction in background (non-blocking)
@@ -418,7 +424,8 @@ export async function POST(request: NextRequest) {
       fileType,
       analysis,
       documentText: documentText || `[${docTypeLabel} content analyzed by AI]`,
-      storagePath, // Include storage path for viewing original
+      storagePath, // Include storage path for viewing original (null in privacy mode)
+      privacyMode, // Indicate if privacy mode was used
     })
 
   } catch (error) {

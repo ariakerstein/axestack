@@ -75,7 +75,7 @@ export default function AboutPage() {
         </div>
 
         {/* Why opencancer.ai */}
-        <div className="bg-gradient-to-br from-slate-50 to-slate-50 border border-slate-200 rounded-2xl p-8 mb-12">
+        <div className="bg-gradient-to-br from-slate-50 to-slate-50 border border-slate-200 rounded-2xl p-8 mb-8">
           <h2 className="text-2xl font-bold mb-4 flex items-center gap-3">
             <Users className="w-6 h-6 text-slate-500" />
             Why opencancer.ai?
@@ -88,6 +88,13 @@ export default function AboutPage() {
               Most patients don't have that time. <span className="font-semibold text-slate-900">opencancer.ai is the toolkit I wish I had.</span> It translates your records to plain English, finds clinical trials you'd miss, and helps you ask the questions that matter. All free. All open source.
             </p>
           </div>
+        </div>
+
+        {/* Why "Open"? */}
+        <div className="border border-slate-200 rounded-2xl p-6 mb-12">
+          <p className="text-slate-600">
+            <span className="font-semibold text-slate-900">Why "open"?</span> Patients deserve access to personalized tools and trusted services that too often get missed in healthcare.
+          </p>
         </div>
 
         {/* What I Believe */}

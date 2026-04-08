@@ -138,31 +138,22 @@ export default function LifestylePage() {
               />
 
               <span className="inline-block bg-rose-100 text-rose-700 text-xs font-medium px-3 py-1 rounded-full mb-4">
-                8-Week Science-Based Program
+                1-on-1 Sessions Available Now
               </span>
               <h1 className="text-4xl font-bold text-slate-900 mb-4">
-                Cancer Lifestyle Management
+                Cancer & Chronic Illness Coaching
               </h1>
               <p className="text-lg text-slate-600 mb-6">
-                Emotional wellbeing, nutrition, exercise, stress reduction, and community support—all under one roof.
+                Psychotherapy attuned to the emotional challenges of cancer—plus lifestyle factors that research shows can strengthen both body and mind.
               </p>
 
-              {/* Stats row */}
-              <div className="flex items-center gap-6 mb-6">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-slate-900">8</p>
-                  <p className="text-xs text-slate-500">Weeks</p>
+              {/* Pricing info */}
+              <div className="bg-white/80 rounded-xl p-4 mb-6 border border-slate-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-semibold text-slate-900">$360 per session</span>
+                  <span className="text-sm text-green-600 font-medium">Insurance may cover 50-80%</span>
                 </div>
-                <div className="w-px h-8 bg-slate-200" />
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-slate-900">75+</p>
-                  <p className="text-xs text-slate-500">Sessions</p>
-                </div>
-                <div className="w-px h-8 bg-slate-200" />
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-slate-900">6</p>
-                  <p className="text-xs text-slate-500">Pillars</p>
-                </div>
+                <p className="text-xs text-slate-500">Out-of-network reimbursement available for most insurance plans</p>
               </div>
 
               {/* CTA */}
@@ -170,11 +161,8 @@ export default function LifestylePage() {
                 onClick={() => setShowContactModal(true)}
                 className="bg-slate-900 hover:bg-slate-800 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition-all inline-flex items-center gap-2"
               >
-                Schedule Free Consultation <ArrowRight className="w-4 h-4" />
+                Schedule Introductory Session <ArrowRight className="w-4 h-4" />
               </button>
-              <p className="text-sm text-slate-500 mt-3">
-                No commitment · Speak directly with the CCLM team
-              </p>
             </div>
           </div>
         </div>
@@ -203,17 +191,20 @@ export default function LifestylePage() {
         </div>
       </section>
 
-      {/* Mission Statement */}
+      {/* Approach */}
       <section className="py-12 px-8 bg-white border-y border-slate-200">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-2xl font-bold text-slate-900 mb-4">Our Purpose</h2>
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-2xl font-bold text-slate-900 mb-4 text-center">The Approach</h2>
           <p className="text-slate-600 mb-6">
-            While individuals with a cancer diagnosis are increasingly told that lifestyle factors can positively influence their treatment, they are rarely provided with the structured protocols or research-informed guidance necessary to integrate these changes into their care.
+            Being diagnosed with cancer or a chronic illness can make you feel like your world has been turned upside down. Dr. Ness provides psychotherapy attuned to the depression, anxiety, anger, fear, and regret frequently experienced—while also addressing longstanding emotional issues that can weigh people down for years.
           </p>
-          <p className="text-lg text-slate-700 italic">
-            "CCLM offers highly customized programming in each of the six pillars—all in one location—with a dedicated focus on care coordination and taking the confusion out of often competing and conflicting healing claims."
+          <p className="text-slate-600 mb-6">
+            When someone is interested, she incorporates <strong>lifestyle factors</strong>—diet, exercise, sleep, and stress management—that current peer-reviewed research shows can significantly bolster the immune system and create a less hospitable environment for illness to take hold.
           </p>
-          <p className="text-sm text-slate-500 mt-4">— The Center for Cancer Lifestyle Management</p>
+          <p className="text-lg text-slate-700 italic text-center">
+            "These elements are not just supportive of physical health; they play a crucial role in emotional resilience and overall wellbeing. By addressing lifestyle alongside psychotherapy, we create a comprehensive approach to strengthening both body and mind."
+          </p>
+          <p className="text-sm text-slate-500 mt-4 text-center">— Dr. Cindy Ness</p>
         </div>
       </section>
 
@@ -221,9 +212,9 @@ export default function LifestylePage() {
       <section className="py-16 px-8">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-slate-900 mb-4">Six Pillars of Cancer Lifestyle Management</h2>
+            <h2 className="text-3xl font-bold text-slate-900 mb-4">Areas of Focus</h2>
             <p className="text-slate-600 max-w-2xl mx-auto">
-              Our program spans six specific areas—each based on crucial published scientific studies—to help you feel steadier, more supported, and better equipped to navigate your journey.
+              Six areas we address in sessions—each grounded in research—to help you feel steadier, more supported, and better equipped to navigate your journey.
             </p>
           </div>
 
@@ -265,18 +256,27 @@ export default function LifestylePage() {
         </div>
       </section>
 
-      {/* What's Included */}
+      {/* What 1:1 Sessions Cover */}
       <section className="py-16 px-8 bg-white border-y border-slate-200">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-slate-900 mb-4">What's Included</h2>
+            <h2 className="text-3xl font-bold text-slate-900 mb-4">What We Work On Together</h2>
             <p className="text-slate-600">
-              Over 75 touchpoints via individual and virtual group sessions over eight weeks.
+              Personalized coaching sessions tailored to your unique situation and goals.
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
-            {PROGRAM_INCLUDES.map((item, i) => (
+            {[
+              { title: 'Processing Your Diagnosis', desc: 'Navigate the emotional impact of cancer or chronic illness' },
+              { title: 'Managing Fear & Anxiety', desc: 'Tools for coping with uncertainty and medical anxiety' },
+              { title: 'Treatment Navigation', desc: 'Support in understanding options and making decisions' },
+              { title: 'Lifestyle Integration', desc: 'Diet, exercise, sleep, and stress management guidance' },
+              { title: 'Building Your Care Team', desc: 'Strategies for assembling and coordinating your "A-Team"' },
+              { title: 'Relationship Support', desc: 'Navigate changes in family dynamics and relationships' },
+              { title: 'Finding Purpose', desc: 'Transform this moment into a "turn point" toward the life you want' },
+              { title: 'Ongoing Advocacy', desc: 'Someone in your corner pushing for the best outcomes' },
+            ].map((item, i) => (
               <div key={i} className="flex items-start gap-3 bg-slate-50 rounded-lg p-4">
                 <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
                 <div>
@@ -397,20 +397,20 @@ export default function LifestylePage() {
             <Shield className="w-4 h-4 text-rose-600" />
             <span className="text-sm text-slate-700">Partnered with opencancer.ai</span>
           </div>
-          <h2 className="text-3xl font-bold text-slate-900 mb-4">Ready to Transform Your Cancer Journey?</h2>
-          <p className="text-slate-600 mb-8">
-            Schedule a free consultation to learn how the CCLM program can support your physical and emotional wellbeing during and beyond treatment.
+          <h2 className="text-3xl font-bold text-slate-900 mb-4">Ready to Get Started?</h2>
+          <p className="text-slate-600 mb-4">
+            Dr. Ness is smart, empathic, and brings a sense of humor even to tough situations. Schedule an introductory session to see if it's a good fit.
+          </p>
+          <p className="text-sm text-slate-500 mb-8">
+            <strong>$360 per session</strong> · Most out-of-network insurance reimburses 50-80%
           </p>
           <button
             onClick={() => setShowContactModal(true)}
             className="bg-rose-600 hover:bg-rose-700 text-white font-semibold px-8 py-4 rounded-xl shadow-lg shadow-rose-600/25 transition-all inline-flex items-center gap-2"
           >
             <Calendar className="w-5 h-5" />
-            Schedule Free Consultation
+            Schedule Introductory Session
           </button>
-          <p className="text-xs text-slate-500 mt-4">
-            No commitment required. Speak directly with the CCLM team.
-          </p>
         </div>
       </section>
 
@@ -422,7 +422,7 @@ export default function LifestylePage() {
             <span>·</span>
             <Link href="/about" className="hover:text-slate-600">About</Link>
             <span>·</span>
-            <a href="https://www.cancerlifestylemgmt.com/" target="_blank" rel="noopener noreferrer" className="hover:text-slate-600">CCLM Website</a>
+            <Link href="/about" className="hover:text-slate-600">About</Link>
           </div>
         </div>
       </footer>
@@ -438,8 +438,8 @@ export default function LifestylePage() {
             {/* Header */}
             <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-gradient-to-r from-rose-50 to-amber-50">
               <div>
-                <h2 className="text-xl font-bold text-slate-900">Schedule Consultation</h2>
-                <p className="text-sm text-slate-500">Connect with the CCLM team</p>
+                <h2 className="text-xl font-bold text-slate-900">Schedule Session</h2>
+                <p className="text-sm text-slate-500">Connect with Dr. Cindy Ness</p>
               </div>
               <button
                 onClick={() => setShowContactModal(false)}
@@ -458,7 +458,7 @@ export default function LifestylePage() {
                   </div>
                   <h3 className="text-xl font-bold text-slate-900 mb-2">Request Submitted!</h3>
                   <p className="text-slate-600 mb-4">
-                    The CCLM team will reach out to you within 1-2 business days.
+                    Dr. Ness will reach out to you within 1-2 business days to schedule your session.
                   </p>
                   <button
                     onClick={() => setShowContactModal(false)}
@@ -536,9 +536,9 @@ export default function LifestylePage() {
                         className="mt-1 w-4 h-4 text-rose-600 border-slate-300 rounded focus:ring-rose-500"
                       />
                       <div>
-                        <p className="text-sm font-medium text-slate-700">Share my opencancer.ai records with CCLM</p>
+                        <p className="text-sm font-medium text-slate-700">Share my opencancer.ai records with Dr. Ness</p>
                         <p className="text-xs text-slate-500 mt-0.5">
-                          This helps Dr. Ness understand your situation before your consultation. Your records remain private and encrypted.
+                          This helps Dr. Ness understand your situation before your session. Your records remain private and encrypted.
                         </p>
                       </div>
                     </label>
@@ -557,7 +557,7 @@ export default function LifestylePage() {
                     ) : (
                       <>
                         <User className="w-5 h-5" />
-                        Request Consultation
+                        Request Session
                       </>
                     )}
                   </button>

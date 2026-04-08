@@ -197,6 +197,7 @@ function RecordsVaultPageContent() {
   const [chatOpen, setChatOpen] = useState(false)
   const [showPrivacyModal, setShowPrivacyModal] = useState(false)
   const [privacyAcknowledged, setPrivacyAcknowledged] = useState(false)
+  const [privacyModeEnabled, setPrivacyModeEnabled] = useState(false) // Don't store original files
   const [showAllTerms, setShowAllTerms] = useState(false)
   const [showAddRecordView, setShowAddRecordView] = useState(false)
   const [bulkEmailCapture, setBulkEmailCapture] = useState('')
@@ -415,6 +416,12 @@ function RecordsVaultPageContent() {
     const privacyAck = localStorage.getItem('opencancer-privacy-acknowledged')
     if (privacyAck === 'true') {
       setPrivacyAcknowledged(true)
+    }
+
+    // Check if privacy mode was previously enabled
+    const privacyMode = localStorage.getItem('opencancer-privacy-mode')
+    if (privacyMode === 'true') {
+      setPrivacyModeEnabled(true)
     }
 
     // Load wizard profile email (for smart auth flow)
@@ -671,6 +678,7 @@ function RecordsVaultPageContent() {
 
       formData.append('sessionId', sessionId)
       if (user?.id) formData.append('userId', user.id)
+      if (privacyModeEnabled) formData.append('privacyMode', 'true')
 
       // Add 2-minute client-side timeout for large files
       const controller = new AbortController()
@@ -790,8 +798,9 @@ function RecordsVaultPageContent() {
 
         formData.append('sessionId', sessionId)
         if (user?.id) formData.append('userId', user.id)
+        if (privacyModeEnabled) formData.append('privacyMode', 'true')
 
-        console.log(`[Bulk] Processing ${i + 1}/${uploadedFiles.length}: ${uploadedFile.file.name}, type: ${uploadedFile.file.type || 'unknown'}, size: ${(uploadedFile.file.size / 1024).toFixed(1)}KB${fileSizeMB > LARGE_FILE_THRESHOLD_MB ? ' (via storage)' : ''}`)
+        console.log(`[Bulk] Processing ${i + 1}/${uploadedFiles.length}: ${uploadedFile.file.name}, type: ${uploadedFile.file.type || 'unknown'}, size: ${(uploadedFile.file.size / 1024).toFixed(1)}KB${fileSizeMB > LARGE_FILE_THRESHOLD_MB ? ' (via storage)' : ''}${privacyModeEnabled ? ' (privacy mode)' : ''}`)
 
         // Add 90-second client-side timeout
         const controller = new AbortController()
@@ -1008,8 +1017,9 @@ function RecordsVaultPageContent() {
 
         formData.append('sessionId', sessionId)
         if (user?.id) formData.append('userId', user.id)
+        if (privacyModeEnabled) formData.append('privacyMode', 'true')
 
-        console.log(`[Retry] Processing: ${uploadedFile.file.name}, type: ${uploadedFile.file.type}, size: ${(uploadedFile.file.size / 1024).toFixed(1)}KB${fileSizeMB > LARGE_FILE_THRESHOLD_MB ? ' (via storage)' : ''}`)
+        console.log(`[Retry] Processing: ${uploadedFile.file.name}, type: ${uploadedFile.file.type}, size: ${(uploadedFile.file.size / 1024).toFixed(1)}KB${fileSizeMB > LARGE_FILE_THRESHOLD_MB ? ' (via storage)' : ''}${privacyModeEnabled ? ' (privacy mode)' : ''}`)
 
         // Add 90-second client-side timeout
         const controller = new AbortController()
@@ -3861,6 +3871,34 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                   <p className="font-medium text-slate-900">You're in control</p>
                   <p className="text-sm text-slate-600">Delete your data anytime. {user ? 'Manage from your account settings.' : 'Clear browser storage or sign in for more control.'}</p>
                 </div>
+              </div>
+            </div>
+
+            {/* Privacy Mode Toggle */}
+            <div className="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
+              <div className="flex items-center justify-between">
+                <div className="flex-1 mr-4">
+                  <p className="font-medium text-slate-900 text-sm">Privacy Mode</p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {privacyModeEnabled
+                      ? "Original files won't be stored. We'll extract key info only."
+                      : "Files stored securely for future reference."}
+                  </p>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setPrivacyModeEnabled(!privacyModeEnabled)
+                    localStorage.setItem('opencancer-privacy-mode', (!privacyModeEnabled).toString())
+                  }}
+                  className={`relative w-12 h-6 rounded-full transition-colors ${
+                    privacyModeEnabled ? 'bg-slate-800' : 'bg-slate-300'
+                  }`}
+                >
+                  <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                    privacyModeEnabled ? 'translate-x-6' : 'translate-x-0.5'
+                  }`} />
+                </button>
               </div>
             </div>
 
