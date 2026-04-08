@@ -589,8 +589,9 @@ export default function TrialsPage() {
     }
   }
 
-  // Reset upload modal state
+  // Reset upload modal state - don't allow closing while uploading
   const resetUploadModal = () => {
+    if (isUploading) return // Prevent closing while processing
     setShowUploadModal(false)
     setUploadFile(null)
     setUploadError(null)
