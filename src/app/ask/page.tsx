@@ -387,10 +387,10 @@ I can help you with:
     if (!files || files.length === 0) return
 
     const file = files[0]
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/heic']
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/heic', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
 
-    if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|jpg|jpeg|png|webp|heic)$/i)) {
-      alert('Please upload a PDF or image file (JPG, PNG, WebP, HEIC)')
+    if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|jpg|jpeg|png|webp|heic|doc|docx)$/i)) {
+      alert('Please upload a PDF, Word document, or image file (JPG, PNG, WebP, HEIC)')
       return
     }
 
@@ -569,10 +569,10 @@ I can help you with:
 
   // Process a file (used by both file input and drag-drop)
   const processFile = async (file: File) => {
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/heic']
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/heic', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
 
-    if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|jpg|jpeg|png|webp|heic)$/i)) {
-      alert('Please upload a PDF or image file (JPG, PNG, WebP, HEIC)')
+    if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|jpg|jpeg|png|webp|heic|doc|docx)$/i)) {
+      alert('Please upload a PDF, Word document, or image file (JPG, PNG, WebP, HEIC)')
       return
     }
 
@@ -1480,7 +1480,7 @@ I can help you with:
             <input
               ref={fileInputRef}
               type="file"
-              accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,application/pdf,image/*"
+              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp,.heic,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
               onChange={handleFileSelect}
               className="hidden"
             />
