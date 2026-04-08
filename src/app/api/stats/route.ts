@@ -41,14 +41,15 @@ export async function GET() {
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-    // Simple count - don't fetch all rows, just count
-    const { count: sessionCount } = await supabase
+    // Get actual unique session count (not inflated estimate)
+    const { data: sessionData } = await supabase
       .from('analytics_events')
-      .select('*', { count: 'exact', head: true })
+      .select('session_id')
       .gte('event_timestamp', thirtyDaysAgo.toISOString())
 
-    // Estimate unique sessions as ~70% of total (typical ratio)
-    const uniqueSessions = Math.floor((sessionCount || 0) * 0.7)
+    // Count actual unique sessions
+    const uniqueSessionIds = new Set(sessionData?.map(e => e.session_id) || [])
+    const uniqueSessions = uniqueSessionIds.size
     const displayCount = roundForDisplay(uniqueSessions)
 
     return NextResponse.json({

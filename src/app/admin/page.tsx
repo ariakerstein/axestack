@@ -941,11 +941,13 @@ export default function AdminPage() {
                 onChange={(e) => handleDaysChange(Number(e.target.value))}
                 className="px-4 py-2 bg-white text-slate-900 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
               >
+                <option value={1}>Today</option>
                 <option value={7}>Last 7 days</option>
                 <option value={14}>Last 14 days</option>
                 <option value={30}>Last 30 days</option>
                 <option value={60}>Last 60 days</option>
                 <option value={90}>Last 90 days</option>
+                <option value={365}>All time</option>
               </select>
             )}
             <button
