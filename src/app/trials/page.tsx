@@ -180,6 +180,10 @@ export default function TrialsPage() {
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [uploadSuccess, setUploadSuccess] = useState(false)
 
+  // Save biomarker to profile state
+  const [savingBiomarker, setSavingBiomarker] = useState(false)
+  const [savedBiomarkers, setSavedBiomarkers] = useState<string[]>([])
+
   // Load user records for sharing
   useEffect(() => {
     const loadRecords = () => {
@@ -589,6 +593,39 @@ export default function TrialsPage() {
     }
   }
 
+  // Save biomarker to patient profile/graph
+  const saveBiomarkerToProfile = async (biomarker: string) => {
+    if (!biomarker || savedBiomarkers.includes(biomarker)) return
+
+    setSavingBiomarker(true)
+    try {
+      const sessionId = localStorage.getItem('opencancer_session_id') || 'anonymous'
+      const response = await fetch('/api/entities/manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          entity: {
+            entity_type: 'biomarker',
+            entity_value: biomarker,
+            entity_status: 'self_reported',
+            source: 'trial_radar_filter',
+          },
+          sessionId,
+          userId: user?.id,
+        }),
+      })
+
+      if (response.ok) {
+        setSavedBiomarkers(prev => [...prev, biomarker])
+        trackEvent('biomarker_saved_to_profile', { biomarker })
+      }
+    } catch (err) {
+      console.error('Failed to save biomarker:', err)
+    } finally {
+      setSavingBiomarker(false)
+    }
+  }
+
   // Reset upload modal state - don't allow closing while uploading
   const resetUploadModal = () => {
     if (isUploading) return // Prevent closing while processing
@@ -795,26 +832,48 @@ export default function TrialsPage() {
                 {/* Biomarker Filter */}
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1.5">Biomarker</label>
-                  {availableBiomarkers.length > 0 ? (
-                    <select
-                      value={filters.biomarker}
-                      onChange={(e) => setFilters({ ...filters, biomarker: e.target.value })}
-                      className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#C66B4A]/50 focus:border-[#C66B4A]"
-                    >
-                      <option value="">Any</option>
-                      {availableBiomarkers.map((b) => (
-                        <option key={b.marker} value={b.marker}>{b.marker}</option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input
-                      type="text"
-                      value={filters.biomarker}
-                      onChange={(e) => setFilters({ ...filters, biomarker: e.target.value })}
-                      placeholder="e.g., EGFR, HER2"
-                      className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#C66B4A]/50 focus:border-[#C66B4A]"
-                    />
-                  )}
+                  <div className="flex gap-1.5">
+                    {availableBiomarkers.length > 0 ? (
+                      <select
+                        value={filters.biomarker}
+                        onChange={(e) => setFilters({ ...filters, biomarker: e.target.value })}
+                        className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#C66B4A]/50 focus:border-[#C66B4A]"
+                      >
+                        <option value="">Any</option>
+                        {availableBiomarkers.map((b) => (
+                          <option key={b.marker} value={b.marker}>{b.marker}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        value={filters.biomarker}
+                        onChange={(e) => setFilters({ ...filters, biomarker: e.target.value })}
+                        placeholder="e.g., EGFR, HER2"
+                        className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#C66B4A]/50 focus:border-[#C66B4A]"
+                      />
+                    )}
+                    {/* Save to Profile button */}
+                    {filters.biomarker && !savedBiomarkers.includes(filters.biomarker) && (
+                      <button
+                        onClick={() => saveBiomarkerToProfile(filters.biomarker)}
+                        disabled={savingBiomarker}
+                        title="Save to your profile"
+                        className="px-2 py-2 bg-[#C66B4A]/10 hover:bg-[#C66B4A]/20 text-[#C66B4A] rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        {savingBiomarker ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Plus className="w-4 h-4" />
+                        )}
+                      </button>
+                    )}
+                    {filters.biomarker && savedBiomarkers.includes(filters.biomarker) && (
+                      <div className="px-2 py-2 bg-green-100 text-green-600 rounded-lg" title="Saved to profile">
+                        <CheckCircle2 className="w-4 h-4" />
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Phase Filter */}
