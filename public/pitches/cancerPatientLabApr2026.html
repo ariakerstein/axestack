@@ -1,645 +1,597 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenCancer + Cancer Patient Lab - April 2026</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>opencancer.ai × Cancer Patient Lab — April 2026</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        * { font-family: 'Inter', sans-serif; }
+  :root {
+    --dark: #0a0a0a;
+    --warm: #f5f3ee;
+    --white: #ffffff;
+    --tc: #a85c3e;
+    --tc-light: #f5ede8;
+    --tc-dark: #6b3420;
+    --gray: #7a7570;
+    --stone: #e8e4dc;
+    --charcoal: #3d3a36;
+    --dim: #c8c4be;
+  }
 
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background: #1a1a2e;
-        }
+  body {
+    font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    background: #111;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 0;
+  }
 
-        .viewer {
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            padding: 20px;
-            box-sizing: border-box;
-            overflow: hidden;
-        }
+  .deck { width: 100%; max-width: 1200px; position: relative; }
 
-        .slide-container {
-            width: 100%;
-            max-width: calc((100vh - 80px) * 16 / 9);
-            aspect-ratio: 16 / 9;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            overflow: hidden;
-            position: relative;
-        }
+  .slide {
+    display: none;
+    width: 100%;
+    aspect-ratio: 16/9;
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+  }
+  .slide.active { display: flex; flex-direction: column; }
+  .slide.dark { background: var(--dark); }
+  .slide.warm { background: var(--warm); }
+  .slide.white { background: var(--white); }
 
-        .controls-bar {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            padding: 15px 20px;
-            margin-top: 10px;
-            min-height: 50px;
-            flex-shrink: 0;
-            background: rgba(255,255,255,0.05);
-            border-radius: 8px;
-        }
+  /* NAV BAR */
+  .nav {
+    position: absolute; top: 0; left: 0; right: 0;
+    padding: 16px 36px;
+    display: flex; align-items: center; gap: 8px;
+    z-index: 10;
+  }
+  .nav svg { flex-shrink: 0; }
+  .nav-word { font-size: 14px; display: flex; gap: 0; }
+  .nav-word .light { font-weight: 200; }
+  .nav-word .bold { font-weight: 700; }
+  .nav-word .faded { font-weight: 200; opacity: 0.28; }
 
-        .nav-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border: none;
-            background: rgba(255,255,255,0.1);
-            color: rgba(255,255,255,0.7);
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .nav-btn:hover {
-            background: rgba(255,255,255,0.2);
-            color: white;
-        }
-        .nav-btn:disabled {
-            opacity: 0.3;
-            cursor: default;
-        }
+  .nav-plus {
+    font-size: 14px; font-weight: 300; margin: 0 8px; opacity: 0.4;
+  }
+  .nav-cpl { font-size: 13px; font-weight: 500; }
 
-        .slide-progress {
-            color: rgba(255,255,255,0.7);
-            font-size: 14px;
-            font-weight: 500;
-            min-width: 60px;
-            text-align: center;
-        }
+  /* CONTENT */
+  .content {
+    padding: 52px 60px 40px;
+    flex: 1; display: flex; flex-direction: column;
+  }
 
-        .fullscreen-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border: none;
-            background: rgba(255,255,255,0.1);
-            color: rgba(255,255,255,0.7);
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-left: 16px;
-        }
-        .fullscreen-btn:hover {
-            background: rgba(255,255,255,0.2);
-            color: white;
-        }
+  .eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--tc);
+    margin-bottom: 10px;
+  }
 
-        .nav-hint {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255,255,255,0.15);
-            color: rgba(255,255,255,0.8);
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 13px;
-            z-index: 1000;
-            animation: fadeOut 3s forwards;
-            animation-delay: 3s;
-        }
-        @keyframes fadeOut {
-            to { opacity: 0; visibility: hidden; }
-        }
+  h1 { font-size: clamp(28px, 4.5vw, 54px); font-weight: 700; line-height: 1.1; letter-spacing: -1px; }
+  h2 { font-size: clamp(20px, 3vw, 36px); font-weight: 700; line-height: 1.2; letter-spacing: -0.5px; }
+  h3 { font-size: clamp(14px, 1.8vw, 20px); font-weight: 600; line-height: 1.3; }
 
-        .slide {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: none;
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: center;
-            padding: 5% 6% 4% 6%;
-            box-sizing: border-box;
-        }
-        .slide.active {
-            display: flex;
-        }
+  .white-text { color: var(--white); }
+  .dark-text { color: var(--dark); }
+  .gray-text { color: var(--gray); }
+  .tc-text { color: var(--tc); }
+  .dim-text { color: var(--dim); }
 
-        .slide-centered {
-            justify-content: center;
-            padding: 4rem;
-        }
+  /* CARDS */
+  .card-dark { background: #1a1816; border-radius: 10px; padding: 18px 20px; }
+  .card-light { background: var(--white); border: 0.5px solid var(--stone); border-radius: 10px; padding: 18px 20px; }
+  .card-tc { background: #1a1008; border-radius: 10px; padding: 18px 20px; border-top: 2px solid var(--tc); }
+  .card-warm { background: var(--warm); border: 0.5px solid var(--stone); border-radius: 10px; padding: 18px 20px; }
 
-        .slide-number {
-            position: absolute;
-            bottom: 2rem;
-            right: 2rem;
-            font-size: 0.875rem;
-            color: #94a3b8;
-            font-weight: 500;
-        }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .row { display: flex; gap: 14px; }
+  .col { flex: 1; }
 
-        .terracotta { color: #C66B4A; }
-        .bg-terracotta { background-color: #C66B4A; }
+  .tag {
+    display: inline-block; font-size: 10px; font-weight: 600;
+    padding: 3px 9px; border-radius: 5px; letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .tag-tc { background: #2a1208; color: var(--tc); }
+  .tag-warm { background: var(--tc-light); color: var(--tc-dark); }
 
-        @media print {
-            * {
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-            html, body {
-                overflow: visible !important;
-                height: auto !important;
-                background: white !important;
-            }
-            .viewer, .slide-container { display: contents !important; }
-            .controls-bar, .nav-hint { display: none !important; }
-            .slide {
-                page-break-after: always;
-                width: 100% !important;
-                height: 8.5in !important;
-                display: flex !important;
-                position: relative !important;
-            }
-            @page { margin: 0; size: 11in 8.5in landscape; }
-        }
-    </style>
+  .body-sm { font-size: clamp(11px, 1.4vw, 14px); line-height: 1.6; }
+  .body-xs { font-size: clamp(10px, 1.2vw, 12px); line-height: 1.5; }
+
+  .accent-line { height: 3px; width: 140px; background: var(--tc); border-radius: 2px; margin-bottom: 16px; }
+
+  /* BOTTOM BAR */
+  .bottom-bar {
+    background: #1a1816; border-radius: 8px;
+    padding: 12px 18px; margin-top: auto;
+  }
+  .bottom-bar-tc {
+    background: var(--tc-light); border-radius: 8px;
+    padding: 12px 18px; margin-top: auto;
+    border-left: 3px solid var(--tc);
+  }
+
+  /* SLIDE NUMBER */
+  .slide-num {
+    position: absolute; bottom: 16px; right: 28px;
+    font-size: 12px; color: #333; font-weight: 400;
+  }
+  .slide-num.light { color: var(--stone); }
+
+  /* PERSONA CARDS */
+  .persona { border-radius: 8px; padding: 12px 14px; }
+  .p-soc   { background: #0a1018; border-top: 2px solid #378add; }
+  .p-mol   { background: #110e18; border-top: 2px solid #7f77dd; }
+  .p-emerg { background: #0a1810; border-top: 2px solid #1d9e75; }
+  .p-wait  { background: #181410; border-top: 2px solid #ba7517; }
+  .p-whole { background: #1a1008; border-top: 2px solid var(--tc); }
+
+  /* CONTROLS */
+  .controls {
+    display: flex; align-items: center; gap: 20px;
+    padding: 16px 0; color: #888; font-size: 14px;
+  }
+  .btn {
+    background: #1e1c1a; color: #fff; border: none;
+    border-radius: 8px; padding: 10px 24px;
+    font-size: 14px; cursor: pointer; transition: background 0.15s;
+  }
+  .btn:hover { background: #2a2825; }
+  .btn-tc { background: var(--tc); }
+  .btn-tc:hover { background: #8f4e34; }
+  .progress { flex: 1; text-align: center; color: #555; font-size: 13px; }
+
+  /* WATERMARK MARK */
+  .wm-mark {
+    position: absolute; right: -5%; top: -10%;
+    width: 55%; height: 120%;
+    border-radius: 50%;
+    border: 40px solid rgba(255,255,255,0.025);
+    pointer-events: none;
+  }
+  .wm-mark-light {
+    position: absolute; right: -5%; top: -10%;
+    width: 55%; height: 120%;
+    border-radius: 50%;
+    border: 40px solid rgba(10,10,10,0.04);
+    pointer-events: none;
+  }
+
+  /* TC bars */
+  .bar-bottom { position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: var(--tc); }
+  .bar-left { position: absolute; top: 0; left: 0; bottom: 0; width: 5px; background: var(--tc); }
+
+  .step {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 10px 0; border-bottom: 0.5px solid #2a2825;
+  }
+  .step:last-child { border: none; }
+  .step-num {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--tc); color: #fff;
+    font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+
+  @media print {
+    body { background: white; }
+    .controls, .progress { display: none; }
+    .slide { display: flex !important; page-break-after: always; border-radius: 0; }
+    .deck { max-width: none; }
+  }
+</style>
 </head>
 <body>
 
-<div class="nav-hint">Use arrow keys to navigate | 9 slides</div>
+<div class="deck">
 
-<div class="viewer">
-    <div class="slide-container" id="slideContainer">
-
-<!-- ══════════════════════════════════════════════════════
-     SLIDE 1: Title
-     ══════════════════════════════════════════════════════ -->
-<section class="slide slide-centered active" style="background: linear-gradient(135deg, #faf9f7 0%, #f5f3ee 100%);">
-    <div class="text-center">
-        <div class="flex items-center justify-center gap-4 mb-8">
-            <img src="/nav-lockup-black.svg" alt="OpenCancer" class="h-12">
-            <span class="text-4xl text-slate-300">+</span>
-            <div class="text-3xl font-bold text-slate-800">Cancer Patient Lab</div>
-        </div>
-        <h1 class="text-5xl font-black text-slate-900 mb-4">Innovating Cancer Care</h1>
-        <h2 class="text-5xl font-black terracotta mb-8">Together</h2>
-        <p class="text-xl text-slate-500">April 2026</p>
+  <!-- SLIDE 1: COVER -->
+  <div class="slide dark active" id="s1">
+    <div class="wm-mark"></div>
+    <div class="bar-left"></div>
+    <div class="bar-bottom"></div>
+    <div class="content" style="justify-content:center;">
+      <!-- Inline SVG lockup -->
+      <svg style="margin-bottom:28px;" width="260" height="44" viewBox="0 0 330 56">
+        <path d="M 28.1,25 A 14,14 0 1 0 28.1,39" fill="none" stroke="#ffffff" stroke-width="2.8" stroke-linecap="round"/>
+        <circle cx="16" cy="32" r="3.5" fill="#ffffff"/>
+        <circle cx="16" cy="32" r="1.4" fill="#0a0a0a"/>
+        <text y="46" font-family="-apple-system,Helvetica Neue,Arial,sans-serif" font-size="40" letter-spacing="-1.5" fill="#ffffff">
+          <tspan x="33" font-weight="200">pen</tspan><tspan font-weight="700" dx="6">cancer</tspan><tspan font-weight="200" dx="6" opacity="0.22">.ai</tspan>
+        </text>
+      </svg>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:32px;">
+        <div style="height:1px;width:40px;background:var(--tc);"></div>
+        <span class="body-sm" style="color:#555;">×</span>
+        <img src="/lovable-uploads/cancer-patient-lab.png" alt="Cancer Patient Lab" style="height:28px;opacity:0.85;filter:brightness(1.3);">
+      </div>
+      <h1 class="white-text" style="margin-bottom:12px;">Innovating cancer care<br>for patients, together.</h1>
+      <p class="body-sm gray-text" style="max-width:520px;">You built this community. Your feedback shaped this product. Today we show you what we built — and where we're going.</p>
+      <div style="margin-top:32px;">
+        <span class="body-xs" style="color:#333;">April 2026</span>
+      </div>
     </div>
-    <div class="slide-number">1</div>
-</section>
+    <div class="slide-num light">1</div>
+  </div>
 
-<!-- ══════════════════════════════════════════════════════
-     SLIDE 2: What is OpenCancer
-     ══════════════════════════════════════════════════════ -->
-<section class="slide" style="background: white;">
-    <h2 class="text-3xl font-bold text-slate-900 mb-8 w-full">What is <span class="terracotta">OpenCancer.ai</span>?</h2>
-
-    <div class="grid grid-cols-2 gap-8 w-full flex-1">
-        <div class="bg-slate-50 rounded-2xl p-6">
-            <div class="text-4xl mb-4">🎯</div>
-            <h3 class="text-xl font-bold text-slate-800 mb-3">AI-Powered Cancer Navigation</h3>
-            <p class="text-slate-600">Personalized support for patients and caregivers navigating their cancer journey.</p>
-        </div>
-
-        <div class="bg-slate-50 rounded-2xl p-6">
-            <div class="text-4xl mb-4">📋</div>
-            <h3 class="text-xl font-bold text-slate-800 mb-3">Set Your Cancer Type</h3>
-            <p class="text-slate-600">Tell us your diagnosis. Every feature becomes personalized to YOUR cancer.</p>
-        </div>
-
-        <div class="bg-slate-50 rounded-2xl p-6">
-            <div class="text-4xl mb-4">💬</div>
-            <h3 class="text-xl font-bold text-slate-800 mb-3">Ask Navis</h3>
-            <p class="text-slate-600">Chat with an AI trained on cancer research. Get answers to your questions 24/7.</p>
-        </div>
-
-        <div class="bg-[#C66B4A]/10 rounded-2xl p-6 border-2 border-[#C66B4A]">
-            <div class="text-4xl mb-4">📁</div>
-            <h3 class="text-xl font-bold text-slate-800 mb-3">Upload Your Records</h3>
-            <p class="text-slate-600 font-medium">This is where the REAL unlock happens...</p>
-        </div>
+  <!-- SLIDE 2: WHAT IS OPENCANCER.AI -->
+  <div class="slide warm" id="s2">
+    <div class="wm-mark-light"></div>
+    <div class="nav" style="color:var(--dark);">
+      <svg width="14" height="14" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#0a0a0a" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#0a0a0a"/><circle cx="24" cy="24" r="2" fill="#f5f3ee"/></svg>
+      <div class="nav-word dark-text"><span class="light">pen</span><span class="bold">cancer</span><span class="faded">.ai</span></div>
     </div>
-    <div class="slide-number">2</div>
-</section>
-
-<!-- ══════════════════════════════════════════════════════
-     SLIDE 3: The Unlock - Records
-     ══════════════════════════════════════════════════════ -->
-<section class="slide" style="background: linear-gradient(135deg, #C66B4A 0%, #E88B6A 100%);">
-    <h2 class="text-3xl font-bold text-white mb-6 w-full">The Real Unlock: <span class="text-white/80">Your Records</span></h2>
-
-    <div class="flex gap-8 items-center w-full flex-1">
-        <div class="flex-1">
-            <div class="bg-white/20 backdrop-blur rounded-2xl p-6 mb-6">
-                <h3 class="text-2xl font-bold text-white mb-4">Upload any medical document</h3>
-                <ul class="space-y-3 text-white/90">
-                    <li class="flex items-center gap-3">
-                        <span class="text-2xl">📄</span>
-                        <span>Lab results, pathology reports, doctor notes</span>
-                    </li>
-                    <li class="flex items-center gap-3">
-                        <span class="text-2xl">🧬</span>
-                        <span>Genomic tests, biomarker reports</span>
-                    </li>
-                    <li class="flex items-center gap-3">
-                        <span class="text-2xl">🖼️</span>
-                        <span>Images, PDFs, even photos of paper</span>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="bg-white rounded-2xl p-6">
-                <h3 class="text-xl font-bold text-slate-800 mb-3">What you get:</h3>
-                <ul class="space-y-2 text-slate-600">
-                    <li>✓ Plain English translation of medical jargon</li>
-                    <li>✓ Key biomarkers auto-extracted</li>
-                    <li>✓ Questions to ask your doctor</li>
-                    <li>✓ Personalized trial matching</li>
-                </ul>
-            </div>
+    <div class="content" style="padding-top:56px;">
+      <div class="eyebrow">What is opencancer.ai?</div>
+      <h2 class="dark-text" style="margin-bottom:8px;">Free AI tools for cancer patients<br>and caregivers.</h2>
+      <p class="body-sm gray-text" style="margin-bottom:20px;">Start with a question. The real unlock is your records.</p>
+      <div class="grid3" style="flex:1;">
+        <div class="card-light">
+          <div style="height:2px;background:var(--stone);border-radius:1px;margin-bottom:10px;"></div>
+          <h3 class="dark-text" style="margin-bottom:6px;">Step 1</h3>
+          <p class="body-sm" style="color:var(--dark);font-weight:600;margin-bottom:4px;">Set your cancer type</p>
+          <p class="body-xs gray-text">10 seconds. Every feature personalizes to your diagnosis from this moment on.</p>
         </div>
-
-        <div class="flex-1 flex items-center justify-center">
-            <div class="text-center">
-                <div class="text-8xl mb-4">📁 → 💡</div>
-                <p class="text-2xl font-bold text-white">Confusing Records</p>
-                <p class="text-xl text-white/80">become</p>
-                <p class="text-2xl font-bold text-white">Actionable Insights</p>
-            </div>
+        <div class="card-light">
+          <div style="height:2px;background:var(--stone);border-radius:1px;margin-bottom:10px;"></div>
+          <h3 class="dark-text" style="margin-bottom:6px;">Step 2</h3>
+          <p class="body-sm" style="color:var(--dark);font-weight:600;margin-bottom:4px;">Ask Navis anything</p>
+          <p class="body-xs gray-text">AI trained on clinical guidelines. Available 24/7. Knows your cancer type.</p>
         </div>
+        <div class="card-light" style="border-color:var(--tc);border-width:1.5px;">
+          <div style="height:2px;background:var(--tc);border-radius:1px;margin-bottom:10px;"></div>
+          <h3 class="dark-text" style="margin-bottom:6px;">The real unlock</h3>
+          <p class="body-sm tc-text" style="font-weight:700;margin-bottom:4px;">Upload your records</p>
+          <p class="body-xs gray-text">Every answer becomes specific to your actual case — your biomarkers, your pathology, your history. This is where it gets powerful.</p>
+        </div>
+      </div>
     </div>
-    <div class="slide-number text-white/60">3</div>
-</section>
+    <div class="slide-num">2</div>
+  </div>
 
-<!-- ══════════════════════════════════════════════════════
-     SLIDE 4: Vision
-     ══════════════════════════════════════════════════════ -->
-<section class="slide slide-centered" style="background: #1e293b;">
-    <div class="text-center max-w-4xl">
-        <h2 class="text-4xl font-bold text-white mb-8">Our Vision</h2>
-        <p class="text-5xl font-black text-white leading-tight mb-8">
-            The <span class="terracotta">one-stop shop</span> for cancer patients & caregivers
-        </p>
-        <div class="flex justify-center gap-8 mt-12">
-            <div class="text-center">
-                <div class="text-5xl mb-2">📚</div>
-                <p class="text-white/70">Understand</p>
-            </div>
-            <div class="text-4xl text-white/30">→</div>
-            <div class="text-center">
-                <div class="text-5xl mb-2">🔬</div>
-                <p class="text-white/70">Research</p>
-            </div>
-            <div class="text-4xl text-white/30">→</div>
-            <div class="text-center">
-                <div class="text-5xl mb-2">⚔️</div>
-                <p class="text-white/70">Fight</p>
-            </div>
-            <div class="text-4xl text-white/30">→</div>
-            <div class="text-center">
-                <div class="text-5xl mb-2">🎯</div>
-                <p class="text-white/70">Win</p>
-            </div>
-        </div>
+  <!-- SLIDE 3: VISION -->
+  <div class="slide dark" id="s3">
+    <div class="nav" style="color:#555;">
+      <svg width="14" height="14" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#ffffff"/><circle cx="24" cy="24" r="2" fill="#0a0a0a"/></svg>
+      <div class="nav-word" style="color:#555;"><span class="light">pen</span><span class="bold">cancer</span><span class="faded">.ai</span></div>
     </div>
-    <div class="slide-number text-white/40">4</div>
-</section>
-
-<!-- ══════════════════════════════════════════════════════
-     SLIDE 5: Cancer Combat
-     ══════════════════════════════════════════════════════ -->
-<section class="slide" style="background: white;">
-    <div class="flex items-center gap-3 mb-6 w-full">
-        <span class="text-3xl">⚔️</span>
-        <h2 class="text-3xl font-bold text-slate-900">Cancer<span class="terracotta">Combat</span></h2>
-        <span class="bg-[#C66B4A]/10 text-[#C66B4A] text-sm font-semibold px-3 py-1 rounded-full">Second Opinions</span>
-    </div>
-
-    <div class="grid grid-cols-3 gap-6 w-full flex-1">
-        <div class="col-span-2">
-            <h3 class="text-lg font-bold text-slate-700 mb-4">How it works:</h3>
-            <div class="space-y-4">
-                <div class="flex items-start gap-4 bg-slate-50 rounded-xl p-4">
-                    <div class="w-10 h-10 bg-[#C66B4A] text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">1</div>
-                    <div>
-                        <p class="font-semibold text-slate-800">Upload your diagnosis & treatment records</p>
-                        <p class="text-sm text-slate-500">Pathology, scans, doctor notes - anything relevant</p>
-                    </div>
-                </div>
-                <div class="flex items-start gap-4 bg-slate-50 rounded-xl p-4">
-                    <div class="w-10 h-10 bg-[#C66B4A] text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">2</div>
-                    <div>
-                        <p class="font-semibold text-slate-800">AI analyzes against latest guidelines</p>
-                        <p class="text-sm text-slate-500">NCCN, clinical literature, treatment protocols</p>
-                    </div>
-                </div>
-                <div class="flex items-start gap-4 bg-slate-50 rounded-xl p-4">
-                    <div class="w-10 h-10 bg-[#C66B4A] text-white rounded-full flex items-center justify-center font-bold flex-shrink-0">3</div>
-                    <div>
-                        <p class="font-semibold text-slate-800">Get a detailed second opinion report</p>
-                        <p class="text-sm text-slate-500">Questions for your oncologist, alternative approaches to discuss</p>
-                    </div>
-                </div>
-            </div>
+    <div class="content" style="padding-top:56px;">
+      <div class="eyebrow">Our vision</div>
+      <h2 class="white-text" style="margin-bottom:8px;">The one stop shop for<br>every cancer patient and caregiver.</h2>
+      <p class="body-sm gray-text" style="margin-bottom:20px;">From diagnosis to remission — and everything in between.</p>
+      <div class="grid2" style="flex:1;gap:10px;">
+        <div class="card-dark">
+          <div class="tag tag-tc" style="margin-bottom:8px;">UNDERSTAND</div>
+          <h3 class="white-text" style="margin-bottom:4px;">Records Vault</h3>
+          <p class="body-xs gray-text">Translate your records into plain English. Extract biomarkers. Know what your reports actually mean.</p>
         </div>
-
-        <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-5 text-white">
-            <h3 class="font-bold mb-4">Who it's for:</h3>
-            <div class="space-y-3 text-sm">
-                <div class="bg-white/10 rounded-lg p-3">
-                    <p class="font-semibold">🆕 Newly Diagnosed</p>
-                    <p class="text-white/70">"Is my treatment plan optimal?"</p>
-                </div>
-                <div class="bg-white/10 rounded-lg p-3">
-                    <p class="font-semibold">🔄 Considering Options</p>
-                    <p class="text-white/70">"What else should I explore?"</p>
-                </div>
-                <div class="bg-white/10 rounded-lg p-3">
-                    <p class="font-semibold">📊 Caregivers</p>
-                    <p class="text-white/70">"Am I advocating effectively?"</p>
-                </div>
-            </div>
+        <div class="card-dark">
+          <div class="tag tag-tc" style="margin-bottom:8px;">FIGHT</div>
+          <h3 class="white-text" style="margin-bottom:4px;">Cancer Combat</h3>
+          <p class="body-xs gray-text">5 AI perspectives debate your case. Surface gaps. Get a second opinion grounded in NCCN guidelines.</p>
         </div>
-    </div>
-    <div class="slide-number">5</div>
-</section>
-
-<!-- ══════════════════════════════════════════════════════
-     SLIDE 6: Trial Radar
-     ══════════════════════════════════════════════════════ -->
-<section class="slide" style="background: white;">
-    <div class="flex items-center gap-3 mb-6 w-full">
-        <span class="text-3xl">📡</span>
-        <h2 class="text-3xl font-bold text-slate-900">Trial<span class="terracotta">Radar</span></h2>
-        <span class="bg-[#C66B4A]/10 text-[#C66B4A] text-sm font-semibold px-3 py-1 rounded-full">Clinical Trials</span>
-    </div>
-
-    <div class="grid grid-cols-2 gap-8 w-full flex-1">
-        <div>
-            <h3 class="text-lg font-bold text-slate-700 mb-4">Find trials matched to YOU:</h3>
-            <div class="space-y-4">
-                <div class="flex items-center gap-4 bg-green-50 border border-green-200 rounded-xl p-4">
-                    <span class="text-2xl">✅</span>
-                    <div>
-                        <p class="font-semibold text-slate-800">Auto-extract biomarkers from records</p>
-                        <p class="text-sm text-slate-500">HER2, BRCA, PSA, EGFR... automatically detected</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-4 bg-blue-50 border border-blue-200 rounded-xl p-4">
-                    <span class="text-2xl">🎯</span>
-                    <div>
-                        <p class="font-semibold text-slate-800">Filter by your cancer type</p>
-                        <p class="text-sm text-slate-500">100+ trials filtered to what's relevant for you</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-4 bg-purple-50 border border-purple-200 rounded-xl p-4">
-                    <span class="text-2xl">📍</span>
-                    <div>
-                        <p class="font-semibold text-slate-800">Location & phase filters</p>
-                        <p class="text-sm text-slate-500">Find trials near you, at the phase you want</p>
-                    </div>
-                </div>
-            </div>
+        <div class="card-dark">
+          <div class="tag tag-tc" style="margin-bottom:8px;">FIND</div>
+          <h3 class="white-text" style="margin-bottom:4px;">Trial Radar</h3>
+          <p class="body-xs gray-text">Automatically scan every open clinical trial. Surface the ones you actually qualify for based on your records.</p>
         </div>
-
-        <div class="bg-slate-100 rounded-2xl p-6">
-            <h3 class="text-lg font-bold text-slate-700 mb-4">Live Demo Preview:</h3>
-            <div class="bg-white rounded-xl p-4 shadow-sm mb-4">
-                <div class="flex items-center gap-2 text-green-600 font-semibold mb-2">
-                    <span>✓</span> Scanning for Breast Cancer trials
-                </div>
-                <div class="flex flex-wrap gap-2">
-                    <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded">HER2-Low</span>
-                    <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded">ER+</span>
-                    <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded">PR+</span>
-                </div>
-            </div>
-            <div class="text-center text-slate-500 text-sm">
-                <p class="font-semibold text-slate-700">Showing 47 of 234 trials</p>
-                <p>Sorted by relevance to your biomarkers</p>
-            </div>
+        <div class="card-tc">
+          <div class="tag tag-tc" style="margin-bottom:8px;">COMING SOON</div>
+          <h3 class="white-text" style="margin-bottom:4px;">Expert Review</h3>
+          <p class="body-xs gray-text">Board-certified oncologist reviews your Combat output and walks through it with you. $199. 48hr turnaround.</p>
         </div>
+      </div>
     </div>
-    <div class="slide-number">6</div>
-</section>
+    <div class="slide-num light">3</div>
+  </div>
 
-<!-- ══════════════════════════════════════════════════════
-     SLIDE 7: Records Vault
-     ══════════════════════════════════════════════════════ -->
-<section class="slide" style="background: white;">
-    <div class="flex items-center gap-3 mb-6 w-full">
-        <span class="text-3xl">🛡️</span>
-        <h2 class="text-3xl font-bold text-slate-900">Records<span class="terracotta">Vault</span></h2>
-        <span class="bg-[#C66B4A]/10 text-[#C66B4A] text-sm font-semibold px-3 py-1 rounded-full">Your Records</span>
+  <!-- SLIDE 4: CANCER COMBAT -->
+  <div class="slide dark" id="s4">
+    <div class="nav" style="color:#555;">
+      <svg width="14" height="14" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#ffffff"/><circle cx="24" cy="24" r="2" fill="#0a0a0a"/></svg>
+      <div class="nav-word" style="color:#555;"><span class="light">pen</span><span class="bold">cancer</span><span class="faded">.ai</span></div>
     </div>
-
-    <div class="grid grid-cols-2 gap-8 w-full flex-1">
-        <div>
-            <h3 class="text-lg font-bold text-slate-700 mb-4">Upload → Understand → Act</h3>
-
-            <div class="space-y-4">
-                <div class="bg-slate-50 rounded-xl p-4">
-                    <div class="flex items-center gap-3 mb-2">
-                        <span class="text-xl">📤</span>
-                        <p class="font-semibold text-slate-800">Drop any medical document</p>
-                    </div>
-                    <p class="text-sm text-slate-500 ml-8">PDF, image, photo of paper - we handle it all</p>
-                </div>
-
-                <div class="bg-slate-50 rounded-xl p-4">
-                    <div class="flex items-center gap-3 mb-2">
-                        <span class="text-xl">🔮</span>
-                        <p class="font-semibold text-slate-800">AI translates to plain English</p>
-                    </div>
-                    <p class="text-sm text-slate-500 ml-8">No more Googling medical terms at 2am</p>
-                </div>
-
-                <div class="bg-slate-50 rounded-xl p-4">
-                    <div class="flex items-center gap-3 mb-2">
-                        <span class="text-xl">💬</span>
-                        <p class="font-semibold text-slate-800">Chat with your records</p>
-                    </div>
-                    <p class="text-sm text-slate-500 ml-8">"What does my Gleason score mean?"</p>
-                </div>
-            </div>
+    <div class="content" style="padding-top:56px;">
+      <div class="eyebrow">Cancer Combat</div>
+      <h2 class="white-text" style="margin-bottom:6px;">5 AI perspectives debate your case.</h2>
+      <p class="body-sm gray-text" style="margin-bottom:16px;">Each trained on a different clinical lens. Together they surface what one opinion misses.</p>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;flex:1;">
+        <div class="persona p-soc">
+          <div class="body-xs" style="color:#378add;font-weight:700;margin-bottom:5px;">STANDARD OF CARE</div>
+          <p class="body-xs gray-text">NCCN guidelines, Phase III evidence, established protocols. What your oncologist should be following.</p>
         </div>
-
-        <div class="flex flex-col justify-center">
-            <div class="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-2xl p-6">
-                <h3 class="text-lg font-bold text-green-800 mb-4">🔒 Privacy First</h3>
-                <ul class="space-y-3 text-green-700">
-                    <li class="flex items-center gap-2">
-                        <span>•</span> HIPAA-compliant encryption
-                    </li>
-                    <li class="flex items-center gap-2">
-                        <span>•</span> Your data is YOURS
-                    </li>
-                    <li class="flex items-center gap-2">
-                        <span>•</span> Never shared without consent
-                    </li>
-                    <li class="flex items-center gap-2">
-                        <span>•</span> Delete anytime
-                    </li>
-                </ul>
-            </div>
+        <div class="persona p-mol">
+          <div class="body-xs" style="color:#7f77dd;font-weight:700;margin-bottom:5px;">MOLECULAR</div>
+          <p class="body-xs gray-text">Your biomarkers, mutations, HRR genes. BRCA, ATM, TP53 — what they mean for targeted therapy.</p>
         </div>
-    </div>
-    <div class="slide-number">7</div>
-</section>
-
-<!-- ══════════════════════════════════════════════════════
-     SLIDE 8: Get Started
-     ══════════════════════════════════════════════════════ -->
-<section class="slide slide-centered" style="background: linear-gradient(135deg, #faf9f7 0%, #f5f3ee 100%);">
-    <div class="text-center max-w-3xl">
-        <h2 class="text-4xl font-bold text-slate-900 mb-8">Try It Now</h2>
-
-        <div class="flex justify-center gap-6 mb-12">
-            <div class="bg-white rounded-2xl p-6 shadow-lg text-center w-48">
-                <div class="w-12 h-12 bg-[#C66B4A] text-white rounded-full flex items-center justify-center font-bold text-xl mx-auto mb-4">1</div>
-                <p class="font-semibold text-slate-800">Go to opencancer.ai</p>
-                <p class="text-sm text-slate-500 mt-1">Free to start</p>
-            </div>
-            <div class="bg-white rounded-2xl p-6 shadow-lg text-center w-48">
-                <div class="w-12 h-12 bg-[#C66B4A] text-white rounded-full flex items-center justify-center font-bold text-xl mx-auto mb-4">2</div>
-                <p class="font-semibold text-slate-800">Set your cancer type</p>
-                <p class="text-sm text-slate-500 mt-1">10 seconds</p>
-            </div>
-            <div class="bg-white rounded-2xl p-6 shadow-lg text-center w-48">
-                <div class="w-12 h-12 bg-[#C66B4A] text-white rounded-full flex items-center justify-center font-bold text-xl mx-auto mb-4">3</div>
-                <p class="font-semibold text-slate-800">Upload a record</p>
-                <p class="text-sm text-slate-500 mt-1">See the magic</p>
-            </div>
+        <div class="persona p-emerg">
+          <div class="body-xs" style="color:#1d9e75;font-weight:700;margin-bottom:5px;">EMERGING EVIDENCE</div>
+          <p class="body-xs gray-text">ASCO, ESMO, clinical trials underway. What's coming that might apply to your case now.</p>
         </div>
-
-        <div class="bg-[#C66B4A] text-white rounded-2xl px-12 py-6 inline-block">
-            <p class="text-2xl font-bold">opencancer.ai</p>
+        <div class="persona p-wait">
+          <div class="body-xs" style="color:#ba7517;font-weight:700;margin-bottom:5px;">WATCH & WAIT</div>
+          <p class="body-xs gray-text">Quality of life, de-escalation, surveillance. When active monitoring is the right call.</p>
         </div>
-    </div>
-    <div class="slide-number">8</div>
-</section>
-
-<!-- ══════════════════════════════════════════════════════
-     SLIDE 9: Feedback
-     ══════════════════════════════════════════════════════ -->
-<section class="slide slide-centered" style="background: #1e293b;">
-    <div class="text-center max-w-3xl">
-        <h2 class="text-4xl font-bold text-white mb-6">Help Us Build What <span class="terracotta">You</span> Need</h2>
-
-        <p class="text-xl text-white/70 mb-12">
-            We're building this for patients like you.<br>
-            Your feedback shapes what we build next.
-        </p>
-
-        <div class="grid grid-cols-3 gap-6 mb-12">
-            <div class="bg-white/10 rounded-xl p-5">
-                <p class="text-3xl mb-3">🤔</p>
-                <p class="text-white font-semibold">What's confusing?</p>
-            </div>
-            <div class="bg-white/10 rounded-xl p-5">
-                <p class="text-3xl mb-3">✨</p>
-                <p class="text-white font-semibold">What's missing?</p>
-            </div>
-            <div class="bg-white/10 rounded-xl p-5">
-                <p class="text-3xl mb-3">💡</p>
-                <p class="text-white font-semibold">What would help?</p>
-            </div>
+        <div class="persona p-whole">
+          <div class="body-xs" style="color:var(--tc);font-weight:700;margin-bottom:5px;">WHOLE PERSON</div>
+          <p class="body-xs gray-text">Mental health, nutrition, exercise oncology, caregiver support. The full picture beyond the tumor.</p>
         </div>
+      </div>
+      <div class="bottom-bar" style="margin-top:10px;">
+        <span class="body-xs dim-text"><span style="color:var(--tc);font-weight:600;">The output:</span> where all 5 agree, where they disagree, and what gaps your current plan might have. Formatted for your oncologist appointment.</span>
+      </div>
+    </div>
+    <div class="slide-num light">4</div>
+  </div>
 
-        <div class="flex items-center justify-center gap-4">
-            <img src="/nav-lockup-black.svg" alt="OpenCancer" class="h-8 invert opacity-80">
-            <span class="text-white/40">×</span>
-            <span class="text-xl font-bold text-white/80">Cancer Patient Lab</span>
+  <!-- SLIDE 5: HOW COMBAT WORKS -->
+  <div class="slide warm" id="s5">
+    <div class="nav" style="color:var(--dark);">
+      <svg width="14" height="14" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#0a0a0a" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#0a0a0a"/><circle cx="24" cy="24" r="2" fill="#f5f3ee"/></svg>
+      <div class="nav-word dark-text"><span class="light">pen</span><span class="bold">cancer</span><span class="faded">.ai</span></div>
+    </div>
+    <div class="content" style="padding-top:56px;">
+      <div class="eyebrow">How it works</div>
+      <h2 class="dark-text" style="margin-bottom:16px;">Cancer Combat — step by step</h2>
+      <div class="row" style="flex:1;gap:16px;">
+        <div class="col" style="display:flex;flex-direction:column;gap:8px;">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div>
+              <p class="body-sm dark-text" style="font-weight:600;">Upload your records</p>
+              <p class="body-xs gray-text">Pathology, scans, labs, genomic tests. Anything you have. We extract the clinical picture automatically.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div>
+              <p class="body-sm dark-text" style="font-weight:600;">5 AI perspectives analyze your case</p>
+              <p class="body-xs gray-text">Each persona reasons independently against NCCN guidelines, clinical literature, and your specific biomarkers.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div>
+              <p class="body-sm dark-text" style="font-weight:600;">Get a synthesis report</p>
+              <p class="body-xs gray-text">Where they agree. Where they disagree. Gaps in your current plan. Questions to ask your oncologist.</p>
+            </div>
+          </div>
+          <div class="step" style="border:none;">
+            <div class="step-num" style="background:var(--dark);">4</div>
+            <div>
+              <p class="body-sm dark-text" style="font-weight:600;">Optional: PDF for your appointment</p>
+              <p class="body-xs gray-text">$29 — formatted clinical brief to bring to your oncologist. Or upgrade to Pro for unlimited reports.</p>
+            </div>
+          </div>
         </div>
-
-        <p class="text-white/50 mt-8">Thank you for being part of this journey</p>
+        <div class="col">
+          <div class="card-light" style="height:100%;display:flex;flex-direction:column;gap:10px;">
+            <div style="height:2px;background:var(--tc);border-radius:1px;"></div>
+            <p class="body-xs gray-text" style="font-weight:600;letter-spacing:0.1em;text-transform:uppercase;">Real example</p>
+            <p class="body-sm dark-text" style="font-weight:600;">Prostate cancer · T3bN0MX · BRCA2 loss-of-function</p>
+            <div style="background:var(--warm);border-radius:6px;padding:10px 12px;flex:1;">
+              <p class="body-xs" style="color:var(--tc);font-weight:700;margin-bottom:4px;">What Combat found:</p>
+              <p class="body-xs gray-text" style="margin-bottom:6px;">4 of 5 perspectives confirmed SBRT + ADT as standard of care.</p>
+              <p class="body-xs gray-text" style="margin-bottom:6px;">Molecular perspective flagged PARP inhibitor eligibility — BRCA2 confirmed pathogenic. The patient's oncologist had not yet raised this.</p>
+              <p class="body-xs gray-text">Watch & Wait dissented — surfaced PROTECT trial data on quality-of-life outcomes.</p>
+            </div>
+            <p class="body-xs" style="color:var(--tc);font-style:italic;">"Absolutely fantastic. Surpasses every tool I've tried." — Paul Van Camp MD, prostate cancer patient</p>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="slide-number text-white/40">9</div>
-</section>
+    <div class="slide-num">5</div>
+  </div>
 
+  <!-- SLIDE 6: TRIAL RADAR -->
+  <div class="slide dark" id="s6">
+    <div class="nav" style="color:#555;">
+      <svg width="14" height="14" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#ffffff"/><circle cx="24" cy="24" r="2" fill="#0a0a0a"/></svg>
+      <div class="nav-word" style="color:#555;"><span class="light">pen</span><span class="bold">cancer</span><span class="faded">.ai</span></div>
     </div>
+    <div class="content" style="padding-top:56px;">
+      <div class="eyebrow">Trial Radar</div>
+      <h2 class="white-text" style="margin-bottom:6px;">Upload your records.<br>We find the trials built for your case.</h2>
+      <p class="body-sm gray-text" style="margin-bottom:16px;">Not a database search. Automated matching against your actual biomarkers, stage, and prior treatments.</p>
+      <div class="row" style="flex:1;gap:14px;">
+        <div class="col card-dark" style="display:flex;flex-direction:column;gap:10px;">
+          <p class="body-xs" style="color:#378add;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;">How it works</p>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;gap:8px;align-items:flex-start;">
+              <div style="width:6px;height:6px;border-radius:50%;background:var(--tc);margin-top:5px;flex-shrink:0;"></div>
+              <p class="body-xs gray-text">Upload any record — pathology, genomics, labs</p>
+            </div>
+            <div style="display:flex;gap:8px;align-items:flex-start;">
+              <div style="width:6px;height:6px;border-radius:50%;background:var(--tc);margin-top:5px;flex-shrink:0;"></div>
+              <p class="body-xs gray-text">Auto-extract biomarkers — HER2, BRCA, PSA, EGFR, ATM, and more</p>
+            </div>
+            <div style="display:flex;gap:8px;align-items:flex-start;">
+              <div style="width:6px;height:6px;border-radius:50%;background:var(--tc);margin-top:5px;flex-shrink:0;"></div>
+              <p class="body-xs gray-text">Match against ClinicalTrials.gov — 400,000+ trials, filtered to yours</p>
+            </div>
+            <div style="display:flex;gap:8px;align-items:flex-start;">
+              <div style="width:6px;height:6px;border-radius:50%;background:var(--tc);margin-top:5px;flex-shrink:0;"></div>
+              <p class="body-xs gray-text">Filter by location, phase, eligibility criteria</p>
+            </div>
+          </div>
+        </div>
+        <div class="col card-dark" style="display:flex;flex-direction:column;gap:8px;">
+          <p class="body-xs" style="color:#1d9e75;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;">Live preview</p>
+          <div style="background:#0a1810;border-radius:6px;padding:10px 12px;">
+            <p class="body-xs" style="color:#1d9e75;margin-bottom:6px;">Scanning for: Breast Cancer</p>
+            <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+              <span style="background:#0a2018;color:#1d9e75;font-size:10px;padding:2px 7px;border-radius:4px;">HER2-Low</span>
+              <span style="background:#0a2018;color:#1d9e75;font-size:10px;padding:2px 7px;border-radius:4px;">ER+</span>
+              <span style="background:#0a2018;color:#1d9e75;font-size:10px;padding:2px 7px;border-radius:4px;">PR+</span>
+            </div>
+            <p class="body-xs white-text" style="font-weight:600;">47 matched trials</p>
+            <p class="body-xs gray-text">from 234 breast cancer trials — filtered by your biomarkers</p>
+          </div>
+          <p class="body-xs gray-text" style="margin-top:4px;">The average patient spends weeks searching for trials manually. Trial Radar does it in seconds — and only shows you ones you actually qualify for.</p>
+        </div>
+        <div class="col card-dark" style="display:flex;flex-direction:column;gap:8px;">
+          <p class="body-xs" style="color:var(--tc);font-weight:700;letter-spacing:0.1em;text-transform:uppercase;">Why it matters</p>
+          <p class="body-xs gray-text">84% of cancer patients who qualify for trials never enroll — often because they don't know they qualify.</p>
+          <div style="background:#1a1008;border-radius:6px;padding:10px;margin-top:4px;border-left:2px solid var(--tc);">
+            <p class="body-xs dim-text">Clinical trial recruitment costs pharma $15,000–45,000 per patient. We find eligible patients automatically. That's the B2B opportunity — but for you, the patient, it's just free.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num light">6</div>
+  </div>
 
-    <div class="controls-bar">
-        <button class="nav-btn" id="prevBtn" aria-label="Previous slide">&#8592;</button>
-        <div class="slide-progress" id="progress">1 / 9</div>
-        <button class="nav-btn" id="nextBtn" aria-label="Next slide">&#8594;</button>
-        <button class="fullscreen-btn" id="fullscreenBtn" aria-label="Fullscreen">&#x26F6;</button>
-        <button class="fullscreen-btn" id="printBtn" aria-label="Download PDF" title="Print/Save as PDF">&#x2B07;</button>
+  <!-- SLIDE 7: YOUR DATA / PRIVACY -->
+  <div class="slide warm" id="s7">
+    <div class="nav" style="color:var(--dark);">
+      <svg width="14" height="14" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#0a0a0a" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#0a0a0a"/><circle cx="24" cy="24" r="2" fill="#f5f3ee"/></svg>
+      <div class="nav-word dark-text"><span class="light">pen</span><span class="bold">cancer</span><span class="faded">.ai</span></div>
     </div>
+    <div class="content" style="padding-top:56px;">
+      <div class="eyebrow">Your data</div>
+      <h2 class="dark-text" style="margin-bottom:6px;">Your records are yours.<br>Full stop.</h2>
+      <p class="body-sm gray-text" style="margin-bottom:20px;">We've been burned by health data being sold. So have you. Here's exactly what we do and don't do.</p>
+      <div class="grid2" style="flex:1;gap:12px;">
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div class="card-light" style="border-left:3px solid #1d9e75;border-radius:0 8px 8px 0;">
+            <p class="body-sm" style="color:#1d9e75;font-weight:700;margin-bottom:4px;">What we do</p>
+            <p class="body-xs gray-text">Store your records securely with HIPAA-compliant encryption. Use them to personalize your experience. Let you delete everything, anytime, permanently.</p>
+          </div>
+          <div class="card-light" style="border-left:3px solid #1d9e75;border-radius:0 8px 8px 0;">
+            <p class="body-sm" style="color:#1d9e75;font-weight:700;margin-bottom:4px;">Anonymized research (with consent)</p>
+            <p class="body-xs gray-text">If you opt in, anonymized patterns from your data help improve the product and contribute to cancer research. You choose. You can opt out anytime.</p>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div class="card-light" style="border-left:3px solid #cc4444;border-radius:0 8px 8px 0;">
+            <p class="body-sm" style="color:#cc4444;font-weight:700;margin-bottom:4px;">What we never do</p>
+            <p class="body-xs gray-text">Sell your data. Share it with insurers. Share it with employers. Use it for advertising. Give it to pharma without your explicit consent.</p>
+          </div>
+          <div class="card-tc">
+            <p class="body-sm white-text" style="font-weight:700;margin-bottom:4px;">You own the graph</p>
+            <p class="body-xs gray-text">The patient knowledge graph we build from your records belongs to you. Export it anytime. Delete it anytime. It's yours.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num">7</div>
+  </div>
+
+  <!-- SLIDE 8: HOW CPL SHAPED THIS -->
+  <div class="slide dark" id="s8">
+    <div class="nav" style="color:#555;">
+      <svg width="14" height="14" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#ffffff"/><circle cx="24" cy="24" r="2" fill="#0a0a0a"/></svg>
+      <div class="nav-word" style="color:#555;"><span class="light">pen</span><span class="bold">cancer</span><span class="faded">.ai</span></div>
+    </div>
+    <div class="content" style="padding-top:56px;">
+      <div class="eyebrow">You built this</div>
+      <h2 class="white-text" style="margin-bottom:6px;">CPL feedback directly<br>shaped what opencancer.ai became.</h2>
+      <p class="body-sm gray-text" style="margin-bottom:16px;">These aren't features we decided to build. They're things you asked for.</p>
+      <div class="grid3" style="margin-bottom:14px;">
+        <div class="card-dark">
+          <p class="body-xs" style="color:var(--tc);font-weight:700;margin-bottom:5px;">YOU ASKED</p>
+          <p class="body-sm white-text" style="font-weight:600;margin-bottom:4px;">"Stop making me paste my records in"</p>
+          <p class="body-xs gray-text">→ Direct record upload. Drop any PDF, image, or document. We read it.</p>
+        </div>
+        <div class="card-dark">
+          <p class="body-xs" style="color:var(--tc);font-weight:700;margin-bottom:5px;">YOU ASKED</p>
+          <p class="body-sm white-text" style="font-weight:600;margin-bottom:4px;">"I have to re-explain myself every session"</p>
+          <p class="body-xs gray-text">→ Persistent memory. Navis knows your history. You never start from scratch.</p>
+        </div>
+        <div class="card-dark">
+          <p class="body-xs" style="color:var(--tc);font-weight:700;margin-bottom:5px;">YOU ASKED</p>
+          <p class="body-sm white-text" style="font-weight:600;margin-bottom:4px;">"What does this report actually mean?"</p>
+          <p class="body-xs gray-text">→ Record summary. Upload any document. Get plain English in seconds.</p>
+        </div>
+      </div>
+      <div class="bottom-bar">
+        <p class="body-xs dim-text"><span style="color:var(--tc);font-weight:600;">We're 5 days post-launch.</span> 117 users. 439 records uploaded. 24 Combat analyses. What you do next shapes what we build next.</p>
+      </div>
+    </div>
+    <div class="slide-num light">8</div>
+  </div>
+
+  <!-- SLIDE 9: TRY IT NOW + ASK -->
+  <div class="slide warm" id="s9">
+    <div class="nav" style="color:var(--dark);">
+      <svg width="14" height="14" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#0a0a0a" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#0a0a0a"/><circle cx="24" cy="24" r="2" fill="#f5f3ee"/></svg>
+      <div class="nav-word dark-text"><span class="light">pen</span><span class="bold">cancer</span><span class="faded">.ai</span></div>
+    </div>
+    <div class="content" style="padding-top:56px;">
+      <div class="eyebrow">Try it now</div>
+      <h2 class="dark-text" style="margin-bottom:16px;">Three things to do<br>in the next 10 minutes.</h2>
+      <div class="row" style="flex:1;gap:14px;">
+        <div class="card-light col" style="border-top:2px solid var(--dark);">
+          <div style="font-size:clamp(24px,4vw,40px);font-weight:700;color:var(--dark);margin-bottom:8px;">01</div>
+          <h3 class="dark-text" style="margin-bottom:6px;">Go to opencancer.ai</h3>
+          <p class="body-xs gray-text">Set your cancer type. 10 seconds. Everything personalizes from that point.</p>
+        </div>
+        <div class="card-light col" style="border-top:2px solid var(--tc);">
+          <div style="font-size:clamp(24px,4vw,40px);font-weight:700;color:var(--tc);margin-bottom:8px;">02</div>
+          <h3 class="dark-text" style="margin-bottom:6px;">Upload one record</h3>
+          <p class="body-xs gray-text">Any record. Pathology, labs, imaging. See it translated into plain English instantly.</p>
+        </div>
+        <div class="card-light col" style="border-top:2px solid var(--dark);">
+          <div style="font-size:clamp(24px,4vw,40px);font-weight:700;color:var(--dark);margin-bottom:8px;">03</div>
+          <h3 class="dark-text" style="margin-bottom:6px;">Run a Combat analysis</h3>
+          <p class="body-xs gray-text">See what 5 AI perspectives say about your case. This is the one that changes how you walk into your next appointment.</p>
+        </div>
+      </div>
+      <div class="bottom-bar-tc" style="margin-top:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <p class="body-sm dark-text" style="font-weight:700;margin-bottom:2px;">One ask</p>
+            <p class="body-xs" style="color:var(--charcoal);">If you know someone navigating cancer right now — send them to opencancer.ai. That's it. That's the whole ask.</p>
+          </div>
+          <div style="text-align:right;flex-shrink:0;margin-left:20px;">
+            <p class="body-xs gray-text">All free.</p>
+            <p class="body-xs gray-text">Always.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num">9</div>
+  </div>
+
 </div>
 
+<!-- CONTROLS -->
+<div class="controls" style="width:100%;max-width:1200px;">
+  <button class="btn" onclick="prev()">← Prev</button>
+  <div class="progress" id="progress">1 / 9</div>
+  <button class="btn btn-tc" onclick="next()">Next →</button>
+</div>
+<div style="color:#444;font-size:12px;margin-top:4px;">Use arrow keys to navigate</div>
+
 <script>
-    let currentSlide = 0;
-    const slides = document.querySelectorAll('.slide');
-    const totalSlides = slides.length;
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const progress = document.getElementById('progress');
-    const fullscreenBtn = document.getElementById('fullscreenBtn');
-    const printBtn = document.getElementById('printBtn');
+  let current = 1;
+  const total = 9;
 
-    function showSlide(index) {
-        slides.forEach(s => s.classList.remove('active'));
-        slides[index].classList.add('active');
-        progress.textContent = `${index + 1} / ${totalSlides}`;
-        prevBtn.disabled = index === 0;
-        nextBtn.disabled = index === totalSlides - 1;
-    }
+  function show(n) {
+    document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+    document.getElementById('s' + n).classList.add('active');
+    document.getElementById('progress').textContent = n + ' / ' + total;
+    current = n;
+  }
 
-    function nextSlide() {
-        if (currentSlide < totalSlides - 1) {
-            currentSlide++;
-            showSlide(currentSlide);
-        }
-    }
+  function next() { if (current < total) show(current + 1); }
+  function prev() { if (current > 1) show(current - 1); }
 
-    function prevSlide() {
-        if (currentSlide > 0) {
-            currentSlide--;
-            showSlide(currentSlide);
-        }
-    }
-
-    nextBtn.addEventListener('click', nextSlide);
-    prevBtn.addEventListener('click', prevSlide);
-
-    fullscreenBtn.addEventListener('click', () => {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen();
-        } else {
-            document.exitFullscreen();
-        }
-    });
-
-    printBtn.addEventListener('click', () => {
-        window.print();
-    });
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
-            e.preventDefault();
-            nextSlide();
-        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-            e.preventDefault();
-            prevSlide();
-        }
-    });
-
-    showSlide(0);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next();
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') prev();
+  });
 </script>
 
 </body>
