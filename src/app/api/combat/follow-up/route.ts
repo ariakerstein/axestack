@@ -174,26 +174,38 @@ export async function POST(request: NextRequest) {
       ? buildAskPrompt(combatResult, message, history)
       : buildRevisePrompt(combatResult, message, history)
 
-    // Call LLM via Supabase edge function
-    const supabase = getSupabase()
-    const { data, error } = await supabase.functions.invoke('direct-navis', {
-      body: {
-        model: 'claude-sonnet-4-20250514',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: mode === 'ask' ? 0.4 : 0.2, // Lower temp for revisions
-        max_tokens: mode === 'ask' ? 1000 : 2000,
-      }
+    // Call LLM via Supabase edge function (using same pattern as /api/ask)
+    const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlbG9mbWxocXdjZHBpeWpnc3R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA2NzQzODAsImV4cCI6MjA1NjI1MDM4MH0._kYA-prwPgxQWoKzWPzJDy2Bf95WgTF5_KnAPN2cGnQ"
+
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/direct-navis`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'apikey': SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        question: prompt,
+        model: 'claude-3-5-haiku', // Use Haiku for faster responses
+        temperature: mode === 'ask' ? 0.4 : 0.2,
+        skipRAG: true, // No need for NCCN guidelines lookup for follow-ups
+        systemPrompt: mode === 'ask'
+          ? 'You are Navis, a compassionate cancer care assistant helping patients understand their CancerCombat analysis. Be warm, accurate, and explain medical concepts simply.'
+          : 'You are an oncology AI assistant revising a CancerCombat analysis. Return valid JSON as instructed.',
+      }),
     })
 
-    if (error) {
-      console.error('LLM error:', error)
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('direct-navis error:', errorText)
       return NextResponse.json(
         { error: 'Failed to process follow-up' },
         { status: 500 }
       )
     }
 
-    const responseText = data?.content?.[0]?.text || data?.response || ''
+    const data = await response.json()
+    const responseText = data?.response || data?.answer || ''
 
     // Parse response based on mode
     if (mode === 'ask') {
