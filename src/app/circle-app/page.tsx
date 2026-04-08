@@ -659,7 +659,7 @@ function AskTab({ messages, setMessages, isLoading, setIsLoading, onRecordUpload
               }
             }}
             placeholder="Ask anything, or drag & drop your records..."
-            className="flex-1 resize-none rounded-xl border-2 border-[#C66B4A]/30 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#C66B4A] focus:border-[#C66B4A] shadow-sm"
+            className="flex-1 resize-none rounded-xl border-2 border-[#C66B4A]/30 px-4 py-2.5 text-sm text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#C66B4A] focus:border-[#C66B4A] shadow-sm"
             rows={1}
             disabled={isLoading}
           />
