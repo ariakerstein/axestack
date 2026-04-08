@@ -499,48 +499,47 @@ window.addEventListener('resize',()=>{s5bBg();s5bDraw(S5B[s5bc]);});
     <svg width="13" height="13" viewBox="0 0 48 48"><path d="M 41.6,17 A 20,20 0 1 0 41.6,31" fill="none" stroke="#0a0a0a" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="24" r="5" fill="#0a0a0a"/><circle cx="24" cy="24" r="2" fill="#f5f3ee"/></svg>
     <div class="nw dt"><span class="l">open</span><span class="b">cancer</span><span class="f">.ai</span></div>
   </div>
-  <div class="c ct" style="justify-content:center;">
+  <div class="c ct">
     <div class="ey">Business model</div>
-    <div class="h2 dt" style="margin-bottom:28px;">Free for patients.<br>Partners pay for precision.</div>
-    <div style="display:grid;grid-template-columns:1fr 40px 1fr;gap:20px;align-items:center;margin-bottom:28px;">
-      <!-- Patients side -->
-      <div class="cl" style="padding:28px;border-top:4px solid var(--tc);">
-        <div class="h3 tc" style="margin-bottom:12px;">Patients</div>
-        <div class="body dt" style="margin-bottom:16px;">Free tools build trust.<br>Premium unlocks more.</div>
-        <div style="display:flex;gap:10px;">
-          <div style="background:var(--st);border-radius:5px;padding:8px 12px;text-align:center;">
-            <div class="body dt" style="font-weight:700;">Free</div>
-            <div class="xs gt">Combat · Trials · Records</div>
-          </div>
-          <div style="background:var(--tcl);border-radius:5px;padding:8px 12px;text-align:center;">
-            <div class="body tc" style="font-weight:700;">$29–650</div>
-            <div class="xs gt">Reports · Expert Review</div>
-          </div>
+    <div class="h2 dt" style="margin-bottom:8px;">Free for patients.<br>Partners pay for precision.</div>
+    <div class="body gt" style="margin-bottom:20px;max-width:720px;">The graph surfaces the right verified patient at the exact clinical moment a partner is relevant. That precision is what they pay for — not access, not advertising.</div>
+
+    <!-- 3-layer cards -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:auto;">
+      <!-- Layer 1: Free -->
+      <div class="cl" style="padding:20px 18px;border:1px solid var(--st);">
+        <div class="xs gt" style="font-weight:600;letter-spacing:.1em;margin-bottom:8px;">LAYER 1 — FREE</div>
+        <div class="h3 dt" style="margin-bottom:10px;">Patients</div>
+        <div class="body gt" style="margin-bottom:14px;line-height:1.5;">Combat · Records Vault · Trial Radar · Ask Navis · Community. Always free. This is the distribution engine — patient acquisition cost is zero.</div>
+        <div style="background:var(--st);border-radius:5px;padding:6px 12px;display:inline-block;">
+          <span class="xs dt" style="font-weight:600;">$0 · VIRAL ENGINE</span>
         </div>
       </div>
-      <!-- Arrow -->
-      <div style="text-align:center;font-size:32px;color:var(--gr);">→</div>
-      <!-- Partners side -->
-      <div class="cl" style="padding:28px;border-top:4px solid var(--gr);">
-        <div class="h3 grt" style="margin-bottom:12px;">Partners</div>
-        <div class="body dt" style="margin-bottom:16px;">Lower CAC. Faster revenue.<br>Right patient, right time.</div>
-        <div style="display:flex;gap:10px;">
-          <div style="background:#f0f9f6;border-radius:5px;padding:8px 12px;text-align:center;">
-            <div class="body grt" style="font-weight:700;">$500–2K</div>
-            <div class="xs gt">per qualified lead</div>
-          </div>
-          <div style="background:#f0f9f6;border-radius:5px;padding:8px 12px;text-align:center;">
-            <div class="body grt" style="font-weight:700;">$25–75K</div>
-            <div class="xs gt">annual contracts</div>
-          </div>
+
+      <!-- Layer 2: Premium -->
+      <div class="cl" style="padding:20px 18px;border:1px solid var(--tc);border-top:3px solid var(--tc);">
+        <div class="xs tc" style="font-weight:600;letter-spacing:.1em;margin-bottom:8px;">LAYER 2 — PREMIUM</div>
+        <div class="h3 dt" style="margin-bottom:10px;">Power patients</div>
+        <div class="body gt" style="margin-bottom:14px;line-height:1.5;">PDF Combat Report ($29 one-time). Pro subscription ($29/mo). Expert Review — oncologist reviews Combat output ($199–650).</div>
+        <div style="background:var(--tcl);border-radius:5px;padding:6px 12px;display:inline-block;">
+          <span class="xs tc" style="font-weight:600;">SECONDARY · NEAR-TERM</span>
         </div>
+      </div>
+
+      <!-- Layer 3: Partners -->
+      <div class="cl" style="padding:20px 18px;border:1px solid var(--gr);border-top:3px solid var(--gr);">
+        <div class="xs grt" style="font-weight:600;letter-spacing:.1em;margin-bottom:8px;">LAYER 3 — INTELLIGENCE</div>
+        <div class="h3 dt" style="margin-bottom:10px;">Partners</div>
+        <div class="body gt" style="margin-bottom:14px;line-height:1.5;">Precision testing labs, advocacy orgs, MRD companies, academic centers pay to reach the right patient at the right moment.</div>
+        <div style="color:var(--gr);font-weight:700;font-size:13px;">$500–2K per qualified referral</div>
+        <div style="color:var(--gr);font-weight:600;font-size:12px;">$25–75K annual contracts</div>
       </div>
     </div>
-    <div class="btc" style="display:flex;gap:20px;">
-      <div class="body" style="color:var(--ch);"><span class="tc" style="font-weight:600;">5 LOIs signed at $25–50K avg contract.</span> Partners pay $15–45K to acquire a trial patient. We find them for less.</div>
-      <div style="border-left:2px solid var(--st);padding-left:20px;">
-        <span class="body gt">Testing · Advocacy · Research · Lifestyle</span>
-      </div>
+
+    <!-- Bottom bar -->
+    <div style="background:var(--dk);border-radius:8px;padding:14px 20px;margin-top:16px;">
+      <span class="body wt">Partners pay $15–45K to recruit one clinical trial patient. </span>
+      <span class="body tc" style="font-weight:600;">Our graph finds eligible patients automatically — and the patient already consented.</span>
     </div>
   </div>
   <div class="sn">6</div>
