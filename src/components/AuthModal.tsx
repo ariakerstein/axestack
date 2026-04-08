@@ -281,7 +281,7 @@ export function AuthModal({ isOpen, onClose, prefillEmail, wizardCompleted, redi
               <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Mail className="w-7 h-7 text-slate-600" />
               </div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">Sign in</h2>
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">Create your free account</h2>
               <p className="text-slate-500 text-sm">
                 Save your records and sync across devices
               </p>
@@ -303,12 +303,12 @@ export function AuthModal({ isOpen, onClose, prefillEmail, wizardCompleted, redi
                 disabled={!email}
                 className="w-full bg-[#C66B4A] hover:bg-[#B35E40] disabled:bg-slate-200 disabled:text-slate-400 text-white py-3.5 px-4 rounded-xl font-semibold transition-colors"
               >
-                Continue
+                Sign Up
               </button>
             </form>
 
             <p className="text-xs text-slate-400 text-center mt-6">
-              No account? We'll create one for you.
+              Already have an account? We'll sign you in.
             </p>
           </>
         ) : mode === 'forgot' ? (
@@ -445,7 +445,7 @@ export function AuthModal({ isOpen, onClose, prefillEmail, wizardCompleted, redi
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Choose a password (6+ characters)"
+                placeholder="Create your password (6+ characters)"
                 required
                 autoFocus
                 minLength={6}
