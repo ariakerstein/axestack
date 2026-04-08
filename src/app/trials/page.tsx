@@ -293,7 +293,7 @@ export default function TrialsPage() {
         try {
           const { data: records } = await supabase
             .from('medical_records')
-            .select('id, translated_text')
+            .select('id, ai_analysis')
             .eq('user_id', user.id)
 
           if (records && records.length > 0) {
@@ -301,12 +301,12 @@ export default function TrialsPage() {
             const allTreatments: string[] = []
 
             records.forEach((record) => {
-              // Parse the translated_text JSON to get the result
-              if (record.translated_text) {
+              // Parse the ai_analysis JSON to get the result
+              if (record.ai_analysis) {
                 try {
-                  const result = typeof record.translated_text === 'string'
-                    ? JSON.parse(record.translated_text)
-                    : record.translated_text
+                  const result = typeof record.ai_analysis === 'string'
+                    ? JSON.parse(record.ai_analysis)
+                    : record.ai_analysis
 
                   if (result?.cancer_specific?.biomarkers) {
                     allBiomarkers.push(...result.cancer_specific.biomarkers)
