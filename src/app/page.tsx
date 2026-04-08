@@ -9,7 +9,7 @@ import { saveProfile, supabase } from '@/lib/supabase'
 import {
   Check, Dna, CheckCircle, Stethoscope,
   Microscope, BookOpen, FlaskConical, FolderClosed, FolderOpen, UserRound,
-  Heart, Users, Ribbon, DollarSign, Code, Share2, Copy, ShieldCheck, UserCheck
+  Heart, Users, Ribbon, DollarSign, Code, Share2, Copy, ShieldCheck, UserCheck, Radar
 } from 'lucide-react'
 import { Navbar } from '@/components/Navbar'
 import { ThinkingIndicator } from '@/components/ThinkingIndicator'
@@ -587,8 +587,8 @@ function HomeContent() {
                       </span>
                       <span className="text-slate-300">·</span>
                       <span className="flex items-center gap-1.5">
-                        <Microscope className="w-4 h-4 text-slate-600" />
-                        Clinical Trials
+                        <Radar className="w-4 h-4 text-[#C66B4A]" />
+                        Trial Radar
                       </span>
                     </div>
                   </div>
@@ -1067,9 +1067,9 @@ function HomeContent() {
               </Link>
 
               <Link href="/trials" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
-                <Microscope className="w-5 h-5 text-indigo-500" />
-                <h3 className="font-semibold text-slate-900 text-sm mt-2">Clinical Trials</h3>
-                <p className="text-slate-500 text-xs">ClinicalTrials.gov</p>
+                <Radar className="w-5 h-5 text-[#C66B4A]" />
+                <h3 className="font-semibold text-slate-900 text-sm mt-2">Trial Radar</h3>
+                <p className="text-slate-500 text-xs">Find matching trials</p>
               </Link>
 
               <Link href="/ask" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">

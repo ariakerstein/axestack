@@ -600,13 +600,9 @@ function RecordsVaultPageContent() {
       setError(null)
       setChatMessages([])
     }
-
-    // Show auth modal after files are stored (if not logged in and auth is ready)
-    // Don't show during auth loading to avoid flashing the modal then closing it
-    if (!user && !authLoading) {
-      setShowAuthModal(true)
-    }
-  }, [user, authLoading])
+    // Auth modal removed from file select - let users translate without signing in
+    // Auth prompt shows after successful translation if they want to save
+  }, [])
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
@@ -635,13 +631,9 @@ function RecordsVaultPageContent() {
       setError(null)
       setChatMessages([])
     }
-
-    // Show auth modal after files are stored (if not logged in and auth is ready)
-    // Don't show during auth loading to avoid flashing the modal then closing it
-    if (!user && !authLoading) {
-      setShowAuthModal(true)
-    }
-  }, [user, authLoading])
+    // Auth modal removed from file select - let users translate without signing in
+    // Auth prompt shows after successful translation if they want to save
+  }, [])
 
   const handleTranslate = async () => {
     if (!file) return
@@ -2310,6 +2302,11 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                   </div>
                   <p className="font-semibold text-slate-900 text-lg">{file.name}</p>
                   <p className="text-sm text-slate-500 mt-1">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                  {file.size > 10 * 1024 * 1024 && (
+                    <p className="text-xs text-amber-600 mt-2 flex items-center justify-center gap-1">
+                      <span>⚠️</span> Large file - processing may take up to 2 minutes
+                    </p>
+                  )}
                   <button onClick={(e) => { e.stopPropagation(); resetUpload() }} className="mt-3 text-sm text-slate-500 hover:text-red-600 underline">
                     Remove file
                   </button>
@@ -2593,7 +2590,21 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
               </div>
             )}
 
-            {error && <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+            {error && (
+              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-700 text-sm mb-3">{error}</p>
+                <button
+                  onClick={() => {
+                    setError(null)
+                    if (file) handleTranslate()
+                    else if (uploadedFiles.length > 0) handleBulkTranslate()
+                  }}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  Try Again
+                </button>
+              </div>
+            )}
 
             {storageWarning && (
               <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-sm flex items-start gap-2">
@@ -3854,8 +3865,12 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                 setPrivacyAcknowledged(true)
                 localStorage.setItem('opencancer-privacy-acknowledged', 'true')
                 setShowPrivacyModal(false)
-                // Open file picker after acknowledgment
-                setTimeout(() => fileInputRef.current?.click(), 100)
+                // Open file picker after acknowledgment - use requestAnimationFrame for mobile compatibility
+                requestAnimationFrame(() => {
+                  requestAnimationFrame(() => {
+                    fileInputRef.current?.click()
+                  })
+                })
               }}
               className="w-full bg-[#C66B4A] hover:bg-[#B35E40] text-white font-semibold py-4 rounded-xl transition-all"
             >
