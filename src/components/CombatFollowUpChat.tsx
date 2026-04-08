@@ -57,6 +57,85 @@ function detectMode(message: string): 'ask' | 'revise' {
   return revisionPatterns.some(p => p.test(message)) ? 'revise' : 'ask'
 }
 
+// Detect what field the user is trying to correct
+type CorrectionField = 'cancer_type' | 'stage' | 'biomarker' | 'treatment' | 'general'
+
+interface IncompleteCorrection {
+  field: CorrectionField
+  currentValue?: string
+  suggestions: string[]
+}
+
+function detectIncompleteCorrection(message: string, combatResult: CombatResult): IncompleteCorrection | null {
+  const lowerMsg = message.toLowerCase()
+
+  // Patterns that indicate something is wrong but don't provide the replacement
+  const incompletePatterns = [
+    { pattern: /\b(cancer\s*type|diagnosis|tumor\s*type)\b.*(wrong|incorrect|not right|mistake)/i, field: 'cancer_type' as CorrectionField },
+    { pattern: /\b(wrong|incorrect|not right|mistake)\b.*(cancer\s*type|diagnosis|tumor\s*type)/i, field: 'cancer_type' as CorrectionField },
+    { pattern: /\b(stage)\b.*(wrong|incorrect|not right)/i, field: 'stage' as CorrectionField },
+    { pattern: /\b(wrong|incorrect)\b.*(stage)/i, field: 'stage' as CorrectionField },
+    { pattern: /\b(biomarker|mutation|BRCA|HER2|EGFR)\b.*(wrong|incorrect)/i, field: 'biomarker' as CorrectionField },
+    { pattern: /\b(treatment|therapy|chemo)\b.*(wrong|incorrect)/i, field: 'treatment' as CorrectionField },
+  ]
+
+  for (const { pattern, field } of incompletePatterns) {
+    if (pattern.test(message)) {
+      // Check if they provided a replacement value (e.g., "cancer type is wrong, it's actually breast")
+      const hasReplacement = /\b(it's|it is|should be|actually|really)\s+\w+/i.test(message)
+      if (!hasReplacement) {
+        return {
+          field,
+          currentValue: extractCurrentValue(field, combatResult),
+          suggestions: getSuggestionsForField(field)
+        }
+      }
+    }
+  }
+
+  return null
+}
+
+function extractCurrentValue(field: CorrectionField, combatResult: CombatResult): string | undefined {
+  // Try to extract current value from the combat result question or synthesis
+  const text = combatResult.question + ' ' + combatResult.synthesis
+
+  if (field === 'cancer_type') {
+    const cancerMatch = text.match(/\b(breast|lung|prostate|colon|colorectal|pancreatic|ovarian|melanoma|leukemia|lymphoma)\s*(cancer|adenocarcinoma|carcinoma)?/i)
+    return cancerMatch ? cancerMatch[0] : undefined
+  }
+  if (field === 'stage') {
+    const stageMatch = text.match(/\b(stage\s*[I|II|III|IV|1|2|3|4][A-C]?|T\d[a-d]?N\d M\d)/i)
+    return stageMatch ? stageMatch[0] : undefined
+  }
+  return undefined
+}
+
+function getSuggestionsForField(field: CorrectionField): string[] {
+  switch (field) {
+    case 'cancer_type':
+      return ['Breast Cancer', 'Lung Cancer', 'Prostate Cancer', 'Colon Cancer', 'Pancreatic Cancer', 'Other']
+    case 'stage':
+      return ['Stage I', 'Stage II', 'Stage III', 'Stage IV']
+    case 'biomarker':
+      return ['HER2 Positive', 'HER2 Negative', 'BRCA1/2 Positive', 'EGFR Positive', 'Triple Negative']
+    case 'treatment':
+      return ['Chemotherapy', 'Immunotherapy', 'Targeted Therapy', 'Radiation', 'Surgery']
+    default:
+      return []
+  }
+}
+
+function getFieldLabel(field: CorrectionField): string {
+  switch (field) {
+    case 'cancer_type': return 'cancer type'
+    case 'stage': return 'stage'
+    case 'biomarker': return 'biomarker status'
+    case 'treatment': return 'treatment'
+    default: return 'information'
+  }
+}
+
 export function CombatFollowUpChat({
   combatResult,
   combatAnalysisId,
@@ -67,6 +146,8 @@ export function CombatFollowUpChat({
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [detectedMode, setDetectedMode] = useState<'ask' | 'revise'>('ask')
+  const [smartPrompt, setSmartPrompt] = useState<IncompleteCorrection | null>(null)
+  const [pendingCorrection, setPendingCorrection] = useState<string>('') // Original message that triggered smart prompt
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const { user } = useAuth()
@@ -88,6 +169,24 @@ export function CombatFollowUpChat({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!input.trim() || isLoading) return
+
+    // Check for incomplete correction before making API call
+    const incomplete = detectIncompleteCorrection(input.trim(), combatResult)
+    if (incomplete) {
+      // Show smart prompt instead of making API call
+      setPendingCorrection(input.trim())
+      setSmartPrompt(incomplete)
+      // Add user message to show what they typed
+      setMessages(prev => [...prev, {
+        id: crypto.randomUUID(),
+        role: 'user',
+        content: input.trim(),
+        timestamp: new Date(),
+        mode: 'revise'
+      }])
+      setInput('')
+      return
+    }
 
     const userMessage: FollowUpMessage = {
       id: crypto.randomUUID(),
@@ -184,6 +283,109 @@ export function CombatFollowUpChat({
     setInput(question)
   }
 
+  // Handle smart prompt selection - complete the correction and fire API
+  const handleSmartPromptSelect = async (selectedValue: string) => {
+    if (!smartPrompt) return
+
+    // Build complete correction message
+    const fieldLabel = getFieldLabel(smartPrompt.field)
+    const completeMessage = `The ${fieldLabel} is wrong. It should be ${selectedValue}.`
+
+    // Clear smart prompt state
+    setSmartPrompt(null)
+    setPendingCorrection('')
+    setIsLoading(true)
+
+    // Add loading message
+    const loadingId = crypto.randomUUID()
+    setMessages(prev => [...prev, {
+      id: loadingId,
+      role: 'assistant',
+      content: '',
+      timestamp: new Date(),
+      isLoading: true
+    }])
+
+    try {
+      const response = await fetch('/api/combat/follow-up', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: completeMessage,
+          combatAnalysisId,
+          combatResult,
+          history: messages.filter(m => !m.isLoading).map(m => ({
+            role: m.role,
+            content: m.content
+          })),
+          userId: user?.id,
+          sessionId: getSessionId()
+        })
+      })
+
+      const data = await response.json()
+
+      // Remove loading message and add actual response
+      setMessages(prev => {
+        const filtered = prev.filter(m => m.id !== loadingId)
+        return [...filtered, {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: data.response || `Got it! I'll update the analysis to reflect that the ${fieldLabel} is ${selectedValue}.`,
+          timestamp: new Date(),
+          mode: data.mode,
+          followUpQuestions: data.followUpQuestions,
+          typingComplete: false
+        }]
+      })
+
+      // Handle revision if perspectives were updated
+      if (data.mode === 'revise' && data.revisedPerspectives?.length > 0 && onPerspectivesRevised) {
+        const updatedPerspectives = combatResult.perspectives.map(p => {
+          const revised = data.revisedPerspectives.find((r: Perspective) => r.name === p.name)
+          return revised || p
+        })
+
+        const updatedResult: CombatResult = {
+          ...combatResult,
+          perspectives: updatedPerspectives,
+          synthesis: data.revisedSynthesis?.synthesis || combatResult.synthesis,
+          consensus: data.revisedSynthesis?.consensus || combatResult.consensus,
+          divergence: data.revisedSynthesis?.divergence || combatResult.divergence
+        }
+
+        onPerspectivesRevised(updatedResult)
+      }
+
+    } catch (error) {
+      console.error('Smart prompt follow-up error:', error)
+      setMessages(prev => {
+        const filtered = prev.filter(m => m.id !== loadingId)
+        return [...filtered, {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: `I'll update the analysis to reflect that the ${fieldLabel} is ${selectedValue}. Please note: for the most accurate analysis, consider re-running Combat with your updated records.`,
+          timestamp: new Date()
+        }]
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Handle custom text input from smart prompt
+  const handleSmartPromptCustom = (customValue: string) => {
+    if (customValue.trim()) {
+      handleSmartPromptSelect(customValue.trim())
+    }
+  }
+
+  // Dismiss smart prompt
+  const dismissSmartPrompt = () => {
+    setSmartPrompt(null)
+    setPendingCorrection('')
+  }
+
   const markTypingComplete = (messageId: string) => {
     setMessages(prev => prev.map(m =>
       m.id === messageId ? { ...m, typingComplete: true } : m
@@ -194,8 +396,8 @@ export function CombatFollowUpChat({
     <div className="space-y-3">
       {/* Chat with AI */}
       <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-        {/* Messages - only show if there are any */}
-        {messages.length > 0 && (
+        {/* Messages - show if there are any messages OR a smart prompt */}
+        {(messages.length > 0 || smartPrompt) && (
           <div className="max-h-80 overflow-y-auto p-4 space-y-4 border-b border-slate-100">
             {messages.map((msg) => (
               <div
@@ -256,6 +458,63 @@ export function CombatFollowUpChat({
                 </div>
               </div>
             ))}
+
+            {/* Smart Prompt Bubble - shows when user provides incomplete correction */}
+            {smartPrompt && (
+              <div className="flex justify-start">
+                <div className="max-w-[90%] bg-amber-50 border border-amber-200 text-slate-900 rounded-2xl rounded-bl-md px-4 py-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-amber-600 text-lg">💡</span>
+                    <span className="text-sm font-medium text-amber-800">
+                      What should the {getFieldLabel(smartPrompt.field)} be?
+                    </span>
+                  </div>
+
+                  {smartPrompt.currentValue && (
+                    <p className="text-xs text-slate-500 mb-3">
+                      Currently showing: <span className="font-medium">{smartPrompt.currentValue}</span>
+                    </p>
+                  )}
+
+                  {/* Quick select chips */}
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {smartPrompt.suggestions.slice(0, 5).map((suggestion, i) => (
+                      <button
+                        key={i}
+                        onClick={() => handleSmartPromptSelect(suggestion)}
+                        disabled={isLoading}
+                        className="px-3 py-1.5 text-xs font-medium bg-white border border-amber-300 text-amber-800 rounded-full hover:bg-amber-100 hover:border-amber-400 transition-colors disabled:opacity-50"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Custom input */}
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Or type something else..."
+                      className="flex-1 text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                          handleSmartPromptCustom(e.currentTarget.value)
+                        }
+                      }}
+                      disabled={isLoading}
+                    />
+                    <button
+                      onClick={dismissSmartPrompt}
+                      className="text-xs text-slate-400 hover:text-slate-600 px-2"
+                      disabled={isLoading}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div ref={messagesEndRef} />
           </div>
         )}
