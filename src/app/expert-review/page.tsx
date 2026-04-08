@@ -21,6 +21,7 @@ interface Expert {
   isFree: boolean
   responseTime: string
   specialties: string[]
+  stats?: { patients: string; satisfaction: string; studies: string }
 }
 
 const experts: Expert[] = [
@@ -40,17 +41,18 @@ const experts: Expert[] = [
   },
   {
     id: 'cancer-commons',
-    name: 'Dr. Emma Shtivelman',
-    title: 'Chief Scientific Officer',
+    name: 'Cancer Commons',
+    title: 'PhD-Level Science Team',
     organization: 'Cancer Commons',
     organizationUrl: 'https://cancercommons.org',
-    image: 'https://cdn.prod.website-files.com/68e0582d152c96961cd60580/6911c701f74c0c25d0ff3bc0_Emma-photo-cropped-600x600.jpeg',
-    expertise: 'Treatment Decisions',
-    bio: 'Leading expert in precision medicine and cancer treatment strategies. Dr. Shtivelman helps patients understand their options and navigate complex treatment decisions.',
+    image: '/cancer-commons-logo.png',
+    expertise: 'Advanced Cancer Guidance',
+    bio: 'Free expert guidance for patients with advanced or rare cancers. Their science team has helped 10,000+ patients navigate treatment decisions, with 98.5% satisfaction. They analyze 9,000+ studies to find options you may have missed.',
     price: 'Free',
     isFree: true,
     responseTime: '3-5 business days',
-    specialties: ['Precision medicine', 'Clinical trial matching', 'Treatment optimization', 'Cancer genomics']
+    specialties: ['Treatment optimization', 'Clinical trial matching', 'Precision medicine', 'Rare cancers', 'Second opinions'],
+    stats: { patients: '10,000+', satisfaction: '98.5%', studies: '9,000+' }
   },
   {
     id: 'cclm',
@@ -89,12 +91,24 @@ function ExpertReviewContent() {
   const expertParam = searchParams.get('expert')
   const fromCombat = !!combatResultId
 
-  const [step, setStep] = useState<'intro' | 'select' | 'insurance' | 'consent' | 'submit'>('intro')
+  const [step, setStep] = useState<'intro' | 'select' | 'insurance' | 'consent' | 'submit' | 'cancer-commons-prefill'>('intro')
   const [selectedExpert, setSelectedExpert] = useState<Expert | null>(null)
   const [expandedExpert, setExpandedExpert] = useState<string | null>(null)
   const [userRecords, setUserRecords] = useState<any[]>([])
   const [selectedRecords, setSelectedRecords] = useState<string[]>([])
   const [combatResult, setCombatResult] = useState<any>(null)
+
+  // Cancer Commons prefill data
+  const [ccPrefillData, setCcPrefillData] = useState<{
+    name?: string
+    cancerType?: string
+    stage?: string
+    biomarkers?: string[]
+    treatmentStatus?: string
+    diagnosisDate?: string
+    questions?: string
+  } | null>(null)
+  const [isLoadingPrefill, setIsLoadingPrefill] = useState(false)
 
   // Insurance question state
   const [hasInsurance, setHasInsurance] = useState<boolean | null>(null)
@@ -164,11 +178,87 @@ function ExpertReviewContent() {
     if (data) setUserRecords(data)
   }
 
+  // Fetch patient entities for Cancer Commons prefill
+  const fetchPrefillData = async () => {
+    setIsLoadingPrefill(true)
+    try {
+      // Get session ID from localStorage for anonymous users
+      const sessionId = localStorage.getItem('opencancer-session-id')
+
+      // Fetch patient entities
+      const query = supabase
+        .from('patient_entities')
+        .select('entity_type, entity_value, entity_status, confidence')
+        .order('confidence', { ascending: false })
+
+      if (user?.id) {
+        query.eq('user_id', user.id)
+      } else if (sessionId) {
+        query.eq('session_id', sessionId)
+      }
+
+      const { data: entities } = await query
+
+      // Also try to get patient summary if available
+      const summaryQuery = supabase
+        .from('patient_summaries')
+        .select('summary_text')
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (user?.id) {
+        summaryQuery.eq('user_id', user.id)
+      } else if (sessionId) {
+        summaryQuery.eq('session_id', sessionId)
+      }
+
+      const { data: summaryData } = await summaryQuery
+
+      // Build prefill data from entities
+      const prefill: typeof ccPrefillData = {}
+
+      if (entities && entities.length > 0) {
+        // Extract cancer type
+        const cancerType = entities.find(e => e.entity_type === 'diagnosis' || e.entity_type === 'cancer_type')
+        if (cancerType) prefill.cancerType = cancerType.entity_value
+
+        // Extract stage
+        const stage = entities.find(e => e.entity_type === 'stage')
+        if (stage) prefill.stage = stage.entity_value
+
+        // Extract biomarkers
+        const biomarkers = entities.filter(e => e.entity_type === 'biomarker')
+        if (biomarkers.length > 0) {
+          prefill.biomarkers = biomarkers.map(b => `${b.entity_value}${b.entity_status ? ` (${b.entity_status})` : ''}`)
+        }
+
+        // Extract treatment status
+        const treatment = entities.find(e => e.entity_type === 'treatment')
+        if (treatment) prefill.treatmentStatus = treatment.entity_value
+      }
+
+      // Get user's email as name fallback
+      if (user?.email) {
+        prefill.name = user.email.split('@')[0]
+      }
+
+      setCcPrefillData(prefill)
+    } catch (err) {
+      console.error('Error fetching prefill data:', err)
+    } finally {
+      setIsLoadingPrefill(false)
+    }
+  }
+
   const handleSelectExpert = (expert: Expert) => {
     setSelectedExpert(expert)
-    if (userRecords.length === 0) {
-      // No records - prompt to upload first
+    if (userRecords.length === 0 && expert.id !== 'cancer-commons') {
+      // No records - prompt to upload first (Cancer Commons doesn't require records)
       setStep('intro')
+    } else if (expert.id === 'cancer-commons') {
+      // Special flow for Cancer Commons with prefill
+      fetchPrefillData()
+      setStep('cancer-commons-prefill')
     } else {
       // Go to insurance question first (for paid services)
       setStep(expert.isFree ? 'consent' : 'insurance')
@@ -371,16 +461,19 @@ function ExpertReviewContent() {
               </div>
             </div>
 
-            {userRecords.length > 0 && (
-              <div className="text-center">
-                <button
-                  onClick={() => setStep('select')}
-                  className="px-8 py-3 bg-gradient-to-r from-slate-600 to-slate-600 text-white rounded-xl font-semibold hover:opacity-90 transition-all"
-                >
-                  Select an Expert
-                </button>
-              </div>
-            )}
+            <div className="text-center">
+              <button
+                onClick={() => setStep('select')}
+                className="px-8 py-3 bg-gradient-to-r from-slate-600 to-slate-600 text-white rounded-xl font-semibold hover:opacity-90 transition-all"
+              >
+                Select an Expert
+              </button>
+              {userRecords.length === 0 && (
+                <p className="text-xs text-slate-500 mt-2">
+                  Cancer Commons is available even without records
+                </p>
+              )}
+            </div>
           </>
         )}
 
@@ -395,21 +488,36 @@ function ExpertReviewContent() {
             <div className="space-y-4">
               {experts.map((expert) => {
                 const isAsyncExpert = expert.id === 'async-expert'
+                const isCancerCommons = expert.id === 'cancer-commons'
                 return (
                 <div
                   key={expert.id}
-                  className="bg-white border border-slate-200 rounded-xl p-6 hover:border-slate-400 hover:shadow-md transition-all cursor-pointer"
+                  className={`bg-white border rounded-xl p-6 hover:shadow-md transition-all cursor-pointer ${
+                    isCancerCommons
+                      ? 'border-emerald-200 hover:border-emerald-400 ring-1 ring-emerald-100'
+                      : 'border-slate-200 hover:border-slate-400'
+                  }`}
                   onClick={() => handleSelectExpert(expert)}
                 >
+                  {/* Cancer Commons highlight badge */}
+                  {isCancerCommons && (
+                    <div className="flex items-center gap-2 mb-4 -mt-2">
+                      <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-semibold flex items-center gap-1">
+                        <Star className="w-3 h-3" /> Recommended for Advanced Cancer
+                      </span>
+                    </div>
+                  )}
                   <div className="flex items-start gap-4">
-                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-2xl overflow-hidden">
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl overflow-hidden ${
+                      isCancerCommons ? 'bg-white p-2' : 'bg-slate-100'
+                    }`}>
                       {isAsyncExpert ? (
                         <Swords className="w-8 h-8 text-slate-600" />
                       ) : expert.image ? (
                         <img
                           src={expert.image}
                           alt={expert.name}
-                          className="w-full h-full object-cover"
+                          className={isCancerCommons ? "w-full h-full object-contain" : "w-full h-full object-cover"}
                           onError={(e) => {
                             // Fallback to initials on image load error
                             const target = e.target as HTMLImageElement
@@ -442,6 +550,24 @@ function ExpertReviewContent() {
                           )}
                         </div>
                       </div>
+
+                      {/* Cancer Commons stats */}
+                      {isCancerCommons && expert.stats && (
+                        <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                          <div className="bg-emerald-50 rounded-lg p-2">
+                            <p className="text-sm font-bold text-emerald-700">{expert.stats.patients}</p>
+                            <p className="text-xs text-emerald-600">Patients Helped</p>
+                          </div>
+                          <div className="bg-emerald-50 rounded-lg p-2">
+                            <p className="text-sm font-bold text-emerald-700">{expert.stats.satisfaction}</p>
+                            <p className="text-xs text-emerald-600">Satisfaction</p>
+                          </div>
+                          <div className="bg-emerald-50 rounded-lg p-2">
+                            <p className="text-sm font-bold text-emerald-700">{expert.stats.studies}</p>
+                            <p className="text-xs text-emerald-600">Studies Analyzed</p>
+                          </div>
+                        </div>
+                      )}
 
                       <div className="mt-3 flex items-center gap-4 text-sm text-slate-500">
                         <span className="flex items-center gap-1">
@@ -781,6 +907,148 @@ function ExpertReviewContent() {
                   </>
                 )}
               </button>
+            </div>
+          </>
+        )}
+
+        {/* Cancer Commons Prefill Step */}
+        {step === 'cancer-commons-prefill' && selectedExpert && (
+          <>
+            <button onClick={() => setStep('select')} className="flex items-center gap-1 text-slate-500 hover:text-slate-900 mb-6">
+              <ArrowLeft className="w-4 h-4" /> Back
+            </button>
+
+            <div className="flex items-center gap-3 mb-6">
+              <img src="/cancer-commons-logo.png" alt="Cancer Commons" className="w-12 h-12 object-contain" />
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900">Get Help from Cancer Commons</h2>
+                <p className="text-slate-500 text-sm">Free expert guidance for advanced cancer</p>
+              </div>
+            </div>
+
+            {/* Stats reminder */}
+            <div className="grid grid-cols-3 gap-3 mb-6">
+              <div className="bg-emerald-50 rounded-lg p-3 text-center">
+                <p className="text-lg font-bold text-emerald-700">10,000+</p>
+                <p className="text-xs text-emerald-600">Patients Helped</p>
+              </div>
+              <div className="bg-emerald-50 rounded-lg p-3 text-center">
+                <p className="text-lg font-bold text-emerald-700">98.5%</p>
+                <p className="text-xs text-emerald-600">Satisfaction</p>
+              </div>
+              <div className="bg-emerald-50 rounded-lg p-3 text-center">
+                <p className="text-lg font-bold text-emerald-700">Free</p>
+                <p className="text-xs text-emerald-600">No Cost</p>
+              </div>
+            </div>
+
+            {/* What they help with */}
+            <div className="bg-slate-50 rounded-xl p-6 mb-6">
+              <h3 className="font-semibold text-slate-900 mb-3">Cancer Commons Can Help You:</h3>
+              <ul className="space-y-2 text-slate-600 text-sm">
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                  Understand your diagnosis and treatment options
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                  Find clinical trials you may have missed
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                  Get questions to ask your oncologist
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                  Connect with PhD-level cancer scientists
+                </li>
+              </ul>
+            </div>
+
+            {/* Prefill data preview */}
+            {isLoadingPrefill ? (
+              <div className="bg-white border border-slate-200 rounded-xl p-6 mb-6 text-center">
+                <div className="animate-pulse text-slate-400">Loading your information...</div>
+              </div>
+            ) : ccPrefillData && Object.keys(ccPrefillData).length > 0 ? (
+              <div className="bg-white border border-emerald-200 rounded-xl p-6 mb-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Zap className="w-5 h-5 text-emerald-600" />
+                  <h3 className="font-semibold text-slate-900">We'll Help Pre-fill Your Application</h3>
+                </div>
+                <p className="text-sm text-slate-600 mb-4">
+                  Based on your records, here's what we know about your case:
+                </p>
+                <div className="space-y-2 text-sm">
+                  {ccPrefillData.cancerType && (
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-emerald-500" />
+                      <span className="text-slate-700">Cancer Type: <strong>{ccPrefillData.cancerType}</strong></span>
+                    </div>
+                  )}
+                  {ccPrefillData.stage && (
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-emerald-500" />
+                      <span className="text-slate-700">Stage: <strong>{ccPrefillData.stage}</strong></span>
+                    </div>
+                  )}
+                  {ccPrefillData.biomarkers && ccPrefillData.biomarkers.length > 0 && (
+                    <div className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5" />
+                      <span className="text-slate-700">
+                        Biomarkers: <strong>{ccPrefillData.biomarkers.join(', ')}</strong>
+                      </span>
+                    </div>
+                  )}
+                  {ccPrefillData.treatmentStatus && (
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-emerald-500" />
+                      <span className="text-slate-700">Treatment: <strong>{ccPrefillData.treatmentStatus}</strong></span>
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-slate-500 mt-4">
+                  Copy this information to help fill out their intake form faster.
+                </p>
+              </div>
+            ) : (
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 mb-6">
+                <p className="text-sm text-slate-600">
+                  <strong>Tip:</strong> Upload and translate your medical records first to help fill out the application faster.
+                </p>
+                <Link href="/records" className="inline-flex items-center gap-2 mt-3 text-sm text-orange-600 hover:text-orange-500">
+                  <FileText className="w-4 h-4" /> Go to Records
+                </Link>
+              </div>
+            )}
+
+            {/* CTA Buttons */}
+            <div className="space-y-3">
+              <a
+                href="https://www.cancercommons.org/get-help/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-4 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 transition-all flex items-center justify-center gap-2"
+              >
+                Start Free Application
+                <ExternalLink className="w-4 h-4" />
+              </a>
+              <p className="text-center text-xs text-slate-500">
+                You'll be taken to Cancer Commons' website to complete your application
+              </p>
+            </div>
+
+            {/* Privacy note */}
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start gap-3">
+                <Shield className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-blue-800">
+                  <p className="font-medium mb-1">Your Privacy is Protected</p>
+                  <p className="text-xs text-blue-700">
+                    Cancer Commons follows strict HIPAA guidelines. Your information is only shared with their PhD-level science team to help with your case.
+                  </p>
+                </div>
+              </div>
             </div>
           </>
         )}
