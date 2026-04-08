@@ -177,9 +177,13 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#0d0
         <div class="xs gt" style="margin-top:4px;">Generic. Scary. Often wrong.</div>
       </div>
       <div class="cl" style="border-top:3px solid var(--tc);text-align:center;padding:24px 20px;">
-        <div class="stat" style="font-size:clamp(40px,5vw,56px);">31</div>
+        <div style="display:flex;align-items:baseline;justify-content:center;gap:8px;">
+          <div class="xs gt" style="font-size:18px;text-decoration:line-through;">17</div>
+          <div style="color:var(--tc);font-size:16px;">→</div>
+          <div class="stat" style="font-size:clamp(40px,5vw,56px);">31</div>
+        </div>
         <div class="body dt" style="font-weight:600;margin-top:8px;">days to see a specialist</div>
-        <div class="xs gt" style="margin-top:4px;">Up from 17 days in 2009</div>
+        <div class="xs gt" style="margin-top:4px;">Nearly doubled since 2009</div>
       </div>
     </div>
     <div style="display:flex;gap:16px;margin-top:20px;">
@@ -188,8 +192,8 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:#0d0
         <div class="body wt"><span style="color:var(--tc);font-weight:600;">2M</span> new diagnoses/yr · <span style="color:var(--tc);font-weight:600;">LLMs</span> finally work · <span style="font-style:italic;color:var(--dm);">The window is open.</span></div>
       </div>
       <div style="background:var(--tcl);border-radius:8px;padding:14px 20px;flex:1;border-left:3px solid var(--tc);">
-        <div class="xs tc" style="font-weight:700;letter-spacing:.1em;margin-bottom:6px;">THE INSIGHT</div>
-        <div class="body" style="color:var(--ch);"><span style="color:var(--tc);font-weight:600;">$740B labor</span> vs $63B IT. We target the bigger budget.</div>
+        <div class="xs tc" style="font-weight:700;letter-spacing:.1em;margin-bottom:6px;">THE PRECEDENT</div>
+        <div class="body" style="color:var(--ch);"><span style="color:var(--tc);font-weight:600;">OpenEvidence</span> hit 40% of US doctors in 12 months → <span style="color:var(--tc);font-weight:600;">$6B</span> valuation. Patient side is next.</div>
       </div>
     </div>
   </div>
@@ -553,8 +557,8 @@ window.addEventListener('resize',()=>{s5bBg();s5bDraw(S5B[s5bc]);});
   </div>
   <div class="c ct">
     <div class="ey">Competition</div>
-    <div class="h2 dt" style="margin-bottom:8px;">Different market.<br>Different relationship.</div>
-    <div class="body gt" style="margin-bottom:20px;">OpenEvidence proved doctors want AI. We're proving patients do too — and nobody has built this for them yet.</div>
+    <div class="h2 dt" style="margin-bottom:8px;">The Record ≠ The Relationship.</div>
+    <div class="body gt" style="margin-bottom:20px;">Epic owns 250M records, yet 85% miss clinical trials. A portal is a destination for data, not a home for trust. <span style="color:var(--tc);font-weight:600;">We're building the relationship layer.</span></div>
     <!-- Comparison table -->
     <div style="background:var(--wh);border-radius:10px;border:1px solid var(--st);overflow:hidden;margin-bottom:auto;">
       <table style="width:100%;border-collapse:collapse;font-size:clamp(11px,1.3vw,14px);">
@@ -768,8 +772,9 @@ window.addEventListener('resize',()=>{s5bBg();s5bDraw(S5B[s5bc]);});
   <button class="btn" onclick="prev()">← Prev</button>
   <div class="prog" id="prog">1 / 10</div>
   <button class="btn btnt" onclick="next()">Next →</button>
+  <button class="btn" onclick="window.print()" style="margin-left:auto;opacity:.6;font-size:11px;">↓ PDF</button>
 </div>
-<div style="color:#333;font-size:11px;margin-top:4px;">Arrow keys to navigate · F for fullscreen</div>
+<div style="color:#333;font-size:11px;margin-top:4px;">Arrow keys to navigate · F for fullscreen · Click PDF to export</div>
 
 <script>
 const slides=['s1','s2','s3','s4','s5','s5b','s6','s7','s8','s9','s10'];
