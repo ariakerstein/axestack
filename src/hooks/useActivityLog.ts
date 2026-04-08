@@ -72,8 +72,12 @@ export function useActivityLog() {
   const logActivity = useCallback(async (params: LogActivityParams) => {
     const { activityType, metadata = {}, cancerType, sourcePage, durationMs } = params
 
+    // Get sessionId directly to avoid race condition with useEffect initialization
+    // This ensures we always have a sessionId even on first call
+    const currentSessionId = sessionId || getSessionId()
+
     // Don't log if we don't have identity
-    if (!user?.id && !sessionId) return
+    if (!user?.id && !currentSessionId) return
 
     try {
       // Get previous action for behavioral chain
@@ -85,7 +89,7 @@ export function useActivityLog() {
         body: JSON.stringify({
           activityType,
           userId: user?.id,
-          sessionId,
+          sessionId: currentSessionId,
           cancerType: cancerType || profile?.cancer_type,
           sourcePage: sourcePage || (typeof window !== 'undefined' ? window.location.pathname : undefined),
           durationMs,

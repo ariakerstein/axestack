@@ -86,24 +86,24 @@ export async function GET(request: Request) {
       }))
       .sort((a, b) => b.date.localeCompare(a.date))
 
-    // Get action counts from patient_activity (authoritative source, all time)
+    // Get action counts from patient_activity (client-side logging)
     const { data: patientActivities } = await supabase
       .from('patient_activity')
       .select('activity_type, user_id')
 
     const recordUploaders = new Set<string>()
     const questionAskers = new Set<string>()
-    let recordsUploaded = 0
-    let askQuestions = 0
+    let recordsFromActivity = 0
+    let askQuestionsFromActivity = 0
     let trialsSearches = 0
 
     patientActivities?.forEach((a: { activity_type: string; user_id: string | null }) => {
       if (a.activity_type === 'record_upload') {
-        recordsUploaded++
+        recordsFromActivity++
         if (a.user_id) recordUploaders.add(a.user_id)
       }
       if (a.activity_type === 'ask_question') {
-        askQuestions++
+        askQuestionsFromActivity++
         if (a.user_id) questionAskers.add(a.user_id)
       }
       if (a.activity_type === 'trial_search') {
@@ -111,8 +111,31 @@ export async function GET(request: Request) {
       }
     })
 
-    // Get question details for drill-down (still from analytics_events for metadata)
+    // Get records count from api_usage table (server-side logging - more reliable)
+    const { count: recordsFromApiUsage } = await supabase
+      .from('api_usage')
+      .select('*', { count: 'exact', head: true })
+      .eq('source', 'opencancer')
+      .eq('success', true)
+
+    // Use the higher count - api_usage is server-side and more reliable
+    const recordsUploaded = Math.max(recordsFromActivity, recordsFromApiUsage || 0)
+
+    // Get question events from analytics_events (may have more data due to historical logging)
     const askQuestionEvents = opencancerEvents.filter((e: { event_type: string }) => e.event_type === 'ask_question')
+
+    // Also count ALL questions from analytics_events (not just within date range)
+    const { data: allAnalyticsQuestions } = await supabase
+      .from('analytics_events')
+      .select('id')
+      .eq('event_type', 'ask_question')
+
+    const askQuestionsFromAnalytics = allAnalyticsQuestions?.length || 0
+
+    // Use the higher count - both sources should have the same data, but one might have more due to race conditions
+    const askQuestions = Math.max(askQuestionsFromActivity, askQuestionsFromAnalytics)
+
+    // Get question details for drill-down (still from analytics_events for metadata)
     const questionDetails = askQuestionEvents.map((e: {
       event_timestamp: string
       session_id: string
