@@ -254,7 +254,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           // Migrate any localStorage records to cloud BEFORE clearing
           if (typeof window !== 'undefined') {
-            await migrateLocalRecordsToCloud(session.access_token)
+            await migrateLocalRecordsToCloud(session.user.id)
           }
 
           if (lastUserId && lastUserId !== session.user.id) {
@@ -356,56 +356,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Migrate localStorage records to cloud on sign-in
   // This ensures records uploaded anonymously are saved to the user's account
-  const migrateLocalRecordsToCloud = async (accessToken: string) => {
+  const migrateLocalRecordsToCloud = async (userId: string) => {
     if (typeof window === 'undefined') return
 
-    const data = localStorage.getItem('axestack-translations-data')
-    if (!data) return
+    // Import dynamically to avoid circular deps
+    const { migration, recordsStorage } = await import('./storage')
 
-    try {
-      const translations = JSON.parse(data)
-      const records = Object.values(translations) as Array<{
-        id: string
-        fileName: string
-        documentType: string
-        result: unknown
-        documentText?: string
-      }>
+    // First migrate legacy keys to new format
+    migration.migrateLegacyKeys()
 
-      if (records.length === 0) return
+    // Check if there are any local records to migrate
+    const localRecords = recordsStorage.getFromLocal()
+    if (localRecords.length === 0) return
 
-      console.log('[Auth] Migrating', records.length, 'local records to cloud')
+    console.log('[Auth] Migrating', localRecords.length, 'local records to cloud')
 
-      // Upload each record to cloud
-      for (const record of records) {
-        try {
-          const response = await fetch('/api/records/save', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${accessToken}`,
-            },
-            body: JSON.stringify({
-              fileName: record.fileName,
-              documentType: record.documentType,
-              result: record.result,
-              documentText: record.documentText || '',
-              chatMessages: [],
-            }),
-          })
+    const result = await migration.migrateRecordsToCloud(userId)
+    console.log('[Auth] Migration complete:', result)
 
-          if (response.ok) {
-            console.log('[Auth] Migrated record:', record.fileName)
-          } else {
-            console.warn('[Auth] Failed to migrate record:', record.fileName)
-          }
-        } catch (err) {
-          console.error('[Auth] Migration error for', record.fileName, err)
-        }
-      }
-    } catch (e) {
-      console.error('[Auth] Failed to parse localStorage records:', e)
-    }
+    // Clear legacy localStorage keys regardless (new format cleared by migration)
+    localStorage.removeItem('axestack-translations')
+    localStorage.removeItem('axestack-translations-data')
   }
 
   // Migrate anonymous session decks to user account
