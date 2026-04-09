@@ -234,21 +234,8 @@ function HomeContent() {
   // Check if user has uploaded records
   useEffect(() => {
     const checkRecords = async () => {
-      // Check localStorage for records
-      const localRecords = localStorage.getItem('axestack-translations')
-      if (localRecords) {
-        try {
-          const parsed = JSON.parse(localRecords)
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setHasRecords(true)
-            return
-          }
-        } catch {
-          // Invalid JSON, ignore
-        }
-      }
-
-      // For authenticated users, check cloud records
+      // Only check cloud records for authenticated users
+      // (localStorage translations are temporary and shouldn't gate Expert Review)
       if (user) {
         try {
           const { data } = await supabase
