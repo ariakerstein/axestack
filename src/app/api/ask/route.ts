@@ -600,9 +600,11 @@ ${enrichedQuestion}`
           treatments: [],
           related_entities: [],
           communities: [],
-        } : null)
+        } as unknown as PatientContextObject : null)
+        const fallbackHasRecords = graphragContext?.pco?.has_records || false
         const fallbackToolRec = recommendTool(message, pcoForFallback, {
           isAuthenticated: !!userId,
+          hasRecords: fallbackHasRecords,
           currentPage: '/ask',
         })
 
@@ -660,9 +662,11 @@ ${enrichedQuestion}`
       treatments: [],
       related_entities: [],
       communities: [],
-    } : null)
+    } as unknown as PatientContextObject : null)
+    const hasRecords = graphragContext?.pco?.has_records || false
     const toolRecommendation = recommendTool(message, pcoForRecommendation, {
       isAuthenticated: !!userId,
+      hasRecords,
       currentPage: '/ask', // Don't recommend Ask on Ask page
     })
 

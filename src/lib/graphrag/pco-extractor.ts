@@ -508,7 +508,8 @@ export async function extractPCO(options: ExtractPCOOptions): Promise<PatientCon
     completeness_score: 0, // Calculated below
     has_diagnosis: diagnoses.length > 0,
     has_biomarkers: biomarkers.length > 0,
-    has_treatments: treatments.length > 0
+    has_treatments: treatments.length > 0,
+    has_records: (recordCount || 0) > 0
   }
 
   // Calculate completeness score

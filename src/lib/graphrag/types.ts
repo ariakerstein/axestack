@@ -206,6 +206,7 @@ export interface PatientContextObject {
   has_diagnosis: boolean
   has_biomarkers: boolean
   has_treatments: boolean
+  has_records: boolean          // User has uploaded medical records
 }
 
 // ============================================================================

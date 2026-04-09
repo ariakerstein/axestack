@@ -54,7 +54,8 @@ const PARP_TEST_CASE: { pco: PatientContextObject; query: string; expected: stri
     completeness_score: 0.7,
     has_diagnosis: true,
     has_biomarkers: true,
-    has_treatments: true
+    has_treatments: true,
+    has_records: true
   },
   query: 'Should I be on a PARP inhibitor?',
   expected: [
@@ -109,7 +110,8 @@ const TEST_CASES = [
       completeness_score: 0.6,
       has_diagnosis: true,
       has_biomarkers: true,
-      has_treatments: false
+      has_treatments: false,
+      has_records: false
     } as PatientContextObject,
     query: 'What targeted therapy options are available for my cancer?',
     expected: ['trastuzumab', 'HER2', 'pertuzumab']
@@ -146,7 +148,8 @@ const TEST_CASES = [
       completeness_score: 0.5,
       has_diagnosis: true,
       has_biomarkers: false,
-      has_treatments: true
+      has_treatments: true,
+      has_records: true
     } as PatientContextObject,
     query: 'How can I manage my fatigue during chemo?',
     expected: ['fatigue', 'exercise', 'energy', 'sleep']
@@ -180,7 +183,8 @@ const TEST_CASES = [
       completeness_score: 0.4,
       has_diagnosis: true,
       has_biomarkers: false,
-      has_treatments: false
+      has_treatments: false,
+      has_records: false
     } as PatientContextObject,
     query: 'What monitoring is recommended for active surveillance?',
     expected: ['surveillance', 'PSA', 'biopsy', 'monitoring']

@@ -123,7 +123,8 @@ function extractPCOFromAnalysis(analysis: CombatAnalysis): PatientContextObject 
     completeness_score: cancerType ? 0.5 : 0.2,
     has_diagnosis: !!cancerType,
     has_biomarkers: biomarkers.length > 0,
-    has_treatments: treatments.length > 0
+    has_treatments: treatments.length > 0,
+    has_records: true
   }
 }
 

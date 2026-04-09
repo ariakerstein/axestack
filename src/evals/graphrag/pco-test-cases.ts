@@ -446,7 +446,8 @@ export function buildTestPCO(testCase: PCOTestCase): PatientContextObject {
     completeness_score: 0.8,
     has_diagnosis: testCase.input.diagnoses.length > 0,
     has_biomarkers: testCase.input.biomarkers.length > 0,
-    has_treatments: testCase.input.treatments.length > 0
+    has_treatments: testCase.input.treatments.length > 0,
+    has_records: true
   }
 }
 

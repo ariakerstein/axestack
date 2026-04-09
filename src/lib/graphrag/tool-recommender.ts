@@ -195,13 +195,18 @@ export function classifyIntent(question: string): QuestionIntent {
 /**
  * Extract entity state from Patient Context Object
  */
-export function getEntityState(pco: PatientContextObject | null, isAuthenticated: boolean = false): EntityState {
+export function getEntityState(
+  pco: PatientContextObject | null,
+  options: { isAuthenticated?: boolean; hasRecords?: boolean } = {}
+): EntityState {
+  const { isAuthenticated = false, hasRecords = false } = options
+
   if (!pco) {
     return {
       hasDiagnosis: false,
       hasCancerType: false,
       hasBiomarkers: false,
-      hasRecords: false,
+      hasRecords,
       hasTreatments: false,
       hasStage: false,
       isAuthenticated,
@@ -215,7 +220,7 @@ export function getEntityState(pco: PatientContextObject | null, isAuthenticated
     hasDiagnosis: (pco.diagnoses?.length || 0) > 0,
     hasCancerType: !!cancerType,
     hasBiomarkers: (pco.biomarkers?.length || 0) > 0,
-    hasRecords: false, // TODO: check if user has uploaded records
+    hasRecords,
     hasTreatments: (pco.treatments?.length || 0) > 0,
     hasStage: !!pco.diagnoses?.[0]?.stage,
     isAuthenticated,
@@ -224,13 +229,61 @@ export function getEntityState(pco: PatientContextObject | null, isAuthenticated
 }
 
 /**
- * Intent × Entity matching matrix
- * Returns tool slug and reason template, or null if no recommendation
+ * Intent × Entity Matching Matrix — THE RULESET
+ *
+ * ┌─────────────────────┬─────────────────────┬─────────────────────┬──────────────────────┐
+ * │ Intent              │ Has Records         │ Has Cancer Type     │ Recommendation       │
+ * ├─────────────────────┼─────────────────────┼─────────────────────┼──────────────────────┤
+ * │ trial_search        │ —                   │ + biomarkers        │ Trial Radar          │
+ * │ trial_search        │ —                   │ ✓                   │ Trial Radar          │
+ * │ trial_search        │ —                   │ ✗                   │ Records (upload)     │
+ * ├─────────────────────┼─────────────────────┼─────────────────────┼──────────────────────┤
+ * │ treatment_comparison│ —                   │ any                 │ Combat               │
+ * │ treatment_info      │ —                   │ ✓                   │ Combat               │
+ * │ treatment_info      │ —                   │ ✗                   │ null                 │
+ * ├─────────────────────┼─────────────────────┼─────────────────────┼──────────────────────┤
+ * │ second_opinion      │ ✓ + auth            │ —                   │ Expert Review        │
+ * │ second_opinion      │ ✗ + auth            │ —                   │ Records (upload)     │
+ * │ second_opinion      │ ✗ + no auth         │ —                   │ Combat (fallback)    │
+ * ├─────────────────────┼─────────────────────┼─────────────────────┼──────────────────────┤
+ * │ records_help        │ —                   │ —                   │ Records              │
+ * ├─────────────────────┼─────────────────────┼─────────────────────┼──────────────────────┤
+ * │ symptom_management  │ —                   │ —                   │ Lifestyle            │
+ * │ side_effects        │ —                   │ —                   │ Lifestyle            │
+ * │ lifestyle           │ —                   │ —                   │ Lifestyle            │
+ * ├─────────────────────┼─────────────────────┼─────────────────────┼──────────────────────┤
+ * │ financial_support   │ —                   │ —                   │ Services             │
+ * ├─────────────────────┼─────────────────────┼─────────────────────┼──────────────────────┤
+ * │ general_info        │ ✓ + auth            │ —                   │ Expert Review        │
+ * │ general_info        │ ✗                   │ ✓                   │ Combat               │
+ * │ general_info        │ ✗                   │ ✗                   │ null                 │
+ * ├─────────────────────┼─────────────────────┼─────────────────────┼──────────────────────┤
+ * │ unknown             │ ✓ + auth            │ —                   │ Expert Review        │
+ * │ unknown             │ ✗                   │ —                   │ null                 │
+ * └─────────────────────┴─────────────────────┴─────────────────────┴──────────────────────┘
+ *
+ * Priority: hasRecords + auth → Expert Review (human review is highest value)
  */
 function matchToolForIntent(
   intent: QuestionIntent,
   state: EntityState
 ): { slug: string; reason: string; matchedOn: string[] } | null {
+
+  // PRIORITY RULE: If user has records + is authenticated, always offer Expert Review
+  // (except for very specific intents like lifestyle, financial, records_help)
+  const expertReviewIntents: QuestionIntent[] = [
+    'trial_search', 'treatment_comparison', 'treatment_info',
+    'second_opinion', 'general_info', 'unknown'
+  ]
+  if (state.hasRecords && state.isAuthenticated && expertReviewIntents.includes(intent)) {
+    return {
+      slug: 'expert-review',
+      reason: state.cancerType
+        ? `Get your ${state.cancerType} case reviewed by a human oncologist`
+        : 'Get your case reviewed by a human oncologist',
+      matchedOn: ['has:records', 'authenticated', `intent:${intent}`],
+    }
+  }
 
   switch (intent) {
     case 'trial_search':
@@ -248,7 +301,6 @@ function matchToolForIntent(
           matchedOn: ['intent:trial_search', 'has:cancer_type'],
         }
       }
-      // No diagnosis - suggest records first
       return {
         slug: 'records',
         reason: 'Upload your records to find matching clinical trials',
@@ -277,13 +329,7 @@ function matchToolForIntent(
       }
 
     case 'second_opinion':
-      if (state.hasRecords && state.isAuthenticated) {
-        return {
-          slug: 'expert-review',
-          reason: 'Get your case reviewed by a human oncologist',
-          matchedOn: ['intent:second_opinion', 'has:records', 'authenticated'],
-        }
-      }
+      // Already handled by priority rule if they have records
       if (state.isAuthenticated) {
         return {
           slug: 'records',
@@ -329,7 +375,6 @@ function matchToolForIntent(
       }
 
     case 'treatment_info':
-      // Recommend Combat if they have cancer type context
       if (state.hasCancerType) {
         return {
           slug: 'combat',
@@ -337,10 +382,9 @@ function matchToolForIntent(
           matchedOn: ['intent:treatment_info', 'has:cancer_type'],
         }
       }
-      return null // Let the Ask response suffice
+      return null
 
     case 'general_info':
-      // For general questions with cancer context, suggest Combat
       if (state.hasCancerType) {
         return {
           slug: 'combat',
@@ -352,7 +396,7 @@ function matchToolForIntent(
 
     case 'unknown':
     default:
-      return null // No recommendation for unclassified questions
+      return null
   }
 }
 
@@ -365,17 +409,18 @@ export function recommendTool(
   pco: PatientContextObject | null,
   options: {
     isAuthenticated?: boolean
+    hasRecords?: boolean // User has uploaded medical records
     currentPage?: string // Don't recommend the tool they're already on
     recentlyDismissed?: string[] // Tools user has dismissed
   } = {}
 ): ToolRecommendation | null {
-  const { isAuthenticated = false, currentPage, recentlyDismissed = [] } = options
+  const { isAuthenticated = false, hasRecords = false, currentPage, recentlyDismissed = [] } = options
 
   // Classify intent
   const intent = classifyIntent(question)
 
   // Get entity state
-  const state = getEntityState(pco, isAuthenticated)
+  const state = getEntityState(pco, { isAuthenticated, hasRecords })
 
   // Match tool
   const match = matchToolForIntent(intent, state)

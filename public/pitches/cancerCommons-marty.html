@@ -420,33 +420,25 @@ body{display:flex;flex-direction:column;align-items:center;padding:16px;min-heig
 
 <!-- S10: DISTRIBUTION -->
 <div class="slide dk" id="s10">
-  <div class="wmark"></div>
   <div class="nav">
     <img src="https://opencancer.ai/nav-lockup-white.svg" height="16" alt="opencancer.ai" style="opacity:.5;"/>
   </div>
-  <div class="c ct">
-    <div class="ey">Distribution</div>
-    <div class="h2 wt" style="margin-bottom:16px;">This is how we grow.</div>
-    <div style="flex:1;display:flex;gap:28px;align-items:center;">
-      <!-- Screenshot -->
-      <div style="flex:0 0 60%;max-width:580px;border-radius:12px;overflow:hidden;border:2px solid #2a2825;position:relative;">
-        <img src="https://opencancer.ai/pitchAssets/fb-distribution.jpg" alt="Facebook community engagement" style="width:100%;display:block;"/>
+  <div class="c ct" style="padding:36px 50px 20px;gap:12px;">
+    <!-- Title row -->
+    <div style="display:flex;align-items:center;gap:24px;">
+      <div>
+        <div class="ey">Distribution</div>
+        <div class="h3 wt" style="line-height:1.2;">This is how we grow.</div>
       </div>
-      <!-- Stats -->
-      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:14px;">
-        <div class="cd" style="padding:18px 24px;">
-          <div class="stat" style="font-size:clamp(32px,4vw,48px);">200+</div>
-          <div class="body gt">cancer FB groups</div>
-        </div>
-        <div class="cd" style="padding:18px 24px;">
-          <div class="stat" style="font-size:clamp(32px,4vw,48px);">1000s</div>
-          <div class="body gt">unanswered daily</div>
-        </div>
-        <div class="cd" style="padding:18px 24px;">
-          <div class="stat" style="font-size:clamp(32px,4vw,48px);">$0</div>
-          <div class="body gt">CAC</div>
-        </div>
+      <div style="display:flex;gap:16px;margin-left:auto;">
+        <div style="text-align:center;"><div class="stat" style="font-size:26px;">200+</div><div class="xs gt">FB groups</div></div>
+        <div style="text-align:center;"><div class="stat" style="font-size:26px;">1000s</div><div class="xs gt">daily Qs</div></div>
+        <div style="text-align:center;"><div class="stat" style="font-size:26px;">$0</div><div class="xs gt">CAC</div></div>
       </div>
+    </div>
+    <!-- Image takes remaining space -->
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;min-height:0;">
+      <img src="https://opencancer.ai/pitchAssets/fb-distribution.jpg" alt="Facebook community engagement" style="max-height:100%;max-width:100%;object-fit:contain;border-radius:10px;border:2px solid #2a2825;"/>
     </div>
   </div>
   <div class="snl">10</div>
@@ -458,19 +450,17 @@ body{display:flex;flex-direction:column;align-items:center;padding:16px;min-heig
   <div class="nav">
     <img src="https://opencancer.ai/nav-lockup-black.svg" height="16" alt="opencancer.ai"/>
   </div>
-  <div class="c ct" style="justify-content:center;">
-    <div class="ey">The ask</div>
-
-    <!-- Header: Raise + Allocation -->
-    <div style="display:flex;align-items:center;gap:32px;margin-bottom:24px;">
-      <div class="cl" style="border-top:3px solid var(--tc);padding:16px 28px;display:inline-flex;gap:28px;align-items:center;">
-        <div>
-          <div style="font-size:clamp(40px,5vw,54px);font-weight:700;color:var(--tc);line-height:1;">$500K</div>
-          <div class="xs gt" style="margin-top:4px;">to prove the flywheel</div>
-        </div>
-        <div class="body gt" style="border-left:1px solid var(--st);padding-left:24px;font-size:17px;">Post-money SAFE · $5M cap</div>
+  <div class="c ct" style="flex-direction:row;gap:48px;align-items:center;">
+    <!-- Left: The Ask details -->
+    <div style="width:320px;flex-shrink:0;">
+      <div class="ey">The ask</div>
+      <div style="font-size:clamp(48px,6vw,64px);font-weight:700;color:var(--tc);line-height:1;margin-bottom:8px;">$500K</div>
+      <div class="body gt" style="margin-bottom:20px;">to prove patients want this</div>
+      <div class="cl" style="border-top:3px solid var(--tc);padding:16px 20px;margin-bottom:24px;">
+        <div class="body" style="font-weight:600;color:var(--dk);">Post-money SAFE · $5M cap</div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:6px;font-size:14px;">
+      <!-- Allocation -->
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:15px;">
         <span style="color:var(--tc);">● Product & Eng 40%</span>
         <span style="color:var(--bl);">● Patient Acquisition 30%</span>
         <span style="color:var(--gr);">● Partners 20%</span>
@@ -478,43 +468,36 @@ body{display:flex;flex-direction:column;align-items:center;padding:16px;min-heig
       </div>
     </div>
 
-    <!-- Simple Risk + Proof Table -->
-    <table style="width:100%;max-width:750px;border-collapse:collapse;">
-      <thead>
-        <tr style="border-bottom:2px solid var(--st);">
-          <th style="text-align:left;padding:10px 16px;font-size:14px;font-weight:600;color:var(--gy);">Risk</th>
-          <th style="text-align:left;padding:10px 16px;font-size:14px;font-weight:600;color:var(--gy);">Proof</th>
-          <th style="text-align:center;padding:10px 12px;width:50px;"></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr style="border-bottom:1px solid var(--st);">
-          <td style="padding:14px 16px;color:var(--dk);font-size:16px;">"Will patients trust us?"</td>
-          <td style="padding:14px 16px;color:var(--gy);font-size:15px;">500+ uploading organically</td>
-          <td style="text-align:center;color:var(--gr);font-weight:700;font-size:18px;">✓</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--st);">
-          <td style="padding:14px 16px;color:var(--dk);font-size:16px;">"Can AI extract accurately?"</td>
-          <td style="padding:14px 16px;color:var(--gy);font-size:15px;">90%+ accuracy, validated</td>
-          <td style="text-align:center;color:var(--gr);font-weight:700;font-size:18px;">✓</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--st);background:var(--tcl);">
-          <td style="padding:14px 16px;color:var(--dk);font-size:16px;">"Real clinical value?"</td>
-          <td style="padding:14px 16px;color:var(--tc);font-size:15px;font-weight:600;">Day 3: PARP trial surfaced</td>
-          <td style="text-align:center;color:var(--gr);font-weight:700;font-size:18px;">✓</td>
-        </tr>
-        <tr style="border-bottom:1px solid var(--st);">
-          <td style="padding:14px 16px;color:var(--dk);font-size:16px;">"Path to revenue?"</td>
-          <td style="padding:14px 16px;color:var(--gy);font-size:15px;">$199 reviews + 5 LOIs</td>
-          <td style="text-align:center;color:var(--gr);font-weight:700;font-size:18px;">✓</td>
-        </tr>
-        <tr style="opacity:0.5;">
-          <td style="padding:14px 16px;color:var(--gy);font-size:16px;">"Can it compound?"</td>
-          <td style="padding:14px 16px;color:var(--gy);font-size:15px;">Network effects</td>
-          <td style="text-align:center;color:var(--gy);font-size:11px;">SERIES A</td>
-        </tr>
-      </tbody>
-    </table>
+    <!-- Right: Focus of this raise -->
+    <div style="flex:1;">
+      <div class="body gt" style="margin-bottom:12px;font-weight:600;">Focus of this raise:</div>
+      <table style="width:100%;border-collapse:collapse;background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+        <thead>
+          <tr style="border-bottom:2px solid var(--st);">
+            <th style="text-align:left;padding:12px 16px;font-size:15px;font-weight:600;color:var(--gy);">Risk</th>
+            <th style="text-align:left;padding:12px 16px;font-size:15px;font-weight:600;color:var(--gy);">Key Milestone</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--st);background:#fff;">
+            <td style="padding:14px 16px;color:var(--dk);font-size:17px;">"Will patients trust us?"</td>
+            <td style="padding:14px 16px;color:var(--gy);font-size:16px;">500+ uploading organically</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--st);background:#fff;">
+            <td style="padding:14px 16px;color:var(--dk);font-size:17px;">"Does the AI actually work?"</td>
+            <td style="padding:14px 16px;color:var(--gy);font-size:16px;">90%+ accuracy · Day 3: PARP trial surfaced</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--st);background:#fff;">
+            <td style="padding:14px 16px;color:var(--dk);font-size:17px;">"Will patients pay?"</td>
+            <td style="padding:14px 16px;color:var(--gy);font-size:16px;">$199 expert reviews</td>
+          </tr>
+          <tr style="background:#fff;">
+            <td style="padding:14px 16px;color:var(--dk);font-size:17px;">"Will partners pay?"</td>
+            <td style="padding:14px 16px;color:var(--gy);font-size:16px;">$20K MRR from partners</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
   <div class="sn">11</div>
 </div>
