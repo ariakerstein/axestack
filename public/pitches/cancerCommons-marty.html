@@ -456,72 +456,56 @@ body{display:flex;flex-direction:column;align-items:center;padding:16px;min-heig
   </div>
   <div class="c ct" style="justify-content:center;">
     <div class="ey">The ask</div>
-    <div class="h2 dt" style="margin-bottom:16px;">$500K to prove the flywheel.</div>
-    <div class="row" style="flex:1;gap:20px;align-items:stretch;">
-      <!-- Left: Raise + Flywheel visual -->
-      <div class="col" style="display:flex;flex-direction:column;gap:12px;flex:0.65;">
-        <div class="cl" style="border-top:3px solid var(--tc);padding:16px;">
-          <div class="body gt" style="margin-bottom:4px;">Raising</div>
-          <div style="font-size:clamp(32px,5vw,52px);font-weight:700;color:var(--tc);line-height:1;">$500K</div>
-          <div class="body gt" style="margin-top:8px;">Post-money SAFE · $5M cap</div>
-        </div>
-        <!-- Flywheel diagram -->
-        <div class="cl" style="padding:14px;flex:1;display:flex;flex-direction:column;justify-content:center;">
-          <div class="xs dt" style="font-weight:600;margin-bottom:8px;text-align:center;">The Flywheel</div>
-          <div style="text-align:center;font-size:13px;color:var(--gy);line-height:1.8;">
-            <span style="color:var(--tc);font-weight:600;">Records</span> → Data → Matching<br>
-            ↓<br>
-            Trust ← Outcomes ← <span style="color:var(--gr);font-weight:600;">Revenue</span>
-          </div>
-          <div class="xs gt" style="text-align:center;margin-top:8px;">Every app is a door in.<br>Once records are in, they stay.</div>
-        </div>
+    <div class="h2 dt" style="margin-bottom:20px;">$500K to prove the flywheel.</div>
+
+    <!-- Single raise box -->
+    <div class="cl" style="border-top:3px solid var(--tc);padding:16px 24px;margin-bottom:24px;display:inline-flex;gap:32px;align-items:center;">
+      <div>
+        <div class="body gt">Raising</div>
+        <div style="font-size:clamp(36px,5vw,56px);font-weight:700;color:var(--tc);line-height:1;">$500K</div>
       </div>
-      <!-- Right: Binary proof points -->
-      <div class="col" style="flex:1.35;display:flex;flex-direction:column;gap:6px;">
-        <div class="xs dt" style="font-weight:600;margin-bottom:2px;">This raise proves each link:</div>
-        <!-- Link 1: Records → Data -->
-        <div style="background:var(--tcl);border-radius:10px;padding:12px 14px;border-left:3px solid var(--tc);display:flex;justify-content:space-between;align-items:center;">
-          <div>
-            <div class="xs tc" style="font-weight:600;">Records → Data</div>
-            <div class="xs gt">Patients upload. AI extracts accurately.</div>
-          </div>
-          <div style="color:var(--tc);font-weight:700;font-size:18px;">✓</div>
-        </div>
-        <!-- Link 2: Data → Matching -->
-        <div style="background:#e8f0f8;border-radius:10px;padding:12px 14px;border-left:3px solid var(--bl);display:flex;justify-content:space-between;align-items:center;">
-          <div>
-            <div class="xs bt" style="font-weight:600;">Data → Matching</div>
-            <div class="xs gt">Matches surface real clinical value.</div>
-          </div>
-          <div style="color:var(--bl);font-weight:700;font-size:18px;">✓</div>
-        </div>
-        <!-- Link 3: Matching → Trust -->
-        <div style="background:#f0eef8;border-radius:10px;padding:12px 14px;border-left:3px solid var(--pu);display:flex;justify-content:space-between;align-items:center;">
-          <div>
-            <div class="xs pt" style="font-weight:600;">Matching → Trust</div>
-            <div class="xs gt">Patients engage, return, tell others.</div>
-          </div>
-          <div style="color:var(--pu);font-weight:700;font-size:18px;">✓</div>
-        </div>
-        <!-- Link 4: Trust → Revenue -->
-        <div style="background:#e8f5f0;border-radius:10px;padding:12px 14px;border-left:3px solid var(--gr);display:flex;justify-content:space-between;align-items:center;">
-          <div>
-            <div class="xs grt" style="font-weight:600;">Trust → Revenue</div>
-            <div class="xs gt">Patients pay. Partners pay.</div>
-          </div>
-          <div style="color:var(--gr);font-weight:700;font-size:18px;">✓</div>
-        </div>
-        <!-- Series A -->
-        <div style="background:#f5f5f5;border-radius:10px;padding:10px 14px;border-left:3px dashed #bbb;display:flex;justify-content:space-between;align-items:center;opacity:0.7;">
-          <div>
-            <div class="xs gt" style="font-weight:600;">Revenue → Scale</div>
-            <div class="xs gt">Outcomes compound. Network effects.</div>
-          </div>
-          <div class="xs gt">SERIES A</div>
-        </div>
-      </div>
+      <div class="body gt" style="border-left:1px solid var(--st);padding-left:24px;">Post-money SAFE · $5M cap</div>
     </div>
-    <div class="btc" style="margin-top:10px;">
+
+    <!-- Simple table -->
+    <table style="width:100%;max-width:700px;border-collapse:collapse;margin-bottom:20px;">
+      <thead>
+        <tr style="border-bottom:2px solid var(--st);">
+          <th style="text-align:left;padding:8px 12px;font-size:13px;font-weight:600;color:var(--gy);">Link</th>
+          <th style="text-align:left;padding:8px 12px;font-size:13px;font-weight:600;color:var(--gy);">What We Prove</th>
+          <th style="text-align:center;padding:8px 12px;width:40px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid var(--st);">
+          <td style="padding:10px 12px;font-weight:600;color:var(--tc);">Records → Data</td>
+          <td style="padding:10px 12px;color:var(--dk);">Patients upload. AI extracts.</td>
+          <td style="text-align:center;color:var(--gr);font-weight:700;">✓</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--st);">
+          <td style="padding:10px 12px;font-weight:600;color:var(--bl);">Data → Matching</td>
+          <td style="padding:10px 12px;color:var(--dk);">Matches surface clinical value.</td>
+          <td style="text-align:center;color:var(--gr);font-weight:700;">✓</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--st);">
+          <td style="padding:10px 12px;font-weight:600;color:var(--pu);">Matching → Trust</td>
+          <td style="padding:10px 12px;color:var(--dk);">Patients return, tell others.</td>
+          <td style="text-align:center;color:var(--gr);font-weight:700;">✓</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--st);">
+          <td style="padding:10px 12px;font-weight:600;color:var(--gr);">Trust → Revenue</td>
+          <td style="padding:10px 12px;color:var(--dk);">Patients pay. Partners pay.</td>
+          <td style="text-align:center;color:var(--gr);font-weight:700;">✓</td>
+        </tr>
+        <tr style="opacity:0.5;">
+          <td style="padding:10px 12px;font-weight:600;color:var(--gy);">Revenue → Scale</td>
+          <td style="padding:10px 12px;color:var(--gy);">Network effects.</td>
+          <td style="text-align:center;color:var(--gy);font-size:11px;">SERIES A</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="btc">
       <div class="body dt">Each link proven → Seed. <span style="color:var(--tc);font-weight:600;">All four → we own the patient layer.</span></div>
     </div>
   </div>
