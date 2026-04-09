@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { useAuth } from '@/lib/auth'
 import { saveProfile, supabase } from '@/lib/supabase'
+import { useHasRecords } from '@/hooks/useRecords'
 import {
   Check, Dna, CheckCircle, Stethoscope,
   Microscope, BookOpen, FlaskConical, FolderClosed, FolderOpen, UserRound,
@@ -200,7 +201,7 @@ function HomeContent() {
   const [socialProofCount, setSocialProofCount] = useState<number | null>(null)
 
   // Track if user has uploaded records (to show Expert Review vs Ask Navis)
-  const [hasRecords, setHasRecords] = useState(false)
+  const { hasRecords } = useHasRecords()
 
   // Handler for tool clicks - gates through wizard for guests
   const handleToolClick = (e: React.MouseEvent, destination: string) => {
@@ -231,30 +232,6 @@ function HomeContent() {
     fetchStats()
   }, [])
 
-  // Check if user has uploaded records
-  useEffect(() => {
-    const checkRecords = async () => {
-      // Only check cloud records for authenticated users
-      // (localStorage translations are temporary and shouldn't gate Expert Review)
-      if (user) {
-        try {
-          const { data } = await supabase
-            .from('medical_records')
-            .select('id')
-            .eq('user_id', user.id)
-            .limit(1)
-
-          if (data && data.length > 0) {
-            setHasRecords(true)
-          }
-        } catch {
-          // Ignore errors
-        }
-      }
-    }
-
-    checkRecords()
-  }, [user])
 
   // Load profile - prefer Supabase for authenticated users
   useEffect(() => {
