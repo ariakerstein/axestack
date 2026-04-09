@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>opencancer.ai — Marty Deck — April 2026</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --dk:#0a0a0a;--d2:#141210;--d3:#1c1a18;--d4:#181614;
+  --wm:#f5f3ee;--wh:#ffffff;
+  --tc:#a85c3e;--tcl:#f5ede8;--tcd:#6b3420;
+  --gy:#7a7570;--st:#e8e4dc;--ch:#3d3a36;--dm:#c8c4be;
+  --bl:#378add;--gr:#1d9e75;--pu:#7f77dd;--am:#ba7517;--rd:#cc4444;
+}
+html,body{height:100%;background:#0d0d0d;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;}
+body{display:flex;flex-direction:column;align-items:center;padding:16px;min-height:100vh;}
+.deck{width:100%;max-width:1120px;}
+.slide{display:none;width:100%;aspect-ratio:16/9;position:relative;overflow:hidden;border-radius:10px;flex-direction:column;}
+.slide.active{display:flex;}
+.dk{background:var(--dk);}
+.wm{background:var(--wm);}
+
+.bar-l{position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--tc);}
+.bar-b{position:absolute;bottom:0;left:0;right:0;height:4px;background:var(--tc);}
+.wmark{position:absolute;right:-6%;top:-15%;width:58%;height:130%;border-radius:50%;border:38px solid rgba(255,255,255,.022);pointer-events:none;}
+.wmarkl{position:absolute;right:-6%;top:-15%;width:58%;height:130%;border-radius:50%;border:38px solid rgba(10,10,10,.04);pointer-events:none;}
+
+.nav{position:absolute;top:0;left:0;right:0;padding:12px 36px;display:flex;align-items:center;gap:6px;z-index:5;}
+.nw{font-size:12px;display:flex;}
+.nw .l{font-weight:200;}.nw .b{font-weight:700;}.nw .f{font-weight:200;opacity:.22;}
+
+.c{padding:46px 54px 30px;flex:1;display:flex;flex-direction:column;}
+.ct{padding-top:46px;}
+
+.ey{font-size:14px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--tc);margin-bottom:10px;}
+.h1{font-size:clamp(36px,5vw,64px);font-weight:700;line-height:1.1;letter-spacing:-.8px;}
+.h2{font-size:clamp(28px,3.5vw,44px);font-weight:700;line-height:1.15;letter-spacing:-.5px;}
+.h3{font-size:clamp(20px,2.2vw,28px);font-weight:600;}
+.body{font-size:clamp(16px,1.8vw,22px);line-height:1.5;}
+.xs{font-size:clamp(12px,1.4vw,16px);line-height:1.5;}
+
+.wt{color:#fff;}.dt{color:var(--dk);}.gt{color:var(--gy);}.tc{color:var(--tc);}.dm{color:var(--dm);}.bt{color:var(--bl);}.grt{color:var(--gr);}.pt{color:var(--pu);}
+
+.cd{background:var(--d4);border-radius:9px;padding:13px 15px;}
+.cl{background:#fff;border:.5px solid var(--st);border-radius:9px;padding:13px 15px;}
+.ctc{background:#1a1008;border-radius:9px;padding:13px 15px;border-top:2px solid var(--tc);}
+.cbl{background:#0a1018;border-radius:9px;padding:13px 15px;border-top:2px solid var(--bl);}
+.cgr{background:#0a1810;border-radius:9px;padding:13px 15px;border-top:2px solid var(--gr);}
+.cpu{background:#110e18;border-radius:9px;padding:13px 15px;border-top:2px solid var(--pu);}
+
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:9px;}
+.row{display:flex;gap:9px;}.col{flex:1;}
+
+.bb{background:var(--d4);border-radius:7px;padding:8px 13px;margin-top:auto;}
+.btc{background:var(--tcl);border-radius:7px;padding:8px 13px;margin-top:auto;border-left:3px solid var(--tc);}
+
+.tag{display:inline-block;font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;letter-spacing:.06em;text-transform:uppercase;}
+.ttc{background:#2a1208;color:var(--tc);}
+.tbl{background:#0a1428;color:var(--bl);}
+.tgr{background:#0a2018;color:var(--gr);}
+.tpu{background:#14123a;color:var(--pu);}
+.twm{background:var(--tcl);color:var(--tcd);}
+
+.stat{font-size:clamp(26px,4.6vw,52px);font-weight:700;line-height:1;color:var(--tc);}
+.check{color:var(--gr);font-weight:700;font-size:13px;}
+.cross{color:#2a2825;font-weight:700;font-size:13px;}
+.uniq{font-size:9px;font-weight:600;color:var(--tc);background:#2a1208;padding:1px 5px;border-radius:3px;margin-left:4px;}
+
+.sn{position:absolute;bottom:12px;right:20px;font-size:10px;color:#252220;}
+.snl{position:absolute;bottom:12px;right:20px;font-size:10px;color:#3a3835;}
+
+.ctrl{display:flex;align-items:center;gap:12px;padding:12px 0;width:100%;max-width:1120px;}
+.btn{background:#1e1c1a;color:#c8c4be;border:none;border-radius:6px;padding:8px 20px;font-size:12px;cursor:pointer;font-family:inherit;transition:background .15s;}
+.btn:hover{background:#2a2825;}
+.btnt{background:var(--tc);color:#fff;}.btnt:hover{background:#8f4e34;}
+.prog{flex:1;text-align:center;color:#444;font-size:11px;}
+
+/* inline nav svg shorthand */
+.nm-d{fill:none;stroke:#fff;stroke-width:4;stroke-linecap:round;}
+.nm-l{fill:none;stroke:#0a0a0a;stroke-width:4;stroke-linecap:round;}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- S1: COVER -->
+<div class="slide wm active" id="s1">
+  <div class="wmarkl"></div><div class="bar-l"></div><div class="bar-b"></div>
+  <div class="c" style="justify-content:center;">
+    <svg style="margin-bottom:20px;" width="230" height="38" viewBox="0 0 330 56">
+      <!-- Eye as the O -->
+      <path d="M 28.1,22 A 16,16 0 1 0 28.1,42" fill="none" stroke="#0a0a0a" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="14" cy="32" r="4" fill="#0a0a0a"/><circle cx="14" cy="32" r="1.6" fill="#f5f3ee"/>
+      <text y="46" font-family="-apple-system,Helvetica Neue,Arial,sans-serif" font-size="40" letter-spacing="-1.5" fill="#0a0a0a">
+        <tspan x="30" font-weight="200">pen</tspan><tspan font-weight="700">cancer</tspan><tspan font-weight="200" opacity=".22">.ai</tspan>
+      </text>
+    </svg>
+    <div class="h1 dt" style="margin-bottom:10px;max-width:800px;">See what no single doctor<br>can see.</div>
+    <div class="body gt" style="max-width:500px;margin-bottom:24px;line-height:1.75;">Free for patients. Partners pay for precision.</div>
+    <div style="height:2px;width:100px;background:var(--tc);margin-bottom:12px;"></div>
+    <div class="body gt">Pre-Seed · $500K · $5M cap · April 2026</div>
+  </div>
+  <div class="sn">1</div>
+</div>
+
+<!-- S2: WHY US -->
+<div class="slide wm" id="s2">
+  <div class="wmarkl"></div>
+  <div class="nav">
+    <img src="https://opencancer.ai/nav-lockup-black.svg" height="16" alt="opencancer.ai"/>
+  </div>
+  <div class="c ct" style="justify-content:center;align-items:center;text-align:center;">
+    <div class="ey">Why us</div>
+    <div class="h2 dt" style="margin-bottom:32px;">We lived this problem.</div>
+    <div style="display:flex;gap:24px;align-items:center;margin-bottom:32px;">
+      <div style="text-align:center;">
+        <div style="width:140px;height:140px;border-radius:12px;overflow:hidden;border:4px solid var(--rd);">
+          <img src="https://opencancer.ai/lovable-uploads/ari-chemo.png" alt="Ari in chemo" style="width:100%;height:100%;object-fit:cover;object-position:top;"/>
+        </div>
+        <div class="body gt" style="margin-top:8px;">2016</div>
+      </div>
+      <div style="font-size:48px;color:var(--gr);">→</div>
+      <div style="text-align:center;">
+        <div style="width:140px;height:140px;border-radius:12px;overflow:hidden;border:4px solid var(--gr);">
+          <img src="https://opencancer.ai/pitchAssets/family.png" alt="Family" style="width:100%;height:100%;object-fit:cover;"/>
+        </div>
+        <div class="body gt" style="margin-top:8px;">Today</div>
+      </div>
+    </div>
+    <div class="h3 dt">Team: <span style="color:var(--pu);">Ex-Genentech CSO</span> · <span style="color:var(--gr);">Meta/Stanford</span></div>
+  </div>
+  <div class="sn">2</div>
+</div>
+
+<!-- S3: PROBLEM -->
+<div class="slide wm" id="s3">
+  <div class="wmarkl"></div>
+  <div class="nav">
+    <img src="https://opencancer.ai/nav-lockup-black.svg" height="16" alt="opencancer.ai"/>
+  </div>
+  <div class="c ct" style="justify-content:center;">
+    <div class="ey">The problem</div>
+    <div class="h2 dt" style="margin-bottom:4px;">15 minutes with your oncologist.<br>24/7 with your fear.</div>
+    <div class="body gt" style="margin-bottom:20px;">Every oncology tool is built for providers. Epic. OpenEvidence. Clinical decision support. The patient sits outside the system — navigating alone.</div>
+    <div class="g4" style="margin-bottom:16px;">
+      <div class="cl" style="border-top:2px solid var(--tc);">
+        <div class="stat" style="font-size:clamp(22px,3.8vw,42px);">84%</div>
+        <div class="xs dt" style="font-weight:600;margin-top:3px;">never get a second opinion</div>
+        <div class="xs gt">1 in 3 who do change treatment</div>
+      </div>
+      <div class="cl" style="border-top:2px solid var(--tc);">
+        <div class="stat" style="font-size:clamp(22px,3.8vw,42px);">31 days</div>
+        <div class="xs dt" style="font-weight:600;margin-top:3px;">avg specialist wait</div>
+        <div class="xs gt">Up from 17 days in 2009</div>
+      </div>
+      <div class="cl" style="border-top:2px solid var(--tc);">
+        <div class="stat" style="font-size:clamp(22px,3.8vw,42px);">77%</div>
+        <div class="xs dt" style="font-weight:600;margin-top:3px;">turn to Dr. Google</div>
+        <div class="xs gt">Generic. Scary. Often wrong.</div>
+      </div>
+      <div class="cl" style="border-top:2px solid var(--bl);">
+        <div class="stat" style="font-size:clamp(22px,3.8vw,42px);color:var(--bl);">$740B</div>
+        <div class="xs dt" style="font-weight:600;margin-top:3px;">healthcare labor spend</div>
+        <div class="xs bt">The budget we're targeting.</div>
+      </div>
+    </div>
+    <div class="btc">
+      <span class="xs gt">2M new cancer diagnoses/yr · 18M survivors in active care · </span>
+      <span class="xs dt">Two years ago, a personalized AI clinical analysis cost $400 and an oncologist. Today it costs $0.03 in compute. </span>
+      <span class="xs tc" style="font-weight:600;">The economics flipped. The window is open.</span>
+    </div>
+  </div>
+  <div class="sn">3</div>
+</div>
+
+<!-- S4: SOLUTION -->
+<div class="slide dk" id="s4">
+  <div class="wmark"></div>
+  <div class="nav">
+    <img src="https://opencancer.ai/nav-lockup-white.svg" height="16" alt="opencancer.ai"/>
+  </div>
+  <div class="c ct" style="justify-content:center;">
+    <div class="row" style="gap:32px;align-items:center;">
+      <div class="col" style="flex:0.9;">
+        <div class="ey">The solution</div>
+        <div class="h2 wt" style="margin-bottom:12px;">Reduce navigation burden. Unlock ecosystem value.</div>
+        <div class="body dm">Free tools → records → personalization → partner revenue.</div>
+      </div>
+      <div class="col" style="flex:1.1;">
+        <div style="border-radius:12px;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);">
+          <img src="https://opencancer.ai/screenshots/homepage.png" alt="opencancer.ai homepage" style="width:100%;display:block;"/>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="sn" style="color:#555;">4</div>
+</div>
+
+<!-- S5: THE MOAT (updated with GraphRAG) -->
+<div class="slide wm" id="s5">
+  <div class="wmarkl"></div>
+  <div class="nav">
+    <img src="https://opencancer.ai/nav-lockup-black.svg" height="16" alt="opencancer.ai"/>
+  </div>
+  <div class="c ct" style="justify-content:center;">
+    <div class="ey">The moat</div>
+    <div class="h2 dt" style="margin-bottom:8px;">The record ≠ the relationship.</div>
+    <div class="body gt" style="margin-bottom:20px;">GraphRAG connects every data point. Each patient = a mini clinical trial.</div>
+
+    <div class="row" style="gap:24px;align-items:center;">
+      <!-- Left: Stacked steps -->
+      <div class="col" style="flex:0.9;display:flex;flex-direction:column;gap:10px;">
+        <div class="cl" style="padding:14px 16px;border-left:3px solid var(--gy);">
+          <div class="xs gt" style="font-weight:600;margin-bottom:4px;">STEP 1</div>
+          <div class="body dt" style="font-weight:600;">Records → BRCA1, ATM extracted</div>
+        </div>
+        <div class="cl" style="padding:14px 16px;border-left:3px solid var(--bl);">
+          <div class="xs bt" style="font-weight:600;margin-bottom:4px;">STEP 2</div>
+          <div class="body dt" style="font-weight:600;">Pattern → HRR deficiency detected</div>
+        </div>
+        <div style="padding:14px 16px;border-left:3px solid var(--tc);background:var(--tcl);border-radius:0 8px 8px 0;">
+          <div class="xs tc" style="font-weight:600;margin-bottom:4px;">STEP 3 · DAY 3</div>
+          <div class="body dt" style="font-weight:600;">Match → PARP trial surfaced</div>
+          <div class="xs grt" style="margin-top:6px;font-weight:600;">Before the oncologist raised it.</div>
+        </div>
+      </div>
+      <!-- Right: Graph image -->
+      <div class="col" style="flex:1.1;">
+        <div style="border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.12);">
+          <img src="https://opencancer.ai/pitchAssets/product-ai-summary.png" alt="AI analysis" style="width:100%;display:block;"/>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="sn">5</div>
+</div>
+
+<!-- S6: THE ALLIANCE (NEW SLIDE) -->
+<div class="slide wm" id="s6">
+  <div class="nav">
+    <img src="https://opencancer.ai/nav-lockup-black.svg" height="16" alt="opencancer.ai"/>
+  </div>
+  <div class="c ct" style="justify-content:center;">
+    <div class="ey">The alliance</div>
+    <div class="h2 dt" style="margin-bottom:8px;">Building on a foundation of patient trust.</div>
+    <div class="body gt" style="margin-bottom:24px;">Standing on shoulders. Not starting from zero.</div>
+    <div class="g3" style="margin-bottom:20px;">
+      <div class="cl" style="border-top:4px solid var(--pu);text-align:center;padding:20px;">
+        <div class="h3 pt" style="margin-bottom:8px;">Cancer Commons</div>
+        <div class="body dt" style="font-weight:600;margin-bottom:4px;">Expert tumor boards</div>
+        <div class="body gt">Free second opinions from specialists.</div>
+      </div>
+      <div class="cl" style="border-top:4px solid var(--tc);text-align:center;padding:20px;">
+        <div class="h3 tc" style="margin-bottom:8px;">Cancer Patient Lab</div>
+        <div class="body dt" style="font-weight:600;margin-bottom:4px;">170+ webinars · 1K+ patients</div>
+        <div class="body gt">Patient-led innovation. R&D from lived experience.</div>
+      </div>
+      <div class="cl" style="border-top:4px solid var(--gr);text-align:center;padding:20px;">
+        <div class="h3 grt" style="margin-bottom:8px;">Partner Network</div>
+        <div class="body dt" style="font-weight:600;margin-bottom:4px;">100s waiting in the wings</div>
+        <div class="body gt">Service providers ready to pay for distribution.</div>
+      </div>
+    </div>
+    <div class="btc">
+      <div class="body dt"><span class="tc" style="font-weight:600;">opencancer.ai</span> unifies these assets. Partners get scale. Patients get access.</div>
+    </div>
+  </div>
+  <div class="sn">6</div>
+</div>
+
+<!-- S7: BUSINESS MODEL (updated with AI + Expert Last Mile) -->
+<div class="slide wm" id="s7">
+  <div class="wmarkl"></div>
+  <div class="nav">
+    <img src="https://opencancer.ai/nav-lockup-black.svg" height="16" alt="opencancer.ai"/>
+  </div>
+  <div class="c ct" style="justify-content:center;">
+    <div class="ey">Business model</div>
+    <div class="h2 dt" style="margin-bottom:8px;">Extend the care team without extending payroll.</div>
+    <div class="body gt" style="margin-bottom:24px;">AI does 80%. PhD + nurse navigators finish the last mile. Patients get 24/7 support. Systems get scale.</div>
+    <div class="row" style="gap:16px;align-items:stretch;">
+      <div class="cl col" style="border-top:4px solid var(--gy);opacity:.7;text-align:center;padding:24px;">
+        <div class="h3 gt" style="margin-bottom:12px;">FREE</div>
+        <div class="body dt" style="font-weight:600;">Combat · Trial Radar<br>Records Vault · Navis</div>
+      </div>
+      <div class="cl col" style="border-top:4px solid var(--tc);text-align:center;padding:24px;">
+        <div class="h3 tc" style="margin-bottom:12px;">PREMIUM</div>
+        <div class="body dt" style="font-weight:600;margin-bottom:8px;">Expert Review</div>
+        <div class="h3 tc">$199+</div>
+      </div>
+      <div class="cl col" style="border-top:4px solid var(--gr);text-align:center;padding:24px;background:#e8f5f0;">
+        <div class="h3 grt" style="margin-bottom:12px;">PARTNERS</div>
+        <div class="body dt" style="font-weight:600;margin-bottom:8px;">Referrals · Alliance dues</div>
+        <div class="body gt">Graph matches patients to services.</div>
+      </div>
+    </div>
+    <div class="btc" style="margin-top:16px;">
+      <span class="body gt">Vision: </span>
+      <span class="body grt" style="font-weight:600;">1,000 nurse navigators on our rails.</span>
+      <span class="body gt"> Every interaction builds the graph. The graph adds platform value to partners.</span>
+    </div>
+  </div>
+  <div class="sn">7</div>
+</div>
+
+<!-- S8: GTM -->
+<div class="slide wm" id="s8">
+  <div class="wmarkl"></div>
+  <div class="nav">
+    <img src="https://opencancer.ai/nav-lockup-black.svg" height="16" alt="opencancer.ai"/>
+  </div>
+  <div class="c ct" style="justify-content:center;">
+    <div class="ey">Go-to-market</div>
+    <div class="h2 dt" style="margin-bottom:24px;">Supply validated. Demand is the unlock.</div>
+    <div class="row" style="gap:20px;margin-bottom:20px;">
+      <div class="cl col" style="border-top:4px solid var(--gr);padding:20px;">
+        <div class="h3 grt" style="margin-bottom:8px;">SUPPLY (Validated)</div>
+        <div class="body dt" style="font-weight:600;margin-bottom:8px;">Partners ready to pay</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div class="body gt">3 live affiliate pilots</div>
+          <div class="body gt">LOIs in motion</div>
+          <div class="body gt">WTP for referrals confirmed</div>
+        </div>
+      </div>
+      <div class="cl col" style="border-top:4px solid var(--tc);padding:20px;">
+        <div class="h3 tc" style="margin-bottom:8px;">DEMAND (The Gap)</div>
+        <div class="body dt" style="font-weight:600;margin-bottom:8px;">Patient volume needed</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div class="body gt">100+ patients week 1</div>
+          <div class="body gt">Need 10K to prove flywheel</div>
+          <div class="body gt">Alliance orgs = distribution</div>
+        </div>
+      </div>
+    </div>
+    <div class="btc">
+      <div class="body dt"><span class="tc" style="font-weight:600;">$500K unlocks:</span> 10K patients → fulfill partner demand → prove unit economics</div>
+    </div>
+  </div>
+  <div class="sn">8</div>
+</div>
+
+<!-- S9: COMPETITION -->
+<div class="slide wm" id="s9">
+  <div class="wmarkl"></div>
+  <div class="nav">
+    <img src="https://opencancer.ai/nav-lockup-black.svg" height="16" alt="opencancer.ai"/>
+  </div>
+  <div class="c ct" style="justify-content:center;">
+    <div class="ey">Competition</div>
+    <div class="h2 dt" style="margin-bottom:32px;">Different market. Different relationship.</div>
+    <div class="cl" style="padding:0;overflow:hidden;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr style="background:#f5f3ee;">
+            <th class="body" style="color:var(--gy);padding:16px 20px;text-align:left;border-bottom:1px solid var(--st);width:22%;"></th>
+            <th class="body tc" style="padding:16px 20px;text-align:left;border-bottom:1px solid var(--st);font-weight:700;">opencancer</th>
+            <th class="body gt" style="padding:16px 20px;text-align:left;border-bottom:1px solid var(--st);">General AI</th>
+            <th class="body gt" style="padding:16px 20px;text-align:left;border-bottom:1px solid var(--st);">Provider AI</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="body gt" style="padding:14px 20px;border-bottom:1px solid var(--st);">Built for</td><td class="body tc" style="padding:14px 20px;border-bottom:1px solid var(--st);font-weight:600;">Patient</td><td class="body gt" style="padding:14px 20px;border-bottom:1px solid var(--st);">Everyone</td><td class="body gt" style="padding:14px 20px;border-bottom:1px solid var(--st);">Provider</td></tr>
+          <tr><td class="body gt" style="padding:14px 20px;border-bottom:1px solid var(--st);">Uses your records</td><td style="padding:14px 20px;border-bottom:1px solid var(--st);"><span class="check" style="font-size:20px;">✓</span></td><td style="padding:14px 20px;border-bottom:1px solid var(--st);"><span style="color:#ccc;font-size:20px;">✗</span></td><td style="padding:14px 20px;border-bottom:1px solid var(--st);"><span style="color:#ccc;font-size:20px;">✗</span></td></tr>
+          <tr style="background:#fdf9f7;"><td class="body gt" style="padding:14px 20px;border-bottom:1px solid var(--st);">Compounds over time</td><td style="padding:14px 20px;border-bottom:1px solid var(--st);"><span class="check" style="font-size:20px;">✓</span><span class="uniq">Only us</span></td><td style="padding:14px 20px;border-bottom:1px solid var(--st);"><span style="color:#ccc;font-size:20px;">✗</span></td><td style="padding:14px 20px;border-bottom:1px solid var(--st);"><span style="color:#ccc;font-size:20px;">✗</span></td></tr>
+          <tr style="background:#fdf9f7;"><td class="body gt" style="padding:14px 20px;">Knows clinical moment</td><td style="padding:14px 20px;"><span class="check" style="font-size:20px;">✓</span><span class="uniq">Only us</span></td><td style="padding:14px 20px;"><span style="color:#ccc;font-size:20px;">✗</span></td><td style="padding:14px 20px;"><span style="color:#ccc;font-size:20px;">✗</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="sn">9</div>
+</div>
+
+<!-- S10: TRACTION -->
+<div class="slide wm" id="s10">
+  <div class="nav">
+    <img src="https://opencancer.ai/nav-lockup-black.svg" height="16" alt="opencancer.ai"/>
+  </div>
+  <div class="c ct" style="justify-content:center;">
+    <div class="ey">Traction</div>
+    <div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:16px;">
+      <div class="h2 dt" style="flex:1;">Two weeks post-launch.</div>
+      <div class="xs gt" style="text-align:right;padding-bottom:2px;">5 LOIs signed · 3 pilots live</div>
+    </div>
+    <div class="g3" style="margin-bottom:20px;">
+      <div class="cl" style="border-top:2px solid var(--tc);"><div class="stat" style="font-size:clamp(22px,3.8vw,42px);">100+</div><div class="xs dt" style="font-weight:600;margin-top:3px;">unique patients</div><div class="xs gt">organic adoption</div></div>
+      <div class="cl" style="border-top:2px solid var(--tc);"><div class="stat" style="font-size:clamp(22px,3.8vw,42px);">~5</div><div class="xs dt" style="font-weight:600;margin-top:3px;">records per patient</div><div class="xs gt">deep engagement</div></div>
+      <div class="cl" style="border-top:2px solid var(--pu);"><div class="stat" style="font-size:clamp(22px,3.8vw,42px);color:var(--pu);">Day 3</div><div class="xs dt" style="font-weight:600;margin-top:3px;">graph surfaced PARP trial</div><div class="xs gt">before oncologist raised it</div></div>
+    </div>
+    <!-- Hero quote -->
+    <div class="cl" style="border-left:4px solid var(--tc);padding:20px 24px;margin-bottom:16px;">
+      <div class="body dt" style="font-style:italic;font-size:clamp(18px,2vw,24px);line-height:1.4;margin-bottom:8px;">"Absolutely fantastic — spot-on even for non-SOC, non-NCCN aspects. Surpasses every tool I've tried."</div>
+      <div class="body tc" style="font-weight:600;">— Paul C. MD, Prostate Cancer</div>
+    </div>
+    <!-- Supporting quotes -->
+    <div class="g3" style="gap:12px;">
+      <div class="cl" style="border-left:3px solid var(--st);">
+        <div class="xs dt" style="font-style:italic;margin-bottom:3px;">"What you have built here is critical for patients."</div>
+        <div class="xs gt">— Cam, MZL stage 4</div>
+      </div>
+      <div class="cl" style="border-left:3px solid var(--st);">
+        <div class="xs dt" style="font-style:italic;margin-bottom:3px;">"This is brilliant. I'm sharing with my sister right now."</div>
+        <div class="xs gt">— David Y., prostate cancer</div>
+      </div>
+      <div class="cl" style="border-left:3px solid var(--st);">
+        <div class="xs dt" style="font-style:italic;margin-bottom:3px;">"So comprehensive. I would definitely use this!"</div>
+        <div class="xs gt">— Brian K., pancreatic cancer</div>
+      </div>
+    </div>
+  </div>
+  <div class="sn">10</div>
+</div>
+
+<!-- S11: TEAM -->
+<div class="slide wm" id="s11">
+  <div class="wmarkl"></div>
+  <div class="nav">
+    <img src="https://opencancer.ai/nav-lockup-black.svg" height="16" alt="opencancer.ai"/>
+  </div>
+  <div class="c ct">
+    <div class="ey">Team</div>
+    <div class="h2 dt" style="margin-bottom:16px;">Founder-market fit.</div>
+    <div class="row" style="gap:12px;margin-bottom:16px;">
+      <div class="cl col" style="text-align:center;border-top:3px solid var(--tc);padding:18px 12px;">
+        <img src="https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/64694c7d-e3e3-414f-af72-288d201bb060/Screenshot+2024-10-02+at+10.59.02%E2%80%AFAM.jpg" style="width:64px;height:64px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 10px;display:block;"/>
+        <div class="body dt" style="font-weight:700;">Ari Akerstein</div>
+        <div class="xs gt">CEO · Ex-Meta PM</div>
+        <div class="tag twm" style="margin-top:8px;">2× Survivor</div>
+      </div>
+      <div class="cl col" style="text-align:center;border-top:3px solid var(--tc);padding:18px 12px;">
+        <img src="https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/48fdd96b-71a0-41f9-bc5f-f1ae27636b95/Screenshot+2024-09-11+at+7.36.59%E2%80%AFPM.png" style="width:64px;height:64px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 10px;display:block;"/>
+        <div class="body dt" style="font-weight:700;">Brad Power</div>
+        <div class="xs gt">Chief Trust · Stanford</div>
+        <div class="tag twm" style="margin-top:8px;">Survivor</div>
+      </div>
+      <div class="cl col" style="text-align:center;border-top:3px solid var(--bl);padding:18px 12px;">
+        <img src="https://images.squarespace-cdn.com/content/v1/66e1cb2b475b621f3d99bfeb/5761840d-8d31-4c56-a09e-c6f27510bc5a/Chris-Apfel-Nature-removebg-preview.png" style="width:64px;height:64px;border-radius:50%;object-fit:cover;margin:0 auto 10px;display:block;"/>
+        <div class="body dt" style="font-weight:700;">Chris Apfel MD/PhD</div>
+        <div class="xs gt">UCSF</div>
+        <div class="tag" style="margin-top:8px;background:#e8f0f8;color:var(--bl);">500+ pubs</div>
+      </div>
+      <div class="cl col" style="text-align:center;border-top:3px solid var(--pu);padding:18px 12px;">
+        <img src="https://opencancer.ai/pitchAssets/kaumudi.jpg" style="width:64px;height:64px;border-radius:50%;object-fit:cover;margin:0 auto 10px;display:block;"/>
+        <div class="body dt" style="font-weight:700;">Kaumudi Bhawe PhD</div>
+        <div class="xs gt">CSO · Ex-Genentech</div>
+        <div class="tag" style="margin-top:8px;background:#f0eef8;color:var(--pu);">Cancer Commons</div>
+      </div>
+      <div class="cl col" style="text-align:center;border-top:3px solid var(--gr);padding:18px 12px;">
+        <img src="https://opencancer.ai/pitchAssets/viktor.jpg" style="width:64px;height:64px;border-radius:50%;object-fit:cover;margin:0 auto 10px;display:block;"/>
+        <div class="body dt" style="font-weight:700;">Viktor Tabori</div>
+        <div class="xs gt">Growth · Stanford</div>
+        <div class="tag" style="margin-top:8px;background:#e8f5f0;color:var(--gr);">GTM Expert</div>
+      </div>
+    </div>
+    <div class="btc">
+      <div class="body dt"><span style="color:var(--tc);font-weight:600;">Survivors</span> + <span style="color:var(--bl);font-weight:600;">UCSF/Genentech</span> + <span style="color:var(--gr);font-weight:600;">Meta/Stanford</span></div>
+      <div class="xs gt" style="margin-top:4px;">Advisory: Magliocco MD (Moffitt) · Wilkinson PhD (Human Genome) · Tenenbaum PhD (Cancer Commons)</div>
+    </div>
+  </div>
+  <div class="sn">11</div>
+</div>
+
+<!-- S12: THE ASK -->
+<div class="slide wm" id="s12">
+  <div class="wmarkl"></div><div class="bar-b"></div>
+  <div class="nav">
+    <img src="https://opencancer.ai/nav-lockup-black.svg" height="16" alt="opencancer.ai"/>
+  </div>
+  <div class="c ct">
+    <div class="ey">The ask</div>
+    <div class="h2 dt" style="margin-bottom:16px;">Prove patient value. Unlock partner revenue.</div>
+    <div class="row" style="flex:1;gap:16px;">
+      <!-- Left: Raise + Use of Funds -->
+      <div class="col" style="display:flex;flex-direction:column;gap:12px;">
+        <div class="cl" style="border-top:3px solid var(--tc);padding:16px;">
+          <div class="body gt" style="margin-bottom:4px;">Raising</div>
+          <div style="font-size:clamp(28px,4vw,48px);font-weight:700;color:var(--tc);line-height:1;">$500,000</div>
+          <div class="body gt" style="margin-top:8px;">Post-money SAFE · $5M cap</div>
+        </div>
+        <div class="cl" style="flex:1;padding:16px;">
+          <div class="body dt" style="font-weight:600;margin-bottom:12px;">Use of Funds</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;justify-content:space-between;"><span class="body gt">Product & Engineering</span><span class="body tc" style="font-weight:600;">40%</span></div>
+            <div style="display:flex;justify-content:space-between;"><span class="body gt">Patient Acquisition</span><span class="body tc" style="font-weight:600;">30%</span></div>
+            <div style="display:flex;justify-content:space-between;"><span class="body gt">Partner Pipeline</span><span class="body tc" style="font-weight:600;">20%</span></div>
+            <div style="display:flex;justify-content:space-between;"><span class="body gt">Operations</span><span class="body tc" style="font-weight:600;">10%</span></div>
+          </div>
+        </div>
+      </div>
+      <!-- Right: Key Milestones -->
+      <div class="col" style="display:flex;flex-direction:column;gap:10px;">
+        <div class="body dt" style="font-weight:600;margin-bottom:4px;">Key Milestones (12 months)</div>
+        <div style="background:var(--tcl);border-radius:8px;padding:12px 14px;border-left:3px solid var(--tc);flex:1;">
+          <div class="body tc" style="font-weight:700;margin-bottom:4px;">10,000 patients</div>
+          <div class="body gt">Organic adoption through alliance channels.</div>
+        </div>
+        <div style="background:#e8f0f8;border-radius:8px;padding:12px 14px;border-left:3px solid var(--bl);flex:1;">
+          <div class="body bt" style="font-weight:700;margin-bottom:4px;">100 partners on platform</div>
+          <div class="body gt">Service providers paying for distribution.</div>
+        </div>
+        <div style="background:#f0eef8;border-radius:8px;padding:12px 14px;border-left:3px solid var(--pu);flex:1;">
+          <div class="body pt" style="font-weight:700;margin-bottom:4px;">$50K+ partner revenue</div>
+          <div class="body gt">First commercial contracts closed.</div>
+        </div>
+      </div>
+    </div>
+    <div class="btc" style="margin-top:12px;display:flex;justify-content:space-between;align-items:center;">
+      <div class="body dt">ariakerstein@gmail.com · opencancer.ai</div>
+      <div class="body tc" style="font-weight:600;">Solving Cancer Commons' sustainability challenge.</div>
+    </div>
+  </div>
+  <div class="sn">12</div>
+</div>
+
+</div>
+
+<div class="ctrl">
+  <button class="btn" onclick="prev()">← Prev</button>
+  <div class="prog" id="prog">1 / 12</div>
+  <button class="btn btnt" onclick="next()">Next →</button>
+  <button class="btn" onclick="document.documentElement.requestFullscreen?.()" style="margin-left:4px;">⛶</button>
+  <button class="btn" onclick="printDeck()" style="margin-left:4px;">↓ PDF</button>
+</div>
+<div style="color:#2a2825;font-size:11px;margin-top:3px;">Arrow keys · F for fullscreen · Click PDF to export</div>
+<style>
+@media print {
+  body { background: white !important; padding: 0 !important; }
+  .ctrl, .prog, [style*="Arrow keys"] { display: none !important; }
+  .deck { max-width: 100% !important; }
+  .slide {
+    display: flex !important;
+    page-break-after: always;
+    page-break-inside: avoid;
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+  .slide:last-child { page-break-after: auto; }
+  canvas { display: none !important; }
+}
+</style>
+
+<script>
+let cur=1,tot=12,gStarted=false,gt=0,gAF;
+function show(n){
+  document.querySelectorAll('.slide').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s'+n).classList.add('active');
+  document.getElementById('prog').textContent=n+' / '+tot;
+  cur=n;
+  if(n===5&&!gStarted){gStarted=true;animG();}
+}
+function next(){if(cur<tot)show(cur+1);}
+function prev(){if(cur>1)show(cur-1);}
+function printDeck(){
+  document.querySelectorAll('.slide').forEach(s=>s.classList.add('active'));
+  setTimeout(()=>window.print(),100);
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='ArrowDown')next();
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp')prev();
+  if(e.key==='f'||e.key==='F')document.documentElement.requestFullscreen?.();
+});
+function animG(){
+  gt++;
+  const cv=document.getElementById('gc');
+  if(!cv){return;}
+  const W=cv.offsetWidth,H=cv.offsetHeight;
+  if(W<10){gAF=requestAnimationFrame(animG);return;}
+  cv.width=W*devicePixelRatio;cv.height=H*devicePixelRatio;
+  const ctx=cv.getContext('2d');
+  ctx.scale(devicePixelRatio,devicePixelRatio);
+  ctx.clearRect(0,0,W,H);
+  const N=[
+    {x:.5,y:.46,r:20,c:'#a85c3e',l:'Patient',s:'MZL IV',bright:true,glow:true},
+    {x:.24,y:.18,r:13,c:'#378add',l:'BRCA1',s:'+pathogenic',glow:true},
+    {x:.7,y:.17,r:13,c:'#7f77dd',l:'ATM',s:'co-mut',glow:true},
+    {x:.48,y:.06,r:15,c:'#1d9e75',l:'HRR',s:'deficiency',glow:true},
+    {x:.83,y:.28,r:14,c:'#1d9e75',l:'PARP',s:'trial',glow:true},
+    {x:.82,y:.58,r:9,c:'#444',l:'R-CHOP',s:''},
+    {x:.14,y:.62,r:9,c:'#444',l:'Oncol.',s:''},
+    {x:.24,y:.78,r:9,c:'#ba7517',l:'Trials',s:'search'},
+    {x:.5,y:.86,r:9,c:'#444',l:'Caregiver',s:''},
+    {x:.74,y:.8,r:9,c:'#ba7517',l:'MRD',s:'intent'},
+    {x:.83,y:.52,r:11,c:'#7f77dd',l:'Guardant',s:'$800',glow:true},
+  ];
+  const E=[[0,1,'#378add'],[0,2,'#7f77dd'],[1,3,'#1d9e75'],[2,3,'#1d9e75'],[3,4,'#1d9e75'],[0,5,'#333'],[0,6,'#333'],[0,7,'#ba7517'],[0,8,'#333'],[0,9,'#ba7517'],[0,10,'#7f77dd']];
+  E.forEach(([a,b,ec])=>{
+    const na=N[a],nb=N[b];
+    ctx.beginPath();ctx.moveTo(na.x*W,na.y*H);ctx.lineTo(nb.x*W,nb.y*H);
+    ctx.strokeStyle=ec;ctx.lineWidth=0.75;ctx.globalAlpha=0.3;ctx.stroke();ctx.globalAlpha=1;
+  });
+  N.forEach((n,i)=>{
+    const nx=n.x*W,ny=n.y*H,p=n.glow?Math.sin(gt*.04+i*1.1)*.25+.75:1;
+    if(n.glow){
+      ctx.beginPath();ctx.arc(nx,ny,n.r*2.2*p,0,Math.PI*2);ctx.fillStyle=n.c;ctx.globalAlpha=.055*p;ctx.fill();ctx.globalAlpha=1;
+      ctx.beginPath();ctx.arc(nx,ny,n.r*1.5,0,Math.PI*2);ctx.fillStyle=n.c;ctx.globalAlpha=.1;ctx.fill();ctx.globalAlpha=1;
+    }
+    ctx.beginPath();ctx.arc(nx,ny,n.r,0,Math.PI*2);ctx.fillStyle=n.c;ctx.globalAlpha=n.bright?.9:.5;ctx.fill();
+    ctx.beginPath();ctx.arc(nx,ny,n.r,0,Math.PI*2);ctx.strokeStyle=n.c;ctx.lineWidth=n.bright?1.5:.75;ctx.globalAlpha=n.bright?.85:.35;ctx.stroke();ctx.globalAlpha=1;
+    ctx.fillStyle='#fff';ctx.font=`500 ${Math.max(8,Math.min(10,n.r*.52))}px -apple-system,sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.globalAlpha=n.bright?1:.65;
+    ctx.fillText(n.l,nx,ny-(n.s?3:0));
+    if(n.s){ctx.font=`400 ${Math.max(7,Math.min(8,n.r*.42))}px -apple-system,sans-serif`;ctx.fillStyle='rgba(255,255,255,.5)';ctx.fillText(n.s,nx,ny+n.r*.58);}
+    ctx.globalAlpha=1;
+  });
+  gAF=requestAnimationFrame(animG);
+}
+</script>
+</body>
+</html>
