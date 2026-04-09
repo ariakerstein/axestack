@@ -329,20 +329,30 @@ function matchToolForIntent(
       }
 
     case 'treatment_info':
-      // Only recommend Combat if they have context, otherwise let Ask handle it
-      if (state.hasCancerType && state.hasTreatments) {
+      // Recommend Combat if they have cancer type context
+      if (state.hasCancerType) {
         return {
           slug: 'combat',
-          reason: `Explore treatment perspectives for ${state.cancerType}`,
-          matchedOn: ['intent:treatment_info', 'has:cancer_type', 'has:treatments'],
+          reason: `Get 5 oncologist perspectives on ${state.cancerType} treatment`,
+          matchedOn: ['intent:treatment_info', 'has:cancer_type'],
         }
       }
       return null // Let the Ask response suffice
 
     case 'general_info':
+      // For general questions with cancer context, suggest Combat
+      if (state.hasCancerType) {
+        return {
+          slug: 'combat',
+          reason: `Explore ${state.cancerType} with 5 AI oncologist perspectives`,
+          matchedOn: ['intent:general_info', 'has:cancer_type'],
+        }
+      }
+      return null
+
     case 'unknown':
     default:
-      return null // No recommendation for general questions
+      return null // No recommendation for unclassified questions
   }
 }
 

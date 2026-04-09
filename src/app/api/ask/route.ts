@@ -594,7 +594,13 @@ ${enrichedQuestion}`
         }).catch(() => {})
 
         // Generate tool recommendation for fallback path too
-        const pcoForFallback = graphragContext?.pco || null
+        const pcoForFallback = graphragContext?.pco || (cancerType && cancerType !== 'General' && cancerType !== 'other' ? {
+          diagnoses: [{ cancer_type: cancerType }],
+          biomarkers: [],
+          treatments: [],
+          related_entities: [],
+          communities: [],
+        } : null)
         const fallbackToolRec = recommendTool(message, pcoForFallback, {
           isAuthenticated: !!userId,
           currentPage: '/ask',
@@ -647,7 +653,14 @@ ${enrichedQuestion}`
     }).catch(() => {})
 
     // Generate tool recommendation based on question intent and patient context
-    const pcoForRecommendation = graphragContext?.pco || null
+    // Build PCO from GraphRAG context, or create minimal PCO from cancerType
+    const pcoForRecommendation = graphragContext?.pco || (cancerType && cancerType !== 'General' && cancerType !== 'other' ? {
+      diagnoses: [{ cancer_type: cancerType }],
+      biomarkers: [],
+      treatments: [],
+      related_entities: [],
+      communities: [],
+    } : null)
     const toolRecommendation = recommendTool(message, pcoForRecommendation, {
       isAuthenticated: !!userId,
       currentPage: '/ask', // Don't recommend Ask on Ask page
