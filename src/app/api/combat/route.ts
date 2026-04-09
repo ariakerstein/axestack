@@ -8,6 +8,7 @@ import {
   type PatientContextObject,
   type OrchestratorResult
 } from '@/lib/graphrag'
+import { recommendTool, formatRecommendationForResponse } from '@/lib/graphrag/tool-recommender'
 
 // Use the same Supabase project as other AI calls
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://felofmlhqwcdpiyjgstx.supabase.co"
@@ -946,6 +947,13 @@ ${caseContext}`
       style
     )
 
+    // Generate tool recommendation based on the analysis context
+    // For Combat, recommend based on what they might want to do next
+    const toolRecommendation = recommendTool(question, pco, {
+      isAuthenticated: !!userId,
+      currentPage: '/combat', // Don't recommend Combat on Combat page
+    })
+
     const result = {
       phase,
       question,
@@ -969,7 +977,9 @@ ${caseContext}`
         biomarkers: pco.biomarkers.length,
         treatments: pco.treatments.length,
         completeness: pco.completeness_score
-      }
+      },
+      // Tool recommendation for discovery
+      ...formatRecommendationForResponse(toolRecommendation),
     }
 
     return NextResponse.json(result)

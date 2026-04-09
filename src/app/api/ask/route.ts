@@ -7,6 +7,7 @@ import {
   createRetriever,
   type PatientContextObject
 } from '@/lib/graphrag'
+import { recommendTool, formatRecommendationForResponse } from '@/lib/graphrag/tool-recommender'
 
 // Use the same Supabase project as Navis for the RAG pipeline
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://felofmlhqwcdpiyjgstx.supabase.co"
@@ -22,7 +23,7 @@ async function getGraphRAGContext(
   question: string,
   userId?: string,
   sessionId?: string
-): Promise<{ context: string; persona: string; confidence: number; sources: string[] } | null> {
+): Promise<{ context: string; persona: string; confidence: number; sources: string[]; pco: PatientContextObject | null } | null> {
   // Need at least userId or sessionId
   if (!userId && !sessionId) {
     return null
@@ -37,9 +38,9 @@ async function getGraphRAGContext(
       includeRelatedEntities: true
     })
 
-    // If no patient data, return null (will use standard RAG)
+    // If no patient data, still return PCO for tool recommendations
     if (!pco.has_diagnosis && !pco.has_biomarkers) {
-      return null
+      return { context: '', persona: 'general', confidence: 0, sources: [], pco }
     }
 
     // Select best persona for this question
@@ -49,9 +50,9 @@ async function getGraphRAGContext(
     const retriever = createRetriever(persona)
     const result = await retriever.retrieve({ pco, query: question })
 
-    // If no relevant chunks, return null
+    // If no relevant chunks, still return PCO for tool recommendations
     if (result.chunks.length === 0 || result.confidence < 0.3) {
-      return null
+      return { context: '', persona, confidence: 0, sources: [], pco }
     }
 
     // Format chunks for prompt injection
@@ -65,7 +66,8 @@ async function getGraphRAGContext(
 ${formattedChunks}`,
       persona,
       confidence: result.confidence,
-      sources: result.sources_used
+      sources: result.sources_used,
+      pco
     }
   } catch (err) {
     console.error('[Ask] GraphRAG error:', err)
@@ -591,6 +593,13 @@ ${enrichedQuestion}`
           outputTokens: Math.ceil(fallbackResponseText.length / 4),
         }).catch(() => {})
 
+        // Generate tool recommendation for fallback path too
+        const pcoForFallback = graphragContext?.pco || null
+        const fallbackToolRec = recommendTool(message, pcoForFallback, {
+          isAuthenticated: !!userId,
+          currentPage: '/ask',
+        })
+
         return NextResponse.json({
           response: fallbackResponseText,
           cancerType: cancerType || null,
@@ -600,6 +609,8 @@ ${enrichedQuestion}`
           citationUrls: null,
           followUpQuestions: fallbackData.followUpQuestions,
           usedFallback: true, // Let frontend know we used fallback
+          // Tool recommendation for discovery
+          ...formatRecommendationForResponse(fallbackToolRec),
         })
       }
       // If fallback fails, continue with original RAG response
@@ -635,6 +646,13 @@ ${enrichedQuestion}`
       specialistType: specialistCareCheck.specialistType,
     }).catch(() => {})
 
+    // Generate tool recommendation based on question intent and patient context
+    const pcoForRecommendation = graphragContext?.pco || null
+    const toolRecommendation = recommendTool(message, pcoForRecommendation, {
+      isAuthenticated: !!userId,
+      currentPage: '/ask', // Don't recommend Ask on Ask page
+    })
+
     // direct-navis returns: { response, confidenceScore, citations, citationUrls, followUpQuestions }
     return NextResponse.json({
       response: ragResponse || 'Sorry, I encountered an error. Please try again.',
@@ -655,6 +673,8 @@ ${enrichedQuestion}`
         confidence: graphragContext.confidence,
         sources: graphragContext.sources
       } : null,
+      // Tool recommendation for discovery
+      ...formatRecommendationForResponse(toolRecommendation),
     })
   } catch (error) {
     console.error('Ask API error:', error)

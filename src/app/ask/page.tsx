@@ -13,6 +13,7 @@ import { useActivityLog } from '@/hooks/useActivityLog'
 import { ShareButton } from '@/components/ShareButton'
 import { Navbar } from '@/components/Navbar'
 import { ThinkingIndicator } from '@/components/ThinkingIndicator'
+import { ToolRecommendation as ToolRecommendationUI } from '@/components/ToolRecommendation'
 
 // Types for file attachments
 interface AttachedFile {
@@ -48,6 +49,16 @@ interface FollowUpQuestion {
   icon?: string
 }
 
+interface ToolRecommendation {
+  slug: string
+  name: string
+  description: string
+  icon: string
+  href: string
+  reason: string
+  confidence: string
+}
+
 interface Message {
   id: string
   role: 'user' | 'assistant'
@@ -60,6 +71,7 @@ interface Message {
   typingComplete?: boolean
   feedback?: 'positive' | 'negative' | null
   feedbackComment?: string
+  recommendation?: ToolRecommendation | null
 }
 
 function AskPageContent() {
@@ -747,7 +759,8 @@ I can help you with:
           citations: data.citationUrls,
           followUpQuestions: data.followUpQuestions,
           confidenceScore: data.confidenceScore,
-          typingComplete: false
+          typingComplete: false,
+          recommendation: data.hasRecommendation ? data.recommendation : null
         }]
       })
     } catch (error) {
@@ -936,6 +949,11 @@ I can help you with:
                         instantRender={index === 0 || message.typingComplete}
                         onComplete={() => markTypingComplete(message.id)}
                       />
+                    )}
+
+                    {/* Tool recommendation - show after typing complete */}
+                    {message.role === 'assistant' && message.typingComplete && !message.isLoading && message.recommendation && (
+                      <ToolRecommendationUI recommendation={message.recommendation} />
                     )}
 
                     {/* Feedback buttons - Only show after typing complete */}

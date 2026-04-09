@@ -17,6 +17,7 @@ import { Navbar } from '@/components/Navbar'
 import { RecordsProcessingBanner } from '@/components/RecordsProcessingBanner'
 import { CombatFollowUpChat } from '@/components/CombatFollowUpChat'
 import { ThinkingIndicator } from '@/components/ThinkingIndicator'
+import { ToolRecommendation as ToolRecommendationUI } from '@/components/ToolRecommendation'
 // Verification disabled - was causing page load issues
 // import { CombatVerification, DetectedFinding, FindingCorrection } from '@/components/CombatVerification'
 
@@ -288,6 +289,16 @@ interface Perspective {
   recommendation: string
 }
 
+interface ToolRecommendation {
+  slug: string
+  name: string
+  description: string
+  icon: string
+  href: string
+  reason: string
+  confidence: string
+}
+
 interface CombatResult {
   phase: 'diagnosis' | 'treatment'
   question: string
@@ -302,6 +313,9 @@ interface CombatResult {
   questionsForOncologist?: string[]
   recommendedTests?: string[]
   nextSteps?: string[]
+  // Tool recommendation for discovery
+  hasRecommendation?: boolean
+  recommendation?: ToolRecommendation | null
 }
 
 // Double Diamond Visual Component - Clean, no heavy container
@@ -2318,6 +2332,11 @@ function CombatPageContent() {
                     ))}
                   </div>
                 </div>
+
+                {/* Tool recommendation for discovery */}
+                {currentResult.hasRecommendation && currentResult.recommendation && (
+                  <ToolRecommendationUI recommendation={currentResult.recommendation} />
+                )}
 
                 {/* Question context - smaller */}
                 <div className="text-center">
