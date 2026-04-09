@@ -180,7 +180,7 @@ body{display:flex;flex-direction:column;align-items:center;padding:16px;min-heig
       </div>
     </div>
     <div style="background:var(--dk);border-radius:12px;padding:20px 32px;max-width:900px;">
-      <div class="body wt" style="font-style:italic;">"The biggest company in the world will be a consumer health tech company." <span class="dm">— <a href="https://a16z.com/the-biggest-company-in-the-world/" target="_blank" style="color:inherit;text-decoration:underline;">a16z</a></span></div>
+      <div class="body wt" style="font-style:italic;white-space:nowrap;">"The biggest company in the world will be a consumer health tech company." <span class="dm">— <a href="https://a16z.com/the-biggest-company-in-the-world/" target="_blank" style="color:inherit;text-decoration:underline;">a16z</a></span></div>
     </div>
   </div>
   <div class="sn">3</div>
@@ -194,7 +194,7 @@ body{display:flex;flex-direction:column;align-items:center;padding:16px;min-heig
   </div>
   <div class="c ct" style="justify-content:center;">
     <div class="row" style="gap:32px;align-items:center;">
-      <div class="col" style="flex:0.9;">
+      <div class="col" style="flex:0.75;">
         <div class="ey">The solution</div>
         <div class="h2 wt" style="margin-bottom:8px;">Own your data. Share it anywhere.</div>
         <div class="body dm" style="margin-bottom:16px;">Patients control their records. One click to share with any partner.</div>
@@ -205,7 +205,7 @@ body{display:flex;flex-direction:column;align-items:center;padding:16px;min-heig
           <span style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);padding:6px 12px;border-radius:20px;font-size:13px;color:#94a3b8;">Obs Registry</span>
         </div>
       </div>
-      <div class="col" style="flex:1.1;">
+      <div class="col" style="flex:1.25;">
         <div style="border-radius:12px;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);">
           <img src="https://opencancer.ai/screenshots/homepage.png" alt="opencancer.ai homepage" style="width:100%;display:block;"/>
         </div>
@@ -279,12 +279,14 @@ body{display:flex;flex-direction:column;align-items:center;padding:16px;min-heig
       </div>
     </div>
     <!-- Partner logos -->
-    <div style="display:flex;align-items:center;justify-content:center;gap:32px;margin-bottom:16px;">
-      <img src="https://navis.health/pitchAssets/logo-cancer-commons.png" alt="Cancer Commons" style="height:36px;"/>
-      <img src="https://navis.health/pitchAssets/logo-ucsf.png" alt="UCSF" style="height:36px;"/>
-      <img src="https://navis.health/pitchAssets/logo-genentech.png" alt="Genentech" style="height:36px;"/>
-      <img src="https://navis.health/pitchAssets/logo-stanford.png" alt="Stanford" style="height:36px;"/>
-      <img src="https://navis.health/pitchAssets/logo-meta.png" alt="Meta" style="height:36px;"/>
+    <div style="display:flex;align-items:center;justify-content:center;gap:28px;margin-bottom:16px;flex-wrap:wrap;">
+      <img src="https://navis.health/pitchAssets/logo-cancer-commons.png" alt="Cancer Commons" style="height:32px;"/>
+      <img src="https://opencancer.ai/lovable-uploads/proteanLogo.png" alt="Protean Biodiagnostics" style="height:32px;"/>
+      <img src="https://opencancer.ai/logos/cclm-logo.png" alt="Cancer Lifestyle Management" style="height:32px;"/>
+      <img src="https://navis.health/pitchAssets/logo-ucsf.png" alt="UCSF" style="height:32px;"/>
+      <img src="https://navis.health/pitchAssets/logo-genentech.png" alt="Genentech" style="height:32px;"/>
+      <img src="https://navis.health/pitchAssets/logo-stanford.png" alt="Stanford" style="height:32px;"/>
+      <img src="https://navis.health/pitchAssets/logo-meta.png" alt="Meta" style="height:32px;"/>
     </div>
     <div class="btc">
       <div class="body dt"><span class="tc" style="font-weight:600;">opencancer.ai</span>: one platform for the cancer patient ecosystem.</div>
@@ -411,7 +413,6 @@ body{display:flex;flex-direction:column;align-items:center;padding:16px;min-heig
     </div>
     <div class="btc">
       <div class="body dt"><span style="color:var(--tc);font-weight:600;">Survivors</span> + <span style="color:var(--bl);font-weight:600;">UCSF/Genentech</span> + <span style="color:var(--gr);font-weight:600;">Meta/Stanford</span></div>
-      <div class="xs gt" style="margin-top:4px;">Advisory: Magliocco MD (Moffitt) · Wilkinson PhD (Human Genome) · Tenenbaum PhD (Cancer Commons)</div>
     </div>
   </div>
   <div class="sn">9</div>
@@ -423,7 +424,7 @@ body{display:flex;flex-direction:column;align-items:center;padding:16px;min-heig
   <div class="nav">
     <img src="https://opencancer.ai/nav-lockup-black.svg" height="16" alt="opencancer.ai"/>
   </div>
-  <div class="c ct">
+  <div class="c ct" style="justify-content:center;">
     <div class="ey">The ask</div>
     <div class="h2 dt" style="margin-bottom:16px;">Prove patient value. Unlock partner revenue.</div>
     <div class="row" style="flex:1;gap:16px;">
@@ -446,18 +447,15 @@ body{display:flex;flex-direction:column;align-items:center;padding:16px;min-heig
       </div>
       <!-- Right: Key Milestones -->
       <div class="col" style="display:flex;flex-direction:column;gap:10px;">
-        <div class="body dt" style="font-weight:600;margin-bottom:4px;">Key Milestones (12 months)</div>
-        <div style="background:var(--tcl);border-radius:8px;padding:12px 14px;border-left:3px solid var(--tc);">
-          <div class="body tc" style="font-weight:700;margin-bottom:4px;">10,000 patients</div>
-          <div class="body gt">Organic adoption through alliance channels.</div>
+        <div class="body dt" style="font-weight:600;margin-bottom:4px;">This raise proves (12 months)</div>
+        <div style="background:var(--tcl);border-radius:8px;padding:14px 16px;border-left:3px solid var(--tc);">
+          <div class="body tc" style="font-weight:700;">WTP: $99K patient revenue</div>
         </div>
-        <div style="background:#e8f0f8;border-radius:8px;padding:12px 14px;border-left:3px solid var(--bl);">
-          <div class="body bt" style="font-weight:700;margin-bottom:4px;">100 partners on platform</div>
-          <div class="body gt">Service providers paying for distribution.</div>
+        <div style="background:#e8f0f8;border-radius:8px;padding:14px 16px;border-left:3px solid var(--bl);">
+          <div class="body bt" style="font-weight:700;">PMF: 5K engaged patients</div>
         </div>
-        <div style="background:#f0eef8;border-radius:8px;padding:12px 14px;border-left:3px solid var(--pu);">
-          <div class="body pt" style="font-weight:700;margin-bottom:4px;">$100K+ partner revenue</div>
-          <div class="body gt">First commercial contracts closed.</div>
+        <div style="background:#e8f5f0;border-radius:8px;padding:14px 16px;border-left:3px solid var(--gr);">
+          <div class="body grt" style="font-weight:700;">B2B: $20K MRR partners</div>
         </div>
       </div>
     </div>

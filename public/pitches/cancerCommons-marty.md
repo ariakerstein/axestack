@@ -110,10 +110,10 @@ Advisory: Magliocco MD (Moffitt) · Wilkinson PhD (Human Genome) · Tenenbaum Ph
 - Partner Pipeline: 20%
 - Operations: 10%
 
-**Key Milestones (12 months):**
-- 10,000 patients
-- 100 partners on platform
-- $100K+ partner revenue
+**This raise proves (12 months):**
+- WTP: $99K patient revenue
+- PMF: 5K engaged patients
+- B2B: $20K MRR partners
 
 ---
 
