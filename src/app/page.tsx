@@ -764,17 +764,27 @@ function HomeContent() {
                         setProfile(newProfile)
 
                         // Save to Supabase via API (uses service key, bypasses RLS)
-                        fetch('/api/profile', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            email: wizardEmail.trim(),
-                            name: wizardName.trim(),
-                            role: wizardRole,
-                            cancerType: wizardCancerType,
-                            sessionId: typeof window !== 'undefined' ? localStorage.getItem('opencancer_session_id') : null,
-                          }),
-                        }).catch(err => console.warn('Profile sync failed:', err))
+                        // IMPORTANT: await this to ensure profile is saved before continuing
+                        try {
+                          const profileRes = await fetch('/api/profile', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              email: wizardEmail.trim(),
+                              name: wizardName.trim(),
+                              role: wizardRole,
+                              cancerType: wizardCancerType,
+                              sessionId: typeof window !== 'undefined' ? localStorage.getItem('opencancer_session_id') : null,
+                            }),
+                          })
+                          if (!profileRes.ok) {
+                            console.error('[Wizard] Profile save failed:', await profileRes.text())
+                          } else {
+                            console.log('[Wizard] Profile saved successfully')
+                          }
+                        } catch (err) {
+                          console.error('[Wizard] Profile sync error:', err)
+                        }
 
                         // Send magic link - only for valid-looking emails to reduce bounces
                         const emailLooksValid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(wizardEmail.trim())
@@ -863,17 +873,26 @@ function HomeContent() {
                         setProfile(newProfile)
 
                         // Save to Supabase via API (uses service key, bypasses RLS)
-                        await fetch('/api/profile', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            email: wizardEmail.trim(),
-                            name: wizardName.trim(),
-                            role: wizardRole,
-                            cancerType: wizardCancerType,
-                            sessionId: typeof window !== 'undefined' ? localStorage.getItem('opencancer_session_id') : null,
-                          }),
-                        }).catch(err => console.warn('Profile sync failed:', err))
+                        try {
+                          const profileRes = await fetch('/api/profile', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              email: wizardEmail.trim(),
+                              name: wizardName.trim(),
+                              role: wizardRole,
+                              cancerType: wizardCancerType,
+                              sessionId: typeof window !== 'undefined' ? localStorage.getItem('opencancer_session_id') : null,
+                            }),
+                          })
+                          if (!profileRes.ok) {
+                            console.error('[Wizard] Profile save failed:', await profileRes.text())
+                          } else {
+                            console.log('[Wizard] Profile saved successfully')
+                          }
+                        } catch (err) {
+                          console.error('[Wizard] Profile sync error:', err)
+                        }
 
                         localStorage.setItem('opencancer-onboarding-dismissed', 'true')
                         setWizardSaving(false)
