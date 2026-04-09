@@ -137,6 +137,10 @@ export async function GET(request: NextRequest) {
       'navis_eval_logs',
       'patient_activity',
       'api_usage',
+      'analytics_events',
+      'medical_records',
+      'patient_questions2',
+      'guideline_chunks',
     ]
 
     for (const table of tablesToCheck) {
