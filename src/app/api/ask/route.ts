@@ -260,7 +260,7 @@ async function saveInteractionToGraph(
   const supabase = getSupabase()
 
   // Save the question as an entity (patient questions are valuable for their wiki)
-  await supabase.from('patient_entities').insert({
+  const { error } = await supabase.from('patient_entities').insert({
     user_id: userId || null,
     session_id: sessionId || null,
     entity_type: 'question',
@@ -269,6 +269,12 @@ async function saveInteractionToGraph(
     confidence: 1.0,
     source_type: 'navis_chat',
   })
+
+  if (error) {
+    console.error('[Ask] Failed to save question entity:', error.message, error.details)
+  } else {
+    console.log('[Ask] Question entity saved to graph')
+  }
 }
 
 // Eval metrics interface for the comprehensive quality framework

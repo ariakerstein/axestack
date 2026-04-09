@@ -9,7 +9,12 @@ export const maxDuration = 300
 // Use Navis Supabase for AI calls (reuse existing infrastructure)
 const SUPABASE_URL = "https://felofmlhqwcdpiyjgstx.supabase.co"
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlbG9mbWxocXdjZHBpeWpnc3R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA2NzQzODAsImV4cCI6MjA1NjI1MDM4MH0._kYA-prwPgxQWoKzWPzJDy2Bf95WgTF5_KnAPN2cGnQ"
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+
+// CRITICAL: Log warning if service key is not set (will cause RLS failures)
+if (!SUPABASE_SERVICE_KEY) {
+  console.error('[Translate] CRITICAL: SUPABASE_SERVICE_ROLE_KEY not set! Analytics logging will fail.')
+}
 
 // Optimized system prompt
 const SYSTEM_PROMPT = `You extract medical document information into structured JSON. Be concise and accurate.

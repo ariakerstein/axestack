@@ -2,12 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://felofmlhqwcdpiyjgstx.supabase.co"
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlbG9mbWxocXdjZHBpeWpnc3R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA2NzQzODAsImV4cCI6MjA1NjI1MDM4MH0._kYA-prwPgxQWoKzWPzJDy2Bf95WgTF5_KnAPN2cGnQ"
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ""
 
-// Create client lazily to avoid build-time errors
+// Create client with service key (required for RLS bypass)
 function getSupabase() {
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || SUPABASE_ANON_KEY
-  return createClient(SUPABASE_URL, key)
+  if (!SUPABASE_SERVICE_KEY) {
+    console.error('[Combat] SUPABASE_SERVICE_ROLE_KEY not configured!')
+  }
+  return createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 }
 
 export async function POST(request: NextRequest) {
@@ -60,53 +62,74 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Save to knowledge graph (async, non-blocking)
+    // Save to knowledge graph - await these to catch errors
+    let entitiesSaved = 0
+    let entityErrors: string[] = []
+
     // 1. Save the combat question as an entity
-    ;(async () => {
-      try {
-        await supabase.from('patient_entities').insert({
-          user_id: userId || null,
-          session_id: sessionId,
-          entity_type: 'combat_question',
-          entity_value: question.slice(0, 500),
-          entity_status: phase, // 'diagnosis' or 'treatment'
-          confidence: 1.0,
-          source_type: 'combat',
-          metadata: {
-            combat_id: data?.id,
-            evidence_strength: evidenceStrength,
-            record_count: recordsSummary?.count || 0,
-            cancer_type: recordsSummary?.cancer_type || null,
-          }
-        })
-        console.log('Combat question saved to graph')
-      } catch (err) {
-        console.error('Failed to save combat question to graph:', err)
+    try {
+      const { error: questionError } = await supabase.from('patient_entities').insert({
+        user_id: userId || null,
+        session_id: sessionId,
+        entity_type: 'combat_question',
+        entity_value: question.slice(0, 500),
+        entity_status: phase, // 'diagnosis' or 'treatment'
+        confidence: 1.0,
+        source_type: 'combat',
+        metadata: {
+          combat_id: data?.id,
+          evidence_strength: evidenceStrength,
+          record_count: recordsSummary?.count || 0,
+          cancer_type: recordsSummary?.cancer_type || null,
+        }
+      })
+      if (questionError) {
+        console.error('[Combat] Failed to save question entity:', questionError)
+        entityErrors.push(`question: ${questionError.message}`)
+      } else {
+        entitiesSaved++
+        console.log('[Combat] Question entity saved to graph')
       }
-    })()
+    } catch (err) {
+      console.error('[Combat] Exception saving question entity:', err)
+      entityErrors.push(`question: ${err instanceof Error ? err.message : String(err)}`)
+    }
 
     // 2. Save consensus points as entities (key insights)
     if (consensus && consensus.length > 0) {
-      ;(async () => {
-        try {
-          const consensusEntities = consensus.slice(0, 5).map((point: string) => ({
-            user_id: userId || null,
-            session_id: sessionId,
-            entity_type: 'combat_insight',
-            entity_value: point.slice(0, 500),
-            entity_status: 'consensus',
-            confidence: 0.9,
-            source_type: 'combat',
-            metadata: { combat_id: data?.id, phase }
-          }))
-          await supabase.from('patient_entities').insert(consensusEntities)
-        } catch (err) {
-          console.error('Failed to save consensus to graph:', err)
+      try {
+        const consensusEntities = consensus.slice(0, 5).map((point: string) => ({
+          user_id: userId || null,
+          session_id: sessionId,
+          entity_type: 'combat_insight',
+          entity_value: point.slice(0, 500),
+          entity_status: 'consensus',
+          confidence: 0.9,
+          source_type: 'combat',
+          metadata: { combat_id: data?.id, phase }
+        }))
+        const { error: consensusError } = await supabase.from('patient_entities').insert(consensusEntities)
+        if (consensusError) {
+          console.error('[Combat] Failed to save consensus entities:', consensusError)
+          entityErrors.push(`consensus: ${consensusError.message}`)
+        } else {
+          entitiesSaved += consensusEntities.length
+          console.log('[Combat] Consensus entities saved:', consensusEntities.length)
         }
-      })()
+      } catch (err) {
+        console.error('[Combat] Exception saving consensus entities:', err)
+        entityErrors.push(`consensus: ${err instanceof Error ? err.message : String(err)}`)
+      }
     }
 
-    return NextResponse.json({ success: true, data })
+    return NextResponse.json({
+      success: true,
+      data,
+      graph: {
+        entitiesSaved,
+        errors: entityErrors.length > 0 ? entityErrors : undefined
+      }
+    })
   } catch (error) {
     console.error('Combat save error:', error)
     return NextResponse.json(
