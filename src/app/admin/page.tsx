@@ -744,7 +744,7 @@ export default function AdminPage() {
 
   const fetchQuestions = async (key: string) => {
     try {
-      const res = await fetch('/api/admin/questions?limit=200', {
+      const res = await fetch('/api/admin/questions?limit=1000', {
         headers: { 'x-admin-key': key }
       })
       if (res.ok) {

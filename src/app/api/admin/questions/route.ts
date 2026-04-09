@@ -21,7 +21,7 @@ interface QuestionRecord {
   needs_expert_review: boolean | null
   session_id: string | null
   user_id: string | null
-  source: 'eval_log' | 'activity' | 'entity'
+  source: 'eval_log' | 'activity' | 'entity' | 'circle'
   // Rich eval data (only from navis_eval_logs)
   llm_score?: number | null
   rag_score?: number | null
@@ -216,6 +216,72 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // 4. Fetch from response_evaluations (Circle questions - largest source: 3,648+ questions)
+  if (!source || source === 'circle') {
+    let circleQuery = supabase
+      .from('response_evaluations')
+      .select(`
+        id,
+        created_at,
+        question,
+        cancer_type,
+        overall_confidence,
+        confidence_level,
+        accuracy_score,
+        completeness_score,
+        question_fit_score,
+        source_support_score,
+        trustworthiness_score,
+        communication_score,
+        source,
+        user_id,
+        model_used
+      `)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (cancerType) {
+      circleQuery = circleQuery.eq('cancer_type', cancerType)
+    }
+
+    const { data: circleData, error: circleError } = await circleQuery
+
+    if (!circleError && circleData) {
+      circleData.forEach(row => {
+        const questionText = row.question || ''
+        // Only add if not already found (avoid duplicates)
+        const alreadyExists = allQuestions.some(q =>
+          q.question?.toLowerCase() === questionText.toLowerCase()
+        )
+        if (!alreadyExists && questionText) {
+          allQuestions.push({
+            id: row.id,
+            created_at: row.created_at,
+            question: questionText,
+            question_type: null,
+            cancer_type: row.cancer_type,
+            confidence_score: row.overall_confidence,
+            feedback_type: null,
+            feedback_comment: null,
+            has_patient_context: null,
+            used_fallback: null,
+            treatment_options_count: null,
+            has_false_dichotomy: null,
+            needs_expert_review: null,
+            session_id: null,
+            user_id: row.user_id,
+            source: 'circle',
+            // Map Circle scores to eval log format
+            llm_score: row.accuracy_score,
+            rag_score: row.source_support_score,
+            graph_score: null,
+            quality_score: row.overall_confidence,
+          })
+        }
+      })
+    }
+  }
+
   // Sort all by created_at descending
   allQuestions.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
 
@@ -228,6 +294,7 @@ export async function GET(request: NextRequest) {
     totalEvalLogs: limitedQuestions.filter(q => q.source === 'eval_log').length,
     totalActivity: limitedQuestions.filter(q => q.source === 'activity').length,
     totalEntity: limitedQuestions.filter(q => q.source === 'entity').length,
+    totalCircle: limitedQuestions.filter(q => q.source === 'circle').length,
     byCancerType: {} as Record<string, number>,
     byQuestionType: {} as Record<string, number>,
     bySource: {} as Record<string, number>,
