@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit'
+import {
+  extractPCO,
+  orchestratePersonaRAG,
+  formatForPrompt,
+  type PatientContextObject,
+  type OrchestratorResult
+} from '@/lib/graphrag'
 
 // Use the same Supabase project as other AI calls
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://felofmlhqwcdpiyjgstx.supabase.co"
@@ -11,47 +18,106 @@ function getSupabase() {
   return createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 }
 
-// Fetch patient context from knowledge graph for personalization
-async function getPatientGraphContext(userId?: string, sessionId?: string): Promise<string | null> {
-  if (!userId && !sessionId) return null
-
-  const supabase = getSupabase()
-
-  // Fetch patient entities (diagnoses, treatments, biomarkers, etc.)
-  let query = supabase
-    .from('patient_entities')
-    .select('entity_type, entity_value, entity_status, entity_date, numeric_value, numeric_unit, confidence')
-    .order('created_at', { ascending: false })
-    .limit(100)
-
-  if (userId) {
-    query = query.eq('user_id', userId)
-  } else if (sessionId) {
-    query = query.eq('session_id', sessionId)
-  }
-
-  const { data: entities } = await query
-
-  if (!entities || entities.length === 0) return null
-
-  // Group by type for a clean summary
-  const grouped: Record<string, string[]> = {}
-  for (const e of entities) {
-    if (!grouped[e.entity_type]) grouped[e.entity_type] = []
-    let value = e.entity_value
-    if (e.entity_status) value += ` (${e.entity_status})`
-    if (e.entity_date) value += ` - ${new Date(e.entity_date).toLocaleDateString()}`
-    if (e.numeric_value && e.numeric_unit) value += `: ${e.numeric_value} ${e.numeric_unit}`
-    grouped[e.entity_type].push(value)
-  }
-
-  // Build context string
-  const lines = Object.entries(grouped).map(([type, values]) => {
-    const uniqueValues = [...new Set(values)] // Dedupe
-    return `${type.toUpperCase()}: ${uniqueValues.slice(0, 10).join(', ')}`
+// Build PCO from Combat records + database entities
+async function buildPCOFromRecords(
+  records: RecordInput[],
+  userId?: string,
+  sessionId?: string
+): Promise<PatientContextObject> {
+  // Start with database-extracted PCO
+  const basePCO = await extractPCO({
+    userId: userId || null,
+    sessionId: sessionId || `combat-${Date.now()}`, // Fallback sessionId
+    traversalConfig: { max_hops: 2, min_confidence: 0.5, max_results: 100 },
+    includeRelatedEntities: true
   })
 
-  return lines.join('\n')
+  // Enrich with records data
+  for (const record of records) {
+    const cs = record.result?.cancer_specific
+
+    // Add diagnosis from records
+    if (cs?.cancer_type) {
+      const existingDx = basePCO.diagnoses.find(d =>
+        d.cancer_type.toLowerCase() === cs.cancer_type.toLowerCase()
+      )
+      if (!existingDx) {
+        basePCO.diagnoses.push({
+          cancer_type: cs.cancer_type,
+          stage: cs.stage,
+          histology: cs.grade,
+          confidence: 0.9,
+          source: 'records'
+        })
+      } else if (cs.stage && !existingDx.stage) {
+        existingDx.stage = cs.stage
+      }
+    }
+
+    // Add biomarkers from records
+    if (cs?.biomarkers) {
+      for (const biomarker of cs.biomarkers) {
+        const upperBiomarker = biomarker.toUpperCase()
+        const existingBM = basePCO.biomarkers.find(b =>
+          b.name.toUpperCase() === upperBiomarker.split(/[\s:]/)[0]
+        )
+        if (!existingBM) {
+          // Determine if positive/negative from string
+          const isNegative = /negative|not detected|wild.?type/i.test(biomarker)
+          basePCO.biomarkers.push({
+            name: upperBiomarker.split(/[\s:]/)[0],
+            value: biomarker,
+            result_type: isNegative ? 'negative' : 'positive',
+            source: 'unknown',
+            confidence: 0.9
+          })
+        }
+      }
+    }
+  }
+
+  // Update completeness flags
+  basePCO.has_diagnosis = basePCO.diagnoses.length > 0
+  basePCO.has_biomarkers = basePCO.biomarkers.length > 0
+  basePCO.has_treatments = basePCO.treatments.length > 0
+
+  return basePCO
+}
+
+// Map GraphRAG persona names to Combat persona keys
+const PERSONA_MAP: Record<string, keyof typeof PERSONAS> = {
+  'SOC Advisor': 'guidelines',
+  'Molecular Oncologist': 'precision',
+  'Emerging Treatments': 'aggressive',
+  'Watch & Wait': 'conservative',
+  'Whole Person': 'integrative'
+}
+
+// Get GraphRAG context for a specific persona
+function getGraphRAGContextForPersona(
+  personaKey: string,
+  graphragResult: OrchestratorResult
+): string {
+  // Find matching GraphRAG persona
+  const graphragPersonaName = Object.entries(PERSONA_MAP).find(([_, key]) => key === personaKey)?.[0]
+  if (!graphragPersonaName) return ''
+
+  const personaResult = graphragResult.results.find(r => r.persona === graphragPersonaName)
+  if (!personaResult || personaResult.chunks.length === 0) return ''
+
+  // Format chunks for prompt
+  const chunks = personaResult.chunks.slice(0, 5) // Top 5 chunks
+  const formattedChunks = chunks.map((chunk, i) => {
+    const source = chunk.metadata?.guideline_title || chunk.source || 'Guidelines'
+    return `[Source ${i + 1}: ${source}]\n${chunk.content.slice(0, 500)}`
+  }).join('\n\n')
+
+  return `
+EVIDENCE FROM MEDICAL KNOWLEDGE BASE (confidence: ${(personaResult.confidence * 100).toFixed(0)}%):
+${formattedChunks}
+
+Use this evidence to support your analysis. Cite specific sources when making claims.
+`
 }
 
 interface RecordInput {
@@ -270,18 +336,21 @@ function buildCaseContext(records: RecordInput[]): string {
 
 async function getPersonaPerspective(
   persona: typeof PERSONAS.guidelines,
+  personaKey: string,
   caseContext: string,
   phase: 'diagnosis' | 'treatment',
   question: string,
   weight: number,
   userId?: string,
-  communicationStyle: CommunicationStyle = 'balanced'
+  communicationStyle: CommunicationStyle = 'balanced',
+  graphragResult?: OrchestratorResult
 ): Promise<{
   argument: string
   evidence: string[]
   confidence: number
   recommendation: string
   specialists: string[]
+  sources?: string[]
 }> {
   const phasePrompt = phase === 'diagnosis'
     ? `Analyze this diagnosis. Is it correct and complete? Are there alternative diagnoses to consider? What additional testing might be needed?`
@@ -290,11 +359,17 @@ async function getPersonaPerspective(
   const systemContext = persona.getSystemContext(weight)
   const styleInstructions = getCommunicationStyleInstructions(communicationStyle)
 
+  // Get GraphRAG context specific to this persona
+  const graphragContext = graphragResult
+    ? getGraphRAGContextForPersona(personaKey, graphragResult)
+    : ''
+
   const fullPrompt = `${systemContext}
 
 ${styleInstructions}
 
 ${caseContext}
+${graphragContext}
 
 QUESTION: ${question}
 
@@ -308,7 +383,8 @@ Respond in this exact JSON format:
   "recommendation": "Your specific recommendation in 1-2 sentences"
 }
 
-Be specific to THIS patient's case. Reference their actual biomarkers, stage, and findings.`
+Be specific to THIS patient's case. Reference their actual biomarkers, stage, and findings.
+${graphragContext ? 'Cite the provided evidence sources when making claims.' : ''}`
 
   try {
     // Check for required environment variables
@@ -347,12 +423,17 @@ Be specific to THIS patient's case. Reference their actual biomarkers, stage, an
     const data = await response.json()
     const text = data.response || data.answer || ''
 
+    // Get sources from GraphRAG for this persona
+    const graphragPersonaName = Object.entries(PERSONA_MAP).find(([_, key]) => key === personaKey)?.[0]
+    const personaGraphRAG = graphragResult?.results.find(r => r.persona === graphragPersonaName)
+    const sources = personaGraphRAG?.sources_used || []
+
     // Extract JSON from response
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (jsonMatch) {
       try {
         const parsed = JSON.parse(jsonMatch[0])
-        return { ...parsed, specialists: persona.specialists }
+        return { ...parsed, specialists: persona.specialists, sources }
       } catch {
         // Fallback
       }
@@ -363,7 +444,8 @@ Be specific to THIS patient's case. Reference their actual biomarkers, stage, an
       evidence: ['See full analysis'],
       confidence: 70,
       recommendation: 'Consult with your oncologist',
-      specialists: persona.specialists
+      specialists: persona.specialists,
+      sources
     }
   } catch (err) {
     console.error('Persona API error:', err)
@@ -372,7 +454,8 @@ Be specific to THIS patient's case. Reference their actual biomarkers, stage, an
       evidence: ['Error during analysis'],
       confidence: 0,
       recommendation: 'Please try again',
-      specialists: persona.specialists
+      specialists: persona.specialists,
+      sources: []
     }
   }
 }
@@ -762,10 +845,37 @@ export async function POST(request: NextRequest) {
       integrative: weights?.integrative ?? 50
     }
 
-    // Fetch patient's knowledge graph context (treatments, diagnoses, biomarkers from all records)
-    const graphContext = await getPatientGraphContext(userId, sessionId)
+    // Build PCO from records + database entities (GraphRAG Layer 1: Graph Traversal)
+    console.log('[Combat] Building PCO from records + database...')
+    const pco = await buildPCOFromRecords(records, userId, sessionId)
+    console.log('[Combat] PCO built:', {
+      diagnoses: pco.diagnoses.length,
+      biomarkers: pco.biomarkers.length,
+      treatments: pco.treatments.length
+    })
 
-    // Build case context from current records + graph history
+    // Run GraphRAG orchestration (Layer 2: Specialized RAG per persona)
+    const cancerType = records[0]?.result?.cancer_specific?.cancer_type || 'this cancer'
+    const stage = records[0]?.result?.cancer_specific?.stage
+    const baseQuestion = phase === 'diagnosis'
+      ? `Is the diagnosis of ${cancerType}${stage ? ` (${stage})` : ''} correct and complete?`
+      : `What are the best treatment options for ${cancerType}${stage ? ` ${stage}` : ''}?`
+
+    console.log('[Combat] Running GraphRAG orchestration...')
+    let graphragResult: OrchestratorResult | undefined
+    try {
+      graphragResult = await orchestratePersonaRAG(pco, baseQuestion, { timeout: 15000 })
+      console.log('[Combat] GraphRAG complete:', {
+        successful_retrievals: graphragResult.successful_retrievals,
+        total_chunks: graphragResult.total_chunks,
+        confidence: graphragResult.combined_confidence
+      })
+    } catch (err) {
+      console.error('[Combat] GraphRAG failed, continuing without:', err)
+      // Continue without GraphRAG - graceful degradation
+    }
+
+    // Build case context from current records
     let caseContext = buildCaseContext(records)
 
     // Apply patient corrections if provided (from verification step)
@@ -776,35 +886,46 @@ export async function POST(request: NextRequest) {
 ${caseContext}`
     }
 
-    if (graphContext) {
-      caseContext = `PATIENT HISTORY FROM KNOWLEDGE GRAPH:
-${graphContext}
+    // Add PCO summary to case context (replaces old graphContext)
+    if (pco.has_diagnosis || pco.has_biomarkers || pco.has_treatments) {
+      const pcoSummary: string[] = ['PATIENT CONTEXT FROM KNOWLEDGE GRAPH:']
+      if (pco.diagnoses.length > 0) {
+        pcoSummary.push(`• Diagnoses: ${pco.diagnoses.map(d => `${d.cancer_type}${d.stage ? ` (${d.stage})` : ''}`).join(', ')}`)
+      }
+      if (pco.biomarkers.length > 0) {
+        const positiveBMs = pco.biomarkers.filter(b => b.result_type === 'positive')
+        if (positiveBMs.length > 0) {
+          pcoSummary.push(`• Positive Biomarkers: ${positiveBMs.map(b => b.name).join(', ')}`)
+        }
+      }
+      if (pco.treatments.length > 0) {
+        pcoSummary.push(`• Treatments: ${pco.treatments.map(t => `${t.name} (${t.status})`).join(', ')}`)
+      }
+      caseContext = `${pcoSummary.join('\n')}
 
 CURRENT RECORDS FOR ANALYSIS:
 ${caseContext}`
     }
 
-    // Determine the question based on phase and case
-    const cancerType = records[0]?.result?.cancer_specific?.cancer_type || 'this cancer'
-    const stage = records[0]?.result?.cancer_specific?.stage
-
+    // Use the question we already built for GraphRAG
     const question = phase === 'diagnosis'
-      ? `Is the diagnosis of ${cancerType}${stage ? ` (${stage})` : ''} correct and complete? What should be confirmed or explored?`
-      : `What are the best treatment options for ${cancerType}${stage ? ` ${stage}` : ''}?`
+      ? `${baseQuestion} What should be confirmed or explored?`
+      : baseQuestion
 
     // Get the communication style preference (default to balanced)
     const style: CommunicationStyle = communicationStyle || 'balanced'
 
     console.log('[Combat] Starting 5 perspective calls in parallel...')
     console.log('[Combat] Weights:', perspectiveWeights)
+    console.log('[Combat] GraphRAG available:', !!graphragResult)
 
-    // Get all five perspectives in parallel, passing their respective weights and communication style
+    // Get all five perspectives in parallel, passing their respective weights, communication style, and GraphRAG context
     const [guidelinesResponse, aggressiveResponse, precisionResponse, conservativeResponse, integrativeResponse] = await Promise.all([
-      getPersonaPerspective(PERSONAS.guidelines, caseContext, phase, question, perspectiveWeights.guidelines, userId, style),
-      getPersonaPerspective(PERSONAS.aggressive, caseContext, phase, question, perspectiveWeights.aggressive, userId, style),
-      getPersonaPerspective(PERSONAS.precision, caseContext, phase, question, perspectiveWeights.precision, userId, style),
-      getPersonaPerspective(PERSONAS.conservative, caseContext, phase, question, perspectiveWeights.conservative, userId, style),
-      getPersonaPerspective(PERSONAS.integrative, caseContext, phase, question, perspectiveWeights.integrative, userId, style)
+      getPersonaPerspective(PERSONAS.guidelines, 'guidelines', caseContext, phase, question, perspectiveWeights.guidelines, userId, style, graphragResult),
+      getPersonaPerspective(PERSONAS.aggressive, 'aggressive', caseContext, phase, question, perspectiveWeights.aggressive, userId, style, graphragResult),
+      getPersonaPerspective(PERSONAS.precision, 'precision', caseContext, phase, question, perspectiveWeights.precision, userId, style, graphragResult),
+      getPersonaPerspective(PERSONAS.conservative, 'conservative', caseContext, phase, question, perspectiveWeights.conservative, userId, style, graphragResult),
+      getPersonaPerspective(PERSONAS.integrative, 'integrative', caseContext, phase, question, perspectiveWeights.integrative, userId, style, graphragResult)
     ])
 
     console.log('[Combat] All 5 perspectives completed')
@@ -835,6 +956,20 @@ ${caseContext}`
       // Flag if this was a re-run with corrections
       hasCorrections: corrections && corrections.length > 0,
       correctionsApplied: corrections || [],
+      // GraphRAG metadata
+      graphrag: graphragResult ? {
+        successful_retrievals: graphragResult.successful_retrievals,
+        total_chunks: graphragResult.total_chunks,
+        combined_confidence: graphragResult.combined_confidence,
+        retrieval_time_ms: graphragResult.total_time_ms
+      } : null,
+      // PCO summary for transparency
+      patientContext: {
+        diagnoses: pco.diagnoses.length,
+        biomarkers: pco.biomarkers.length,
+        treatments: pco.treatments.length,
+        completeness: pco.completeness_score
+      }
     }
 
     return NextResponse.json(result)

@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { CANCER_TYPES } from '@/lib/cancer-data'
 import { createClient } from '@supabase/supabase-js'
+import {
+  extractPCO,
+  selectBestPersona,
+  createRetriever,
+  type PatientContextObject
+} from '@/lib/graphrag'
 
 // Use the same Supabase project as Navis for the RAG pipeline
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://felofmlhqwcdpiyjgstx.supabase.co"
@@ -9,6 +15,62 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ""
 
 function getSupabase() {
   return createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+}
+
+// Get GraphRAG context for the question
+async function getGraphRAGContext(
+  question: string,
+  userId?: string,
+  sessionId?: string
+): Promise<{ context: string; persona: string; confidence: number; sources: string[] } | null> {
+  // Need at least userId or sessionId
+  if (!userId && !sessionId) {
+    return null
+  }
+
+  try {
+    // Extract PCO from patient's data
+    const pco = await extractPCO({
+      userId: userId || null,
+      sessionId: sessionId || `anon-${Date.now()}`, // Fallback sessionId
+      traversalConfig: { max_hops: 1, min_confidence: 0.5, max_results: 50 },
+      includeRelatedEntities: true
+    })
+
+    // If no patient data, return null (will use standard RAG)
+    if (!pco.has_diagnosis && !pco.has_biomarkers) {
+      return null
+    }
+
+    // Select best persona for this question
+    const persona = selectBestPersona(question, pco)
+
+    // Create retriever and get context
+    const retriever = createRetriever(persona)
+    const result = await retriever.retrieve({ pco, query: question })
+
+    // If no relevant chunks, return null
+    if (result.chunks.length === 0 || result.confidence < 0.3) {
+      return null
+    }
+
+    // Format chunks for prompt injection
+    const formattedChunks = result.chunks.slice(0, 3).map((chunk, i) => {
+      const source = chunk.metadata?.guideline_title || chunk.source || 'Medical Guidelines'
+      return `[${source}]: ${chunk.content.slice(0, 400)}`
+    }).join('\n\n')
+
+    return {
+      context: `RELEVANT MEDICAL KNOWLEDGE (${persona} perspective, ${(result.confidence * 100).toFixed(0)}% confidence):
+${formattedChunks}`,
+      persona,
+      confidence: result.confidence,
+      sources: result.sources_used
+    }
+  } catch (err) {
+    console.error('[Ask] GraphRAG error:', err)
+    return null
+  }
 }
 
 // Fetch rich patient context from knowledge graph - the "special sauce"
@@ -392,10 +454,22 @@ export async function POST(request: NextRequest) {
     // Fetch patient's knowledge graph context for personalization
     const patientContext = await getPatientContext(userId, sessionId)
 
+    // Get GraphRAG context (persona-specific retrieval)
+    const graphragContext = await getGraphRAGContext(message, userId, sessionId)
+
     // Build the question with patient context if available
     let enrichedQuestion = conciseMode
       ? `[CONCISE MODE - Facts only, no suggestions] ${message}`
       : message
+
+    // Add GraphRAG context first (most relevant medical knowledge)
+    if (graphragContext) {
+      enrichedQuestion = `${graphragContext.context}
+
+Use the above evidence to inform your response when relevant.
+
+${enrichedQuestion}`
+    }
 
     // Add patient context for personalized answers (the "special sauce")
     if (patientContext) {
@@ -575,6 +649,12 @@ ${enrichedQuestion}`
       // Flag for expert review when specialist care pathways are involved
       needsExpertReview: specialistCareCheck.isSpecialistCare,
       specialistType: specialistCareCheck.specialistType,
+      // GraphRAG metadata
+      graphrag: graphragContext ? {
+        persona: graphragContext.persona,
+        confidence: graphragContext.confidence,
+        sources: graphragContext.sources
+      } : null,
     })
   } catch (error) {
     console.error('Ask API error:', error)

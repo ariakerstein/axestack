@@ -965,82 +965,99 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6 border-b border-slate-200 overflow-x-auto">
-          <button
-            onClick={() => setActiveTab('analytics')}
-            className={`px-4 py-2 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-              activeTab === 'analytics'
-                ? 'text-slate-600 border-slate-600'
-                : 'text-slate-500 border-transparent hover:text-slate-700'
-            }`}
-          >
-            Analytics
-          </button>
-          <button
-            onClick={() => setActiveTab('profiles')}
-            className={`px-4 py-2 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-              activeTab === 'profiles'
-                ? 'text-slate-600 border-slate-600'
-                : 'text-slate-500 border-transparent hover:text-slate-700'
-            }`}
-          >
-            Profiles {profilesData?.total ? `(${profilesData.total})` : ''}
-          </button>
-          <button
-            onClick={() => setActiveTab('usage')}
-            className={`px-4 py-2 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-              activeTab === 'usage'
-                ? 'text-slate-600 border-slate-600'
-                : 'text-slate-500 border-transparent hover:text-slate-700'
-            }`}
-          >
-            API Usage {usageData?.summary?.totalCalls ? `($${usageData.summary.estimatedCostUsd})` : ''}
-          </button>
-          <button
-            onClick={() => setActiveTab('activity')}
-            className={`px-4 py-2 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-              activeTab === 'activity'
-                ? 'text-slate-600 border-slate-600'
-                : 'text-slate-500 border-transparent hover:text-slate-700'
-            }`}
-          >
-            🔥 Activity Graph {activityGraphData?.summary?.totalActivities ? `(${activityGraphData.summary.totalActivities})` : ''}
-          </button>
-          <button
-            onClick={() => setActiveTab('entity')}
-            className={`px-4 py-2 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-              activeTab === 'entity'
-                ? 'text-slate-600 border-slate-600'
-                : 'text-slate-500 border-transparent hover:text-slate-700'
-            }`}
-          >
-            🕸️ Entity Graph {entityGraphData?.stats?.total_edges ? `(${entityGraphData.stats.total_edges} edges)` : ''}
-          </button>
-          <button
-            onClick={() => { setActiveTab('questions'); if (!questionsData) fetchQuestions(adminKey); }}
-            className={`px-4 py-2 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-              activeTab === 'questions'
-                ? 'text-slate-600 border-slate-600'
-                : 'text-slate-500 border-transparent hover:text-slate-700'
-            }`}
-          >
-            💬 Questions {questionsData?.stats?.total ? `(${questionsData.stats.total})` : ''}
-          </button>
-          <a
-            href="/admin/graph"
-            className="px-4 py-2 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap text-slate-500 border-transparent hover:text-slate-700 flex items-center gap-1"
-          >
-            🕸️ Knowledge Graph
-          </a>
-          <a
-            href="/admin/evals"
-            className="px-4 py-2 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap text-slate-500 border-transparent hover:text-slate-700 flex items-center gap-1"
-          >
-            📊 Navis Evals
-          </a>
-        </div>
+        {/* Side Navigation + Content Layout */}
+        <div className="flex gap-6">
+          {/* Side Navigation */}
+          <div className="w-48 flex-shrink-0">
+            <nav className="space-y-1 sticky top-4">
+              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3">Dashboard</div>
+              <button
+                onClick={() => setActiveTab('analytics')}
+                className={`w-full text-left px-3 py-2 rounded-lg font-medium transition-colors ${
+                  activeTab === 'analytics'
+                    ? 'bg-slate-100 text-slate-900'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+              >
+                📊 Analytics
+              </button>
+              <button
+                onClick={() => setActiveTab('profiles')}
+                className={`w-full text-left px-3 py-2 rounded-lg font-medium transition-colors ${
+                  activeTab === 'profiles'
+                    ? 'bg-slate-100 text-slate-900'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+              >
+                👥 Profiles {profilesData?.total ? `(${profilesData.total})` : ''}
+              </button>
+              <button
+                onClick={() => setActiveTab('usage')}
+                className={`w-full text-left px-3 py-2 rounded-lg font-medium transition-colors ${
+                  activeTab === 'usage'
+                    ? 'bg-slate-100 text-slate-900'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+              >
+                💰 API Usage
+              </button>
+              <button
+                onClick={() => setActiveTab('activity')}
+                className={`w-full text-left px-3 py-2 rounded-lg font-medium transition-colors ${
+                  activeTab === 'activity'
+                    ? 'bg-slate-100 text-slate-900'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+              >
+                🔥 Activity
+              </button>
 
+              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-4 mb-2 px-3">Data</div>
+              <button
+                onClick={() => setActiveTab('entity')}
+                className={`w-full text-left px-3 py-2 rounded-lg font-medium transition-colors ${
+                  activeTab === 'entity'
+                    ? 'bg-slate-100 text-slate-900'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+              >
+                🕸️ Entity Graph
+              </button>
+              <button
+                onClick={() => { setActiveTab('questions'); if (!questionsData) fetchQuestions(adminKey); }}
+                className={`w-full text-left px-3 py-2 rounded-lg font-medium transition-colors ${
+                  activeTab === 'questions'
+                    ? 'bg-slate-100 text-slate-900'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+              >
+                💬 Questions
+              </button>
+              <a
+                href="/admin/graph"
+                className="block w-full text-left px-3 py-2 rounded-lg font-medium transition-colors text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+              >
+                🔗 Knowledge Graph
+              </a>
+
+              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-4 mb-2 px-3">Content</div>
+              <a
+                href="/admin/rag"
+                className="block w-full text-left px-3 py-2 rounded-lg font-medium transition-colors text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+              >
+                📚 RAG Content
+              </a>
+              <a
+                href="/admin/evals"
+                className="block w-full text-left px-3 py-2 rounded-lg font-medium transition-colors text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+              >
+                📊 Navis Evals
+              </a>
+            </nav>
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1 min-w-0">
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-4 border-slate-600 border-t-transparent"></div>
@@ -3310,6 +3327,8 @@ export default function AdminPage() {
             )}
           </>
         ) : null}
+          </div>
+        </div>
       </div>
     </div>
   )
