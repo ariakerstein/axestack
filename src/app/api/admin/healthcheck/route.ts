@@ -141,6 +141,15 @@ export async function GET(request: NextRequest) {
       'medical_records',
       'patient_questions2',
       'guideline_chunks',
+      // Circle/conversation tables
+      'response_evaluations',
+      'conversation_messages',
+      'circle_sessions',
+      'activation_events',
+      // Other important tables
+      'high_intent_patients',
+      'shared_records',
+      'entity_relationships',
     ]
 
     for (const table of tablesToCheck) {
