@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import DOMPurify from 'dompurify'
 import { TypewriterMarkdown } from '@/components/TypewriterMarkdown'
-import { FileText, Search, FlaskConical, Ribbon, MessageCircle, BookOpen, ArrowRight, Upload, Link2, Building2, Shield, ShieldCheck, CheckCircle2, Share2, Download, Cloud, User, Mail, Sparkles, Trash2, Eye, Inbox, Paperclip, RefreshCw, Pencil, Check, X, Heart, Users } from 'lucide-react'
+import { FileText, Search, FlaskConical, Ribbon, MessageCircle, BookOpen, ArrowRight, Upload, Link2, Building2, Shield, ShieldCheck, CheckCircle2, Share2, Download, Cloud, User, Mail, Sparkles, Trash2, Eye, Inbox, Paperclip, RefreshCw, Pencil, Check, X, Heart, Users, ChevronDown } from 'lucide-react'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { useAuth } from '@/lib/auth'
 import { AuthModal } from '@/components/AuthModal'
@@ -2282,6 +2282,49 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
 
         {/* Upload Tab Content - Simplified */}
         {activeTab === 'upload' && !result && (savedTranslations.length === 0 || showAddRecordView) && (
+          <>
+          {/* Export Guide - Help patients get records from portals */}
+          <details className="mb-4 bg-white rounded-xl border border-stone-200 overflow-hidden group">
+            <summary className="p-4 cursor-pointer hover:bg-stone-50 transition-colors flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+                  <Download className="w-4 h-4 text-blue-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-slate-900">Don&apos;t have your records downloaded yet?</p>
+                  <p className="text-sm text-slate-500">See how to export from Epic MyChart, Cerner & others</p>
+                </div>
+              </div>
+              <ChevronDown className="w-5 h-5 text-slate-400 group-open:rotate-180 transition-transform" />
+            </summary>
+            <div className="px-4 pb-4 border-t border-stone-100">
+              {/* Epic MyChart */}
+              <div className="mt-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-lg">🏥</span>
+                  <h4 className="font-semibold text-slate-900">Epic MyChart</h4>
+                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Most common</span>
+                </div>
+                <ol className="space-y-2 text-sm text-slate-600 ml-7">
+                  <li className="flex gap-2"><span className="font-semibold text-slate-900">1.</span> Log into MyChart (web or app)</li>
+                  <li className="flex gap-2"><span className="font-semibold text-slate-900">2.</span> Go to <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded">Menu → Health → Documents</span> or <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded">Test Results</span></li>
+                  <li className="flex gap-2"><span className="font-semibold text-slate-900">3.</span> Select the records you want → tap <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded">Download</span> or <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded">Share</span></li>
+                  <li className="flex gap-2"><span className="font-semibold text-slate-900">4.</span> Choose PDF format → Upload here ↓</li>
+                </ol>
+              </div>
+              {/* Other portals */}
+              <details className="mt-4">
+                <summary className="text-sm text-slate-500 cursor-pointer hover:text-slate-700">Other patient portals (Cerner, Athena, etc.)</summary>
+                <div className="mt-2 text-sm text-slate-600 ml-4 space-y-1">
+                  <p>• <strong>Cerner:</strong> My Health → Documents → Download</p>
+                  <p>• <strong>Athena:</strong> Medical Records → Request or Download</p>
+                  <p>• <strong>Others:</strong> Look for "Documents", "Records", or "Download" in your portal</p>
+                </div>
+              </details>
+              <p className="mt-4 text-xs text-slate-400">Tip: Pathology reports, lab results, and imaging reports are most useful for personalization.</p>
+            </div>
+          </details>
+
           <div className="bg-white rounded-2xl border border-stone-200 p-8 shadow-sm">
             <div
               onDragOver={handleDragOver}
@@ -2646,6 +2689,7 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
               </p>
             </div>
           </div>
+          </>
         )}
 
         {/* Portal Connection Tab Content - only in upload-first mode */}
