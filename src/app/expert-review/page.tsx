@@ -181,7 +181,7 @@ function ExpertReviewContent() {
     }
 
     // For anonymous users, fetch by session_id
-    const sessionId = localStorage.getItem('opencancer-session-id')
+    const sessionId = localStorage.getItem('opencancer_session_id')
     if (sessionId) {
       const { data } = await supabase
         .from('medical_records')
@@ -197,7 +197,7 @@ function ExpertReviewContent() {
     setIsLoadingPrefill(true)
     try {
       // Get session ID from localStorage for anonymous users
-      const sessionId = localStorage.getItem('opencancer-session-id')
+      const sessionId = localStorage.getItem('opencancer_session_id')
 
       // Fetch patient entities
       const query = supabase

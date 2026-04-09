@@ -795,7 +795,7 @@ function HomeContent() {
                             name: wizardName.trim(),
                             role: wizardRole,
                             cancerType: wizardCancerType,
-                            sessionId: typeof window !== 'undefined' ? localStorage.getItem('session-id') : null,
+                            sessionId: typeof window !== 'undefined' ? localStorage.getItem('opencancer_session_id') : null,
                           }),
                         }).catch(err => console.warn('Profile sync failed:', err))
 
@@ -894,7 +894,7 @@ function HomeContent() {
                             name: wizardName.trim(),
                             role: wizardRole,
                             cancerType: wizardCancerType,
-                            sessionId: typeof window !== 'undefined' ? localStorage.getItem('session-id') : null,
+                            sessionId: typeof window !== 'undefined' ? localStorage.getItem('opencancer_session_id') : null,
                           }),
                         }).catch(err => console.warn('Profile sync failed:', err))
 

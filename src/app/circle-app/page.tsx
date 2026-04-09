@@ -60,10 +60,10 @@ type TabType = 'ask' | 'records'
 // Session utilities
 function getSessionId(): string {
   if (typeof window === 'undefined') return ''
-  let sessionId = localStorage.getItem('circle-app-session-id')
+  let sessionId = localStorage.getItem('opencancer_session_id')
   if (!sessionId) {
     sessionId = crypto.randomUUID()
-    localStorage.setItem('circle-app-session-id', sessionId)
+    localStorage.setItem('opencancer_session_id', sessionId)
   }
   return sessionId
 }

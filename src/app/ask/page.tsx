@@ -29,10 +29,10 @@ interface AttachedFile {
 // Get or create a session ID for anonymous users
 function getSessionId(): string {
   if (typeof window === 'undefined') return ''
-  let sessionId = localStorage.getItem('opencancer-session-id')
+  let sessionId = localStorage.getItem('opencancer_session_id')
   if (!sessionId) {
     sessionId = crypto.randomUUID()
-    localStorage.setItem('opencancer-session-id', sessionId)
+    localStorage.setItem('opencancer_session_id', sessionId)
   }
   return sessionId
 }

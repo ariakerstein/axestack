@@ -47,10 +47,43 @@ const clearUserLocalStorage = (options?: { keepLastUserId?: boolean; includeAuth
 
   // Session IDs - clear to prevent email/data leakage
   localStorage.removeItem('opencancer_session_id')
-  localStorage.removeItem('opencancer-session-id')
+  localStorage.removeItem('opencancer-session-id') // Legacy key
 
   // Onboarding flag - clear so new user gets onboarding
   localStorage.removeItem('opencancer-onboarding-dismissed')
+
+  // Records & processing state
+  localStorage.removeItem('opencancer-records-processing')
+  localStorage.removeItem('opencancer-portals')
+  localStorage.removeItem('opencancer-privacy-acknowledged')
+  localStorage.removeItem('opencancer-privacy-mode')
+
+  // Expert review
+  localStorage.removeItem('opencancer_expert_consent')
+  localStorage.removeItem('opencancer-referral')
+
+  // Combat
+  localStorage.removeItem('combat-run-tracker')
+
+  // Care circle
+  localStorage.removeItem('careCircleHubs')
+
+  // Ask page
+  localStorage.removeItem('ask-prompts-dismissed')
+  localStorage.removeItem('ask-concise-mode')
+
+  // Prompts & wizard
+  localStorage.removeItem('first-upload-prompt-dismissed')
+  localStorage.removeItem('carecircle-prompt-dismissed')
+  localStorage.removeItem('patient-email')
+  localStorage.removeItem('generatedDeck')
+
+  // Share tracking
+  localStorage.removeItem('opencancer_share_id')
+  localStorage.removeItem('opencancer_share_count')
+
+  // View state
+  localStorage.removeItem('axestack-view-record')
 
   // Last user ID - optionally preserve (for detecting user switches)
   if (!options?.keepLastUserId) {
