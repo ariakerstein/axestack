@@ -11,7 +11,7 @@ import { useAuth } from '@/lib/auth'
 import { AuthModal } from '@/components/AuthModal'
 import { ClaimEmailModal } from '@/components/ClaimEmailModal'
 // EntityAnnotation removed from patient view - knowledge graph is backend-only for Ask Navis personalization
-import { getSessionId } from '@/lib/supabase'
+import { getSessionId, saveProfile } from '@/lib/supabase'
 import { Navbar } from '@/components/Navbar'
 import { ThinkingIndicator } from '@/components/ThinkingIndicator'
 
@@ -225,8 +225,14 @@ function RecordsVaultPageContent() {
   const { trackEvent } = useAnalytics()
 
   // Auth
-  const { user, loading: authLoading, signOut } = useAuth()
+  const { user, profile: userProfile, refreshProfile, loading: authLoading, signOut } = useAuth()
   const [showAuthModal, setShowAuthModal] = useState(false)
+
+  // Profile completion prompt (for users who upload but have no profile)
+  const [showProfilePrompt, setShowProfilePrompt] = useState(false)
+  const [detectedCancerType, setDetectedCancerType] = useState<string | null>(null)
+  const [detectedStage, setDetectedStage] = useState<string | null>(null)
+  const [savingProfile, setSavingProfile] = useState(false)
   const [isSavingToCloud, setIsSavingToCloud] = useState(false)
   const [cloudSaveError, setCloudSaveError] = useState<string | null>(null)
   const [storageWarning, setStorageWarning] = useState<string | null>(null)
@@ -740,6 +746,21 @@ function RecordsVaultPageContent() {
       if (careCircleNotDismissed && data.analysis?.document_type) {
         // Delay so user sees the result first, show after email prompt if both trigger
         setTimeout(() => setShowCareCirclePrompt(true), hasBiomarkers && isFirstUpload && !user && notDismissed ? 8000 : 4000)
+      }
+
+      // Show profile completion prompt if:
+      // 1. User is logged in
+      // 2. User has no profile yet
+      // 3. Cancer type was detected in the upload
+      // 4. User hasn't dismissed this prompt before
+      const extractedCancerType = data.analysis?.cancer_specific?.cancer_type
+      const extractedStage = data.analysis?.cancer_specific?.stage
+      const profilePromptNotDismissed = !localStorage.getItem('profile-prompt-dismissed')
+      if (user && !userProfile && extractedCancerType && extractedCancerType !== 'unknown' && profilePromptNotDismissed) {
+        setDetectedCancerType(extractedCancerType)
+        setDetectedStage(extractedStage !== 'unknown' ? extractedStage : null)
+        // Delay to show after other prompts
+        setTimeout(() => setShowProfilePrompt(true), 5000)
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
@@ -3432,6 +3453,90 @@ ${documentText ? `\nEXTRACTED DOCUMENT TEXT (first 8000 chars):\n${documentText.
                       </button>
                     </div>
                     <p className="text-xs text-slate-500 mt-3">CareCircle keeps everyone updated without repeating yourself</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Profile Completion Prompt - For logged-in users without a profile */}
+            {showProfilePrompt && detectedCancerType && user && !userProfile && (
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-5 relative">
+                <button
+                  onClick={() => {
+                    setShowProfilePrompt(false)
+                    localStorage.setItem('profile-prompt-dismissed', 'true')
+                    trackEvent('friction_prompt_dismissed', { type: 'profile_completion' })
+                  }}
+                  className="absolute top-3 right-3 p-1 text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <User className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-slate-900 mb-1">Save your cancer profile</p>
+                    <p className="text-sm text-slate-600 mb-3">
+                      We detected <span className="font-medium text-blue-700">{detectedCancerType}</span>
+                      {detectedStage ? ` (${detectedStage})` : ''} from your records.
+                      Save this to get personalized insights across all tools.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={async () => {
+                          setSavingProfile(true)
+                          try {
+                            await saveProfile({
+                              email: user.email || '',
+                              name: user.email?.split('@')[0] || 'Patient',
+                              role: 'patient',
+                              cancerType: detectedCancerType,
+                              stage: detectedStage || undefined,
+                            })
+                            await refreshProfile()
+                            setShowProfilePrompt(false)
+                            localStorage.setItem('profile-prompt-dismissed', 'true')
+                            trackEvent('friction_prompt_accepted', {
+                              type: 'profile_completion',
+                              cancer_type: detectedCancerType,
+                              stage: detectedStage,
+                            })
+                          } catch (err) {
+                            console.error('Failed to save profile:', err)
+                          } finally {
+                            setSavingProfile(false)
+                          }
+                        }}
+                        disabled={savingProfile}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-xl transition-colors text-sm"
+                      >
+                        {savingProfile ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Check className="w-4 h-4" />
+                            Yes, Save Profile
+                          </>
+                        )}
+                      </button>
+                      <Link
+                        href="/profile"
+                        onClick={() => {
+                          setShowProfilePrompt(false)
+                          localStorage.setItem('profile-prompt-dismissed', 'true')
+                          trackEvent('friction_prompt_accepted', { type: 'profile_completion', action: 'customize' })
+                        }}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium rounded-xl transition-colors text-sm"
+                      >
+                        Customize Profile
+                      </Link>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-2">Unlock personalized Combat analysis, tailored questions, and more</p>
                   </div>
                 </div>
               </div>
