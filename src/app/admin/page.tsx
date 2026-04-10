@@ -367,12 +367,25 @@ export default function AdminPage() {
   const [entityGraphData, setEntityGraphData] = useState<EntityGraphData | null>(null)
   const [winbackData, setWinbackData] = useState<WinbackData | null>(null)
   const [questionsData, setQuestionsData] = useState<QuestionsData | null>(null)
+  const [circleData, setCircleData] = useState<{
+    period: string
+    summary: {
+      totalPageViews: number
+      allTimePageViews: number
+      uniqueSessions: number
+      questionsAsked: number
+      circleActivities: number
+    }
+    eventsByType: Array<{ type: string; count: number }>
+    dailyViews: Array<{ date: string; views: number }>
+    recentActivity: Array<{ timestamp: string; eventType: string; sessionId: string }>
+  } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [adminKey, setAdminKey] = useState('')
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [days, setDays] = useState(30)
-  const [activeTab, setActiveTab] = useState<'analytics' | 'profiles' | 'usage' | 'activity' | 'entity' | 'questions'>('analytics')
+  const [activeTab, setActiveTab] = useState<'analytics' | 'profiles' | 'usage' | 'activity' | 'entity' | 'questions' | 'circle'>('analytics')
   const [selectedProfile, setSelectedProfile] = useState<ProfileData | null>(null)
   const [userStats, setUserStats] = useState<UserStats | null>(null)
   const [loadingUserStats, setLoadingUserStats] = useState(false)
@@ -756,6 +769,20 @@ export default function AdminPage() {
     }
   }
 
+  const fetchCircleData = async (key: string, numDays: number = 30) => {
+    try {
+      const res = await fetch(`/api/admin/circle?days=${numDays}`, {
+        headers: { 'x-admin-key': key }
+      })
+      if (res.ok) {
+        const json = await res.json()
+        setCircleData(json)
+      }
+    } catch (err) {
+      console.error('Error fetching circle data:', err)
+    }
+  }
+
   const fetchUserStats = async (profile: ProfileData) => {
     setSelectedProfile(profile)
     setLoadingUserStats(true)
@@ -1041,6 +1068,18 @@ export default function AdminPage() {
               >
                 🔗 Knowledge Graph
               </a>
+
+              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-4 mb-2 px-3">Community</div>
+              <button
+                onClick={() => { setActiveTab('circle'); if (!circleData) fetchCircleData(adminKey, days); }}
+                className={`w-full text-left px-3 py-2 rounded-lg font-medium transition-colors ${
+                  activeTab === 'circle'
+                    ? 'bg-slate-100 text-slate-900'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+              >
+                ⭕ Circle App
+              </button>
 
               <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-4 mb-2 px-3">Content</div>
               <a
@@ -3328,6 +3367,119 @@ export default function AdminPage() {
               </div>
             )}
           </>
+        ) : activeTab === 'circle' ? (
+          /* Circle Tab */
+          <div>
+            {circleData ? (
+              <>
+                {/* Summary Stats */}
+                <div className="grid sm:grid-cols-4 gap-4 mb-8">
+                  <div className="bg-white rounded-xl shadow p-4 sm:p-6">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">👁️</span>
+                      <div>
+                        <p className="text-2xl font-bold text-slate-900 tabular-nums">{circleData.summary?.totalPageViews || 0}</p>
+                        <p className="text-sm text-slate-500">Page Views ({days}d)</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-xl shadow p-4 sm:p-6">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">📊</span>
+                      <div>
+                        <p className="text-2xl font-bold text-slate-900 tabular-nums">{circleData.summary?.allTimePageViews || 0}</p>
+                        <p className="text-sm text-slate-500">All-Time Views</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-xl shadow p-4 sm:p-6">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">👤</span>
+                      <div>
+                        <p className="text-2xl font-bold text-slate-900 tabular-nums">{circleData.summary?.uniqueSessions || 0}</p>
+                        <p className="text-sm text-slate-500">Unique Sessions</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-xl shadow p-4 sm:p-6">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">❓</span>
+                      <div>
+                        <p className="text-2xl font-bold text-slate-900 tabular-nums">{circleData.summary?.questionsAsked || 0}</p>
+                        <p className="text-sm text-slate-500">Questions Asked</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Daily Views Chart */}
+                <div className="bg-white rounded-xl shadow p-6 mb-8">
+                  <h2 className="text-lg font-semibold text-slate-900 mb-4">Daily Circle App Views</h2>
+                  {circleData.dailyViews && circleData.dailyViews.length > 0 ? (
+                    <div className="space-y-2">
+                      {circleData.dailyViews.slice(0, 14).map((day: { date: string; views: number }) => (
+                        <div key={day.date} className="flex items-center gap-3">
+                          <span className="text-sm text-slate-500 w-24 tabular-nums">{day.date}</span>
+                          <div className="flex-1 bg-slate-100 rounded-full h-4 overflow-hidden">
+                            <div
+                              className="bg-purple-500 h-full rounded-full transition-all"
+                              style={{ width: `${Math.min(100, (day.views / Math.max(...circleData.dailyViews.map((d: { views: number }) => d.views))) * 100)}%` }}
+                            />
+                          </div>
+                          <span className="text-sm font-semibold text-slate-700 w-12 text-right tabular-nums">{day.views}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-slate-500">No daily data available</p>
+                  )}
+                </div>
+
+                {/* Events by Type */}
+                <div className="grid lg:grid-cols-2 gap-6 mb-8">
+                  <div className="bg-white rounded-xl shadow p-6">
+                    <h2 className="text-lg font-semibold text-slate-900 mb-4">Events by Type</h2>
+                    {circleData.eventsByType && circleData.eventsByType.length > 0 ? (
+                      <div className="space-y-2">
+                        {circleData.eventsByType.map((event: { type: string; count: number }) => (
+                          <div key={event.type} className="flex items-center justify-between">
+                            <span className="text-slate-700 text-sm">{event.type}</span>
+                            <span className="text-slate-900 font-semibold tabular-nums">{event.count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-slate-500 text-sm">No events yet</p>
+                    )}
+                  </div>
+
+                  {/* Recent Activity */}
+                  <div className="bg-white rounded-xl shadow p-6">
+                    <h2 className="text-lg font-semibold text-slate-900 mb-4">Recent Activity</h2>
+                    {circleData.recentActivity && circleData.recentActivity.length > 0 ? (
+                      <div className="space-y-2 max-h-80 overflow-y-auto">
+                        {circleData.recentActivity.slice(0, 20).map((activity: { timestamp: string; eventType: string; sessionId: string }, i: number) => (
+                          <div key={i} className="flex items-center justify-between text-sm py-1 border-b border-slate-50">
+                            <div className="flex items-center gap-2">
+                              <span className="text-slate-500 tabular-nums">{activity.sessionId}</span>
+                              <span className="text-slate-700">{activity.eventType}</span>
+                            </div>
+                            <span className="text-slate-400 text-xs">{formatTimestamp(activity.timestamp)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-slate-500 text-sm">No recent activity</p>
+                    )}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center justify-center py-20">
+                <div className="text-slate-500">Loading Circle data...</div>
+              </div>
+            )}
+          </div>
         ) : null}
           </div>
         </div>
