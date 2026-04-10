@@ -654,17 +654,41 @@ body{display:flex;flex-direction:column;align-items:center;padding:16px;min-heig
 <div style="color:#2a2825;font-size:11px;margin-top:3px;">Arrow keys · F for fullscreen · Click PDF to export</div>
 <style>
 @media print {
-  body { background: white !important; padding: 0 !important; }
+  /* Force exact color reproduction so dark slide backgrounds and accent
+     colors render in the PDF the same way they look on screen. */
+  *, *::before, *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  @page {
+    size: 11in 6.1875in; /* 16:9 landscape, matches deck aspect ratio */
+    margin: 0;
+  }
+  html, body {
+    background: #0d0d0d !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  body { display: block !important; }
   .ctrl, .prog, [style*="Arrow keys"] { display: none !important; }
-  .deck { max-width: 100% !important; }
+  .deck { max-width: 100% !important; width: 100% !important; }
   .slide {
     display: flex !important;
+    width: 100% !important;
+    height: 100vh !important;
+    aspect-ratio: auto !important;
     page-break-after: always;
     page-break-inside: avoid;
+    break-after: page;
+    break-inside: avoid;
     margin: 0 !important;
     border-radius: 0 !important;
   }
-  .slide:last-child { page-break-after: auto; }
+  .slide:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
   canvas { display: none !important; }
 }
 </style>
