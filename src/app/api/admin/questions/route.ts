@@ -42,6 +42,15 @@ export async function GET(request: NextRequest) {
   const needsReview = searchParams.get('needsReview') === 'true'
   const hasFeedback = searchParams.get('hasFeedback') === 'true'
   const source = searchParams.get('source') // 'eval_log', 'activity', 'entity', or null for all
+  const days = parseInt(searchParams.get('days') || '0') // 0 = all time
+
+  // Calculate date filter
+  let dateFilter: string | null = null
+  if (days > 0) {
+    const cutoffDate = new Date()
+    cutoffDate.setDate(cutoffDate.getDate() - days)
+    dateFilter = cutoffDate.toISOString()
+  }
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
@@ -84,6 +93,9 @@ export async function GET(request: NextRequest) {
     if (hasFeedback) {
       evalQuery = evalQuery.not('feedback_type', 'is', null)
     }
+    if (dateFilter) {
+      evalQuery = evalQuery.gte('created_at', dateFilter)
+    }
 
     const { data: evalData, error: evalError } = await evalQuery
     if (!evalError && evalData) {
@@ -98,12 +110,18 @@ export async function GET(request: NextRequest) {
 
   // 2. Fetch from patient_activity (ask_question) - main source of questions
   if (!source || source === 'activity') {
-    const { data: patientActivityData, error: paError } = await supabase
+    let activityQuery = supabase
       .from('patient_activity')
       .select('id, created_at, metadata, session_id, user_id, cancer_type')
       .eq('activity_type', 'ask_question')
       .order('created_at', { ascending: false })
       .limit(limit)
+
+    if (dateFilter) {
+      activityQuery = activityQuery.gte('created_at', dateFilter)
+    }
+
+    const { data: patientActivityData, error: paError } = await activityQuery
 
     if (!paError && patientActivityData) {
       patientActivityData.forEach(row => {
@@ -137,12 +155,18 @@ export async function GET(request: NextRequest) {
     }
 
     // Also check analytics_events for any additional questions
-    const { data: analyticsData, error: analyticsError } = await supabase
+    let analyticsQuery = supabase
       .from('analytics_events')
       .select('id, event_timestamp, metadata, session_id, user_id')
       .eq('event_type', 'ask_question')
       .order('event_timestamp', { ascending: false })
       .limit(limit)
+
+    if (dateFilter) {
+      analyticsQuery = analyticsQuery.gte('event_timestamp', dateFilter)
+    }
+
+    const { data: analyticsData, error: analyticsError } = await analyticsQuery
 
     if (!analyticsError && analyticsData) {
       analyticsData.forEach(row => {
@@ -177,12 +201,18 @@ export async function GET(request: NextRequest) {
 
   // 3. Fetch from patient_entities (entity_type = 'question')
   if (!source || source === 'entity') {
-    const { data: entityData, error: entityError } = await supabase
+    let entityQuery = supabase
       .from('patient_entities')
       .select('id, created_at, entity_value, session_id, user_id')
       .eq('entity_type', 'question')
       .order('created_at', { ascending: false })
       .limit(limit)
+
+    if (dateFilter) {
+      entityQuery = entityQuery.gte('created_at', dateFilter)
+    }
+
+    const { data: entityData, error: entityError } = await entityQuery
 
     if (!entityError && entityData) {
       entityData.forEach(row => {
@@ -242,6 +272,9 @@ export async function GET(request: NextRequest) {
 
     if (cancerType) {
       circleQuery = circleQuery.eq('cancer_type', cancerType)
+    }
+    if (dateFilter) {
+      circleQuery = circleQuery.gte('created_at', dateFilter)
     }
 
     const { data: circleData, error: circleError } = await circleQuery

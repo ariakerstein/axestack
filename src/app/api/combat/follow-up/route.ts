@@ -325,6 +325,15 @@ export async function POST(request: NextRequest) {
     const data = await response.json()
     const responseText = data?.response || data?.answer || ''
 
+    // Check if we got an empty response
+    if (!responseText) {
+      console.error('Empty response from direct-navis:', data)
+      return NextResponse.json({
+        error: 'The AI returned an empty response. Please try again.',
+        mode
+      }, { status: 500 })
+    }
+
     // Parse response based on mode
     if (mode === 'ask') {
       // Simple text response for ask mode
@@ -349,11 +358,23 @@ export async function POST(request: NextRequest) {
 
         const parsed = JSON.parse(jsonMatch[0])
 
+        // Validate parsed structure has required fields
+        if (!parsed.acknowledgment && !parsed.explanation) {
+          console.error('Parsed JSON missing required fields:', parsed)
+          return NextResponse.json({
+            response: responseText, // Return raw text if JSON structure is wrong
+            mode: 'revise',
+            parseError: true
+          })
+        }
+
         // Extract and save entities from the correction (non-blocking)
         const entityResult = await extractAndSaveCorrections(message, userId, sessionId)
 
-        // Build response with entity feedback
-        let responseWithFeedback = parsed.acknowledgment + '\n\n' + parsed.explanation
+        // Build response with entity feedback - handle missing fields gracefully
+        const ack = parsed.acknowledgment || 'Got it!'
+        const exp = parsed.explanation || 'I\'ve updated the analysis based on your correction.'
+        let responseWithFeedback = ack + '\n\n' + exp
         if (entityResult.saved > 0) {
           responseWithFeedback += `\n\n✓ Updated your profile with: ${entityResult.entities.join(', ')}`
         }

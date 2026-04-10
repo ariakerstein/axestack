@@ -742,9 +742,9 @@ export default function AdminPage() {
     }
   }
 
-  const fetchQuestions = async (key: string) => {
+  const fetchQuestions = async (key: string, numDays: number = 0) => {
     try {
-      const res = await fetch('/api/admin/questions?limit=1000', {
+      const res = await fetch(`/api/admin/questions?limit=1000&days=${numDays}`, {
         headers: { 'x-admin-key': key }
       })
       if (res.ok) {
@@ -878,6 +878,8 @@ export default function AdminPage() {
     setDays(newDays)
     if (adminKey) {
       fetchAnalytics(adminKey, newDays)
+      // Clear questions data so it refetches with new date filter
+      setQuestionsData(null)
     }
   }
 
@@ -1024,7 +1026,7 @@ export default function AdminPage() {
                 🕸️ Entity Graph
               </button>
               <button
-                onClick={() => { setActiveTab('questions'); if (!questionsData) fetchQuestions(adminKey); }}
+                onClick={() => { setActiveTab('questions'); if (!questionsData) fetchQuestions(adminKey, days); }}
                 className={`w-full text-left px-3 py-2 rounded-lg font-medium transition-colors ${
                   activeTab === 'questions'
                     ? 'bg-slate-100 text-slate-900'
@@ -2408,7 +2410,7 @@ export default function AdminPage() {
               <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-slate-900">Recent Questions</h3>
                 <button
-                  onClick={() => fetchQuestions(adminKey)}
+                  onClick={() => fetchQuestions(adminKey, days)}
                   className="text-sm text-slate-600 hover:text-slate-700"
                 >
                   Refresh

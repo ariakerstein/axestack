@@ -230,13 +230,29 @@ export function CombatFollowUpChat({
 
       const data = await response.json()
 
+      // Handle API errors
+      if (!response.ok || data.error) {
+        const errorMessage = data.error || 'Something went wrong. Please try again.'
+        setMessages(prev => {
+          const filtered = prev.filter(m => m.id !== loadingId)
+          return [...filtered, {
+            id: crypto.randomUUID(),
+            role: 'assistant',
+            content: `I'm having trouble processing that. ${errorMessage}`,
+            timestamp: new Date(),
+            typingComplete: true
+          }]
+        })
+        return
+      }
+
       // Remove loading message and add actual response
       setMessages(prev => {
         const filtered = prev.filter(m => m.id !== loadingId)
         return [...filtered, {
           id: crypto.randomUUID(),
           role: 'assistant',
-          content: data.response || 'Sorry, I could not process that request.',
+          content: data.response || 'I processed your request but didn\'t get a complete response. Please try rephrasing.',
           timestamp: new Date(),
           mode: data.mode,
           followUpQuestions: data.followUpQuestions,
@@ -324,6 +340,22 @@ export function CombatFollowUpChat({
       })
 
       const data = await response.json()
+
+      // Handle API errors - still provide helpful fallback for corrections
+      if (!response.ok || data.error) {
+        setMessages(prev => {
+          const filtered = prev.filter(m => m.id !== loadingId)
+          return [...filtered, {
+            id: crypto.randomUUID(),
+            role: 'assistant',
+            content: `Got it! I'll update the analysis to reflect that the ${fieldLabel} is ${selectedValue}. For the most accurate analysis with your updated information, consider re-running Combat.`,
+            timestamp: new Date(),
+            mode: 'revise',
+            typingComplete: true
+          }]
+        })
+        return
+      }
 
       // Remove loading message and add actual response
       setMessages(prev => {

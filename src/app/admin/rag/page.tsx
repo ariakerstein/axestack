@@ -25,11 +25,35 @@ interface ContentItem {
   storage_path?: string | null
 }
 
+interface RagSource {
+  id: string
+  source_type: string
+  title: string
+  cancer_types: string[]
+  content_tier: string | null
+  status: string
+  chunk_count: number
+  avg_chunk_quality: number | null
+  version: string | null
+  last_ingested_at: string | null
+  next_refresh_at: string | null
+  created_at: string
+}
+
 interface ContentStats {
   total: number
   totalChunks: number
   byTier: Record<string, number>
   byStatus: Record<string, number>
+}
+
+interface SourceStats {
+  total: number
+  totalChunks: number
+  byType: Record<string, number>
+  byStatus: Record<string, number>
+  staleCount: number
+  avgQuality: number
 }
 
 const CONTENT_TIERS = [
@@ -54,6 +78,12 @@ export default function RAGAdminPage() {
   const [filterTier, setFilterTier] = useState('all')
   const [filterStatus, setFilterStatus] = useState('all')
 
+  // Source registry state
+  const [activeView, setActiveView] = useState<'sources' | 'content'>('sources')
+  const [sources, setSources] = useState<RagSource[]>([])
+  const [sourceStats, setSourceStats] = useState<SourceStats | null>(null)
+  const [filterSourceType, setFilterSourceType] = useState('all')
+
   // Upload state
   const [showUploadModal, setShowUploadModal] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
@@ -76,10 +106,75 @@ export default function RAGAdminPage() {
   const [processingItems, setProcessingItems] = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    loadContent()
-    loadStats()
+    if (activeView === 'sources') {
+      loadSources()
+    } else {
+      loadContent()
+      loadStats()
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterTier, filterStatus, searchQuery])
+  }, [filterTier, filterStatus, searchQuery, activeView, filterSourceType])
+
+  const loadSources = async () => {
+    setIsLoading(true)
+    try {
+      let query = supabase
+        .from('rag_sources')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (filterSourceType !== 'all') {
+        query = query.eq('source_type', filterSourceType)
+      }
+      if (filterStatus !== 'all') {
+        query = query.eq('status', filterStatus)
+      }
+      if (searchQuery) {
+        query = query.ilike('title', `%${searchQuery}%`)
+      }
+
+      const { data, error } = await query.limit(500)
+      if (error) throw error
+
+      setSources(data || [])
+
+      // Calculate stats
+      const allSources = data || []
+      const byType: Record<string, number> = {}
+      const byStatus: Record<string, number> = {}
+      let totalChunks = 0
+      let qualitySum = 0
+      let qualityCount = 0
+      let staleCount = 0
+      const now = new Date()
+
+      allSources.forEach((s: RagSource) => {
+        byType[s.source_type] = (byType[s.source_type] || 0) + 1
+        byStatus[s.status] = (byStatus[s.status] || 0) + 1
+        totalChunks += s.chunk_count || 0
+        if (s.avg_chunk_quality) {
+          qualitySum += s.avg_chunk_quality
+          qualityCount++
+        }
+        if (s.next_refresh_at && new Date(s.next_refresh_at) < now) {
+          staleCount++
+        }
+      })
+
+      setSourceStats({
+        total: allSources.length,
+        totalChunks,
+        byType,
+        byStatus,
+        staleCount,
+        avgQuality: qualityCount > 0 ? qualitySum / qualityCount : 0
+      })
+    } catch (error) {
+      console.error('Load sources error:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const loadContent = async () => {
     setIsLoading(true)
@@ -372,16 +467,41 @@ export default function RAGAdminPage() {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800'
       case 'draft': return 'bg-yellow-100 text-yellow-800'
+      case 'pending': return 'bg-yellow-100 text-yellow-800'
       case 'archived': return 'bg-gray-100 text-gray-600'
+      case 'error': return 'bg-red-100 text-red-800'
       default: return 'bg-gray-100 text-gray-800'
     }
+  }
+
+  const getSourceTypeColor = (type: string) => {
+    switch (type) {
+      case 'nccn': return 'bg-purple-100 text-purple-800'
+      case 'asco': return 'bg-blue-100 text-blue-800'
+      case 'fda': return 'bg-red-100 text-red-800'
+      case 'pubmed': return 'bg-green-100 text-green-800'
+      case 'webinar': return 'bg-orange-100 text-orange-800'
+      case 'user_upload': return 'bg-cyan-100 text-cyan-800'
+      default: return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return '-'
+    const date = new Date(dateStr)
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  }
+
+  const isStale = (nextRefresh: string | null) => {
+    if (!nextRefresh) return false
+    return new Date(nextRefresh) < new Date()
   }
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8 flex justify-between items-start">
+        <div className="mb-6 flex justify-between items-start">
           <div>
             <Link href="/admin" className="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-block">
               ← Back to Admin
@@ -411,6 +531,193 @@ export default function RAGAdminPage() {
           </div>
         </div>
 
+        {/* View Tabs */}
+        <div className="flex gap-1 mb-6 border-b">
+          <button
+            onClick={() => setActiveView('sources')}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              activeView === 'sources'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Source Registry ({sourceStats?.total || 0})
+          </button>
+          <button
+            onClick={() => setActiveView('content')}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              activeView === 'content'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Content Library ({stats?.total || 0})
+          </button>
+        </div>
+
+        {/* Sources View */}
+        {activeView === 'sources' && (
+          <>
+            {/* Source Stats */}
+            {sourceStats && (
+              <div className="grid grid-cols-6 gap-4 mb-6">
+                <div className="bg-white rounded-xl p-4 shadow-sm border">
+                  <p className="text-sm text-gray-500">Total Sources</p>
+                  <p className="text-3xl font-bold text-gray-900">{sourceStats.total}</p>
+                  <p className="text-xs text-gray-400">{sourceStats.totalChunks.toLocaleString()} chunks</p>
+                </div>
+                <div className="bg-white rounded-xl p-4 shadow-sm border">
+                  <p className="text-sm text-gray-500">NCCN</p>
+                  <p className="text-3xl font-bold text-purple-600">{sourceStats.byType.nccn || 0}</p>
+                </div>
+                <div className="bg-white rounded-xl p-4 shadow-sm border">
+                  <p className="text-sm text-gray-500">ASCO</p>
+                  <p className="text-3xl font-bold text-blue-600">{sourceStats.byType.asco || 0}</p>
+                </div>
+                <div className="bg-white rounded-xl p-4 shadow-sm border">
+                  <p className="text-sm text-gray-500">Other</p>
+                  <p className="text-3xl font-bold text-gray-600">{sourceStats.byType.other || 0}</p>
+                </div>
+                <div className="bg-white rounded-xl p-4 shadow-sm border">
+                  <p className="text-sm text-gray-500">Stale</p>
+                  <p className={`text-3xl font-bold ${sourceStats.staleCount > 0 ? 'text-amber-600' : 'text-green-600'}`}>
+                    {sourceStats.staleCount}
+                  </p>
+                  <p className="text-xs text-gray-400">need refresh</p>
+                </div>
+                <div className="bg-white rounded-xl p-4 shadow-sm border">
+                  <p className="text-sm text-gray-500">Avg Quality</p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    {sourceStats.avgQuality > 0 ? (sourceStats.avgQuality * 100).toFixed(0) + '%' : '-'}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Source Filters */}
+            <div className="flex items-center gap-4 mb-6">
+              <input
+                type="text"
+                placeholder="Search sources..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 max-w-md px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              <select
+                value={filterSourceType}
+                onChange={(e) => setFilterSourceType(e.target.value)}
+                className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">All Types</option>
+                <option value="nccn">NCCN</option>
+                <option value="asco">ASCO</option>
+                <option value="fda">FDA</option>
+                <option value="pubmed">PubMed</option>
+                <option value="webinar">Webinar</option>
+                <option value="user_upload">User Upload</option>
+                <option value="other">Other</option>
+              </select>
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="pending">Pending</option>
+                <option value="archived">Archived</option>
+                <option value="error">Error</option>
+              </select>
+              <button
+                onClick={loadSources}
+                className="p-2 border rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Sources Table */}
+            <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+              {isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : sources.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+                  <p>No sources found</p>
+                </div>
+              ) : (
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b">
+                    <tr>
+                      <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                      <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                      <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Cancer Types</th>
+                      <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Chunks</th>
+                      <th className="text-center py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Quality</th>
+                      <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Last Ingested</th>
+                      <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Next Refresh</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {sources.map((source) => (
+                      <tr key={source.id} className={`hover:bg-gray-50 ${isStale(source.next_refresh_at) ? 'bg-amber-50' : ''}`}>
+                        <td className="py-3 px-4 max-w-xs truncate font-medium text-gray-900" title={source.title}>
+                          {source.title}
+                          {source.version && (
+                            <span className="ml-2 text-xs text-gray-400">v{source.version}</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium uppercase ${getSourceTypeColor(source.source_type)}`}>
+                            {source.source_type}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-gray-600 text-sm">
+                          {source.cancer_types?.length > 0 ? source.cancer_types.slice(0, 2).join(', ') : '-'}
+                          {source.cancer_types?.length > 2 && <span className="text-gray-400"> +{source.cancer_types.length - 2}</span>}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(source.status)}`}>
+                            {source.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-center font-mono text-gray-600">{source.chunk_count || 0}</td>
+                        <td className="py-3 px-4 text-center">
+                          {source.avg_chunk_quality ? (
+                            <span className={`font-mono ${source.avg_chunk_quality >= 0.7 ? 'text-green-600' : source.avg_chunk_quality >= 0.4 ? 'text-amber-600' : 'text-red-600'}`}>
+                              {(source.avg_chunk_quality * 100).toFixed(0)}%
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-gray-600 text-sm">{formatDate(source.last_ingested_at)}</td>
+                        <td className="py-3 px-4 text-sm">
+                          {source.next_refresh_at ? (
+                            <span className={isStale(source.next_refresh_at) ? 'text-amber-600 font-medium' : 'text-gray-600'}>
+                              {formatDate(source.next_refresh_at)}
+                              {isStale(source.next_refresh_at) && ' ⚠️'}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Content View */}
+        {activeView === 'content' && (
+          <>
         {/* Stats */}
         {stats && (
           <div className="grid grid-cols-5 gap-4 mb-6">
@@ -586,7 +893,8 @@ export default function RAGAdminPage() {
             </table>
           )}
         </div>
-      </div>
+          </>
+        )}
 
       {/* URL Ingestion Modal */}
       {showUrlModal && (
@@ -815,6 +1123,7 @@ export default function RAGAdminPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }
