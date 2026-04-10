@@ -17,6 +17,7 @@ import { Navbar } from '@/components/Navbar'
 import { RecordsProcessingBanner } from '@/components/RecordsProcessingBanner'
 import { CombatFollowUpChat } from '@/components/CombatFollowUpChat'
 import { ThinkingIndicator } from '@/components/ThinkingIndicator'
+import { ExpandedAccessCard } from '@/components/ExpandedAccessCard'
 import { ToolRecommendation as ToolRecommendationUI } from '@/components/ToolRecommendation'
 // Verification disabled - was causing page load issues
 // import { CombatVerification, DetectedFinding, FindingCorrection } from '@/components/CombatVerification'
@@ -2490,6 +2491,28 @@ function CombatPageContent() {
                     </button>
                   </div>
                 )}
+
+                {/* Expanded Access Card - Show for advanced/metastatic patients after treatment analysis */}
+                {treatmentResult && phase === 'treatment' && (() => {
+                  const synthesis = (treatmentResult.synthesis || '').toLowerCase()
+                  const hasAdvancedIndicators =
+                    synthesis.includes('stage iv') ||
+                    synthesis.includes('stage 4') ||
+                    synthesis.includes('metasta') ||
+                    synthesis.includes('recurrent') ||
+                    synthesis.includes('refractory') ||
+                    synthesis.includes('progressed') ||
+                    synthesis.includes('limited options') ||
+                    synthesis.includes('no standard') ||
+                    synthesis.includes('exhausted') ||
+                    records.some(r => {
+                      const stage = r.result?.cancer_specific?.stage?.toLowerCase() || ''
+                      return stage.includes('iv') || stage.includes('4') || stage.includes('metasta')
+                    })
+                  return hasAdvancedIndicators ? (
+                    <ExpandedAccessCard variant="compact" context="combat_results" className="mt-4" />
+                  ) : null
+                })()}
 
                 {/* Disclaimer - Compact */}
                 <p className="text-xs text-slate-500 text-center py-2">

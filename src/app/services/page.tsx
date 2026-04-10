@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth'
 import { CANCER_TYPES } from '@/lib/cancer-data'
 import { Search, Star, X, Building2, Heart, DollarSign, Shield, Filter, ChevronRight, Globe, Upload, Sparkles, CheckCircle, MessageSquare } from 'lucide-react'
+import { ExpandedAccessCard } from '@/components/ExpandedAccessCard'
 
 interface ServiceProvider {
   id: number
@@ -394,8 +395,13 @@ export default function ServicesPage() {
           </div>
         )}
 
+        {/* Expanded Access Card */}
+        <div className="mt-10">
+          <ExpandedAccessCard variant="compact" context="services_page" />
+        </div>
+
         {/* CTA */}
-        <div className="mt-10 pt-8 border-t border-slate-200 text-center">
+        <div className="mt-8 pt-8 border-t border-slate-200 text-center">
           <h3 className="text-lg font-semibold text-slate-900 mb-2">Need personalized guidance?</h3>
           <p className="text-slate-600 text-sm mb-4">Get expert advice from Cancer Commons.</p>
           <Link href="/expert-review" className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-medium px-6 py-3 rounded-lg transition-colors">

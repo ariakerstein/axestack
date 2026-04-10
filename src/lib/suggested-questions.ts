@@ -117,6 +117,22 @@ const CANCER_SPECIFIC_FALLBACK: Record<string, SuggestedQuestion[]> = {
     { id: 3, question: "Am I a candidate for CAR-T cell therapy?", category: "Treatment" },
     { id: 4, question: "What does PET-CT show about my response to treatment?", category: "Monitoring" },
   ],
+  follicular_lymphoma: [
+    { id: 1, question: "What is my FLIPI score and what does it mean for my prognosis?", category: "Prognosis" },
+    { id: 2, question: "Is watch-and-wait (active surveillance) appropriate for my stage, or do I need treatment now?", category: "Treatment Planning" },
+    { id: 3, question: "If I need treatment, should I get bendamustine-rituximab, R-CHOP, or obinutuzumab-based therapy?", category: "Treatment" },
+    { id: 4, question: "Should I get maintenance rituximab after initial treatment, and for how long?", category: "Maintenance" },
+    { id: 5, question: "What is the risk of my follicular lymphoma transforming to aggressive DLBCL, and how is that monitored?", category: "Monitoring" },
+    { id: 6, question: "Am I a candidate for lenalidomide + rituximab (R2) or a bispecific antibody like mosunetuzumab?", category: "Novel Therapies" },
+  ],
+  dlbcl: [
+    { id: 1, question: "What is my IPI score and what does it mean for my prognosis?", category: "Prognosis" },
+    { id: 2, question: "Is my DLBCL germinal center B-cell (GCB) or activated B-cell (ABC) subtype, and does it change my treatment?", category: "Subtyping" },
+    { id: 3, question: "Have I been tested for MYC, BCL2, and BCL6 rearrangements (double-hit/triple-hit)?", category: "Biomarkers" },
+    { id: 4, question: "Should I get R-CHOP, dose-adjusted R-EPOCH, or pola-R-CHP based on my risk factors?", category: "Treatment" },
+    { id: 5, question: "What does my interim PET scan (Deauville score) tell us about my response to treatment?", category: "Monitoring" },
+    { id: 6, question: "If I relapse or don't respond, am I a candidate for CAR-T cell therapy (axi-cel, liso-cel, or tisa-cel)?", category: "Salvage Therapy" },
+  ],
   leukemia: [
     { id: 1, question: "What are my cytogenetic results and how do they affect my risk category?", category: "Diagnosis" },
     { id: 2, question: "Have I been tested for FLT3, NPM1, and IDH mutations?", category: "Biomarkers" },

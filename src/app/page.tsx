@@ -1115,6 +1115,24 @@ function HomeContent() {
                 <p className="text-slate-500 text-xs">Cancer Commons</p>
               </Link>
 
+              {!hasRecords && (
+                <Link href="/expert-review?expert=protean" className="group bg-gradient-to-r from-slate-50 to-emerald-50 border border-emerald-200 rounded-lg p-4 hover:border-emerald-400 transition-all relative">
+                  <span className="absolute -top-2 right-2 bg-emerald-600 text-white text-[9px] font-medium px-1.5 py-0.5 rounded">Premium</span>
+                  <div className="flex items-center gap-2">
+                    <img src="/team/tony-magliocco.png" alt="Dr. Magliocco" className="w-5 h-5 rounded-full object-cover" />
+                    <img src="https://images.squarespace-cdn.com/content/v1/5a4c3e3ebff200d1651f0273/1612204851498-UYVYCYQRCXVHMA08T0TS/protean_logo.png" alt="Protean" className="h-4 w-auto" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                  </div>
+                  <h3 className="font-semibold text-slate-900 text-sm mt-2">Pathology Review</h3>
+                  <p className="text-slate-500 text-xs">Dr. Magliocco · $650</p>
+                </Link>
+              )}
+
+              <Link href="/expanded-access" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
+                <Building2 className="w-5 h-5 text-blue-600" />
+                <h3 className="font-semibold text-slate-900 text-sm mt-2">Expanded Access</h3>
+                <p className="text-slate-500 text-xs">FDA Project Facilitate</p>
+              </Link>
+
               <a href="https://community.cancerpatientlab.org/" target="_blank" rel="noopener noreferrer" className="group bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-400 transition-all">
                 <Users className="w-5 h-5 text-green-500" />
                 <h3 className="font-semibold text-slate-900 text-sm mt-2">Community</h3>
