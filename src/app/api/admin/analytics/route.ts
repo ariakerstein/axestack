@@ -27,26 +27,49 @@ export async function GET(request: Request) {
 
   try {
     const supabase = getSupabase()
+    const startDateISO = startDate.toISOString()
 
-    // Get all events for opencancer app
+    // Use COUNT queries for accurate totals (Supabase default limit is 1000 rows)
+    const [
+      { count: totalPageViews },
+      { count: totalEvents },
+      { data: uniqueSessionsData },
+    ] = await Promise.all([
+      // Page views count
+      supabase
+        .from('analytics_events')
+        .select('*', { count: 'exact', head: true })
+        .eq('event_type', 'page_view')
+        .gte('event_timestamp', startDateISO),
+      // Total events count
+      supabase
+        .from('analytics_events')
+        .select('*', { count: 'exact', head: true })
+        .gte('event_timestamp', startDateISO),
+      // Unique sessions - fetch distinct session_ids with high limit
+      supabase
+        .from('analytics_events')
+        .select('session_id')
+        .gte('event_timestamp', startDateISO)
+        .limit(50000),
+    ])
+
+    const uniqueSessions = new Set(uniqueSessionsData?.map((e: { session_id: string }) => e.session_id) || []).size
+
+    // Fetch limited events for breakdowns (most recent 5000 for analysis)
     const { data: events, error } = await supabase
       .from('analytics_events')
       .select('*')
-      .gte('event_timestamp', startDate.toISOString())
+      .gte('event_timestamp', startDateISO)
       .order('event_timestamp', { ascending: false })
+      .limit(5000)
 
     if (error) {
       console.error('Analytics query error:', error)
       return NextResponse.json({ error: 'Failed to fetch analytics' }, { status: 500 })
     }
 
-    // Use all events - this is the opencancer analytics table
-    // (Previously filtered to metadata.app === 'opencancer', but older events may not have this tag)
     const opencancerEvents = events || []
-
-    // Calculate metrics
-    const totalPageViews = opencancerEvents.filter((e: { event_type: string }) => e.event_type === 'page_view').length
-    const uniqueSessions = new Set(opencancerEvents.map((e: { session_id: string }) => e.session_id)).size
 
     // Page views by path
     const pageViewsByPath: Record<string, number> = {}
@@ -125,15 +148,13 @@ export async function GET(request: Request) {
     const askQuestionEvents = opencancerEvents.filter((e: { event_type: string }) => e.event_type === 'ask_question')
 
     // Also count ALL questions from analytics_events (not just within date range)
-    const { data: allAnalyticsQuestions } = await supabase
+    const { count: askQuestionsFromAnalytics } = await supabase
       .from('analytics_events')
-      .select('id')
+      .select('*', { count: 'exact', head: true })
       .eq('event_type', 'ask_question')
 
-    const askQuestionsFromAnalytics = allAnalyticsQuestions?.length || 0
-
     // Use the higher count - both sources should have the same data, but one might have more due to race conditions
-    const askQuestions = Math.max(askQuestionsFromActivity, askQuestionsFromAnalytics)
+    const askQuestions = Math.max(askQuestionsFromActivity, askQuestionsFromAnalytics || 0)
 
     // Get question details for drill-down (still from analytics_events for metadata)
     const questionDetails = askQuestionEvents.map((e: {
