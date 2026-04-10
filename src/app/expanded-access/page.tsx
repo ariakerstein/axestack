@@ -42,15 +42,15 @@ const ELIGIBILITY_QUESTIONS = [
   }
 ]
 
-// Sample pharma expanded access programs (curated list)
+// Sample pharma expanded access programs (curated list with verified URLs)
 const PHARMA_PROGRAMS: Record<string, { company: string; drugs: string[]; url: string; phone?: string }> = {
-  'merck': { company: 'Merck', drugs: ['Keytruda (pembrolizumab)'], url: 'https://www.merckaccess.com/oncology/expanded-access.html', phone: '1-800-672-6372' },
-  'roche': { company: 'Roche/Genentech', drugs: ['Tecentriq (atezolizumab)', 'Avastin (bevacizumab)'], url: 'https://www.gene.com/patients/expanded-access', phone: '1-888-835-2555' },
-  'bms': { company: 'Bristol-Myers Squibb', drugs: ['Opdivo (nivolumab)', 'Yervoy (ipilimumab)'], url: 'https://www.bms.com/patient-and-caregivers/access-programs.html' },
+  'merck': { company: 'Merck', drugs: ['Keytruda (pembrolizumab)'], url: 'https://www.merckaccess.com/', phone: '1-800-672-6372' },
+  'roche': { company: 'Roche/Genentech', drugs: ['Tecentriq (atezolizumab)', 'Avastin (bevacizumab)'], url: 'https://www.gene.com/medical-professionals/clinical-trial-information/other-types-of-access', phone: '1-844-287-3783' },
+  'bms': { company: 'Bristol-Myers Squibb', drugs: ['Opdivo (nivolumab)', 'Yervoy (ipilimumab)'], url: 'https://www.bmsaccesssupport.com/patient', phone: '1-800-861-0048' },
   'pfizer': { company: 'Pfizer', drugs: ['Ibrance (palbociclib)', 'Lorbrena (lorlatinib)'], url: 'https://www.pfizer.com/science/clinical-trials/expanded-access' },
-  'astrazeneca': { company: 'AstraZeneca', drugs: ['Tagrisso (osimertinib)', 'Imfinzi (durvalumab)'], url: 'https://www.astrazeneca-us.com/patient-assistance.html' },
-  'lilly': { company: 'Eli Lilly', drugs: ['Verzenio (abemaciclib)', 'Retevmo (selpercatinib)'], url: 'https://www.lillyclinicaltrials.com/expanded-access' },
-  'novartis': { company: 'Novartis', drugs: ['Kisqali (ribociclib)', 'Kymriah (tisagenlecleucel)'], url: 'https://www.novartis.com/our-work/patients-caregivers/patient-assistance' },
+  'astrazeneca': { company: 'AstraZeneca', drugs: ['Tagrisso (osimertinib)', 'Imfinzi (durvalumab)'], url: 'https://www.astrazeneca.com/our-therapy-areas/oncology.html', phone: '1-844-275-2360' },
+  'lilly': { company: 'Eli Lilly', drugs: ['Verzenio (abemaciclib)', 'Retevmo (selpercatinib)'], url: 'https://www.lilly.com/science/clinical-trials/expanded-access', phone: '1-800-545-5979' },
+  'novartis': { company: 'Novartis', drugs: ['Kisqali (ribociclib)', 'Kymriah (tisagenlecleucel)'], url: 'https://www.novartis.com/healthcare-professionals/managed-access-programs' },
 }
 
 interface InvestigationalDrug {
