@@ -19,15 +19,15 @@
 html,body{height:100%;background:#0d0d0d;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;}
 body{display:flex;flex-direction:column;align-items:center;padding:16px;min-height:100vh;}
 .deck{width:100%;max-width:1120px;}
-.slide{display:none;width:100%;aspect-ratio:16/9;position:relative;overflow:hidden;border-radius:10px;flex-direction:column;}
+.slide{display:none;width:100%;aspect-ratio:16/9;position:relative;overflow:hidden;border-radius:10px;flex-direction:column;isolation:isolate;}
 .slide.active{display:flex;}
 .dk{background:var(--dk);}
 .wm{background:var(--wm);}
 
-.bar-l{position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--tc);}
-.bar-b{position:absolute;bottom:0;left:0;right:0;height:4px;background:var(--tc);}
-.wmark{position:absolute;right:-6%;top:-15%;width:58%;height:130%;border-radius:50%;border:38px solid rgba(255,255,255,.022);pointer-events:none;}
-.wmarkl{position:absolute;right:-6%;top:-15%;width:58%;height:130%;border-radius:50%;border:38px solid rgba(10,10,10,.04);pointer-events:none;}
+.bar-l{position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--tc);z-index:1;}
+.bar-b{position:absolute;bottom:0;left:0;right:0;height:4px;background:var(--tc);z-index:1;}
+.wmark{position:absolute;right:-6%;top:-15%;width:58%;height:130%;border-radius:50%;border:38px solid rgba(255,255,255,.022);pointer-events:none;z-index:-1;}
+.wmarkl{position:absolute;right:-6%;top:-15%;width:58%;height:130%;border-radius:50%;border:38px solid rgba(10,10,10,.04);pointer-events:none;z-index:-1;}
 
 .nav{position:absolute;top:0;left:0;right:0;padding:12px 36px;display:flex;align-items:center;gap:6px;z-index:5;}
 .nw{font-size:12px;display:flex;}
@@ -194,7 +194,7 @@ body{display:flex;flex-direction:column;align-items:center;padding:16px;min-heig
   </div>
   <div class="c ct" style="justify-content:center;align-items:center;text-align:center;">
     <div class="ey">The opportunity</div>
-    <div class="h2 dt" style="margin-bottom:32px;">53 Million Patients Waiting for Better Solutions</div>
+    <div class="h2 dt" style="margin-bottom:32px;">53 Million Patients Desperate for Better Solutions</div>
     <div class="g3" style="gap:20px;margin-bottom:32px;max-width:800px;">
       <div class="cl" style="border-top:3px solid var(--rd);padding:28px 20px;text-align:center;">
         <div class="stat" style="color:var(--rd);">20M</div>
@@ -448,6 +448,28 @@ body{display:flex;flex-direction:column;align-items:center;padding:16px;min-heig
   <div class="sn">10</div>
 </div>
 
+<!-- A3: Distribution (FB Screenshot) — placed before The Ask -->
+<div class="slide dk" id="a3">
+  <div class="nav">
+    <img src="https://opencancer.ai/nav-lockup-white.svg" height="16" alt="opencancer.ai"/>
+  </div>
+  <!-- Full-bleed image shifted right -->
+  <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;padding:8px 24px 8px 500px;">
+    <img src="https://opencancer.ai/pitchAssets/fb-distribution.jpg" alt="Facebook community engagement" style="max-height:100%;max-width:100%;object-fit:contain;border-radius:8px;"/>
+  </div>
+  <!-- Overlay badge top-left -->
+  <div style="position:absolute;top:40px;left:24px;background:rgba(10,10,10,0.92);padding:20px 24px;border-radius:10px;border-left:4px solid var(--tc);z-index:10;max-width:440px;">
+    <div class="ey" style="font-size:13px;margin-bottom:10px;">Nobody really has time for patients.<br/>We give a damn &mdash; AI scales it.</div>
+    <div style="color:#fff;font-size:32px;font-weight:700;line-height:1.15;">&ldquo;Thanks so much for taking the time to respond! ... Her current oncologist doesn&rsquo;t explain things to us. Doesn&rsquo;t take the time.&rdquo;</div>
+    <div style="display:flex;gap:20px;margin-top:14px;font-size:14px;">
+      <span><span class="tc" style="font-weight:700;">200+</span> <span class="gt">groups</span></span>
+      <span><span class="tc" style="font-weight:700;">1000s</span> <span class="gt">daily</span></span>
+      <span><span class="tc" style="font-weight:700;">$0</span> <span class="gt">CAC</span></span>
+    </div>
+  </div>
+  <div class="sn" style="color:#555;">11</div>
+</div>
+
 <!-- S11: THE ASK -->
 <div class="slide wm" id="s11">
   <div class="wmarkl"></div><div class="bar-b"></div>
@@ -503,7 +525,7 @@ body{display:flex;flex-direction:column;align-items:center;padding:16px;min-heig
       </table>
     </div>
   </div>
-  <div class="sn">11</div>
+  <div class="sn">12</div>
 </div>
 
 <!-- APPENDIX: THE GRAPH - How It Works -->
@@ -539,7 +561,7 @@ body{display:flex;flex-direction:column;align-items:center;padding:16px;min-heig
       </div>
     </div>
   </div>
-  <div class="sn">A1</div>
+  <div class="sn">13 · Appendix</div>
 </div>
 
 <!-- APPENDIX A2: Advisory Board -->
@@ -617,29 +639,7 @@ body{display:flex;flex-direction:column;align-items:center;padding:16px;min-heig
       </div>
     </div>
   </div>
-  <div class="sn" style="color:#555;">A2</div>
-</div>
-
-<!-- APPENDIX A3: Distribution (FB Screenshot) -->
-<div class="slide dk" id="a3">
-  <div class="nav">
-    <img src="https://opencancer.ai/nav-lockup-white.svg" height="16" alt="opencancer.ai" style="opacity:.5;"/>
-  </div>
-  <!-- Full-bleed image shifted right -->
-  <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:8px 8px 8px 80px;">
-    <img src="https://opencancer.ai/pitchAssets/fb-distribution.jpg" alt="Facebook community engagement" style="max-height:100%;max-width:100%;object-fit:contain;border-radius:8px;"/>
-  </div>
-  <!-- Overlay badge top-left -->
-  <div style="position:absolute;top:40px;left:24px;background:rgba(10,10,10,0.9);padding:16px 20px;border-radius:10px;border-left:4px solid var(--tc);z-index:10;max-width:220px;">
-    <div class="ey" style="font-size:13px;margin-bottom:6px;">Distribution</div>
-    <div style="color:#fff;font-size:20px;font-weight:700;line-height:1.2;">Product growth through experimentation.</div>
-    <div style="display:flex;gap:20px;margin-top:10px;font-size:14px;">
-      <span><span class="tc" style="font-weight:700;">200+</span> <span class="gt">groups</span></span>
-      <span><span class="tc" style="font-weight:700;">1000s</span> <span class="gt">daily</span></span>
-      <span><span class="tc" style="font-weight:700;">$0</span> <span class="gt">CAC</span></span>
-    </div>
-  </div>
-  <div class="snl">A3</div>
+  <div class="sn" style="color:#555;">14 · Appendix</div>
 </div>
 
 </div>
@@ -654,23 +654,53 @@ body{display:flex;flex-direction:column;align-items:center;padding:16px;min-heig
 <div style="color:#2a2825;font-size:11px;margin-top:3px;">Arrow keys · F for fullscreen · Click PDF to export</div>
 <style>
 @media print {
-  body { background: white !important; padding: 0 !important; }
-  .ctrl, .prog, [style*="Arrow keys"] { display: none !important; }
-  .deck { max-width: 100% !important; }
+  /* Force exact color reproduction so dark slide backgrounds and accent
+     colors render in the PDF the same way they look on screen. */
+  *, *::before, *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  @page {
+    size: 11in 6.1875in; /* 16:9 landscape, matches deck aspect ratio */
+    margin: 0;
+  }
+  html, body {
+    background: #0d0d0d !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  body { display: block !important; }
+  /* Hide everything in <body> that isn't the deck itself — controls,
+     prog readout, the 'Arrow keys' helper text, etc. The previous
+     [style*="Arrow keys"] selector matched the style attribute, not
+     text content, so it never actually hid that element and it ended
+     up forced onto a trailing 15th page. */
+  body > *:not(.deck) { display: none !important; }
+  .deck { max-width: 100% !important; width: 100% !important; }
   .slide {
     display: flex !important;
-    page-break-after: always;
+    width: 100% !important;
+    height: 100vh !important;
+    aspect-ratio: auto !important;
     page-break-inside: avoid;
+    break-inside: avoid;
     margin: 0 !important;
     border-radius: 0 !important;
   }
-  .slide:last-child { page-break-after: auto; }
+  /* Use break-before on every slide except the first instead of
+     break-after on every slide except the last — avoids the trailing
+     blank page some browsers emit even with :last-child override. */
+  .slide + .slide {
+    page-break-before: always;
+    break-before: page;
+  }
   canvas { display: none !important; }
 }
 </style>
 
 <script>
-const slides=['s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11','a1','a2','a3'];
+const slides=['s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','a3','s11','a1','a2'];
 let cur=0,tot=slides.length,gStarted=false,gt=0,gAF;
 function show(n){
   document.querySelectorAll('.slide').forEach(s=>s.classList.remove('active'));
